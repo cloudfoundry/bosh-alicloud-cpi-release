@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "bosh_aliyun_cpi"
+
+# Usage example:
+# irb(main):001:0> cpi.create_vm("test",
+#                                "")
+
+require "irb"
+
+require "irb/completion"
+require "ostruct"
+require "optparse"
+require "psych"
+
+config_file = nil
+
+opts_parser = OptionParser.new do |opts|
+  opts.on("-c", "--config FILE") { |file| config_file = file }
+end
+
+opts_parser.parse!
+
+unless config_file
+  puts opts_parser
+  exit(1)
+end
+
+p config_file
+
+@config = Psych.load_file(config_file)
+
+module ConsoleHelpers
+  def cpi
+    @cpi ||= Bosh::Aliyun::Cloud.new(@config)
+  end
+
+  def aliyun
+    cpi.aliyun
+  end
+
+  def registry
+    cpi.registry
+  end
+end
+
+cloud_config = OpenStruct.new(:logger => Logger.new(STDOUT))
+
+Bosh::Clouds::Config.configure(cloud_config)
+
+include ConsoleHelpers
+
+begin
+  require "ruby-debug"
+  puts "=> Debugger enabled"
+rescue LoadError
+  puts "=> ruby-debug not found, debugger disabled"
+end
+
+puts "=> Welcome to BOSH Aliyun CPI console"
+puts "You can use 'cpi' to access CPI methods"
+
+IRB.start
