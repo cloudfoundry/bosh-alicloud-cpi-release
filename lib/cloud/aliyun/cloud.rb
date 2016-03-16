@@ -5,27 +5,85 @@ module Bosh::Aliyun
 
     def initialize(options)
       @options = options.dup.freeze
-
-      @stemcell_manager = Bosh::Aliyun::StemcellManager.new(aliyun_properties)
     end
 
     def create_stemcell(image_path, cloud_properties)
-      with_thread_name("create_stemcell(#{image_path}...)") do
-        @stemcell_manager.create_stemcell(image_path, cloud_properties)
-      end
+      parameters={};
+      AliyunImgWrapper.createImage(parameters);
     end
 
     def delete_stemcell(stemcell_id)
-      with_thread_name("delete_stemcell(#{stemcell_id})") do
-        @stemcell_manager.delete_stemcell(stemcell_id)
-      end
+      parameters={};
+      AliyunImgWrapper.deleteImage(parameters);
+    end
+
+    def create_vm(agent_id, stemcell_id, resource_pool,
+                  networks, disk_locality, env)
+      parameters={};
+      AliyunInstanceWrapper.createInstance(parameters);
+    end
+
+    def delete_vm(vm_id)
+      parameters={};
+      AliyunInstanceWrapper.deleteInstance(parameters);
+    end
+
+    def has_vm?(vm_id)
+      parameters={};
+      AliyunInstanceWrapper.describeInstances(parameters);
+    end
+
+    def has_disk?(disk_id)
+      parameters={};
+      AliyunImgWrapper.describeDisks(parameters);
+    end
+
+    def reboot_vm(vm_id)
+      parameters={};
+      AliyunInstanceWrapper.rebootInstance(parameters);
+    end
+
+    def set_vm_metadata(vm, metadata)
+      parameters={};
+      AliyunInstanceWrapper.modifyInstanceAttribute(parameters);
+    end
+
+    def create_disk(size, cloud_properties, vm_locality)
+      parameters={};
+      AliyunImgWrapper.createDisk(parameters);
+    end
+
+    def delete_disk(disk_id)
+      parameters={};
+      AliyunImgWrapper.deleteDisk(parameters);
+    end
+
+    def attach_disk(vm_id, disk_id)
+      parameters={};
+      AliyunImgWrapper.attachDisk(parameters);
+    end
+
+    def snapshot_disk(disk_id, metadata)
+      parameters={};
+      AliyunImgWrapper.createSnapshot(parameters);
+    end
+
+    def delete_snapshot(snapshot_id)
+      parameters={};
+      AliyunImgWrapper.deleteSnapshot(parameters);
+    end
+
+    def detach_disk(vm_id, disk_id)
+      parameters={};
+      AliyunImgWrapper.detachDisk(parameters);
+    end
+
+    def get_disks(vm_id)
+      parameters={};
+      AliyunImgWrapper.describeDisks(parameters);
     end
 
     private
-
-    def aliyun_properties
-      @aliyun_properties ||= options.fetch('aliyun')
-    end
 
   end
 end
