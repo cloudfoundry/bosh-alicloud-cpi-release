@@ -17,9 +17,9 @@ module Bosh::Aliyun
       AliyunImgWrapper.deleteImage(parameters);
     end
 
-    def create_vm(agent_id, stemcell_id, resource_pool,
-                  networks, disk_locality, env)
-      parameters={};
+    def create_vm(agent_id, stemcell_id, resource_pool, networks, disk_locality, env)
+      aliyun_properties = options.fetch('aliyun');
+
       AliyunInstanceWrapper.createInstance(parameters);
     end
 

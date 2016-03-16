@@ -18,6 +18,9 @@ module Bosh::Aliyun
       uri = URI.parse(@@Aliyun_OpenApi_Url);
       response = Net::HTTP.post_form(uri, parameters);
       body=JSON.parse(response.body);
+      if has_key("Code")
+        raise body["Code"]+":"+body["Message"];
+      end
       puts body;
       return body;
     end

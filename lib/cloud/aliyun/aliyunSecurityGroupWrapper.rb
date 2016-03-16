@@ -15,5 +15,12 @@ module Bosh::Aliyun
       parameters["Version"]= "2014-05-26";
       AliyunOpenApiHttpsUtil.request(parameters);
     end
+
+    #必传参数：目标安全组ID(SecurityGroupId)、目标安全组所属 Region ID(RegionId)
+    def AliyunSecurityGroupWrapper.hasSecurityGroup(parameters)
+      #parameter check:目标安全组ID(SecurityGroupId)、目标安全组所属 Region ID(RegionId)、网络类型(NicType)、授权方向(Direction)
+      AliyunSecurityGroupWrapper.describeSecurityGroupAttribute(parameters);
+      return true;
+    end
   end
 end
