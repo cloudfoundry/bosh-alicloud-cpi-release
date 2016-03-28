@@ -105,9 +105,9 @@ module Bosh::Aliyun
 
     def initCommonParameter(aliyun_properties, parameters)
       #AccessKeyId:***REMOVED***
-      #AccessKeyKey:***REMOVED***
+      #AccessKey:***REMOVED***
       parameters["AccessKeyId"]=aliyun_properties["AccessKeyId"];
-      parameters["AccessKeyKey"]=aliyun_properties["AccessKeyKey"];
+      parameters["Secret"]=aliyun_properties["AccessKeyKey"];
     end
   end
 end
