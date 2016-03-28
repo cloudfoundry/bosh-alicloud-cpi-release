@@ -3,13 +3,13 @@ module Bosh::Aliyun
     #必传参数：地域(RegionId)、镜像文件 ID()、实例的资源规则、安全组代码
     def AliyunInstanceWrapper.createInstance(parameters)
       #parameter check:
-      if !has_img(aliyun_properties)
-        raise "image not exist";
-      end
+      #if !has_img(aliyun_properties)
+      #  raise "image not exist";
+      #end
 
-      if !has_securityGroup(aliyun_properties)
-        raise "securityGroup not exist";
-      end
+      #if !has_securityGroup(aliyun_properties)
+      #  raise "securityGroup not exist";
+      #end
 
       parameters["Action"]= "CreateInstance";
       parameters["Version"]= "2014-05-26";

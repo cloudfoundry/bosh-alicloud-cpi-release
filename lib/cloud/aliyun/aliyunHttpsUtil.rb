@@ -10,7 +10,7 @@ require 'json'
 module Bosh::Aliyun
   class AliyunOpenApiHttpsUtil
     @@Aliyun_OpenApi_Url="http://ecs.aliyuncs.com/?";
-    @@Secret_Key="Secret";
+    @@Secret_Key="AccessKeyKey";
     @@Signature="Signature";
 
     def AliyunOpenApiHttpsUtil.request(parameters)
@@ -18,7 +18,7 @@ module Bosh::Aliyun
       uri = URI.parse(@@Aliyun_OpenApi_Url);
       response = Net::HTTP.post_form(uri, parameters);
       body=JSON.parse(response.body);
-      if has_key("Code")
+      if body.has_key("Code")
         raise body["Code"]+":"+body["Message"];
       end
       puts body;
