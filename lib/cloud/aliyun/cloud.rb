@@ -17,10 +17,18 @@ module Bosh::Aliyun
       AliyunImgWrapper.deleteImage(parameters);
     end
 
-    def create_vm(agent_id, stemcell_id, resource_pool, networks, disk_locality, env)
+    def create_vm(agent_id=nil, stemcell_id=nil, resource_pool=nil, networks=nil, disk_locality=nil, env=nil)
       aliyun_properties = options.fetch('aliyun');
       parameters = getCreatVmParameter(aliyun_properties);
-      AliyunInstanceWrapper.createInstance(parameters);
+      body = AliyunInstanceWrapper.createInstance(parameters);
+
+      #磁盘挂载
+      #外网设置
+      #实例启动
+      parameters={};
+      parameters["InstanceId"] = body["InstanceId"];
+      initCommonParameter(aliyun_properties, parameters)
+      AliyunInstanceWrapper.startInstance(parameters)
     end
 
     def delete_vm(vm_id)
@@ -62,10 +70,14 @@ module Bosh::Aliyun
       parameters={};
       AliyunImgWrapper.attachDisk(parameters);
     end
+    body = AliyunInstanceWrapper.createInstance(parameters);
 
     def snapshot_disk(disk_id, metadata)
       parameters={};
       AliyunImgWrapper.createSnapshot(parameters);
+      parameters["InstanceId"] = body["InstanceId"];
+      initCommonParameter(aliyun_properties, parameters)
+      AliyunInstanceWrapper.startInstance(parameters)
     end
 
     def delete_snapshot(snapshot_id)
@@ -88,14 +100,14 @@ module Bosh::Aliyun
     def getCreatVmParameter(aliyun_properties)
       parameters={};
       #regionID：cn-hangzhou
-      #实例类型：ecs.n1.large
+      #实例类型：ecs.s3.large
       #imageID：m-23g9tihvk
       #安全组ID：sg-237p56jii
       #计费类型：PayByTraffic
       #公网入带宽：10M
-      keys=["RegionId", "ImageId", "InstanceType", "SecurityGroupId", "InstanceName", "Description", "HostName","InternetChargeType","InternetMaxBandwidthOut","Password"];
+      keys=["RegionId", "ImageId", "InstanceType", "SecurityGroupId", "InternetChargeType", "InternetMaxBandwidthOut", "Password"];
       keys.each { |key|
-        if aliyun_properties.has_key(key)
+        if aliyun_properties.has_key?(key)
           parameters[key]=aliyun_properties[key];
         end
       }
@@ -107,7 +119,7 @@ module Bosh::Aliyun
       #AccessKeyId:***REMOVED***
       #AccessKey:***REMOVED***
       parameters["AccessKeyId"]=aliyun_properties["AccessKeyId"];
-      parameters["Secret"]=aliyun_properties["AccessKeyKey"];
+      parameters["Secret"]=aliyun_properties["Secret"];
     end
   end
 end

@@ -16,10 +16,11 @@ module Bosh::Aliyun
       initCommonParameters(parameters);
       uri = URI.parse(@@Aliyun_OpenApi_Url);
       response = Net::HTTP.post_form(uri, parameters);
+      puts parameters;
       body=JSON.parse(response.body);
-      #if body.has_key("Code")
-      #  raise body["Code"]+":"+body["Message"];
-      #end
+      if body.has_key?("Code")
+        raise body["Code"]+":"+body["Message"];
+      end
       puts body;
       return body;
     end
@@ -53,7 +54,8 @@ module Bosh::Aliyun
       }
 
       stringToSign = "POST" + "&" + percentEncode("/") + "&" + percentEncode(query);
-      parameters[@@Signature]=Base64.encode64(HMAC::SHA1.digest(secretKey, stringToSign)).strip;
+      parameters[@@Signature]=Base64.encode64(HMAC::SHA1.digest(secretKey + "&", stringToSign)).strip;
+      puts parameters[@@Signature];
     end
 
     def AliyunOpenApiHttpsUtil.percentEncode(str)

@@ -13,7 +13,7 @@ module Bosh::Aliyun
 
       parameters["Action"]= "CreateInstance";
       parameters["Version"]= "2014-05-26";
-      AliyunOpenApiHttpsUtil.request(parameters);
+      return AliyunOpenApiHttpsUtil.request(parameters);
     end
 
     #必传参数：实例 ID(InstanceId)
@@ -48,9 +48,25 @@ module Bosh::Aliyun
       AliyunOpenApiHttpsUtil.request(parameters);
     end
 
+    #必传参数：
+    def AliyunInstanceWrapper.startInstance(parameters)
+      #parameter check:
+      parameters["Action"]= "StartInstance";
+      parameters["Version"]= "2014-05-26";
+      AliyunOpenApiHttpsUtil.request(parameters);
+    end
+
+    #必传参数：
+    def AliyunInstanceWrapper.allocatePublicIpAddress(parameters)
+      #parameter check:
+      parameters["Action"]= "AllocatePublicIpAddress";
+      parameters["Version"]= "2014-05-26";
+      AliyunOpenApiHttpsUtil.request(parameters);
+    end
+
     private
 
-    def has_img(paramInput)
+    def AliyunInstanceWrapper.has_img(paramInput)
       parameters={};
       parameters["RegionId"] = paramInput.fetch("RegionId");
       parameters["ImageId"] = paramInput.fetch("ImageId");
@@ -58,7 +74,7 @@ module Bosh::Aliyun
       return AliyunImgWrapper.hasImg(parameters);
     end
 
-    def has_securityGroup(paramInput)
+    def AliyunInstanceWrapper.has_securityGroup(paramInput)
       parameters={};
       parameters["RegionId"] = paramInput.fetch("RegionId");
       parameters["SecurityGroupId"] = paramInput.fetch("SecurityGroupId");
