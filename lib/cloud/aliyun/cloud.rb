@@ -70,7 +70,6 @@ module Bosh::Aliyun
       parameters={};
       AliyunImgWrapper.attachDisk(parameters);
     end
-    body = AliyunInstanceWrapper.createInstance(parameters);
 
     def snapshot_disk(disk_id, metadata)
       parameters={};
