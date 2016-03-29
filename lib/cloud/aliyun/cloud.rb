@@ -105,7 +105,7 @@ module Bosh::Aliyun
       #安全组ID：sg-237p56jii
       #计费类型：PayByTraffic
       #公网入带宽：10M
-      keys=["RegionId", "ImageId", "InstanceType", "SecurityGroupId", "InternetChargeType", "InternetMaxBandwidthOut", "Password"];
+      keys=["RegionId", "ImageId", "InstanceType", "SecurityGroupId", "InternetChargeType", "InternetMaxBandwidthOut", "Password","DataDisk.1.Size"];
       keys.each { |key|
         if aliyun_properties.has_key?(key)
           parameters[key]=aliyun_properties[key];

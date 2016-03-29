@@ -13,6 +13,7 @@ options["aliyun"]["InternetMaxBandwidthOut"] = "3"
 options["aliyun"]["Password"] = "1qaz@WSX"
 options["aliyun"]["AccessKeyId"] = "***REMOVED***"
 options["aliyun"]["Secret"] = "***REMOVED***"
+options["aliyun"]["DataDisk.1.Size"] = "300"
 
 cloud = Cloud.new(options)
 cloud.create_vm()
