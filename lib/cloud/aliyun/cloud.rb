@@ -70,7 +70,6 @@ module Bosh::Aliyun
       parameters={};
       AliyunImgWrapper.attachDisk(parameters);
     end
-    body = AliyunInstanceWrapper.createInstance(parameters);
 
     def snapshot_disk(disk_id, metadata)
       parameters={};
@@ -119,7 +118,7 @@ module Bosh::Aliyun
       #AccessKeyId:***REMOVED***
       #AccessKey:***REMOVED***
       parameters["AccessKeyId"]=aliyun_properties["AccessKeyId"];
-      parameters["Secret"]=aliyun_properties["Secret"];
+      parameters["SecretKey"]=aliyun_properties["AccessKey"];
     end
   end
 end

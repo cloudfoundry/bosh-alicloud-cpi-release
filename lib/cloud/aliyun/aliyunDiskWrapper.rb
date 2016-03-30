@@ -1,7 +1,7 @@
 module Bosh::Aliyun
   class AliyunDiskWrapper
     #必传参数：
-    def AliyunImgWrapper.createDisk(parameters)
+    def self.createDisk(parameters)
       #parameter check:
       parameters["Action"]= "CreateDisk";
       parameters["Version"]= "2014-05-26";
@@ -9,7 +9,7 @@ module Bosh::Aliyun
     end
 
     #必传参数：
-    def AliyunImgWrapper.describeDisks(parameters)
+    def self.describeDisks(parameters)
       #parameter check:
       parameters["Action"]= "DescribeDisks";
       parameters["Version"]= "2014-05-26";
@@ -17,7 +17,7 @@ module Bosh::Aliyun
     end
 
     #必传参数：
-    def AliyunImgWrapper.deleteDisk(parameters)
+    def self.deleteDisk(parameters)
       #parameter check:
       parameters["Action"]= "DeleteDisk";
       parameters["Version"]= "2014-05-26";
@@ -25,7 +25,7 @@ module Bosh::Aliyun
     end
 
     #必传参数：
-    def AliyunImgWrapper.attachDisk(parameters)
+    def self.attachDisk(parameters)
       #parameter check:
       parameters["Action"]= "AttachDisk";
       parameters["Version"]= "2014-05-26";
@@ -33,7 +33,7 @@ module Bosh::Aliyun
     end
 
     #必传参数：
-    def AliyunImgWrapper.detachDisk(parameters)
+    def self.detachDisk(parameters)
       #parameter check:
       parameters["Action"]= "DetachDisk";
       parameters["Version"]= "2014-05-26";

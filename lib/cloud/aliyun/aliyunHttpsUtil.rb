@@ -1,5 +1,5 @@
 require 'cgi'
-require 'hmac-sha1'
+require 'openssl'
 require 'digest/sha1'
 require 'base64'
 require 'uri'
@@ -9,7 +9,7 @@ require 'json'
 module Bosh::Aliyun
   class AliyunOpenApiHttpsUtil
     @@Aliyun_OpenApi_Url="http://ecs.aliyuncs.com/?";
-    @@Secret_Key="Secret";
+    @@Secret_Key="SecretKey";
     @@Signature="Signature";
 
     def AliyunOpenApiHttpsUtil.request(parameters)
@@ -53,9 +53,9 @@ module Bosh::Aliyun
         query<<item<<"="<<percentEncode(parameters[item]);
       }
 
-      stringToSign = "POST" + "&" + percentEncode("/") + "&" + percentEncode(query);
-      parameters[@@Signature]=Base64.encode64(HMAC::SHA1.digest(secretKey + "&", stringToSign)).strip;
-      puts parameters[@@Signature];
+      stringToSign = "POST" + "&" + percentEncode("/") + "&" + percentEncode(query)
+      sign = OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, secretKey + "&", stringToSign)
+      parameters[@@Signature]=Base64.strict_encode64(sign)
     end
 
     def AliyunOpenApiHttpsUtil.percentEncode(str)
