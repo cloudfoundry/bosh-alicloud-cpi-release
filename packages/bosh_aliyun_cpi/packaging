@@ -1,0 +1,14 @@
+set -e -x
+
+BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+
+cp -a bosh_aliyun_cpi/* ${BOSH_INSTALL_TARGET}
+
+bundle_cmd="$BOSH_PACKAGES_DIR/ruby_aliyun_cpi/bin/bundle"
+
+cd ${BOSH_INSTALL_TARGET}
+
+$bundle_cmd install \
+  --local           \
+  --no-prune        \
+  --deployment

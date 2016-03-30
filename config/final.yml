@@ -1,0 +1,6 @@
+---
+final_name: bosh-aliyun-cpi
+blobstore:
+  provider: local
+  options:
+    blobstore_path: ./blobs_packages

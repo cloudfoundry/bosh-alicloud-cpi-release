@@ -1,0 +1,6 @@
+---
+name: bosh_aliyun_cpi
+dependencies:
+- ruby_aliyun_cpi
+files:
+- bosh_aliyun_cpi/**/*

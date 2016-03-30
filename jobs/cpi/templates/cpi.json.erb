@@ -1,0 +1,55 @@
+<%=
+
+aliyun.region_id:
+  description: Aliyun owned regions, such as ap-southeast-1, cn-qingdao
+  default: cn-hangzhou
+aliyun.instance_type:
+  description: Aliyun ecs type, such as ecs.t1.small, ecs.s2.large
+  default: ecs.s3.large
+aliyun.image_id:
+  default: m-23g9thihvk
+aliyun.security_group_id:
+  default: sg-237p56jii
+aliyun.internet_charge_type:
+  default: PayByTraffic
+aliyun.instance_name:
+  default: bosh_aliyun_cpi_test
+aliyun.data_disk_1_size:
+  default: 300
+aliyun.description:
+  description: VM description
+aliyun.hostname:
+  default: bosh_created_vm
+aliyun.password:
+  default: 1qaz@WSX
+aliyun.access_key_id:
+  default: OAtTkdQDHJyYGCmU
+aliyun.access_key:
+  default: PzosfNHKsG6sFQKNnxvMjqQNx8x2of
+
+
+  params = {
+    'cloud' => {
+      'plugin' => 'aliyun',
+      'properties' => {
+        'aliyun' => {
+          'RegionId' => p('aliyun.region_id'),
+          'InstanceType' => p('aliyun.instance_type'),
+          'ImageId' => p('aliyun.image_id'),
+          'SecurityGroupId' => p('aliyun.security_group_id'),
+          'InternetChargeType' => p('aliyun.internet_charge_type'),
+          'InternetMaxBandwidthOut' => p('aliyun.internet_max_band_width_out'),
+          'InstanceName' => p('aliyun.instance_name'),
+          'DataDisk1Size' => p('aliyun.data_disk_1_size'),
+          'Description' => p('aliyun.description'),
+          'HostName' => p('aliyun.hostname'),
+          'Password' => p('aliyun.password'),
+          'AccessKeyId' => p('aliyun.access_key_id'),
+          'AccessKey' => p('aliyun.access_key')
+        }
+      }
+    }
+  }
+
+  JSON.dump(params)
+%>
