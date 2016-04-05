@@ -5,8 +5,16 @@ BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 cp -a bosh_aliyun_cpi/* ${BOSH_INSTALL_TARGET}
 
 bundle_cmd="$BOSH_PACKAGES_DIR/ruby_aliyun_cpi/bin/bundle"
+ 
+gem_cmd="$BOSH_PACKAGES_DIR/ruby_aliyun_cpi/bin/gem"
+
+$gem_cmd source -r "https://rubygems.org"
+$gem_cmd source -a "https://ruby.taobao.org"
+
+$gem_cmd source -l
 
 cd ${BOSH_INSTALL_TARGET}
+
 
 $bundle_cmd install \
   --local           \
