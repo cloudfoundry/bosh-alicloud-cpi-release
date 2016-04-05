@@ -1,5 +1,11 @@
 module Bosh
-  module Aliyun; end
+  module Aliyun
+
+    class AliyunException < RuntimeError
+    end
+
+  end
+
 end
 
 require "common/exec"
@@ -9,13 +15,7 @@ require "common/common"
 
 require "cloud"
 require "cloud/aliyun/cloud"
-require "cloud/aliyun/aliyunConstants"
-require "cloud/aliyun/aliyunHttpsUtil"
-require "cloud/aliyun/aliyunDiskWrapper"
-require "cloud/aliyun/aliyunImgWrapper"
-require "cloud/aliyun/aliyunInstanceWrapper"
-require "cloud/aliyun/aliyunSecurityGroupWrapper"
-require "cloud/aliyun/aliyunSnapshotWrapper"
+require "cloud/aliyun/aliyun_client"
 
 module Bosh
   module Clouds

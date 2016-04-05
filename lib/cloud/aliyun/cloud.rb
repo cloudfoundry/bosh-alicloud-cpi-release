@@ -4,121 +4,148 @@ module Bosh::Aliyun
     attr_reader :options
 
     def initialize(options)
+
       @options = options.dup.freeze
+
+      @aliyun_client = Bosh::Aliyun::Client.new @options[:aliyun]
+      @region_id = @options[:aliyun][:region_id]
     end
 
-    def create_stemcell(image_path, cloud_properties)
-      parameters={};
-      AliyunImgWrapper.createImage(parameters);
+    def create_stemcell(image_path = nil, cloud_properties = nil)
+
+      # TODO
+      # Upload image from local path
+
+      current_stemcell_id
     end
 
     def delete_stemcell(stemcell_id)
-      parameters={};
-      AliyunImgWrapper.deleteImage(parameters);
+      nil
     end
 
     def create_vm(agent_id=nil, stemcell_id=nil, resource_pool=nil, networks=nil, disk_locality=nil, env=nil)
-      aliyun_properties = options.fetch('aliyun');
-      parameters = getCreatVmParameter(aliyun_properties);
-      body = AliyunInstanceWrapper.createInstance(parameters);
 
-      #磁盘挂载
-      #外网设置
-      #实例启动
-      parameters={};
-      parameters["InstanceId"] = body["InstanceId"];
-      initCommonParameter(aliyun_properties, parameters)
-      AliyunInstanceWrapper.startInstance(parameters)
+      param = {}
+      param[:ImageId] = stemcell_id || current_stemcell_id
+      param.merge! prepare_create_vm_parameters
+
+      begin
+        vm_created = true
+        res = @aliyun_client.CreateInstance param
+
+        ins_id = res["InstanceId"]
+
+        vm_started = true
+        start_vm ins_id
+
+        ins_id
+      rescue => e
+        stop_vm ins_id if vm_started
+        delete_vm ins_id if vm_created
+        raise AliyunException.new "Failed to start a new vm. #{e.inspect}\n#{e.backtrace.join("\n")}"
+      end
+
     end
 
     def delete_vm(vm_id)
-      parameters={};
-      AliyunInstanceWrapper.deleteInstance(parameters);
+
+      param={
+        :InstanceId => vm_id
+      }
+      @aliyun_client.DeleteInstance param if is_vm_stopped? vm_id
     end
 
     def has_vm?(vm_id)
-      parameters={};
-      AliyunInstanceWrapper.describeInstances(parameters);
-    end
+      param = {
+        :RegionId => @region_id,
+        :InstanceIds => "[\"#{vm_id}\"]"
+      }
 
-    def has_disk?(disk_id)
-      parameters={};
-      AliyunImgWrapper.describeDisks(parameters);
+      r = @aliyun_client.DescribeInstances param
+
+      r["Instances"]["Instance"].count != 0
     end
 
     def reboot_vm(vm_id)
-      parameters={};
-      AliyunInstanceWrapper.rebootInstance(parameters);
+
+      stop_vm vm_id if is_vm_running? vm_id
+      start_vm vm_id if is_vm_stopped? vm_id
     end
 
-    def set_vm_metadata(vm, metadata)
-      parameters={};
-      AliyunInstanceWrapper.modifyInstanceAttribute(parameters);
-    end
-
-    def create_disk(size, cloud_properties, vm_locality)
-      parameters={};
-      AliyunImgWrapper.createDisk(parameters);
-    end
-
-    def delete_disk(disk_id)
-      parameters={};
-      AliyunImgWrapper.deleteDisk(parameters);
-    end
-
-    def attach_disk(vm_id, disk_id)
-      parameters={};
-      AliyunImgWrapper.attachDisk(parameters);
-    end
-
-    def snapshot_disk(disk_id, metadata)
-      parameters={};
-      AliyunImgWrapper.createSnapshot(parameters);
-      parameters["InstanceId"] = body["InstanceId"];
-      initCommonParameter(aliyun_properties, parameters)
-      AliyunInstanceWrapper.startInstance(parameters)
-    end
-
-    def delete_snapshot(snapshot_id)
-      parameters={};
-      AliyunImgWrapper.deleteSnapshot(parameters);
-    end
-
-    def detach_disk(vm_id, disk_id)
-      parameters={};
-      AliyunImgWrapper.detachDisk(parameters);
-    end
-
-    def get_disks(vm_id)
-      parameters={};
-      AliyunImgWrapper.describeDisks(parameters);
+    def stop_it vm_id
+      stop_vm vm_id
     end
 
     private
 
-    def getCreatVmParameter(aliyun_properties)
-      parameters={};
-      #regionID：cn-hangzhou
-      #实例类型：ecs.s3.large
-      #imageID：m-23g9tihvk
-      #安全组ID：sg-237p56jii
-      #计费类型：PayByTraffic
-      #公网入带宽：10M
-      keys=["RegionId", "ImageId", "InstanceType", "SecurityGroupId", "InternetChargeType", "InternetMaxBandwidthOut", "Password","DataDisk.1.Size"];
-      keys.each { |key|
-        if aliyun_properties.has_key?(key)
-          parameters[key]=aliyun_properties[key];
-        end
+    def start_vm vm_id
+
+      param = {
+        :InstanceId => vm_id
       }
-      initCommonParameter(aliyun_properties, parameters);
-      return parameters;
+      @aliyun_client.StartInstance param if is_vm_stopped? vm_id
+
+      count = 1
+      puts "Starting"
+      until is_vm_running? vm_id
+        puts "DOWN. Ping #{count} time"
+        count += 1
+        sleep 10
+      end
+      puts "Started"
     end
 
-    def initCommonParameter(aliyun_properties, parameters)
-      #AccessKeyId:***REMOVED***
-      #AccessKey:***REMOVED***
-      parameters["AccessKeyId"]=aliyun_properties["AccessKeyId"];
-      parameters["SecretKey"]=aliyun_properties["AccessKey"];
+    def stop_vm vm_id
+      param = {
+        :InstanceId => vm_id
+      }
+      r = @aliyun_client.StopInstance param if is_vm_running? vm_id
+
+      count = 1
+      puts "Stopping"
+      until is_vm_stopped? vm_id
+        puts "UP. Ping #{count} time"
+        count += 1
+        sleep 10
+      end
+      puts "Stopped"
+    end
+
+    def vm_status vm_id
+
+      param = {
+        :RegionId => @region_id,
+        :InstanceIds => "[\"#{vm_id}\"]"
+      }
+      r = @aliyun_client.DescribeInstances param
+
+      r["Instances"]["Instance"][0]["Status"]
+    end
+
+    def is_vm_running? vm_id
+      vm_status(vm_id) == "Running"
+    end
+
+    def is_vm_stopped? vm_id
+      vm_status(vm_id) == "Stopped"
+    end
+
+    def current_stemcell_id
+      "m-23g9tihvk"
+    end
+
+    def prepare_create_vm_parameters
+      para = {
+        :RegionId => @region_id,
+        :InstanceType => "ecs.t1.small",
+        :SecurityGroupId => "sg-237p56jii",
+        :InternetChargeType => "PayByTraffic",
+        :InternetMaxBandwidthOut => "10",
+        :InstanceName => "bosh_aliyun_cpi_test",
+        :Description => "",
+        :HostName => "",
+        :Password => "1qaz@WSX"
+      }
     end
   end
 end

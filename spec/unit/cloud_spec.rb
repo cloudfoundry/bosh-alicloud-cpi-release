@@ -2,33 +2,55 @@ require 'spec_helper'
 
 describe Bosh::Aliyun::Cloud do
 
-  describe '#initialize' do
-    it 'when all the required configurations are present' do
-      expect(true).to eq(true)
-    end
+  it 'can create stemcell' do
+    # Init
+    o = load_cloud_options
+    c = Bosh::Aliyun::Cloud.new o
+
+    # Create stemcell
+    para = {}
+    r = c.create_stemcell
+
+    expect(r).to match(/[\w]{1}-[\w]{9}/)
+  end
+
+  it 'can delete stemcell' do
+    o = load_cloud_options
+    c = Bosh::Aliyun::Cloud.new o
+
+    # Delete stemcell
+    c.delete_stemcell ""
+
+    expect(true).to eq(true)
+  end
+
+  it 'can create, reboot and delete a vm', :debug => true do
+    o = load_cloud_options
+    c = Bosh::Aliyun::Cloud.new o
+
+    # Create VM
+    ins_id = c.create_vm
+
+    expect(ins_id).to match(/[\w]{1}-[\w]{9}/)
+
+    c.reboot_vm ins_id
+
+    r = c.stop_it ins_id
+    r = c.delete_vm ins_id
+
+    expect(r).to have_key("RequestId")
 
   end
 
-  describe '#createImage' do
-    options = {}
-    options["aliyun"] = {}
-    options["aliyun"]["RegionId"] = "cn-hangzhou"
-    options["aliyun"]["InstanceType"] = "ecs.s3.large"
-    options["aliyun"]["ImageId"] = "m-23g9tihvk"
-    options["aliyun"]["SecurityGroupId"] = "sg-237p56jii"
-    options["aliyun"]["InternetChargeType"] = "PayByTraffic"
-    options["aliyun"]["InternetMaxBandwidthOut"] = "10"
-    options["aliyun"]["InstanceName"] = "bosh_aliyun_cpi_test"
-    options["aliyun"]["DataDisk.1.Size"] = "300"
-    options["aliyun"]["Description"] = ""
-    options["aliyun"]["HostName"] = ""
-    options["aliyun"]["Password"] = "1qaz@WSX"
-    options["aliyun"]["AccessKeyId"] = "***REMOVED***"
-    options["aliyun"]["AccessKey"] = "***REMOVED***"
+  it 'can check vm status' do
+    o = load_cloud_options
+    c = Bosh::Aliyun::Cloud.new o
 
-    it 'should create a image' do
-      cloud = Bosh::Aliyun::Cloud.new(options)
-      expect(cloud.create_vm).to eq(stemcell_id)
-    end
+    ins_id = "i-236kv7mlm"
+
+    r = c.has_vm? ins_id
+
+    expect(r).to eq(true)
   end
+
 end

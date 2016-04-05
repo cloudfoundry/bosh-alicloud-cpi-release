@@ -1,0 +1,6 @@
+---
+aliyun:
+  environment: Aliyun
+  access_key_id: ***REMOVED***
+  secret: ***REMOVED***
+  region_id: cn-hangzhou
