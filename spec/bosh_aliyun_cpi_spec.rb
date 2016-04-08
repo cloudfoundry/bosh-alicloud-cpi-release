@@ -16,7 +16,7 @@ describe BoshAliyunCpi do
   it 'can load cloud options' do
     o = load_cloud_options
 
-    expect(o).to have_key(:aliyun)
+    expect(o).to have_key("aliyun")
   end
 
 end

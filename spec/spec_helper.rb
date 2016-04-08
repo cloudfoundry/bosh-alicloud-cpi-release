@@ -7,9 +7,7 @@ def load_client_options
 end
 
 def load_cloud_options
-  o = YAML.load_file('spec/assets/cpi_config')
-
-  recursive_symbolize_keys o
+  YAML.load_file('spec/assets/cpi_config')
 end
 
 def recursive_symbolize_keys(h)
