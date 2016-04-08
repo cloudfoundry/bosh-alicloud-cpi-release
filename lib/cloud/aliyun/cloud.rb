@@ -1,9 +1,14 @@
 module Bosh::Aliyun
+
   class Cloud < Bosh::Cloud
+
+    include Helpers
 
     attr_reader :options
 
     def initialize(options)
+
+      options = recursive_symbolize_keys(options)
 
       @options = options.dup.freeze
 

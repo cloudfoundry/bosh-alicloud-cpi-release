@@ -14,6 +14,7 @@ require "common/thread_formatter"
 require "common/common"
 
 require "cloud"
+require "cloud/aliyun/helpers"
 require "cloud/aliyun/cloud"
 require "cloud/aliyun/aliyun_client"
 
