@@ -12,7 +12,7 @@ namespace :tools do
     $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
     require 'bosh_aliyun_cpi'
 
-    o = {:aliyun => {:access_key_id => ENV['ACCESS_KEY_ID'], :secret => ENV['SECRET'], :region_id => ENV['RegionId'] }}
+    o = {:aliyun => {:AccessKeyId => ENV['ACCESS_KEY_ID'], :AccessKey => ENV['ACCESS_KEY'], :RegionId => ENV['RegionId'] }}
 
     c = Bosh::Aliyun::Cloud.new o
 

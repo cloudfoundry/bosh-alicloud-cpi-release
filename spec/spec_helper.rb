@@ -3,7 +3,7 @@ require 'bosh_aliyun_cpi'
 require 'yaml'
 
 def load_client_options
-  {:access_key_id => ENV['ACCESS_KEY_ID'], :secret => ENV['SECRET']}
+  {:AccessKeyId => ENV['ACCESS_KEY_ID'], :AccessKey => ENV['SECRET']}
 end
 
 def load_cloud_options

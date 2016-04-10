@@ -8,12 +8,14 @@ module Bosh::Aliyun
 
     def initialize(options)
 
+      p options
+
       options = recursive_symbolize_keys(options)
 
       @options = options.dup.freeze
 
       @aliyun_client = Bosh::Aliyun::Client.new @options[:aliyun]
-      @region_id = @options[:aliyun][:region_id]
+      @region_id = @options[:aliyun][:RegionId]
     end
 
     def create_stemcell(image_path = nil, cloud_properties = nil)
@@ -40,6 +42,7 @@ module Bosh::Aliyun
 
         ins_id = res["InstanceId"]
 
+        # VM will be started after creation
         vm_started = true
         start_vm ins_id
 
@@ -65,7 +68,6 @@ module Bosh::Aliyun
         :RegionId => @region_id,
         :InstanceIds => "[\"#{vm_id}\"]"
       }
-
       r = @aliyun_client.DescribeInstances param
 
       r["Instances"]["Instance"].count != 0
@@ -139,6 +141,7 @@ module Bosh::Aliyun
       "m-23g9tihvk"
     end
 
+    # TODO: Get all info from spec file
     def prepare_create_vm_parameters
       para = {
         :RegionId => @region_id,

@@ -8,8 +8,8 @@ describe BoshAliyunCpi do
   it 'can load client options' do
     o = load_client_options
 
-    expect(o).to have_key(:access_key_id)
-    expect(o).to have_key(:secret)
+    expect(o).to have_key(:AccessKeyId)
+    expect(o).to have_key(:AccessKey)
   end
 
   # TODO : Read from asset yaml file

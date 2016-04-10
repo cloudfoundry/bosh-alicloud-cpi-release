@@ -54,7 +54,7 @@ module Bosh::Aliyun
 
   class Client
 
-    attr_accessor :access_key_id, :secret
+    attr_accessor :access_key_id, :access_key
     attr_accessor :options
     attr_accessor :endpoint
     attr_accessor :service
@@ -64,8 +64,8 @@ module Bosh::Aliyun
 
       @@logger = logger
       @@service = SERVICES[options[:service].to_sym]
-      @@access_key_id = options[:access_key_id]
-      @@secret = options[:secret]
+      @@access_key_id = options[:AccessKeyId]
+      @@access_key = options[:AccessKey]
       @@endpoint = options[:endpoint] || @@service.endpoint
       @@options = {:AccessKeyId => @@access_key_id}
     end
@@ -132,7 +132,7 @@ module Bosh::Aliyun
 
       string_to_sign = @@service.http_method + @@service.separator + safe_encode("/") + @@service.separator + safe_encode(capitalized_string)
 
-      signature = Base64.strict_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, @@secret+"&", string_to_sign))
+      signature = Base64.strict_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, @@access_key+"&", string_to_sign))
 
       signature
     end
