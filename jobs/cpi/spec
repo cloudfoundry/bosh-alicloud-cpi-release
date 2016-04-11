@@ -17,7 +17,7 @@ properties:
     description: "Aliyun ecs type, such as ecs.t1.small, ecs.s2.large"
     default: "ecs.s3.large"
   aliyun.image_id:
-    default: m-23g9thihvk
+    default: m-236fj6smx
   aliyun.security_group_id:
     default: sg-237p56jii
   aliyun.internet_charge_type:
