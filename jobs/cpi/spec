@@ -11,13 +11,13 @@ packages:
 
 properties:
   aliyun.region_id:
-    description: Aliyun owned regions, such as ap-southeast-1, cn-qingdao
+    description: "Aliyun owned regions, such as ap-southeast-1, cn-qingdao"
     default: cn-hangzhou
   aliyun.instance_type:
-    description: Aliyun ecs type, such as ecs.t1.small, ecs.s2.large
-    default: ecs.s3.large
+    description: "Aliyun ecs type, such as ecs.t1.small, ecs.s2.large"
+    default: "ecs.s3.large"
   aliyun.image_id:
-    default: m-23g9thihvk
+    default: m-236fj6smx
   aliyun.security_group_id:
     default: sg-237p56jii
   aliyun.internet_charge_type:
@@ -28,8 +28,9 @@ properties:
     default: bosh_aliyun_cpi_test
   aliyun.data_disk_1_size:
     default: 300
-  aliyun.description:
-    description: VM description
+  aliyun.desc:
+    description: "VM description"
+    default: bosh-using
   aliyun.hostname:
     default: bosh_created_vm
   aliyun.password:
