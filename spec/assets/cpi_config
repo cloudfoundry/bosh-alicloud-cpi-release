@@ -1,6 +1,14 @@
 ---
 aliyun:
-  environment: Aliyun
+  ImageId: m-23qx965sh
   AccessKeyId: ***REMOVED***
   AccessKey: ***REMOVED***
   RegionId: cn-hangzhou
+  InstanceType: ecs.t1.small
+  SecurityGroupId: sg-237p56jii
+  InternetChargeType: PayByTraffic
+  InternetMaxBandwidthOut: "10"
+  InstanceName: bosh_aliyun_cpi_unit_test
+  HostName: bosh.aliyun-cpi.unit-test
+  Password: 1qaz@WSX
+  Description: bosh_aliyun_cpi_unit_test

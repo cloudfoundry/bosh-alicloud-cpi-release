@@ -6,7 +6,8 @@ describe Bosh::Aliyun::Client do
     # Init
     o = load_client_options
     o[:service] = :ecs
-    c = Bosh::Aliyun::Client.new o
+    logger = Bosh::Clouds::Config.logger
+    c = Bosh::Aliyun::Client.new o, logger
 
     # Get region info
     para = {}
@@ -21,13 +22,14 @@ describe Bosh::Aliyun::Client do
     # Init
     o = load_client_options
     o[:service] = :ecs
-    c = Bosh::Aliyun::Client.new o
+    logger = Bosh::Clouds::Config.logger
+    c = Bosh::Aliyun::Client.new o, logger
 
     # Create an instance
     para = {
       :RegionId => "cn-hangzhou",
       :InstanceType => "ecs.t1.small",
-      :ImageId => "m-23g9tihvk",
+      :ImageId => "m-23qx965sh",
       :SecurityGroupId => "sg-237p56jii",
       :InternetChargeType => "PayByTraffic",
       :InternetMaxBandwidthOut => "10",
@@ -57,7 +59,8 @@ describe Bosh::Aliyun::Client do
     # Init
     o = load_client_options
     o[:service] = :ecs
-    c = Bosh::Aliyun::Client.new o
+    logger = Bosh::Clouds::Config.logger
+    c = Bosh::Aliyun::Client.new o, logger
 
     # Get instance status
     para = {

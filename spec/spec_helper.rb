@@ -3,7 +3,13 @@ require 'bosh_aliyun_cpi'
 require 'yaml'
 
 def load_client_options
-  {:AccessKeyId => ENV['ACCESS_KEY_ID'], :AccessKey => ENV['SECRET']}
+  conf = YAML.load_file('spec/assets/client_config')
+
+  c = {}
+  c[:AccessKeyId] = conf["AccessKeyId"]
+  c[:AccessKey] = conf["AccessKey"]
+
+  c
 end
 
 def load_cloud_options
@@ -27,7 +33,13 @@ end
 
 RSpec.configure do |config|
   config.before do
-    logger = Logger.new('/dev/null')
+    logger = Logger.new(STDOUT)
+    logger.level = Logger::INFO
+    logger.datetime_format = '%Y-%m-%d %H:%M:%S'
+    logger.formatter = proc do |severity, datetime, progname, msg|
+      "[#{severity}], #{datetime} #{caller[4]}:#{__LINE__}: #{msg}\n"
+    end
+
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
   end
 end

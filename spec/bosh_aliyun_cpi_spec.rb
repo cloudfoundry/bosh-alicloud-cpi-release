@@ -12,7 +12,6 @@ describe BoshAliyunCpi do
     expect(o).to have_key(:AccessKey)
   end
 
-  # TODO : Read from asset yaml file
   it 'can load cloud options' do
     o = load_cloud_options
 

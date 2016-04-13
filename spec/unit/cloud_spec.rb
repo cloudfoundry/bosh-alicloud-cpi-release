@@ -24,7 +24,7 @@ describe Bosh::Aliyun::Cloud do
     expect(true).to eq(true)
   end
 
-  it 'can create, reboot and delete a vm', :debug => true do
+  it 'can create, reboot and delete a vm', :single => true do
     o = load_cloud_options
     c = Bosh::Aliyun::Cloud.new o
 

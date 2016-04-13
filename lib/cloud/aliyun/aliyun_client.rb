@@ -60,9 +60,10 @@ module Bosh::Aliyun
     attr_accessor :service
 
     def initialize(options = {}, logger = nil)
+      validate_options options
       options[:service] ||= :ecs
 
-      @@logger = logger
+      @@logger = logger || Logger.new(STDERR)
       @@service = SERVICES[options[:service].to_sym]
       @@access_key_id = options[:AccessKeyId]
       @@access_key = options[:AccessKey]
@@ -94,6 +95,7 @@ module Bosh::Aliyun
       # Ignore verify
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
+      @@logger.debug "request params is: #{params.inspect}, request endpoint is: #{@@endpoint}"
       request = Net::HTTP::Get.new(uri.request_uri)
       response = http.request(request)
 
@@ -101,7 +103,8 @@ module Bosh::Aliyun
       when Net::HTTPSuccess
         return JSON.parse(response.body)
       else
-        raise AliyunException.new "Request Error! Response code: #{response.code}, message: #{response.body}"
+        @@logger.error "request error! reponse code: #{response.code}, message: #{response.body.inspect}"
+        raise AliyunException.new "request error! response code: #{response.code}, message: #{response.body}"
       end
     end
 
@@ -139,6 +142,23 @@ module Bosh::Aliyun
 
     def safe_encode(value)
       CGI.escape(value).gsub("+", "%20").gsub("*", "%2A").gsub("%7E", "~")
+    end
+
+    def validate_options options
+      required_keys = [
+          :AccessKeyId,
+          :AccessKey
+      ]
+
+      missing_keys = []
+      required_keys.each do |key|
+        if !options.has_key?(key)
+          missing_keys << "#{key}:"
+        end
+      end
+
+      @@logger.error "missing configuration parameters > #{missing_keys.join(', ')}" unless missing_keys.empty?
+      raise ArgumentError, "missing configuration parameters > #{missing_keys.join(', ')}" unless missing_keys.empty?
     end
   end
 
