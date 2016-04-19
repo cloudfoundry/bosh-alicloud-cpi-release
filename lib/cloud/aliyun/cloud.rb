@@ -41,7 +41,7 @@ module Bosh::Aliyun
 
       begin
         vm_created = true
-        res = @aliyun_client.CreateInstance param
+        res = @ .CreateInstance param
         ins_id = res["InstanceId"]
         @logger.debug("created a vm, the vm id is #{ins_id}. Try to start it")
 
@@ -68,6 +68,17 @@ module Bosh::Aliyun
       }
       r = @aliyun_client.DeleteInstance param if is_vm_stopped? vm_id
       @logger.info("the vm is deleted")
+
+      r
+    end
+
+    def allocate_public_ip(vm_id)
+      @logger.info("start to allocate public ip for vm")
+      param={
+        :InstanceId => vm_id
+      }
+      r = @aliyun_client.AllocatePublicIpAddress param if is_vm_stopped? vm_id
+      @logger.info("the ip adderss is allocated")
 
       r
     end
