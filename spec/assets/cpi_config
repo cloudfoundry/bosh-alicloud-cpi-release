@@ -1,14 +1,27 @@
 ---
 aliyun:
-  ImageId: m-23qx965sh
+  ImageId: m-23ozlbd64
   AccessKeyId: ***REMOVED***
   AccessKey: ***REMOVED***
   RegionId: cn-hangzhou
   InstanceType: ecs.t1.small
-  SecurityGroupId: sg-237p56jii
-  InternetChargeType: PayByTraffic
-  InternetMaxBandwidthOut: "10"
   InstanceName: bosh_aliyun_cpi_unit_test
   HostName: bosh.aliyun-cpi.unit-test
   Password: 1qaz@WSX
   Description: bosh_aliyun_cpi_unit_test
+
+networks:
+  private:
+    type: manual
+    ip: 10.0.0.6
+    mask: 255.255.255.0
+    gateway: 10.0.0.1
+    dns: [10.0.0.2]
+    cloud_properties:
+      VSwitchId: vsw-23priv72n
+      SecurityGroupId: sg-238ux30qe
+  public:
+    type: vip
+    cloud_properties:
+      InternetMaxBandwidthOut: "10"
+      InternetChargeType: "PayByBandwidth"

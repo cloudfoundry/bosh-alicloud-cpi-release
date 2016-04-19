@@ -16,6 +16,7 @@ require "common/common"
 require "cloud"
 require "cloud/aliyun/helpers"
 require "cloud/aliyun/cloud"
+require "cloud/aliyun/network_manager"
 require "cloud/aliyun/aliyun_client"
 
 module Bosh

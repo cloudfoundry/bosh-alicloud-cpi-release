@@ -101,7 +101,9 @@ module Bosh::Aliyun
 
       case response
       when Net::HTTPSuccess
-        return JSON.parse(response.body)
+        r = JSON.parse(response.body)
+        @@logger.debug "response body is: #{r.inspect}"
+        return r
       else
         @@logger.error "request error! reponse code: #{response.code}, message: #{response.body.inspect}"
         raise AliyunException.new "request error! response code: #{response.code}, message: #{response.body}"

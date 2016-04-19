@@ -69,7 +69,6 @@ describe Bosh::Aliyun::Client do
     r = c.DescribeInstanceStatus para
 
     expect(r).to have_key("InstanceStatuses")
-
   end
 
 end
