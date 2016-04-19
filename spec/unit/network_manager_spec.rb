@@ -17,7 +17,7 @@ describe Bosh::Aliyun::NetworkManager do
     {
       :type => "vip",
       :cloud_properties => {
-        :Bandwidth => "10",
+        :InternetMaxBandwidthOut => "10",
         :InternetChargeType => "PayByBandwidth"
       }
     }
