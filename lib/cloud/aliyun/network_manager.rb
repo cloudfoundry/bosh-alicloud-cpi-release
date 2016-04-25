@@ -21,6 +21,8 @@ module Bosh::Aliyun
         raise ArgumentError, "invalid spec, hash expected"
       end
 
+      spec = recursive_symbolize_keys(spec)
+
       @logger = Bosh::Clouds::Config.logger
 
       @logger.debug("networks: #{spec}")
@@ -48,10 +50,6 @@ module Bosh::Aliyun
           @logger.error "invalid network type for #{network_type}, can only handle 'dynamic', 'vip' or 'manual' network types"
           # TODO raise
         end
-      end
-
-      unless @network
-        @logger.error "exactly one dynamic or manual network is required"
       end
     end
 

@@ -67,10 +67,8 @@ describe Bosh::Aliyun::Cloud do
       o = load_cloud_options
       c = Bosh::Aliyun::Cloud.new o
 
-      net = recursive_symbolize_keys(o["networks"])
-
-      # Create VM
-      ins_id = c.create_vm nil, nil, nil, net
+      # Create VM with specific network
+      ins_id = c.create_vm nil, nil, nil, o["networks"]
 
       expect(ins_id).to match(/[\w]{1}-[\w]{9}/)
 
