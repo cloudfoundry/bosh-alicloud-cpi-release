@@ -61,7 +61,7 @@ describe Bosh::Aliyun::Cloud do
     end
   end
 
-  describe "VPC network test", :debug => true do
+  describe "VPC network test" do
 
     it "can create a vm with both private and public network" do
       o = load_cloud_options
@@ -79,5 +79,67 @@ describe Bosh::Aliyun::Cloud do
     end
   end
 
+  describe "Bosh registry test", :debug => true do
 
+    it "can init a registry" do
+      o = load_cloud_options
+      c = Bosh::Aliyun::Cloud.new o
+
+      registry_options = recursive_symbolize_keys(o["registry"])
+      c.initialize_registry registry_options
+
+      expect(true).to eq(true)
+    end
+
+    it "can initilize agent settings" do
+      o = load_cloud_options
+      c = Bosh::Aliyun::Cloud.new o
+
+      registry_options = recursive_symbolize_keys(o["registry"])
+      c.initialize_registry registry_options
+
+      ins_id = "aaa"
+      agent_id = "dddd"
+      networks = {
+        :type => "manual",
+        :ip => "127.0.0.1",
+        :cloud_properties => {
+          :VSwitchId => "vsw-23priv72n",
+          :SecurityGroupId => "sg-238ux30qe"
+        }
+      }
+
+      s = c.initial_agent_settings(ins_id, agent_id, networks)
+
+      expect(r).to have_key("vm")
+      expect(r).to have_key("agent_id")
+      expect(r).to have_key("networks")
+      expect(r).to have_key("disks")
+    end
+
+    it "can update agent settings" do
+      o = load_cloud_options
+      c = Bosh::Aliyun::Cloud.new o
+
+      registry_options = recursive_symbolize_keys(o["registry"])
+      r = c.initialize_registry registry_options
+
+      ins_id = "aaa"
+      agent_id = "dddd"
+      networks = {
+        :type => "manual",
+        :ip => "127.0.0.1",
+        :cloud_properties => {
+          :VSwitchId => "vsw-23priv72n",
+          :SecurityGroupId => "sg-238ux30qe"
+        }
+      }
+
+      s = c.initial_agent_settings(ins_id, agent_id, networks)
+
+      r.update_settings(ins_id, registry_settings)
+
+    end
+
+  end
 end

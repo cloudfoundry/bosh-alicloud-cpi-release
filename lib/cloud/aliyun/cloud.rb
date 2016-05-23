@@ -5,10 +5,14 @@ module Bosh::Aliyun
     include Helpers
 
     attr_reader :options
+    attr_reader :registry
 
     def initialize options
       @options = recursive_symbolize_keys(options["aliyun"])
       validate_options
+
+      registry_options = recursive_symbolize_keys(options["registry"])
+      initialize_registry registry_options
 
       @logger = Bosh::Clouds::Config.logger
       @logger.debug "current options is #{options.inspect}"
@@ -82,6 +86,13 @@ module Bosh::Aliyun
         vm_started = true
         @logger.debug "the vm creation is done"
 
+        registry_settings = initial_agent_settings(
+          ins_id,
+          agent_id,
+          networks
+        )
+        @registry.update_settings(ins_id, registry_settings)
+
         ins_id
       rescue => e
         stop_vm ins_id if vm_started
@@ -136,7 +147,77 @@ module Bosh::Aliyun
       stop_vm vm_id
     end
 
+    def initialize_registry registry_properties
+      registry_endpoint   = registry_properties.fetch(:endpoint)
+      registry_user       = registry_properties.fetch(:user)
+      registry_password   = registry_properties.fetch(:password)
+
+      @registry = Bosh::Registry::Client.new(registry_endpoint,
+                                             registry_user,
+                                             registry_password)
+    end
+
+    # Generates initial agent settings. These settings will be read by agent
+    # from BOSH registry on a target instance. Disk
+    # conventions for amazon are:
+    # system disk: /dev/sda
+    # ephemeral disk: /dev/sdb
+    # EBS volumes can be configured to map to other device names later (sdf
+    # through sdp, also some kernels will remap sd* to xvd*).
+    #
+    # @param [String] agent_id Agent id (will be picked up by agent to
+    #   assume its identity
+    # @param [Hash] network_spec Agent network spec
+    # @param [Hash] environment
+    #   keys are device type ("ephemeral", "raw_ephemeral") and values are array of strings representing the
+    #   path to the block device. It is expected that "ephemeral" has exactly one value.
+    # @return [Hash]
+    def initial_agent_settings(ins_id, agent_id, network_spec, environment)
+      settings = {
+          "vm" => {
+            "name" => ins_id
+          },
+          "agent_id" => agent_id,
+          "networks" => agent_network_spec,
+           "disks" => {
+               "system" => "/dev/xvda",
+               "ephemeral" => "/dev/xvdb"
+           }
+      }
+
+      # TODO Will add this two later
+      # @param [String] root_device_name root device, e.g. /dev/sda1
+      # @param [Hash] block_device_agent_info disk attachment information to merge into the disks section.
+      # settings["disks"].merge!(block_device_agent_info)
+      # settings["disks"]["ephemeral"] = settings["disks"]["ephemeral"][0]["path"]
+
+      settings["env"] = environment if environment
+      settings.merge(agent_properties)
+    end
+
+    def update_agent_settings(instance)
+      unless block_given?
+        raise ArgumentError, "block is not provided"
+      end
+
+      settings = registry.read_settings(instance.id)
+      yield settings
+      registry.update_settings(instance.id, settings)
+    end
+
     private
+
+    # TODO: Need to figure out how to update this part
+    def agent_network_spec(network_spec)
+      {
+          "private"=> {
+            "type"=> "vip"
+          },
+          "public"=> {
+            "type"=> "vip"
+          }
+      }
+    end
 
     def assign_public_eip vm_id, vip_setting
       @logger.info "start to allocate public ip for vm #{vm_id}"

@@ -8,10 +8,14 @@ module Bosh
 
 end
 
+require "httpclient"
+
 require "common/exec"
 require "common/thread_pool"
 require "common/thread_formatter"
 require "common/common"
+
+require "bosh/registry/client"
 
 require "cloud"
 require "cloud/aliyun/helpers"

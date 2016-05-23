@@ -31,6 +31,16 @@ def recursive_symbolize_keys(h)
   end
 end
 
+def mock_registry
+  registry = double('registry',
+    :endpoint => mock_registry_properties['endpoint'],
+    :user     => mock_registry_properties['user'],
+    :password => mock_registry_properties['password']
+  )
+  allow(Bosh::Registry::Client).to receive(:new).and_return(registry)
+  registry
+end
+
 RSpec.configure do |config|
   config.before do
     logger = Logger.new(STDOUT)

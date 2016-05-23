@@ -5,6 +5,7 @@ PATH
       bosh-registry
       bosh_common
       bosh_cpi
+      httpclient (= 2.7.1)
       yajl-ruby (>= 0.8.2)
 
 GEM
@@ -171,6 +172,7 @@ GEM
       nokogiri (~> 1.5, >= 1.5.11)
     formatador (0.2.5)
     hashdiff (0.3.0)
+    httpclient (2.7.1)
     inflecto (0.0.2)
     ipaddress (0.8.3)
     jmespath (1.2.2)

@@ -12,16 +12,24 @@ aliyun:
 
 networks:
   private:
-    type: manual
-    ip: 10.0.0.6
-    mask: 255.255.255.0
-    gateway: 10.0.0.1
-    dns: [10.0.0.2]
-    cloud_properties:
-      VSwitchId: vsw-23priv72n
-      SecurityGroupId: sg-238ux30qe
+    type: vip
   public:
     type: vip
     cloud_properties:
       InternetMaxBandwidthOut: "10"
       InternetChargeType: "PayByBandwidth"
+
+registry:
+  user: admin
+  password: admin
+  endpoint: "http://127.0.0.1:25777"
+
+resource_pools:
+- name: t1_small
+  cloud_properties:
+    instance_type: "ecs.t1.small"
+    availability_zone: "cn-hangzhou-b"
+- name: s1_small
+  cloud_properties:
+    instance_type: "ecs.s1.small"
+    availability_zone: "cn-hangzhou-b"
