@@ -81,15 +81,15 @@ module Bosh::Aliyun
       @logger = Bosh::Clouds::Config.logger
 
       @name = name
-      #@ip = spec[:ip]
+      @ip = spec[:ip]
       @cloud_properties = spec[:cloud_properties]
 
       configure
     end
 
-    #def private_ip
-      #@ip
-    #end
+    def private_ip
+      @ip
+    end
 
     def configure
       @logger.error "`configure` is not implemented by #{self.class}"
@@ -126,7 +126,7 @@ module Bosh::Aliyun
         :SecurityGroupId => @cloud_properties[:SecurityGroupId],
         :VSwitchId => @cloud_properties[:VSwitchId],
         :PrivateIpAddress => @cloud_properties[:PrivateIpAddress]
-        #:PrivateIpAddress => @ip
+        :PrivateIpAddress => @ip
       }
     end
   end
