@@ -125,7 +125,6 @@ module Bosh::Aliyun
       {
         :SecurityGroupId => @cloud_properties[:SecurityGroupId],
         :VSwitchId => @cloud_properties[:VSwitchId],
-        :PrivateIpAddress => @cloud_properties[:PrivateIpAddress]
         :PrivateIpAddress => @ip
       }
     end

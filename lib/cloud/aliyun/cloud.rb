@@ -209,7 +209,7 @@ module Bosh::Aliyun
     private
 
     # TODO: Need to figure out how to update this part
-    def agent_network_spec(network_spec)
+    def agent_network_spec
       {
           "private"=> {
             "type"=> "vip"
