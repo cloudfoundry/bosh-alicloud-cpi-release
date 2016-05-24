@@ -89,7 +89,8 @@ module Bosh::Aliyun
         registry_settings = initial_agent_settings(
           ins_id,
           agent_id,
-          networks
+          networks,
+          env
         )
         @registry.update_settings(ins_id, registry_settings)
 
