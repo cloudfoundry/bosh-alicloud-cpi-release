@@ -13,6 +13,6 @@ export BUNDLE_GEMFILE=$BOSH_PACKAGES_DIR/bosh_aliyun_cpi/Gemfile
 bundle_cmd="$BOSH_PACKAGES_DIR/ruby_aliyun_cpi/bin/bundle"
 
 echo $INPUT | $bundle_cmd exec $BOSH_PACKAGES_DIR/bosh_aliyun_cpi/bin/aliyun_cpi \
-  $BOSH_JOBS_DIR/cpi/config/cpi.json
+  $BOSH_JOBS_DIR/aliyun_cpi/config/cpi.json
 
 exit 0
