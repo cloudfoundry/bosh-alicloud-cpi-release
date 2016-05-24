@@ -9,6 +9,7 @@ module Bosh
 end
 
 require "httpclient"
+require "yajl"
 
 require "common/exec"
 require "common/thread_pool"

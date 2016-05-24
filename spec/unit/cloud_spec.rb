@@ -109,12 +109,12 @@ describe Bosh::Aliyun::Cloud do
         }
       }
 
-      s = c.initial_agent_settings(ins_id, agent_id, networks)
+      s = c.initial_agent_settings(ins_id, agent_id, networks, "")
 
-      expect(r).to have_key("vm")
-      expect(r).to have_key("agent_id")
-      expect(r).to have_key("networks")
-      expect(r).to have_key("disks")
+      expect(s).to have_key("vm")
+      expect(s).to have_key("agent_id")
+      expect(s).to have_key("networks")
+      expect(s).to have_key("disks")
     end
 
     it "can update agent settings" do
@@ -135,9 +135,11 @@ describe Bosh::Aliyun::Cloud do
         }
       }
 
-      s = c.initial_agent_settings(ins_id, agent_id, networks)
+      s = c.initial_agent_settings(ins_id, agent_id, networks, "")
 
-      r.update_settings(ins_id, registry_settings)
+      p s
+
+      r.update_settings(ins_id, s)
 
     end
 

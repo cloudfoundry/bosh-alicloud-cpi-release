@@ -92,6 +92,7 @@ module Bosh::Aliyun
           networks,
           env
         )
+        @logger.debug "registry_settings is #{registry_settings}"
         @registry.update_settings(ins_id, registry_settings)
 
         ins_id
@@ -194,16 +195,6 @@ module Bosh::Aliyun
 
       settings["env"] = environment if environment
       settings
-    end
-
-    def update_agent_settings(instance)
-      unless block_given?
-        raise ArgumentError, "block is not provided"
-      end
-
-      settings = registry.read_settings(instance.id)
-      yield settings
-      registry.update_settings(instance.id, settings)
     end
 
     private

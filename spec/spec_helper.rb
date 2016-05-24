@@ -1,6 +1,7 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'bosh_aliyun_cpi'
 require 'yaml'
+require 'yajl'
 
 def load_client_options
   conf = YAML.load_file('spec/assets/client_config')
