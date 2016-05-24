@@ -18,6 +18,23 @@
           'Password' => p('aliyun.password'),
           'AccessKeyId' => p('aliyun.access_key_id'),
           'AccessKey' => p('aliyun.access_key')
+        },
+        'registry' => {
+          'user' => p('registry.username'),
+          'password' => p('registry.password'),
+          'endpoint' => "http://#{p('registry.address')}:#{p('registry.port')}",
+        },
+        'agent' => {
+          'ntp' => p('ntp'),
+          'mbus' => "nats://#{p('nats.user')}:#{p('nats.password')}@#{p('nats.address')}:#{p('nats.port')}",
+          'blobstore' => {
+            'provider' => p('blobstore.provider'),
+            'options' => {
+              'endpoint' => "http://#{p('blobstore.address')}:#{p('blobstore.port')}",
+              'user' => p('blobstore.agent.user'),
+              'password' => p('blobstore.agent.password')
+            }
+          },
         }
       }
     }
