@@ -193,7 +193,7 @@ module Bosh::Aliyun
       # settings["disks"]["ephemeral"] = settings["disks"]["ephemeral"][0]["path"]
 
       settings["env"] = environment if environment
-      settings.merge(agent_properties)
+      settings
     end
 
     def update_agent_settings(instance)
