@@ -89,14 +89,16 @@ module Bosh::Aliyun
         vm_started = true
         @logger.debug "the vm creation is done"
 
-        registry_settings = initial_agent_settings(
-          ins_id,
-          agent_id,
-          networks,
-          env
-        )
-        @logger.debug "registry_settings is #{registry_settings}"
-        @registry.update_settings(ins_id, registry_settings)
+        if not @registry.nil?
+          registry_settings = initial_agent_settings(
+            ins_id,
+            agent_id,
+            networks,
+            env
+          )
+          @logger.debug "registry_settings is #{registry_settings}"
+          @registry.update_settings(ins_id, registry_settings)
+        end
 
         ins_id
       rescue => e
@@ -153,13 +155,20 @@ module Bosh::Aliyun
     end
 
     def initialize_registry registry_properties
+
       registry_endpoint   = registry_properties.fetch(:endpoint)
       registry_user       = registry_properties.fetch(:user)
       registry_password   = registry_properties.fetch(:password)
 
-      @registry = Bosh::Registry::Client.new(registry_endpoint,
-                                             registry_user,
-                                             registry_password)
+      @registry = Bosh::Registry::Client.new(registry_endpoint, registry_user, registry_password)
+
+      begin
+        @registry.read_settings "check"
+      rescue Errno::ECONNREFUSED => e
+        @logger.info("failed to read settings from registry endpoint. Continue...")
+        @registry = nil
+      end
+
     end
 
     # Generates initial agent settings. These settings will be read by agent

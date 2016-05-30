@@ -135,10 +135,10 @@ describe Bosh::Aliyun::Cloud do
         }
       }
 
-      s = c.initial_agent_settings(ins_id, agent_id, networks, "")
-
-      r.update_settings(ins_id, s)
-
+      if not r.nil?
+        s = c.initial_agent_settings(ins_id, agent_id, networks, "")
+        r.update_settings(ins_id, s)
+      end
     end
 
   end
