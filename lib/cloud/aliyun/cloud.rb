@@ -6,15 +6,18 @@ module Bosh::Aliyun
 
     attr_reader :options
     attr_reader :registry
+    attr_reader :agent_options
 
     def initialize options
+      @logger = Bosh::Clouds::Config.logger
+
       @options = recursive_symbolize_keys(options["aliyun"])
       validate_options
 
       registry_options = recursive_symbolize_keys(options["registry"])
       initialize_registry registry_options
 
-      @logger = Bosh::Clouds::Config.logger
+      @agent_options = options["agent"]
       @logger.debug "current options is #{options.inspect}"
 
       @aliyun_client = Bosh::Aliyun::Client.new @options, @logger
@@ -194,7 +197,11 @@ module Bosh::Aliyun
       # settings["disks"]["ephemeral"] = settings["disks"]["ephemeral"][0]["path"]
 
       settings["env"] = environment if environment
-      settings
+
+      @logger.debug "current agent settings is #{@agent_options.inspect}"
+      @logger.debug "current settings is #{settings.inspect}"
+
+      settings.merge(@agent_options)
     end
 
     private

@@ -24,6 +24,16 @@ registry:
   password: admin
   endpoint: "http://127.0.0.1:25777"
 
+agent:
+  mbus: "nats://nats:nats-password@10.0.0.2:4222"
+  blobstore:
+    provider: "dav"
+    options:
+      endpoint: "http://10.0.0.2:25250"
+      user: "agent"
+      password: "agent-password"
+
+
 resource_pools:
 - name: t1_small
   cloud_properties:
