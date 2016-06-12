@@ -64,14 +64,11 @@ module Bosh::Aliyun
       @logger.debug "current param is: #{param.inspect}"
 
       vm_created = false
-      vm_started = false
-
       begin
         res = @aliyun_client.CreateInstance param
         ins_id = res["InstanceId"]
 
-        until not is_vm_pending? ins_id
-          is_vm_pending? ins_id
+        while is_vm_pending? ins_id
           sleep 10
         end
         vm_created = true
@@ -79,14 +76,14 @@ module Bosh::Aliyun
 
         if not networks.nil?
           if nm.vip?
-            assign_public_eip ins_id, nm.vip_network.configure
+            # Do not assign, just bind
+            bind_public_eip ins_id, nm
             @logger.debug "assigned a public ip for the newly created vm, try to start it"
           end
         end
 
         # VM will be started after creation
         start_vm ins_id
-        vm_started = true
         @logger.debug "the vm creation is done"
 
         if not @registry.nil?
@@ -102,9 +99,8 @@ module Bosh::Aliyun
 
         ins_id
       rescue => e
-        stop_vm ins_id if vm_started
         delete_vm ins_id if vm_created
-        @logger.error %Q[failed to start a new vm. #{e.inspect}\n#{e.backtrace.join("\n")}]
+        @logger.error("failed to start a new vm. #{e.inspect}\n#{e.backtrace.join('\n')}")
         raise Bosh::Clouds::VMCreationFailed.new(false), "failed to start a new vm. #{e.inspect}\n#{e.backtrace.join("\n")}"
       end
 
@@ -116,20 +112,23 @@ module Bosh::Aliyun
         :InstanceId => vm_id
       }
 
-      vm_stopped = false
+      vm_stopped = true
       begin
-        if is_vm_stopped? vm_id
+        if not is_vm_stopped? vm_id
+          @logger.debug "stopping the vm"
+          vm_stopped = false
+
           stop_vm vm_id
+
           vm_stopped = true
           @logger.debug "the vm is stopped"
-
-          r = @aliyun_client.DeleteInstance param if vm_stopped
-          @logger.debug "the vm is deleted"
-
-          r
         end
+        r = @aliyun_client.DeleteInstance param if vm_stopped
+        @logger.debug "the vm is deleted"
+
+        r
       rescue => e
-        @logger.error %Q[failed to the vm. #{e.inspect}\n#{e.backtrace.join("\n")}]
+        @logger.error("failed to delete the vm. #{e.inspect}\n#{e.backtrace.join('\n')}")
         raise Bosh::Clouds::VMNotFound.new(false), "failed to delete the vm. #{e.inspect}\n#{e.backtrace.join("\n")}"
       end
     end
@@ -215,7 +214,6 @@ module Bosh::Aliyun
 
     private
 
-    # TODO: Need to figure out how to update this part
     def agent_network_spec
       {
           "private"=> {
@@ -227,26 +225,24 @@ module Bosh::Aliyun
       }
     end
 
-    def assign_public_eip vm_id, vip_setting
-      @logger.info "start to allocate public ip for vm #{vm_id}"
+    def bind_public_eip vm_id, nm
+      @logger.info "Start to bind public eip with the specific vm"
+      param = {
+        :RegionId => @options[:RegionId],
+        :Status => "Available",
+        :EipAddress => nm.vip_network.ip
+      }
+
+      r = @aliyun_client.DescribeEipAddresses param
+      @logger.debug "check eip exist or not, #{r.inspect}"
+
+      allocation_id = r['EipAddresses']['EipAddress'][0]['AllocationId']
       param = {
         :InstanceId => vm_id,
-        :RegionId => @options[:RegionId]
+        :AllocationId => allocation_id
       }
-      param.merge! vip_setting
-      r = @aliyun_client.AllocateEipAddress param
-      @logger.debug "got an elastic ip, #{r.inspect}"
-
-      eip = r["EipAddress"]
-      eid = r["AllocationId"]
-
-      param = {
-        :AllocationId => eid,
-        :InstanceId => vm_id
-      }
-      @aliyun_client.AssociateEipAddress param
+      r = @aliyun_client.AssociateEipAddress param
       @logger.debug "bond the newly created eip with the vm"
-
     end
 
     def start_vm vm_id
@@ -318,11 +314,6 @@ module Bosh::Aliyun
       para = {
         :RegionId => @options[:RegionId],
         :InstanceType => @options[:InstanceType],
-
-# TODO This three parameters will be set in network_manager. Please check it.
-#        :SecurityGroupId => @options[:SecurityGroupId],
-#        :InternetChargeType => @options[:InternetChargeType],
-#        :InternetMaxBandwidthOut => @options[:InternetMaxBandwidthOut],
         :InstanceName => @options[:InstanceName],
         :Description => @options[:Description],
         :HostName => @options[:HostName],
@@ -338,11 +329,6 @@ module Bosh::Aliyun
           :AccessKeyId,
           :AccessKey,
           :Password,
-
-# TODO This three parameters will be set in network_manager. Please check it.
-#          :SecurityGroupId,
-#          :InternetChargeType,
-#          :InternetMaxBandwidthOut,
           :InstanceName,
           :HostName
       ]

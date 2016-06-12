@@ -1,8 +1,9 @@
 ---
 aliyun:
-  ImageId: m-23h4o8945
-  AccessKeyId: ***REMOVED***
-  AccessKey: ***REMOVED***
+  ImageId: m-23h4o8945     # bosh
+  # ImageId: m-23nsnfn8r  # cf
+  AccessKeyId: mAzG4a7noZebwVcl
+  AccessKey: uZnI1hl6nOUxhTWccg3PeZnr9rXQK5
   RegionId: cn-hangzhou
   InstanceType: ecs.t1.small
   InstanceName: bosh_aliyun_cpi_unit_test
@@ -12,9 +13,14 @@ aliyun:
 
 networks:
   private:
-    type: vip
+    type: manual
+    ip: 10.0.0.40
+    cloud_properties:
+      SecurityGroupId: sg-23z22wx1h
+      VSwitchId: vsw-23ddtkh0a
   public:
     type: vip
+    ip: 121.43.188.10
     cloud_properties:
       InternetMaxBandwidthOut: "10"
       InternetChargeType: "PayByBandwidth"

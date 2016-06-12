@@ -135,6 +135,10 @@ module Bosh::Aliyun
       super
     end
 
+    def ip
+      @ip
+    end
+
     def configure
       {
         :Bandwidth => @cloud_properties[:InternetMaxBandwidthOut],

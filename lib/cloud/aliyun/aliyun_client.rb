@@ -113,13 +113,14 @@ module Bosh::Aliyun
     def prepare_parameters(method, params)
       #Add common parameters
       params.merge! @@service.default_parameters
-
       params.merge! @@options
 
       params[:Action] = method.to_s
       params[:Timestamp] = Time.now.utc.iso8601
       params[:SignatureNonce] = SecureRandom.uuid
       params[:Signature] = compute_signature(params)
+
+      @@logger.debug "Prepared params is: #{params.inspect}"
 
       params
     end

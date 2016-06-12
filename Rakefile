@@ -18,7 +18,7 @@ namespace :tools do
     cloud_config[:logger].formatter = proc do |severity, datetime, progname, msg|
       "[#{severity}], #{datetime} #{caller[4]}:#{__LINE__}: #{msg}\n"
     end
-    cloud_config[:logger].level = Logger::INFO
+    cloud_config[:logger].level = Logger::DEBUG
     Bosh::Clouds::Config.configure(cloud_config)
 
     o = YAML.load_file('spec/assets/cpi_config')

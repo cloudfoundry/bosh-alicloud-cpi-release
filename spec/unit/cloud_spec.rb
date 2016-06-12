@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Bosh::Aliyun::Cloud do
 
-  describe "Classic network test" do
+  describe "Unit test" do
     it 'can create stemcell' do
       # Init
       o = load_cloud_options
@@ -27,28 +27,28 @@ describe Bosh::Aliyun::Cloud do
       expect(true).to eq(true)
     end
 
-    # TODO We need to find a proper way(dynamic ip`) to reuse this test
-    # it 'can create, reboot and delete a vm' do
-    #   o = load_cloud_options
-    #   o["aliyun"]["SecurityGroupId"] = "sg-237p56jii"
-    #   c = Bosh::Aliyun::Cloud.new o
-    #
-    #   # Create VM
-    #   ins_id = c.create_vm
-    #
-    #   expect(ins_id).to match(/[\w]{1}-[\w]{9}/)
-    #
-    #   c.reboot_vm ins_id
-    #
-    #   r = c.stop_it ins_id
-    #   r = c.delete_vm ins_id
-    #
-    #   expect(r).to have_key("RequestId")
-    # end
+    it 'can create, reboot and delete a vm', :debug => true do
+      o = load_cloud_options
+
+      c = Bosh::Aliyun::Cloud.new o
+
+      # Create VM
+      ins_id = c.create_vm nil, nil, nil, o["networks"]
+
+      expect(ins_id).to match(/[\w]{1}-[\w]{9}/)
+
+      # Reboot VM
+      c.reboot_vm ins_id
+
+      # Delete VM
+      r = c.delete_vm ins_id
+
+      expect(r).to have_key("RequestId")
+    end
 
     it 'can check vm status' do
       o = load_cloud_options
-      o["aliyun"]["SecurityGroupId"] = "sg-237p56jii"
+      # o["aliyun"]["SecurityGroupId"] = "sg-237p56jii"
       c = Bosh::Aliyun::Cloud.new o
 
       # TODO Right now just try to match the bootstrap vm
@@ -72,14 +72,13 @@ describe Bosh::Aliyun::Cloud do
 
       expect(ins_id).to match(/[\w]{1}-[\w]{9}/)
 
-      r = c.stop_it ins_id
       r = c.delete_vm ins_id
 
       expect(r).to have_key("RequestId")
     end
   end
 
-  describe "Bosh registry test", :debug => true do
+  describe "Bosh registry test" do
 
     it "can init a registry" do
       o = load_cloud_options
