@@ -45,7 +45,7 @@ end
 RSpec.configure do |config|
   config.before do
     logger = Logger.new(STDOUT)
-    logger.level = Logger::INFO
+    logger.level = Logger::DEBUG
     logger.datetime_format = '%Y-%m-%d %H:%M:%S'
     logger.formatter = proc do |severity, datetime, progname, msg|
       "[#{severity}], #{datetime} #{caller[4]}:#{__LINE__}: #{msg}\n"

@@ -27,7 +27,7 @@ describe Bosh::Aliyun::Cloud do
       expect(true).to eq(true)
     end
 
-    it 'can create, reboot and delete a vm', :debug => true do
+    it 'can create, reboot and delete a vm' do
       o = load_cloud_options
 
       c = Bosh::Aliyun::Cloud.new o
@@ -138,6 +138,47 @@ describe Bosh::Aliyun::Cloud do
         s = c.initial_agent_settings(ins_id, agent_id, networks, "")
         r.update_settings(ins_id, s)
       end
+    end
+
+  end
+
+  describe "Disk management test" do
+
+    it "can create a disk and delete it" do
+      o = load_cloud_options
+      c = Bosh::Aliyun::Cloud.new o
+
+      # Create VM
+      ins_id = c.create_vm nil, nil, nil, nil
+
+      size = "1024" # default
+      size = o["persistent_disk"] if o.has_key? "persistent_disk"
+
+      disk_id = c.create_disk "1024", nil, ins_id
+      expect(ins_id).to match(/[\w]{1}-[\w]{9}/)
+
+      c.delete_disk disk_id
+      c.delete_vm ins_id
+    end
+
+    it "can create a disk, attach it, detach it and delete it", :debug => true do
+      o = load_cloud_options
+      c = Bosh::Aliyun::Cloud.new o
+
+      # Create VM
+      ins_id = c.create_vm nil, nil, nil, nil
+
+      size = "1024" # default
+      size = o["persistent_disk"] if o.has_key? "persistent_disk"
+
+      disk_id = c.create_disk "1024", nil, ins_id
+      expect(disk_id).to match(/[\w]{1}-[\w]{9}/)
+
+      c.attach_disk ins_id, disk_id
+      c.detach_disk ins_id, disk_id
+
+      c.delete_disk disk_id
+      c.delete_vm ins_id
     end
 
   end

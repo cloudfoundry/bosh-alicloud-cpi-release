@@ -10,6 +10,7 @@ aliyun:
   HostName: bosh.aliyun-cpi.unit-test
   Password: 1qaz@WSX
   Description: bosh_aliyun_cpi_unit_test
+  SnapShotId: s-23p7qx24o
 
 persistent_disk: 1024
 
