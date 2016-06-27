@@ -11,6 +11,8 @@ aliyun:
   Password: 1qaz@WSX
   Description: bosh_aliyun_cpi_unit_test
 
+persistent_disk: 1024
+
 networks:
   private:
     type: manual

@@ -11,7 +11,7 @@ task :default => :spec
 
 namespace :tools do
   desc "Delete created vms"
-  task :delete_vm, :id, :running do |t, args|
+  task :delete_vm, :id do |t, args|
     cloud_config = OpenStruct.new(:logger => Logger.new(STDERR))
 
     cloud_config[:logger].datetime_format = '%Y-%m-%d %H:%M:%S'
@@ -24,7 +24,7 @@ namespace :tools do
     o = YAML.load_file('spec/assets/cpi_config')
     c = Bosh::Aliyun::Cloud.new o
 
-    c.stop_it args[:id] # if args[:running] == "1"
+    c.stop_it args[:id]
 
     c.delete_vm args[:id]
   end
