@@ -12,6 +12,11 @@ cpi_config = YAML.load_file(ARGV.shift)
 
 cloud_config = OpenStruct.new(:logger => Logger.new(STDERR))
 
+cloud_config[:logger].datetime_format = '%Y-%m-%d %H:%M:%S'
+cloud_config[:logger].formatter = proc do |severity, datetime, progname, msg|
+  "[#{severity}], #{datetime} #{caller[4]}:#{__LINE__}: #{msg}\n"
+end
+
 Bosh::Clouds::Config.configure(cloud_config)
 
 cpi_log = StringIO.new

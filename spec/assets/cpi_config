@@ -1,0 +1,54 @@
+---
+aliyun:
+  ImageId: m-23h4o8945     # bosh
+  # ImageId: m-23nsnfn8r  # cf
+  AccessKeyId: mAzG4a7noZebwVcl
+  AccessKey: uZnI1hl6nOUxhTWccg3PeZnr9rXQK5
+  RegionId: cn-hangzhou
+  InstanceType: ecs.t1.small
+  InstanceName: bosh_aliyun_cpi_unit_test
+  HostName: bosh.aliyun-cpi.unit-test
+  Password: 1qaz@WSX
+  Description: bosh_aliyun_cpi_unit_test
+  SnapShotId: s-23p7qx24o
+
+persistent_disk: 1024
+
+networks:
+  private:
+    type: manual
+    ip: 10.0.0.40
+    cloud_properties:
+      SecurityGroupId: sg-23z22wx1h
+      VSwitchId: vsw-23ddtkh0a
+  public:
+    type: vip
+    ip: 121.43.188.10
+    cloud_properties:
+      InternetMaxBandwidthOut: "10"
+      InternetChargeType: "PayByBandwidth"
+
+registry:
+  user: admin
+  password: admin
+  endpoint: "http://127.0.0.1:25777"
+
+agent:
+  mbus: "nats://nats:nats-password@10.0.0.2:4222"
+  blobstore:
+    provider: "dav"
+    options:
+      endpoint: "http://10.0.0.2:25250"
+      user: "agent"
+      password: "agent-password"
+
+
+resource_pools:
+- name: t1_small
+  cloud_properties:
+    instance_type: "ecs.t1.small"
+    availability_zone: "cn-hangzhou-b"
+- name: s1_small
+  cloud_properties:
+    instance_type: "ecs.s1.small"
+    availability_zone: "cn-hangzhou-b"
