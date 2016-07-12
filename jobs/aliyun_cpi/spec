@@ -39,13 +39,18 @@ properties:
     default: "OAtTkdQDHJyYGCmU"
   aliyun.access_key:
     default: "PzosfNHKsG6sFQKNnxvMjqQNx8x2of"
+  aliyun.disk_snapshot_id:
+    default: ""
 
   registry.username:
     description: User to access the Registry
+    default: admin
   registry.password:
     description: Password to access the Registry
+    default: admin
   registry.address:
     description: Address of the Registry to connect to
+    default: "10.0.0.2"
   registry.port:
     description: Port of the Registry to connect to
     default: 25777
@@ -69,10 +74,13 @@ properties:
 
   nats.user:
     description: Username to connect to nats with
+    default: "nats"
   nats.password:
     description: Password to connect to nats with
+    default: "nats-password"
   nats.address:
     description: Address of the nats server
+    default: "10.0.0.2"
   nats.port:
     description: Port that the nats server listens on
     default: 4222
