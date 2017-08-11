@@ -27,23 +27,23 @@ describe Bosh::Aliyun::Cloud do
       expect(true).to eq(true)
     end
 
-    it 'can create, reboot and delete a vm' do
+    it 'can create, reboot and delete a vm', :debug => true do
       o = load_cloud_options
 
       c = Bosh::Aliyun::Cloud.new o
 
       # Create VM
-      ins_id = c.create_vm nil, nil, nil, o["networks"]
+      ins_id = c.create_vm nil, nil, o["resource_pool"], o["network"]
 
       expect(ins_id).to match(/[\w]{1}-[\w]{9}/)
 
       # Reboot VM
-      c.reboot_vm ins_id
+      # c.reboot_vm ins_id
 
       # Delete VM
-      r = c.delete_vm ins_id
+      # r = c.delete_vm ins_id
 
-      expect(r).to have_key("RequestId")
+      # expect(r).to have_key("RequestId")
     end
 
     it 'can check vm status' do
@@ -68,7 +68,7 @@ describe Bosh::Aliyun::Cloud do
       c = Bosh::Aliyun::Cloud.new o
 
       # Create VM with specific network
-      ins_id = c.create_vm nil, nil, nil, o["networks"]
+      ins_id = c.create_vm nil, nil, o["resource_pool"], o["network"]
 
       expect(ins_id).to match(/[\w]{1}-[\w]{9}/)
 
@@ -161,12 +161,12 @@ describe Bosh::Aliyun::Cloud do
       c.delete_vm ins_id
     end
 
-    it "can create a disk, attach it, detach it and delete it", :debug => true do
+    it "can create a disk, attach it, detach it and delete it" do
       o = load_cloud_options
       c = Bosh::Aliyun::Cloud.new o
 
       # Create VM
-      ins_id = c.create_vm nil, nil, nil, nil
+      ins_id = c.create_vm nil, nil, o["resource_pool"], o["network"]
 
       size = "1024" # default
       size = o["persistent_disk"] if o.has_key? "persistent_disk"
