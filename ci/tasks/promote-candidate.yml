@@ -1,0 +1,16 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source: {repository: boshcpi/alicloud-cpi-release}
+inputs:
+  - name: bosh-cpi-src
+  - name: bosh-cpi-release
+  - name: release-version-semver
+outputs:
+  - name: promoted
+run:
+  path: bosh-cpi-src/ci/tasks/promote-candidate.sh
+params:
+  AWS_ACCESS_KEY_ID:     ""
+  AWS_SECRET_ACCESS_KEY: ""

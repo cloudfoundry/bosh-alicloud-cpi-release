@@ -1,0 +1,15 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source: {repository: boshcpi/alicloud-cpi-release}
+
+inputs:
+  - name: bosh-cpi-src
+  - name: version-semver
+
+outputs:
+  - name: candidate
+
+run:
+  path: bosh-cpi-src/ci/tasks/build-candidate.sh
