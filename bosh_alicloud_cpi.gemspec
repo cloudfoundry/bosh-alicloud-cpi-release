@@ -4,15 +4,14 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "bosh_aliyun_cpi"
-  spec.version       = BoshAliyunCpi::VERSION
-  spec.authors       = ["顺岭"]
+  spec.name          = "bosh_alicloud_cpi"
+  spec.version       = BoshAlicloudCpi::VERSION
+  spec.authors       = ["Changlong Wu", "Jiale Zheng"]
   spec.email         = ["changlong.wcl@alibaba-inc.com"]
 
-  spec.summary       = 'BOSH Aliyun CPI'
-  spec.description   = 'This is the BOSH cloud platform interface for Aliyun, which is the biggest Infrastructure as a service in China.'
+  spec.summary       = 'BOSH Alicloud CPI'
+  spec.description   = 'This is the BOSH cloud platform interface for Alibaba Cloud, which is the biggest Infrastructure as a service in China.'
 
-#  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.bindir        = "bin"
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]

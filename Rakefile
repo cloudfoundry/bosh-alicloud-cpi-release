@@ -3,7 +3,7 @@ require "bundler/gem_tasks"
 require "rspec/core/rake_task"
 require "yaml"
 
-require 'bosh_aliyun_cpi'
+require 'bosh_alicloud_cpi'
 
 RSpec::Core::RakeTask.new(:spec)
 
@@ -22,7 +22,7 @@ namespace :tools do
     Bosh::Clouds::Config.configure(cloud_config)
 
     o = YAML.load_file('spec/assets/cpi_config')
-    c = Bosh::Aliyun::Cloud.new o
+    c = Bosh::Alicloud::Cloud.new o
 
     c.stop_it args[:id]
 
@@ -46,7 +46,7 @@ namespace :tools do
     c = {}
     c[:AccessKeyId] = o["AccessKeyId"]
     c[:AccessKey] = o["AccessKey"]
-    cli = Bosh::Aliyun::Client.new c, logger
+    cli = Bosh::Alicloud::Client.new c, logger
 
     logger.info("start to allocate public ip for vm")
     param={
@@ -75,7 +75,7 @@ namespace :tools do
     c = {}
     c[:AccessKeyId] = o["AccessKeyId"]
     c[:AccessKey] = o["AccessKey"]
-    cli = Bosh::Aliyun::Client.new c, logger
+    cli = Bosh::Alicloud::Client.new c, logger
 
     logger.info("get all elastic IP addresses")
     param = {
