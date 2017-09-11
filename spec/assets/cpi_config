@@ -10,7 +10,8 @@ alicloud:
   Description: bosh_alicloud_cpi_unit_test
   SnapShotId: s-23p7qx24o
 
-persistent_disk: 1024
+# GB
+persistent_disk: 20
 
 network:
   private:
