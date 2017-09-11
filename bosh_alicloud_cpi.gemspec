@@ -5,7 +5,7 @@ require 'version'
 
 Gem::Specification.new do |spec|
   spec.name          = "bosh_alicloud_cpi"
-  spec.version       = BoshAliyunCpi::VERSION
+  spec.version       = BoshAlicloudCpi::VERSION
   spec.authors       = ["Changlong Wu", "Jiale Zheng"]
   spec.email         = ["changlong.wcl@alibaba-inc.com"]
 
