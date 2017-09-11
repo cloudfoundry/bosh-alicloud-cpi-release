@@ -1,13 +1,13 @@
 ---
-aliyun:
+alicloud:
   AccessKeyId: oB0IduIGyQytLfiS
   AccessKey: tz9bHMfGuJITQ2XD5WDbWxby5h2cVo
 
   RegionId: cn-beijing
-  InstanceName: bosh_aliyun_cpi_unit_test
-  HostName: bosh.aliyun-cpi.unit-test
+  InstanceName: bosh_alicloud_cpi_unit_test
+  HostName: bosh.alicloud-cpi.unit-test
   Password: 1qaz@WSX
-  Description: bosh_aliyun_cpi_unit_test
+  Description: bosh_alicloud_cpi_unit_test
   SnapShotId: s-23p7qx24o
 
 persistent_disk: 1024
