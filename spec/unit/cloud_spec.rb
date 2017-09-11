@@ -1,13 +1,13 @@
 require 'spec_helper'
 
-describe Bosh::Aliyun::Cloud do
+describe Bosh::Alicloud::Cloud do
 
   describe "Unit test" do
     it 'can create stemcell' do
       # Init
       o = load_cloud_options
-      o["aliyun"]["SecurityGroupId"] = "sg-237p56jii"
-      c = Bosh::Aliyun::Cloud.new o
+      o["alicloud"]["SecurityGroupId"] = "sg-237p56jii"
+      c = Bosh::Alicloud::Cloud.new o
 
       # Create stemcell
       para = {}
@@ -18,8 +18,8 @@ describe Bosh::Aliyun::Cloud do
 
     it 'can delete stemcell' do
       o = load_cloud_options
-      o["aliyun"]["SecurityGroupId"] = "sg-237p56jii"
-      c = Bosh::Aliyun::Cloud.new o
+      o["alicloud"]["SecurityGroupId"] = "sg-237p56jii"
+      c = Bosh::Alicloud::Cloud.new o
 
       # Delete stemcell
       c.delete_stemcell ""
@@ -30,7 +30,7 @@ describe Bosh::Aliyun::Cloud do
     it 'can create, reboot and delete a vm', :debug => true do
       o = load_cloud_options
 
-      c = Bosh::Aliyun::Cloud.new o
+      c = Bosh::Alicloud::Cloud.new o
 
       # Create VM
       ins_id = c.create_vm nil, nil, o["resource_pool"], o["network"]
@@ -48,8 +48,8 @@ describe Bosh::Aliyun::Cloud do
 
     it 'can check vm status' do
       o = load_cloud_options
-      # o["aliyun"]["SecurityGroupId"] = "sg-237p56jii"
-      c = Bosh::Aliyun::Cloud.new o
+      # o["alicloud"]["SecurityGroupId"] = "sg-237p56jii"
+      c = Bosh::Alicloud::Cloud.new o
 
       # TODO Right now just try to match the bootstrap vm
       # if it failed, please use a new vm id.
@@ -65,7 +65,7 @@ describe Bosh::Aliyun::Cloud do
 
     it "can create a vm with both private and public network" do
       o = load_cloud_options
-      c = Bosh::Aliyun::Cloud.new o
+      c = Bosh::Alicloud::Cloud.new o
 
       # Create VM with specific network
       ins_id = c.create_vm nil, nil, o["resource_pool"], o["network"]
@@ -82,7 +82,7 @@ describe Bosh::Aliyun::Cloud do
 
     it "can init a registry" do
       o = load_cloud_options
-      c = Bosh::Aliyun::Cloud.new o
+      c = Bosh::Alicloud::Cloud.new o
 
       registry_options = recursive_symbolize_keys(o["registry"])
       c.initialize_registry registry_options
@@ -92,7 +92,7 @@ describe Bosh::Aliyun::Cloud do
 
     it "can initilize agent settings" do
       o = load_cloud_options
-      c = Bosh::Aliyun::Cloud.new o
+      c = Bosh::Alicloud::Cloud.new o
 
       registry_options = recursive_symbolize_keys(o["registry"])
       c.initialize_registry registry_options
@@ -118,7 +118,7 @@ describe Bosh::Aliyun::Cloud do
 
     it "can update agent settings" do
       o = load_cloud_options
-      c = Bosh::Aliyun::Cloud.new o
+      c = Bosh::Alicloud::Cloud.new o
 
       registry_options = recursive_symbolize_keys(o["registry"])
       r = c.initialize_registry registry_options
@@ -146,7 +146,7 @@ describe Bosh::Aliyun::Cloud do
 
     it "can create a disk and delete it" do
       o = load_cloud_options
-      c = Bosh::Aliyun::Cloud.new o
+      c = Bosh::Alicloud::Cloud.new o
 
       # Create VM
       ins_id = c.create_vm nil, nil, nil, nil
@@ -163,7 +163,7 @@ describe Bosh::Aliyun::Cloud do
 
     it "can create a disk, attach it, detach it and delete it" do
       o = load_cloud_options
-      c = Bosh::Aliyun::Cloud.new o
+      c = Bosh::Alicloud::Cloud.new o
 
       # Create VM
       ins_id = c.create_vm nil, nil, o["resource_pool"], o["network"]
