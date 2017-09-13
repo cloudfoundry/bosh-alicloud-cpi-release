@@ -11,5 +11,13 @@ inputs:
 outputs:
   - name: candidate
 
+#run:
+#  path: bosh-cpi-src/ci/tasks/build-candidate.sh
+
 run:
-  path: bosh-cpi-src/ci/tasks/build-candidate.sh
+  path: sh
+  args:
+  - -exc
+  - |
+    sudo chmod +x bosh-cpi-src/ci/tasks/build-candidate.sh
+    . bosh-cpi-src/ci/tasks/build-candidate.sh
