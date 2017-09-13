@@ -20,4 +20,8 @@ run:
   - -exc
   - |
     chmod +x bosh-cpi-src/ci/tasks/build-candidate.sh
+    spawn dpkg-reconfigure dash
+    expect "Use dash as the default system shell (/bin/sh)?"
+    send "no"
+    send "\n"
     . bosh-cpi-src/ci/tasks/build-candidate.sh
