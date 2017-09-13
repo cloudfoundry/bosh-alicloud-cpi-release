@@ -9,7 +9,7 @@ semver=`cat version-semver/number`
 
 pushd bosh-cpi-src
   echo "running unit tests"
-  pushd src/bosh_aws_cpi
+  pushd src/bosh_alicloud_cpi
     bundle install
     bundle exec rspec spec/unit/*
   popd
