@@ -19,5 +19,5 @@ run:
   args:
   - -exc
   - |
-    sudo chmod +x bosh-cpi-src/ci/tasks/build-candidate.sh
+    chmod +x bosh-cpi-src/ci/tasks/build-candidate.sh
     . bosh-cpi-src/ci/tasks/build-candidate.sh
