@@ -1,7 +1,7 @@
 module Bosh
-  module Aliyun
+  module Alicloud
 
-    class AliyunException < RuntimeError
+    class AlicloudException < RuntimeError
     end
 
   end
@@ -19,13 +19,13 @@ require "common/common"
 require "bosh/registry/client"
 
 require "cloud"
-require "cloud/aliyun/helpers"
-require "cloud/aliyun/cloud"
-require "cloud/aliyun/network_manager"
-require "cloud/aliyun/aliyun_client"
+require "cloud/alicloud/helpers"
+require "cloud/alicloud/cloud"
+require "cloud/alicloud/network_manager"
+require "cloud/alicloud/alicloud_client"
 
 module Bosh
   module Clouds
-    Aliyun = Bosh::Aliyun::Cloud
+    Alicloud = Bosh::Alicloud::Cloud
   end
 end

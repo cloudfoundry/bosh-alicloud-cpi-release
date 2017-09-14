@@ -2,7 +2,7 @@ require "base64"
 require "uri"
 require "json"
 
-module Bosh::Aliyun
+module Bosh::Alicloud
   class APIBase
     def self.info
       raise "Service Name Missing."
@@ -23,7 +23,7 @@ module Bosh::Aliyun
 
   class ECS < APIBase
     def self.info
-      "Aliyun ECS Service"
+      "Alicloud ECS Service"
     end
 
     def self.endpoint
@@ -73,7 +73,7 @@ module Bosh::Aliyun
 
     def method_missing(method, *args)
       if args[0].nil?
-        raise AliyunException.new "Method missing: #{method}."
+        raise AlicloudException.new "Method missing: #{method}."
       end
 
       request(method, args[0])
@@ -106,7 +106,7 @@ module Bosh::Aliyun
         return r
       else
         @@logger.error "request error! reponse code: #{response.code}, message: #{response.body.inspect}"
-        raise AliyunException.new "request error! response code: #{response.code}, message: #{response.body}"
+        raise AlicloudException.new "request error! response code: #{response.code}, message: #{response.body}"
       end
     end
 
