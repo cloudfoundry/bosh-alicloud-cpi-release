@@ -11,7 +11,8 @@ pushd bosh-cpi-src
   echo "running unit tests"
   pushd src/bosh_alicloud_cpi
     bundle install
-    bundle exec rspec spec/unit/*
+    # bundle exec rspec spec/unit/*
+    bundle exec rspec --tag debug spec/unit/cloud.rb
   popd
 
   echo "using bosh CLI version..."
@@ -24,9 +25,6 @@ pushd bosh-cpi-src
 popd
 
 ls bosh-cpi-src
-ls bosh-cpi-src/dev_releases
-ls bosh-cpi-src/dev_releases/$cpi_release_name
-ls bosh-cpi-src/dev_releases/$cpi_release_name/$cpi_release_name-$semver.tgz
-ls candidate/
 
-mv bosh-cpi-src/dev_releases/$cpi_release_name/$cpi_release_name-$semver.tgz candidate/
+# mv bosh-cpi-src/dev_releases/$cpi_release_name/$cpi_release_name-$semver.tgz candidate/
+mv bosh-cpi-src/README.md candidate/
