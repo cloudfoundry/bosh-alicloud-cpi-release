@@ -2,13 +2,13 @@
 aliyun:
   ImageId: m-23h4o8945     # bosh
   # ImageId: m-23nsnfn8r  # cf
-  AccessKeyId: mAzG4a7noZebwVcl
-  AccessKey: uZnI1hl6nOUxhTWccg3PeZnr9rXQK5
+  AccessKeyId: ***
+  AccessKey: ***
   RegionId: cn-hangzhou
   InstanceType: ecs.t1.small
   InstanceName: bosh_aliyun_cpi_unit_test
   HostName: bosh.aliyun-cpi.unit-test
-  Password: 1qaz@WSX
+  Password: ***
   Description: bosh_aliyun_cpi_unit_test
   SnapShotId: s-23p7qx24o
 
