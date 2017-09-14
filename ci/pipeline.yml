@@ -75,7 +75,8 @@ jobs:
       - task: build
         file: bosh-cpi-src/ci/tasks/build-candidate.yml
       - put: bosh-cpi-dev-artifacts
-        params: {file: candidate/*.tgz}
+#        params: {file: candidate/*.tgz}
+        params: {file: candidate/*.md}
 
   - name: integration
     serial: true
