@@ -1,4 +1,4 @@
-module Bosh::Aliyun
+module Bosh::Alicloud
 
   class NetworkManager
     include Helpers

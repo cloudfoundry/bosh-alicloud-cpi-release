@@ -2,10 +2,12 @@
 
 This is the BOSH cpi for Aliyun.
 
-## CPI Methods
+## feature/stemcell
 
-- create_stemcell -- Create a Aliyun OS template using stemcell image.
-- delete_stemcel  -- Delete a stemcell and the accompanying snapshots
+### CPI Methods
+
+- create_stemcell -- Create a Aliyun OS template using light-stemcell.
+- delete_stemcel  -- Delete a stemcell.
 
 ## Test
 
