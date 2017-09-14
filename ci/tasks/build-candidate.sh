@@ -5,6 +5,8 @@ set -x
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
 
+touch hope.log
+
 semver=`cat version-semver/number`
 
 pushd bosh-cpi-src
