@@ -23,4 +23,10 @@ pushd bosh-cpi-src
   bosh create release --name $cpi_release_name --version $semver --with-tarball
 popd
 
+ls bosh-cpi-src
+ls bosh-cpi-src/dev_releases
+ls bosh-cpi-src/dev_releases/$cpi_release_name
+ls bosh-cpi-src/dev_releases/$cpi_release_name/$cpi_release_name-$semver.tgz
+ls candidate/
+
 mv bosh-cpi-src/dev_releases/$cpi_release_name/$cpi_release_name-$semver.tgz candidate/
