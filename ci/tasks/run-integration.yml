@@ -6,12 +6,13 @@ image_resource:
 inputs:
   - name: bosh-cpi-src
 #  - name: environment
-path: sh
-args:
-- -exc
-- |
-  chmod +x bosh-cpi-src/ci/tasks/run-integration.sh
-  bash bosh-cpi-src/ci/tasks/run-integration.sh
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    chmod +x bosh-cpi-src/ci/tasks/run-integration.sh
+    bash bosh-cpi-src/ci/tasks/run-integration.sh
 params:
   ALICLOUD_ACCESS_KEY_ID:     ""
   ALICLOUD_SECRET_ACCESS_KEY: ""
