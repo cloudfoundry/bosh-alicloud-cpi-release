@@ -2,13 +2,8 @@
 
 set -x
 
-source
-ls /etc/profile.d/chruby.sh
-
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
-
-touch hope.log
 
 semver=`cat version-semver/number`
 
