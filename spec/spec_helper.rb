@@ -1,5 +1,5 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
-require 'bosh_aliyun_cpi'
+require 'bosh_alicloud_cpi'
 require 'yaml'
 require 'yajl'
 

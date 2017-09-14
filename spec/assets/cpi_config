@@ -1,32 +1,25 @@
 ---
-aliyun:
-  ImageId: m-23h4o8945     # bosh
-  # ImageId: m-23nsnfn8r  # cf
-  AccessKeyId: ***
-  AccessKey: ***
-  RegionId: cn-hangzhou
-  InstanceType: ecs.t1.small
-  InstanceName: bosh_aliyun_cpi_unit_test
-  HostName: bosh.aliyun-cpi.unit-test
-  Password: ***
-  Description: bosh_aliyun_cpi_unit_test
+alicloud:
+  AccessKeyId: *****
+  AccessKey: ****
+
+  RegionId: cn-beijing
+  InstanceName: bosh_alicloud_cpi_unit_test
+  HostName: bosh.alicloud-cpi.unit-test
+  Password: ****
+  Description: bosh_alicloud_cpi_unit_test
   SnapShotId: s-23p7qx24o
 
-persistent_disk: 1024
+# GB
+persistent_disk: 20
 
-networks:
+network:
   private:
     type: manual
     ip: 10.0.0.40
     cloud_properties:
-      SecurityGroupId: sg-23z22wx1h
-      VSwitchId: vsw-23ddtkh0a
-  public:
-    type: vip
-    ip: 121.43.188.10
-    cloud_properties:
-      InternetMaxBandwidthOut: "10"
-      InternetChargeType: "PayByBandwidth"
+      SecurityGroupId: sg-2zeey7ezv1wcfkliwomq
+      VSwitchId: vsw-2zeh4up0cx8ogjfuonyt2
 
 registry:
   user: admin
@@ -43,12 +36,14 @@ agent:
       password: "agent-password"
 
 
-resource_pools:
-- name: t1_small
-  cloud_properties:
-    instance_type: "ecs.t1.small"
-    availability_zone: "cn-hangzhou-b"
-- name: s1_small
-  cloud_properties:
-    instance_type: "ecs.s1.small"
-    availability_zone: "cn-hangzhou-b"
+resource_pool:
+  image_id: m-2zehhdtfg22hq46reabf
+  instance_type: ecs.n4.small
+  region_id: cn-beijing
+  # availability_zone: cn-beijing-d
+  system_disk:
+    size: 50
+    type: cloud_efficiency
+  ephemeral_disk:
+    size: 50
+    type: cloud_efficiency
