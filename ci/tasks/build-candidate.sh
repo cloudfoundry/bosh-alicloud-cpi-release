@@ -12,7 +12,7 @@ pushd bosh-cpi-src
   pushd src/bosh_alicloud_cpi
     bundle install
     # bundle exec rspec spec/unit/*
-    bundle exec rspec --tag debug spec/unit/cloud.rb
+    bundle exec rspec --tag debug spec/unit/cloud_spec.rb
   popd
 
   echo "using bosh CLI version..."
