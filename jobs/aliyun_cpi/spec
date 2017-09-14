@@ -34,11 +34,11 @@ properties:
   aliyun.hostname:
     default: "bosh-vm"
   aliyun.password:
-    default: "1qaz@WSX"
+    default: ""
   aliyun.access_key_id:
-    default: "OAtTkdQDHJyYGCmU"
+    default: ""
   aliyun.access_key:
-    default: "PzosfNHKsG6sFQKNnxvMjqQNx8x2of"
+    default: ""
   aliyun.disk_snapshot_id:
     default: ""
 
