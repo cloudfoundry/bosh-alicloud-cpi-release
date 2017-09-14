@@ -20,4 +20,4 @@ run:
   - -exc
   - |
     chmod +x bosh-cpi-src/ci/tasks/build-candidate.sh
-    sh bosh-cpi-src/ci/tasks/build-candidate.sh
+    bash bosh-cpi-src/ci/tasks/build-candidate.sh
