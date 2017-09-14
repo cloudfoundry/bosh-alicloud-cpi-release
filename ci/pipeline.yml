@@ -92,10 +92,10 @@ jobs:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
           ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-        ensure:
-          do:
-            - <<: *ensure-terminated
-            - <<: *destroy-environment
+#        ensure:
+#          do:
+#            - <<: *ensure-terminated
+#            - <<: *destroy-environment
 
   - name: bats
     serial: true
