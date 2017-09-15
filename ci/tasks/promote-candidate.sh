@@ -25,20 +25,20 @@ dev_release=$(echo $PWD/bosh-cpi-release/*.tgz)
 #  s3:
 #    access_key_id: $ALICLOUD_ACCESS_KEY_ID
 #    secret_access_key: $ALICLOUD_SECRET_ACCESS_KEY
-EOF
+#EOF
 
   echo "using bosh CLI version..."
-  bosh version
+#  bosh version
 
   echo "finalizing CPI release..."
-  bosh finalize release ${dev_release} --version $integer_version
+#  bosh finalize release ${dev_release} --version $integer_version
 
-  rm config/private.yml
+#  rm config/private.yml
 
-  git diff | cat
-  git add .
+#  git diff | cat
+#  git add .
 
-  git config --global user.email cf-bosh-eng@pivotal.io
-  git config --global user.name CI
-  git commit -m "New final release v $integer_version"
-popd
+#  git config --global user.email cf-bosh-eng@pivotal.io
+#  git config --global user.name CI
+#  git commit -m "New final release v $integer_version"
+#popd
