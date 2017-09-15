@@ -9,10 +9,10 @@ set -e
 #source director-state/director.env
 
 # CREATE TEST RELEASE
-pushd bosh-cpi-src/ci/assets/e2e-test-release
-  time bosh2 -n create-release --force --name e2e-test --version 1.0.0
-  time bosh2 -n upload-release
-popd
+#pushd bosh-cpi-src/ci/assets/e2e-test-release
+#  time bosh2 -n create-release --force --name e2e-test --version 1.0.0
+#  time bosh2 -n upload-release
+#popd
 
 # UPLOAD STEMCELL
 #time bosh2 -n upload-stemcell "$(realpath stemcell/*.tgz)"
