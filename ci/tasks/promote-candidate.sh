@@ -35,10 +35,10 @@ dev_release=$(echo $PWD/bosh-cpi-release/*.tgz)
 
 #  rm config/private.yml
 
-#  git diff | cat
-#  git add .
+  git diff | cat
+  git add .
 
-#  git config --global user.email cf-bosh-eng@pivotal.io
-#  git config --global user.name CI
-#  git commit -m "New final release v $integer_version"
+  git config --global user.email demon.wy@alibaba-inc.com
+  git config --global user.name demonwy
+  git commit -m "New final release v $integer_version"
 #popd
