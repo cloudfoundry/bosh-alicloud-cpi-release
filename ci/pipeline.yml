@@ -618,7 +618,6 @@ resources:
         bOFz6Kgin/eHdOTn0hwRkJTMu2/PqJApdaxew8gQjpCQRZxni/UlbF4XDjsj/04+
         QVlRldgHqglEjQuSlzpjiaU6ggeX+EanDth/OuATYoh2hWUWqoL51QFO5stgxA==
         -----END RSA PRIVATE KEY-----
-      branch: master
   # Remember to update these every once in a while
   - name: precompiled-bosh-release
     type: git
