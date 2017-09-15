@@ -35,7 +35,7 @@ dev_release=$(echo $PWD/bosh-cpi-release/*.tgz)
 
 #  rm config/private.yml
 
-  git diff | cat
+#  git diff | cat
   git add .
 
   git config --global user.email demon.wy@alibaba-inc.com
