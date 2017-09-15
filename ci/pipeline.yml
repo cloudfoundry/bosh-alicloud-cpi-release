@@ -184,8 +184,8 @@ jobs:
         params:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
-      - put: bosh-cpi-src-out
-        params: {repository: promoted/repo, rebase: true, tag_prefix: "v", tag: promoted/integer_version}
+#      - put: bosh-cpi-src-out
+#        params: {repository: promoted/repo, rebase: true, tag_prefix: "v", tag: promoted/integer_version}
       - put: release-version-semver
         params: {file: release-version-semver/number}
 
