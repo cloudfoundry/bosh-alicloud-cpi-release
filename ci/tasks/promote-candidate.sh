@@ -20,7 +20,7 @@ dev_release=$(echo $PWD/bosh-cpi-release/*.tgz)
 #pushd promoted/repo
 #  echo creating config/private.yml with blobstore secrets
 #  cat > config/private.yml << EOF
----
+#---
 #blobstore:
 #  s3:
 #    access_key_id: $ALICLOUD_ACCESS_KEY_ID
