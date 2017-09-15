@@ -14,7 +14,12 @@ inputs:
   - name: director-state
 
 run:
-  path: bosh-cpi-src/ci/tasks/run-e2e.sh
+  path: sh
+  args:
+  - -exc
+  - |
+    chmod +x bosh-cpi-src/ci/tasks/run-e2e.sh
+    bash bosh-cpi-src/ci/tasks/run-e2e.sh
 
 params:
   BOSH_DEBUG_LEVEL: info
