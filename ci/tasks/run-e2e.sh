@@ -32,9 +32,9 @@ time bosh2 -n upload-stemcell /tmp/e2e-encrypted-heavy-stemcell.tgz
 encrypted_heavy_stemcell_ami_id="$( bosh2 stemcells | grep e2e-encrypted-heavy-stemcell | awk '{print $NF;}' )"
 
 # UPDATE CLOUD CONFIG
-time bosh2 -n ucc \
-  #-l environment/metadata \
-  bosh-cpi-src/ci/assets/e2e-test-release/cloud-config.yml
+# time bosh2 -n ucc \
+#   -l environment/metadata \
+#  bosh-cpi-src/ci/assets/e2e-test-release/cloud-config.yml
 
 # BOSH DEPLOY
 #time bosh2 -n deploy -d e2e-test \
@@ -45,11 +45,11 @@ time bosh2 -n ucc \
 #  bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
 
 # RUN ERRANDS
-time bosh2 -n run-errand -d e2e-test iam-instance-profile-test
-time bosh2 -n run-errand -d e2e-test raw-ephemeral-disk-test
-time bosh2 -n run-errand -d e2e-test elb-registration-test
-time bosh2 -n run-errand -d e2e-test heavy-stemcell-test
-time bosh2 -n run-errand -d e2e-test encrypted-heavy-stemcell-test
+#time bosh2 -n run-errand -d e2e-test iam-instance-profile-test
+#time bosh2 -n run-errand -d e2e-test raw-ephemeral-disk-test
+#time bosh2 -n run-errand -d e2e-test elb-registration-test
+#time bosh2 -n run-errand -d e2e-test heavy-stemcell-test
+#time bosh2 -n run-errand -d e2e-test encrypted-heavy-stemcell-test
 
 # spot instances do not work in China
 #region=$( jq -e --raw-output ".region" environment/metadata )
