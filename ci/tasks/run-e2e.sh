@@ -2,11 +2,11 @@
 
 set -e
 
-bosh_cli=$(realpath bosh-cli/bosh-cli-*)
-chmod +x $bosh_cli
-cp "${bosh_cli}" /usr/local/bin/bosh2
+#bosh_cli=$(realpath bosh-cli/bosh-cli-*)
+#chmod +x $bosh_cli
+#cp "${bosh_cli}" /usr/local/bin/bosh2
 
-source director-state/director.env
+#source director-state/director.env
 
 # CREATE TEST RELEASE
 pushd bosh-cpi-src/ci/assets/e2e-test-release
@@ -15,11 +15,11 @@ pushd bosh-cpi-src/ci/assets/e2e-test-release
 popd
 
 # UPLOAD STEMCELL
-time bosh2 -n upload-stemcell "$(realpath stemcell/*.tgz)"
-time bosh2 -n upload-stemcell "$(realpath heavy-stemcell/*.tgz)"
+#time bosh2 -n upload-stemcell "$(realpath stemcell/*.tgz)"
+#time bosh2 -n upload-stemcell "$(realpath heavy-stemcell/*.tgz)"
 
-stemcell_name="$( bosh2 int <( tar xfO $(realpath stemcell/*.tgz) stemcell.MF ) --path /name )"
-heavy_stemcell_name="$( bosh2 int <( tar xfO $(realpath heavy-stemcell/*.tgz) stemcell.MF ) --path /name )"
+#stemcell_name="$( bosh2 int <( tar xfO $(realpath stemcell/*.tgz) stemcell.MF ) --path /name )"
+#heavy_stemcell_name="$( bosh2 int <( tar xfO $(realpath heavy-stemcell/*.tgz) stemcell.MF ) --path /name )"
 #alicloud_kms_key_arn="$(cat environment/metadata | jq --raw-output ".alicloud_kms_key_arn")"
 
 time bosh2 repack-stemcell \
@@ -37,12 +37,12 @@ time bosh2 -n ucc \
   bosh-cpi-src/ci/assets/e2e-test-release/cloud-config.yml
 
 # BOSH DEPLOY
-time bosh2 -n deploy -d e2e-test \
-  -v "stemcell_name=${stemcell_name}" \
-  -v "heavy_stemcell_name=${heavy_stemcell_name}" \
-  -v "encrypted_heavy_stemcell_ami_id=${encrypted_heavy_stemcell_ami_id}" \
-  #-l environment/metadata \
-  bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
+#time bosh2 -n deploy -d e2e-test \
+#  -v "stemcell_name=${stemcell_name}" \
+#  -v "heavy_stemcell_name=${heavy_stemcell_name}" \
+#  -v "encrypted_heavy_stemcell_ami_id=${encrypted_heavy_stemcell_ami_id}" \
+#  -l environment/metadata \
+#  bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
 
 # RUN ERRANDS
 time bosh2 -n run-errand -d e2e-test iam-instance-profile-test
