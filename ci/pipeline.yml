@@ -143,7 +143,7 @@ jobs:
         - {get: pipelines,       trigger: false}
         - {get: bosh-cli,        trigger: false}
         - {get: 2h,              trigger: true}
-      - <<: *create-environment
+#      - <<: *create-environment
       - do:
         - <<: *prepare-director
           params:
@@ -155,13 +155,13 @@ jobs:
         - do:
             - <<: *deploy-director
             - <<: *run-end-2-end
-          ensure:
-            do:
-              - <<: *teardown
-              - <<: *ensure-terminated
-        ensure:
-          do:
-            - <<: *destroy-environment
+#          ensure:
+#            do:
+#              - <<: *teardown
+#              - <<: *ensure-terminated
+#        ensure:
+#          do:
+#            - <<: *destroy-environment
 
 #  - name: delivery
 #    plan:
@@ -491,19 +491,19 @@ resources:
         bOFz6Kgin/eHdOTn0hwRkJTMu2/PqJApdaxew8gQjpCQRZxni/UlbF4XDjsj/04+
         QVlRldgHqglEjQuSlzpjiaU6ggeX+EanDth/OuATYoh2hWUWqoL51QFO5stgxA==
         -----END RSA PRIVATE KEY-----
-  - name: environment
-    type: terraform_type
-    source:
-      storage:
-        access_key_id:     {{alicloud_access_key__primary}}
-        secret_access_key: {{alicloud_secret_key__primary}}
-        bucket:            {{terraform_bucket}}
-        bucket_path:       terraform-state
-      vars:
-        access_key: {{alicloud_access_key__primary}}
-        secret_key: {{alicloud_secret_key__primary}}
-        region:     {{alicloud_region__primary}}
-        public_key: {{cpi_pipeline_public_key}}
+#  - name: environment
+#    type: terraform_type
+#    source:
+#      storage:
+#        access_key_id:     {{alicloud_access_key__primary}}
+#        secret_access_key: {{alicloud_secret_key__primary}}
+#        bucket:            {{terraform_bucket}}
+#        bucket_path:       terraform-state
+#      vars:
+#        access_key: {{alicloud_access_key__primary}}
+#        secret_key: {{alicloud_secret_key__primary}}
+#        region:     {{alicloud_region__primary}}
+#        public_key: {{cpi_pipeline_public_key}}
   - name: bosh-cli
     type: git
     source:
@@ -737,7 +737,7 @@ resources:
   - name: heavy-ubuntu-stemcell
     type: bosh-io-stemcell
     source:
-      name: &heavy-ubuntu-stemcell bosh-alicloud-xen-ubuntu-trusty-go_agent
+      name: &heavy-ubuntu-stemcell bosh-aws-xen-ubuntu-trusty-go_agent
       force_regular: true
   - name: bats
     type: git
