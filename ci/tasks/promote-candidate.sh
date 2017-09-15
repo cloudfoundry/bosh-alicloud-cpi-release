@@ -17,14 +17,14 @@ cp -r bosh-cpi-src promoted/repo
 
 dev_release=$(echo $PWD/bosh-cpi-release/*.tgz)
 
-pushd promoted/repo
-  echo creating config/private.yml with blobstore secrets
-  cat > config/private.yml << EOF
+#pushd promoted/repo
+#  echo creating config/private.yml with blobstore secrets
+#  cat > config/private.yml << EOF
 ---
-blobstore:
-  s3:
-    access_key_id: $ALICLOUD_ACCESS_KEY_ID
-    secret_access_key: $ALICLOUD_SECRET_ACCESS_KEY
+#blobstore:
+#  s3:
+#    access_key_id: $ALICLOUD_ACCESS_KEY_ID
+#    secret_access_key: $ALICLOUD_SECRET_ACCESS_KEY
 EOF
 
   echo "using bosh CLI version..."
