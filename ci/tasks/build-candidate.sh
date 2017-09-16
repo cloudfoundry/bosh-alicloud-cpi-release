@@ -44,7 +44,8 @@ pushd candidate/repo
 
   git add .
   git commit -m 'do nothing'
-  git pull
+  #git pull
+  git remote update
 
   echo "building CPI release..."
   # refers: https://bosh.io/docs/cli-v2#create-release
