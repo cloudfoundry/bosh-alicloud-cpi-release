@@ -1,17 +1,12 @@
----
 ruby_alicloud_cpi/bundler-1.10.6.gem:
-  object_id: 3ebbb8e5-8dbf-41a0-a95c-84ee91781402
-  sha: 55a37fccd1c0cb5542d468e35d3be46dd0667f73
   size: 251392
+  sha: 55a37fccd1c0cb5542d468e35d3be46dd0667f73
 ruby_alicloud_cpi/ruby-2.1.7.tar.gz:
-  object_id: ef2cea53-9d2c-4838-baa5-c8c5f70880d5
-  sha: e2e195a4a58133e3ad33b955c829bb536fa3c075
   size: 15151458
+  sha: e2e195a4a58133e3ad33b955c829bb536fa3c075
 ruby_alicloud_cpi/rubygems-2.4.8.tgz:
-  object_id: e2fcfa8a-4ce5-420c-b159-a6199f4aa5f4
-  sha: 0db6b2f1cdd2267fe19f1f875057c2f2ce9f5696
   size: 447712
+  sha: 0db6b2f1cdd2267fe19f1f875057c2f2ce9f5696
 ruby_alicloud_cpi/yaml-0.1.5.tar.gz:
-  object_id: 5fd2bcf2-763b-4c11-8b90-0f83f17f6112
-  sha: 8b78cb9f759c7d80db8a7328c0ebecfe34fde737
   size: 504897
+  sha: 8b78cb9f759c7d80db8a7328c0ebecfe34fde737
