@@ -49,7 +49,4 @@ pushd bosh-cpi-src
 
   mv $cpi_release_name-$semver.tgz ../candidate/
   ls ../candidate/
-  rm $cpi_release_name-$semver.tgz
 popd
-
-#mv bosh-cpi-src/dev_releases/$cpi_release_name/$cpi_release_name-$semver.tgz candidate/
