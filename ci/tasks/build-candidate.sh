@@ -22,7 +22,7 @@ pushd bosh-cpi-src
   popd
 
   echo "using bosh CLI version..."
-  bosh version
+  bosh -v
 
   cpi_release_name="bosh-alicloud-cpi"
 
