@@ -28,7 +28,10 @@ pushd bosh-cpi-src
 
   export TERM=msys
   git status
-  #git diff
+
+  # todo: get email and user from params
+  git config --global user.email "demon.wy@alibaba-inc.com"
+  git config --global user.name "demonwy"
 
   git add .
   git commit -m 'do nothing'
