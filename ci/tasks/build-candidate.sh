@@ -27,7 +27,7 @@ pushd bosh-cpi-src
   cpi_release_name="bosh-alicloud-cpi"
 
   echo "building CPI release..."
-  bosh create-release --name $cpi_release_name --version $semver
+  bosh create-release --name $cpi_release_name --version $semver --tarball=candidate/
 popd
 
 ls bosh-cpi-src
