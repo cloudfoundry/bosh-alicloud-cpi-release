@@ -49,6 +49,7 @@ pushd bosh-cpi-src
 popd
 
 ls bosh-cpi-src
-ls candidate
+ls bosh-cpi-src/dev_releases
+ls bosh-cpi-src/dev_releases/bosh-alicloud-cpi
 
 mv bosh-cpi-src/dev_releases/$cpi_release_name/$cpi_release_name-$semver.tgz candidate/
