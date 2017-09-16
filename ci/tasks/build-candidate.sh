@@ -26,6 +26,9 @@ pushd bosh-cpi-src
 
   cpi_release_name="bosh-alicloud-cpi"
 
+  git status
+  git diff
+  
   git add .
   git commit -m 'do nothing'
 
