@@ -6,6 +6,7 @@ image_resource:
 
 inputs:
   - name: bosh-cpi-src
+  - name: ruby-cpi-blobs
   - name: version-semver
 
 outputs:

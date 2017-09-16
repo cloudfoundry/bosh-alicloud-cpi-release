@@ -26,6 +26,13 @@ pushd bosh-cpi-src
 
   cpi_release_name="bosh-alicloud-cpi"
 
+  # add ruby cpi blob
+  ls ../ruby-cpi-blobs
+  bosh add-blob ../ruby-cpi-blobs/bundler-1.10.6.gem ruby_alicloud_cpi/bundler-1.10.6.gem
+  bosh add-blob ../ruby-cpi-blobs/ruby-2.1.7.tar.gz ruby_alicloud_cpi/ruby-2.1.7.tar.gz
+  bosh add-blob ../ruby-cpi-blobs/rubygems-2.4.8.tgz ruby_alicloud_cpi/rubygems-2.4.8.tgz
+  bosh add-blob ../ruby-cpi-blobs/yaml-0.1.5.tar.gz ruby_alicloud_cpi/yaml-0.1.5.tar.gz
+
   export TERM=msys
   git status
 
