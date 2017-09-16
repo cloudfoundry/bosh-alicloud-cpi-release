@@ -7,6 +7,12 @@ chruby 2.1.2
 
 semver=`cat version-semver/number`
 
+# install bosh
+echo "installing bosh..."
+curl -O curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
+chmod +x ./bosh-cli-*
+mv ./bosh-cli-* /usr/local/bin/bosh
+
 pushd bosh-cpi-src
   echo "running unit tests"
   pushd src/bosh_alicloud_cpi
