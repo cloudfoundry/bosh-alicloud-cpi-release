@@ -76,7 +76,7 @@ jobs:
       - task: build
         file: bosh-cpi-src/ci/tasks/build-candidate.yml
       - put: bosh-cpi-dev-artifacts
-        params: {repository: candidate/repo}
+        params: {repository: candidate/repo, rebase: true}
 
   - name: integration
     serial: true
