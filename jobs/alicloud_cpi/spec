@@ -1,0 +1,86 @@
+---
+name: alicloud_cpi
+
+templates:
+  cpi.erb: bin/cpi
+  cpi.json.erb: config/cpi.json
+
+packages:
+- ruby_alicloud_cpi
+- bosh_alicloud_cpi
+
+properties:
+  alicloud.region_id:
+    description: "Alicloud owned regions, such as ap-southeast-1, cn-qingdao"
+    default: cn-hangzhou
+  alicloud.instance_type:
+    description: "Alicloud ecs type, such as ecs.t1.small, ecs.s2.large, ecs.s3.large"
+    default: "ecs.t1.small"
+  alicloud.image_id:
+    default: "m-23h4o8945"
+  alicloud.security_group_id:
+    default: "sg-238ux30qe"
+  alicloud.internet_charge_type:
+    default: "PayByTraffic"
+  alicloud.internet_max_band_width_out:
+    default: "10"
+  alicloud.instance_name:
+    default: bosh_alicloud_cpi_test
+  alicloud.data_disk_1_size:
+    default: "300"
+  alicloud.desc:
+    description: "VM description"
+    default: "bosh-using"
+  alicloud.hostname:
+    default: "bosh-vm"
+  alicloud.password:
+    default: "1qaz@WSX"
+  alicloud.access_key_id:
+    default: "OAtTkdQDHJyYGCmU"
+  alicloud.access_key:
+    default: "PzosfNHKsG6sFQKNnxvMjqQNx8x2of"
+  alicloud.disk_snapshot_id:
+    default: ""
+
+  registry.username:
+    description: User to access the Registry
+    default: admin
+  registry.password:
+    description: Password to access the Registry
+    default: admin
+  registry.address:
+    description: Address of the Registry to connect to
+    default: "10.0.0.2"
+  registry.port:
+    description: Port of the Registry to connect to
+    default: 25777
+
+  ntp:
+    description: List of ntp server IPs. pool.ntp.org attempts to return IPs closest to your location, but you can still specify if needed.
+    default: [0.pool.ntp.org, 1.pool.ntp.org]
+
+  blobstore.provider:
+    description: Provider of the blobstore used by director and agent (dav|simple|s3)
+    default: 'dav'
+  blobstore.address:
+    description: Address of blobstore server used by simple blobstore plugin
+  blobstore.port:
+    description: Port of blobstore server used by simple blobstore plugin
+    default: 25250
+  blobstore.agent.user:
+    description: Username agent uses to connect to blobstore used by simple blobstore plugin
+  blobstore.agent.password:
+    description: Password agent uses to connect to blobstore used by simple blobstore plugin
+
+  nats.user:
+    description: Username to connect to nats with
+    default: "nats"
+  nats.password:
+    description: Password to connect to nats with
+    default: "nats-password"
+  nats.address:
+    description: Address of the nats server
+    default: "10.0.0.2"
+  nats.port:
+    description: Port that the nats server listens on
+    default: 4222
