@@ -13,7 +13,9 @@ curl -O curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linu
 chmod +x ./bosh-cli-*
 mv ./bosh-cli-* /usr/local/bin/bosh
 
-pushd bosh-cpi-src
+cp -r bosh-cpi-src candidate/repo
+
+pushd candidate/repo
   echo "running unit tests"
   pushd src/bosh_alicloud_cpi
     bundle install
@@ -47,6 +49,8 @@ pushd bosh-cpi-src
   # refers: https://bosh.io/docs/cli-v2#create-release
   bosh create-release --name $cpi_release_name --version $semver --tarball $cpi_release_name-$semver.tgz
 
-  mv $cpi_release_name-$semver.tgz ../candidate/
-  ls ../candidate/
+  mkdir dev-release-artifacts
+  mv $cpi_release_name-$semver.tgz dev-release-artifacts/
+  git add .
+  git commit -m 'create cpi release'
 popd
