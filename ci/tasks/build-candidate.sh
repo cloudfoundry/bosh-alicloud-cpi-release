@@ -26,6 +26,9 @@ pushd bosh-cpi-src
 
   cpi_release_name="bosh-alicloud-cpi"
 
+  git add .
+  git commit -m 'do nothing'
+
   echo "building CPI release..."
   # refers: https://bosh.io/docs/cli-v2#create-release
   bosh create-release --name $cpi_release_name --version $semver
