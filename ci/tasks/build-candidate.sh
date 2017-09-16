@@ -28,7 +28,7 @@ pushd bosh-cpi-src
 
   export TERM=msys
   git status
-  git diff
+  #git diff
 
   git add .
   git commit -m 'do nothing'
