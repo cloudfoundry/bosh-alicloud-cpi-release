@@ -1,5 +1,5 @@
 ---
-final_name: bosh-aliyun-cpi
+final_name: bosh-alicloud-cpi
 blobstore:
   provider: local
   options:
