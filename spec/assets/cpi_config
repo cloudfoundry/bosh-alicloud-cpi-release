@@ -1,12 +1,12 @@
 ---
 alicloud:
-  AccessKeyId: *****
-  AccessKey: ****
+  AccessKeyId: YOUR_ACCESS_KEY
+  AccessKey: YOUR_SECRET_KEY
 
   RegionId: cn-beijing
   InstanceName: bosh_alicloud_cpi_unit_test
   HostName: bosh.alicloud-cpi.unit-test
-  Password: ****
+  Password: YOUR_PASSWORD
   Description: bosh_alicloud_cpi_unit_test
   SnapShotId: s-23p7qx24o
 
