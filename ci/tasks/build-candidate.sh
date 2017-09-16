@@ -47,11 +47,9 @@ pushd bosh-cpi-src
   # refers: https://bosh.io/docs/cli-v2#create-release
   bosh create-release --name $cpi_release_name --version $semver --tarball $cpi_release_name-$semver.tgz
 
-  ls
   mv $cpi_release_name-$semver.tgz ../candidate/
   ls ../candidate/
   rm $cpi_release_name-$semver.tgz
-  ls
 popd
 
 #mv bosh-cpi-src/dev_releases/$cpi_release_name/$cpi_release_name-$semver.tgz candidate/
