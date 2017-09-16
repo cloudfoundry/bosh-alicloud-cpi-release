@@ -28,7 +28,7 @@ pushd bosh-cpi-src
 
   echo "building CPI release..."
   # refers: https://bosh.io/docs/cli-v2#create-release
-  bosh create-release --name $cpi_release_name --version $semver --dir=candidate/
+  bosh create-release --name $cpi_release_name --version $semver
 popd
 
 ls bosh-cpi-src
