@@ -7,7 +7,7 @@ set -e
 : ${ALICLOUD_DEFAULT_REGION:?}
 
 # NOTE: To run with specific line numbers, set:
-# RSPEC_ARGUMENTS="spec/integration/lifecycle_spec.rb:mm:nn"
+RSPEC_ARGUMENTS="spec/integration/lifecycle_spec.rb:mm:nn"
 : ${RSPEC_ARGUMENTS:=spec/integration}
 #: ${METADATA_FILE:=environment/metadata}
 
