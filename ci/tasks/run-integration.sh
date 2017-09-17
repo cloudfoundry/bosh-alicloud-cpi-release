@@ -7,11 +7,11 @@ set -e
 : ${ALICLOUD_DEFAULT_REGION:?}
 
 ls bosh-cpi-src
-ls bosh-cpi-src/spec
+ls bosh-cpi-src/src/bosh_alicloud_cpi/spec
 
 # NOTE: To run with specific line numbers, set:
-RSPEC_ARGUMENTS="bosh-cpi-src/spec/integration/lifecycle_spec.rb:mm:nn"
-: ${RSPEC_ARGUMENTS:=bosh-cpi-src/spec/integration}
+RSPEC_ARGUMENTS="bosh-cpi-src/src/bosh_alicloud_cpi/spec/integration/lifecycle_spec.rb:mm:nn"
+: ${RSPEC_ARGUMENTS:=bosh-cpi-src/src/bosh_alicloud_cpi/spec/integration}
 #: ${METADATA_FILE:=environment/metadata}
 
 release_dir="$( cd $(dirname $0) && cd ../.. && pwd )"
