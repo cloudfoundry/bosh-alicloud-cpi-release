@@ -35,8 +35,6 @@ export BOSH_ALICLOUD_SECRET_ACCESS_KEY=${ALICLOUD_SECRET_ACCESS_KEY}
 
 export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
 
-ls ${release_dir}
-
 pushd ${release_dir}/src/bosh_alicloud_cpi > /dev/null
 
   bundle install
