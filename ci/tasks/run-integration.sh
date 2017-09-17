@@ -11,6 +11,8 @@ RSPEC_ARGUMENTS="spec/integration/lifecycle_spec.rb:mm:nn"
 : ${RSPEC_ARGUMENTS:=spec/integration}
 #: ${METADATA_FILE:=environment/metadata}
 
+echo "begin test1.."
+
 release_dir="$( cd $(dirname $0) && cd ../.. && pwd )"
 
 if [[ -f "/etc/profile.d/chruby.sh" ]] ; then
@@ -18,7 +20,11 @@ if [[ -f "/etc/profile.d/chruby.sh" ]] ; then
   chruby 2.1.2
 fi
 
+echo "begin test2.."
+
 #metadata=$(cat ${METADATA_FILE})
+
+echo ${ALICLOUD_ACCESS_KEY_ID}
 
 export BOSH_ALICLOUD_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export BOSH_ALICLOUD_SECRET_ACCESS_KEY=${ALICLOUD_SECRET_ACCESS_KEY}
@@ -36,6 +42,9 @@ export BOSH_ALICLOUD_SECRET_ACCESS_KEY=${ALICLOUD_SECRET_ACCESS_KEY}
 export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
 
 pushd ${release_dir}/src/bosh_alicloud_cpi > /dev/null
+  ls
+  echo "bundle install"
+
   bundle install
   bundle exec rspec ${RSPEC_ARGUMENTS}
 popd > /dev/null
