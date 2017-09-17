@@ -7,6 +7,7 @@ set -e
 : ${ALICLOUD_DEFAULT_REGION:?}
 
 ls bosh-cpi-src
+ls ls bosh-cpi-src/src
 ls bosh-cpi-src/src/bosh_alicloud_cpi/spec
 
 # NOTE: To run with specific line numbers, set:
