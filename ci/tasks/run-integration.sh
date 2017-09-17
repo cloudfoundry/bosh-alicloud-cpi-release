@@ -6,9 +6,12 @@ set -e
 : ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 
+ls bosh-cpi-src
+ls bosh-cpi-src/spec
+
 # NOTE: To run with specific line numbers, set:
-RSPEC_ARGUMENTS="spec/integration/lifecycle_spec.rb:mm:nn"
-: ${RSPEC_ARGUMENTS:=spec/integration}
+RSPEC_ARGUMENTS="bosh-cpi-src/spec/integration/lifecycle_spec.rb:mm:nn"
+: ${RSPEC_ARGUMENTS:=bosh-cpi-src/spec/integration}
 #: ${METADATA_FILE:=environment/metadata}
 
 echo "begin test1.."
