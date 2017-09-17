@@ -1,7 +1,7 @@
 require 'integration/spec_helper'
 require 'bosh/cpi/compatibility_helpers/delete_vm'
 require 'tempfile'
-require 'bosh/cpi/logger'
+# require 'bosh/cpi/logger'
 require 'cloud'
 
 describe Bosh::Alicloud::Cloud do
@@ -47,8 +47,8 @@ describe Bosh::Alicloud::Cloud do
   end
 
   # before { allow(Bosh::Clouds::Config).to receive_messages(logger: logger) }
-  let(:logs) { STDOUT }
-  let(:logger) {Bosh::Cpi::Logger.new(logs) }
+  # let(:logs) { STDOUT }
+  # let(:logger) {Bosh::Cpi::Logger.new(logs) }
 
 
   extend Bosh::Cpi::CompatibilityHelpers
