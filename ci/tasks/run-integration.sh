@@ -6,9 +6,6 @@ set -e
 : ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 
-ls bosh-cpi-src
-ls bosh-cpi-src/src/bosh_alicloud_cpi/spec
-
 # NOTE: To run with specific line numbers, set:
 RSPEC_ARGUMENTS="bosh-cpi-src/src/bosh_alicloud_cpi/spec/integration/lifecycle_spec.rb:mm:nn"
 : ${RSPEC_ARGUMENTS:=bosh-cpi-src/src/bosh_alicloud_cpi/spec/integration}
@@ -41,9 +38,7 @@ export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
 ls ${release_dir}
 
 pushd ${release_dir}/src/bosh_alicloud_cpi > /dev/null
-  ls
-  echo "bundle install"
 
   bundle install
-  bundle exec rspec ${RSPEC_ARGUMENTS}
+  bundle exec rspec spec/integration/lifecycle_spec.rb
 popd > /dev/null
