@@ -9,7 +9,7 @@ semver=`cat version-semver/number`
 
 # install bosh
 echo "installing bosh..."
-curl -O curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
+curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
 chmod +x ./bosh-cli-*
 mv ./bosh-cli-* /usr/local/bin/bosh
 
