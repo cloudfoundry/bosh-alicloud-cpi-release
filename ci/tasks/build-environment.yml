@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: boshcpi/alicloud-cpi-release}
+
+inputs:
+  - name: terraform
+  - name: terraform-provider
+  - name: terraform-module
+
+run:
+  path: bosh-cpi-src/ci/tasks/build-environment.sh
+
+params:
+  ALICLOUD_ACCESS_KEY_ID:     ""
+  ALICLOUD_SECRET_ACCESS_KEY: ""
+  ALICLOUD_DEFAULT_REGION:    ""
