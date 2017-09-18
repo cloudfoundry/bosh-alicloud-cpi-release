@@ -13,6 +13,7 @@ chruby 2.1.2
 integer_version=`cut -d "." -f1 release-version-semver/number`
 echo $integer_version > promoted/integer_version
 
+# debug
 cp -r bosh-cpi-src promoted/repo
 
 dev_release=$(echo $PWD/bosh-cpi-release/*.tgz)
