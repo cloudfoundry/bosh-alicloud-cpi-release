@@ -30,5 +30,5 @@ func (a AttachDiskMethod) AttachDisk(vmcid apiv1.VMCID, diskCID apiv1.DiskCID) e
 		return bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmcid)
 	}
 
-	return nil;
+	return nil
 }

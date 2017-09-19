@@ -112,3 +112,16 @@ func (a Runner) RebootInstance(instid string) (error) {
 	client := a.NewClient()
 	return client.RebootInstance(instid, USE_FORCE_STOP)
 }
+
+//func (a Runner) HasDisk(diskid string) (error) {
+//	client := a.NewClient()
+//	return client.DescribeDisks()
+//}
+
+//func (a Runner) CreateDisk() {
+//	client := a.NewClient()
+//	var args ecs.DescribeVSwitchesArgs;
+//	args.RegionId
+//	client.DescribeVSwitches()
+//
+//}
