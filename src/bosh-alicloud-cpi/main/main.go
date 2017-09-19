@@ -28,7 +28,8 @@ func main() {
 
 	logger.Info("LoadConfig", "load Configuration from", config)
 
-	cpiFactory := action.NewFactory(config)
+	runner := alicloud.NewRunner(logger, config)
+	cpiFactory := action.NewFactory(runner)
 
 
 	cli := rpc.NewFactory(logger).NewCLIWithInOut(os.Stdin, os.Stdout, cpiFactory)
