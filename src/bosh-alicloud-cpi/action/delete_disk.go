@@ -15,15 +15,12 @@ func NewDeleteDiskMethod(runner alicloud.Runner) DeleteDiskMethod {
 }
 
 func (a DeleteDiskMethod) DeleteDisk(cid apiv1.DiskCID) error {
-	//disk, err := a.diskFinder.Find(cid)
-	//if err != nil {
-	//	return bosherr.WrapErrorf(err, "Finding disk '%s'", cid)
-	//}
-	//
-	//err = disk.Delete()
-	//if err != nil {
-	//	return bosherr.WrapErrorf(err, "Deleting disk '%s'", cid)
-	//}
+	client := a.runner.NewClient()
 
-	return bosherr.Error("NOT IMPLEMENTED")
+	err := client.DeleteDisk(cid.AsString())
+	if err != nil {
+		return bosherr.WrapErrorf(err, "DeleteDisk %s failed", cid)
+	}
+
+	return nil
 }

@@ -4,6 +4,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/alicloud"
+	"github.com/denverdino/aliyungo/ecs"
+	"github.com/denverdino/aliyungo/common"
 )
 
 type CreateVMMethod struct {
@@ -18,6 +20,19 @@ func (a CreateVMMethod) CreateVM(
 	agentID apiv1.AgentID, stemcellCID apiv1.StemcellCID,
 	cloudProps apiv1.VMCloudProps, networks apiv1.Networks,
 	associatedDiskCIDs []apiv1.DiskCID, env apiv1.VMEnv) (apiv1.VMCID, error) {
+
+	client := a.runner.NewClient()
+
+
+	var args ecs.CreateInstanceArgs
+	args.RegionId = common.Region(a.runner.Config.RegionId)
+	args.ImageId = stemcellCID.AsString()
+	args.
+
+
+
+
+	client.CreateInstance()
 
 	//client :=
 	//client.CreateIn

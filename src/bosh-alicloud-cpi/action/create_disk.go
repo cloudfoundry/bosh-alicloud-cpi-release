@@ -49,5 +49,10 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid
 		return apiv1.DiskCID{}, bosherr.WrapErrorf(err, "Creating disk of size '%d'", size)
 	}
 
-	return apiv1.NewDiskCID(diskId), nil
+	diskcid := apiv1.NewDiskCID(diskId)
+
+	// TODO? need Attact?
+	// NewAttachDiskMethod(a.runner).AttachDisk(*vmcid, diskcid)
+
+	return diskcid, nil
 }
