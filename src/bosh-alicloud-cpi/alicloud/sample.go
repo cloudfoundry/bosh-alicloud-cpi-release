@@ -2,7 +2,7 @@ package alicloud
 
 import (
 bosherr "github.com/cloudfoundry/bosh-utils/errors"
-"github.com/cppforlife/bosh-cpi-go/apiv1"
+"cppforlife/bosh-warden-cpi-release/src/github.com/cppforlife/bosh-cpi-go/apiv1"
 "github.com/denverdino/aliyungo/ecs"
 "fmt"
 )
