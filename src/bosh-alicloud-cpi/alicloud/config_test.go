@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"testing"
+	"bosh-alicloud-cpi/alicloud"
 	"github.com/denverdino/aliyungo/ecs"
 )
 
@@ -47,7 +48,7 @@ var testConfigV2 = []byte(`
 
 
 func TestConfigLoad(t *testing.T) {
-	config, err := NewConfigFromBytes(testConfigV2)
+	config, err := alicloud.NewConfigFromBytes(testConfigV2)
 	t.Log(config)
 
 	if err != nil {
