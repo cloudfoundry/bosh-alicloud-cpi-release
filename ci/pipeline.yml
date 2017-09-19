@@ -196,10 +196,10 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src, resource: bosh-cpi-src-in}
+        - {trigger: true, passed: [build-candidate], get: bosh-cpi-src, resource: bosh-cpi-src-in}
         - {trigger: true, get: terraform, resource: terraform}
-        - {trigger: false, get: terraform-provider, resource: terraform-provider}
-        - {trigger: false, get: terraform-module, resource: terraform-module}
+        - {trigger: true, get: terraform-provider, resource: terraform-provider}
+        - {trigger: true, get: terraform-module, resource: terraform-module}
       - task: test
         file: bosh-cpi-src/ci/tasks/build-environment.yml
         params:

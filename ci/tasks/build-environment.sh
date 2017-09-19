@@ -3,7 +3,6 @@
 set -e
 
 TERRAFORM_PATH=$(pwd)
+echo TERRAFORM_PATH
 export PATH="${TERRAFORM_PATH}:$PATH"
-cd ../terraform-module
-
 terraform init && terraform plan
