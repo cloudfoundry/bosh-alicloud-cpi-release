@@ -4,8 +4,8 @@ var createVmInput = []byte(`
 {
     "method": "create_vm",
     "arguments": [
-        "be387a69-c5d5-4b94-86c2-978581354b50",
-        "m-2zehhdtfg22hq46reabf ",
+        "be387a69-c5d5-4b94-86c2-978581354b50",	-agent id
+        "m-2zehhdtfg22hq46reabf ",	-- instance id
         {
             "ephemeral_disk": {
                 "size": 50,

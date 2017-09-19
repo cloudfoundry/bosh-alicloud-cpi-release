@@ -5,6 +5,9 @@ import (
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/alicloud"
+	"github.com/denverdino/aliyungo/ecs"
+	"github.com/denverdino/aliyungo/common"
+	"go/types"
 )
 
 type HasDiskMethod struct {
@@ -16,11 +19,22 @@ func NewHasDiskMethod(runner alicloud.Runner) HasDiskMethod {
 }
 
 func (a HasDiskMethod) HasDisk(cid apiv1.DiskCID) (bool, error) {
-	//disk, err := a.diskFinder.Find(cid)
-	//if err != nil {
-	//	return false, bosherr.WrapErrorf(err, "Finding disk '%s'", cid)
-	//}
-	//
-	//return disk.Exists()
-	return false, bosherr.Error("NOT IMPLEMENTED")
+	client := a.runner.NewClient()
+	instid := cid.AsString()
+
+	var args ecs.DescribeDisksArgs
+	args.RegionId = common.Region(a.runner.Config.RegionId)
+	args.DiskIds = []string {cid.AsString()}
+
+	disks, _, err := client.DescribeDisks(&args)
+
+	if err != nil {
+		return false, bosherr.WrapErrorf(err, "DescribeDisks failed cid=%s", instid)
+	}
+
+	if len(disks) == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
 }

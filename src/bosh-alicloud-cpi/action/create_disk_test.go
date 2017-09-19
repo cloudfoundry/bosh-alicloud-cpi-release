@@ -5,7 +5,7 @@ import "testing"
 var createDiskTestArgs = []byte (`{
     "method": "create_disk",
     "arguments": [
-        50,
+        30,
         {},
         "i-2zefl7hfr7yb97ni5skw"
     ],
