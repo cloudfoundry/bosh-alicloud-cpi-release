@@ -3,9 +3,9 @@ package action
 import (
 	"os"
 	"bytes"
-	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/alicloud"
+	"bosh-alicloud-cpi/alicloud"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"cppforlife/bosh-warden-cpi-release/src/github.com/cppforlife/bosh-cpi-go/rpc"
+	"github.com/cppforlife/bosh-cpi-go/rpc"
 
 	"testing"
 )

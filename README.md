@@ -9,7 +9,9 @@ This is the BOSH CPI for Alibaba Cloud developed by 4 Alibaba engineers with gre
 As simple as you just need type in :
 
 ```
-go build
+
+make
+
 ```
 
 ### Configuration

@@ -3,7 +3,7 @@ package action
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/alicloud"
+	"bosh-alicloud-cpi/alicloud"
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
 )
