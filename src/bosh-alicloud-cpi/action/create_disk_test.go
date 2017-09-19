@@ -1,6 +1,7 @@
 package action
 
 import "testing"
+import "bosh-alicloud-cpi/action"
 
 var createDiskTestArgs = []byte (`{
     "method": "create_disk",
@@ -16,5 +17,5 @@ var createDiskTestArgs = []byte (`{
 
 
 func TestCreateDisk(t *testing.T) {
-	CallTestCase(TestConfig, createDiskTestArgs, t)
+	action.CallTestCase(action.TestConfig, createDiskTestArgs, t)
 }

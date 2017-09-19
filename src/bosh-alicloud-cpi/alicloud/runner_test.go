@@ -5,14 +5,16 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"os"
 	"github.com/denverdino/aliyungo/ecs"
+	"bosh-alicloud-cpi/alicloud"
+	"bosh-alicloud-cpi/action"
 )
 
 var testInstId = "i-2zefl7hfr7yb97ni5skw"
 
 func TestGetVmStatus(t *testing.T) {
-	config, _ := NewConfigFromBytes(testConfig)
+	config, _ := alicloud.NewConfigFromBytes(action.TestConfig)
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-	runner := NewRunner(logger, config)
+	runner := alicloud.NewRunner(logger, config)
 
 	status, err := runner.GetInstanceStatus(testInstId)
 
@@ -25,9 +27,9 @@ func TestGetVmStatus(t *testing.T) {
 }
 
 func TestStopStartVm(t *testing.T) {
-	config, _ := NewConfigFromBytes(testConfig)
+	config, _ := alicloud.NewConfigFromBytes(action.TestConfig)
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-	runner := NewRunner(logger, config)
+	runner := alicloud.NewRunner(logger, config)
 
 	t.Log("Stopping VM ...")
 	err := runner.StopInstance(testInstId)
