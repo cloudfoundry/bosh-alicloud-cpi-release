@@ -11,10 +11,8 @@ type CreateStemcellMethod struct {
 	//stemcellImporter bwcstem.Importer
 }
 
-const ACCESS_KEY_ID = "LTAI4CkjuLxk2Adz"
-const ACCESS_KEY_SECRET = "WpPV1F3V1nurTAMbw7oS4SnGEWRyRe"
-
-
+const ACCESS_KEY_ID = "***your key***"
+const ACCESS_KEY_SECRET = "***you secret***"
 
 func (a CreateStemcellMethod) CreateStemcell(imagePath string, _ apiv1.StemcellCloudProps) (apiv1.StemcellCID, error) {
 	// stemcell, err := a.stemcellImporter.ImportFromPath(imagePath)
