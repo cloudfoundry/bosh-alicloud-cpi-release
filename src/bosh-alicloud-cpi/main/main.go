@@ -4,9 +4,9 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"os"
-	"github.com/cppforlife/bosh-warden-cpi-release/src/github.com/cppforlife/bosh-cpi-go/rpc"
-	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/action"
-	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/alicloud"
+	"github.com/cppforlife/bosh-cpi-go/rpc"
+	"bosh-alicloud-cpi/action"
+	"bosh-alicloud-cpi/alicloud"
 )
 
 func main() {
