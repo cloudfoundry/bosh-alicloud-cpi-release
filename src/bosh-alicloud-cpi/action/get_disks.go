@@ -22,7 +22,7 @@ func (a GetDisksMethod) GetDisks(cid apiv1.VMCID) ([]apiv1.DiskCID, error) {
 	instid := cid.AsString()
 
 	var args ecs.DescribeDisksArgs
-	args.RegionId = common.Region(a.runner.Config.RegionId)
+	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
 	args.InstanceId = instid
 
 	disks, _, err := client.DescribeDisks(&args)

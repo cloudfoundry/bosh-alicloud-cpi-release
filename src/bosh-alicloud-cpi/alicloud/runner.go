@@ -29,13 +29,13 @@ func NewRunner(logger logger.Logger, config Config) (Runner) {
 }
 
 func (a Runner) NewClient() (* ecs.Client) {
-	return ecs.NewClient(a.Config.AccessKeyId, a.Config.AccessKeySecret)
+	return ecs.NewClient(a.Config.OpenApi.AccessKeyId, a.Config.OpenApi.AccessKeySecret)
 }
 
 func (a Runner) FindStemcellId() (string, error) {
 	c := a.Config
-	for _, region := range c.Regions {
-		if strings.Compare(region.Name, c.RegionId) == 0 {
+	for _, region := range c.OpenApi.Regions {
+		if strings.Compare(region.Name, c.OpenApi.RegionId) == 0 {
 			return region.ImageId, nil
 		}
 	}
@@ -46,7 +46,7 @@ func (a Runner) GetInstance(instid string) (* ecs.InstanceAttributesType, error)
 	client := a.NewClient()
 
 	var args ecs.DescribeInstancesArgs
-	args.RegionId = common.Region(a.Config.RegionId)
+	args.RegionId = common.Region(a.Config.OpenApi.RegionId)
 	args.InstanceIds = "[\"" + instid + "\"]"
 
 	insts, _, err := client.DescribeInstances(&args)
