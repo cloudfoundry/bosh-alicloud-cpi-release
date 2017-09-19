@@ -7,11 +7,11 @@ import (
 )
 
 type DeleteDiskMethod struct {
-	config alicloud.AlicloudConfig
+	runner alicloud.Runner
 }
 
-func NewDeleteDiskMethod(config alicloud.AlicloudConfig) DeleteDiskMethod {
-	return DeleteDiskMethod{config:config}
+func NewDeleteDiskMethod(runner alicloud.Runner) DeleteDiskMethod {
+	return DeleteDiskMethod{runner}
 }
 
 func (a DeleteDiskMethod) DeleteDisk(cid apiv1.DiskCID) error {

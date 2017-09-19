@@ -1,22 +1,24 @@
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
-
 	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/alicloud"
 )
 
 type DeleteStemcellMethod struct {
-	config alicloud.AlicloudConfig
+	runner alicloud.Runner
 }
 
-func NewDeleteStemcellMethod(config alicloud.AlicloudConfig) DeleteStemcellMethod {
-	return DeleteStemcellMethod{config: config}
+func NewDeleteStemcellMethod(runner alicloud.Runner) DeleteStemcellMethod {
+	return DeleteStemcellMethod{runner}
 }
 
 func (a DeleteStemcellMethod) DeleteStemcell(cid apiv1.StemcellCID) error {
-	//stemcell, found, err := a.stemcellFinder.Find(cid)
+	//
+	// NOTHING TO DELETE
+
+
+	//stemcell, found, err := a.runner.FindStemcellId(cid)
 	//if err != nil {
 	//	return bosherr.WrapErrorf(err, "Finding stemcell '%s'", cid)
 	//}
@@ -28,5 +30,5 @@ func (a DeleteStemcellMethod) DeleteStemcell(cid apiv1.StemcellCID) error {
 	//	}
 	//}
 
-	return bosherr.Error("NOT IMPLEMENTED")
+	return nil
 }

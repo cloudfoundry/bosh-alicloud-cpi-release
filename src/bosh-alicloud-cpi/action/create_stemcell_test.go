@@ -2,16 +2,9 @@ package action
 
 import (
 	"testing"
-	"encoding/json"
-	"fmt"
-	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/alicloud"
-	"github.com/cppforlife/bosh-cpi-go/rpc"
-	"os"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"bytes"
 )
 
-var testCreateStemcellInput = []byte(`
+var createStemcellArgs = []byte(`
 {
     "method": "create_stemcell",
     "arguments": [
@@ -40,42 +33,12 @@ var testCreateStemcellInput = []byte(`
     }
 }`)
 
-
-var testConfig = []byte(`{
-"RegionId": "cn-beijing",
-  "AccessKeyId": "YourKeyId",
-  "AccessKeySecret": "YouSecret",
-  "Regions": [
-    { "Name": "cn-beijing", "ImageId": "m-2zeggz4i4n2z510ajcvw" },
-    { "Name": "cn-hangzhou", "ImageId": "m-bp1bidv1aeiaynlyhmu9" }
-  ]
-}`)
-
-
 func TestConfigLoad(t *testing.T) {
 
 }
 
 func TestCreateStemcell(t *testing.T) {
-	var config alicloud.AlicloudConfig
-	json.Unmarshal(testConfig, &config)
-	fmt.Println(config)
-	t.Log(config)
-
-	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-
-	cpiFactory := NewFactory(config)
-
-	reader := bytes.NewReader(testCreateStemcellInput)
-
-	cli := rpc.NewFactory(logger).NewCLIWithInOut(reader, os.Stdout, cpiFactory)
-
-	err := cli.ServeOnce()
-
-	if err != nil {
-		logger.Error("main", "Serving once %s", err)
-		os.Exit(1)
-	}
+	CallTestCase(TestConfig, createStemcellArgs, t)
 }
 //
 //wardenConn := wrdnconn.New(config.Warden.ConnectNetwork, config.Warden.ConnectAddress)

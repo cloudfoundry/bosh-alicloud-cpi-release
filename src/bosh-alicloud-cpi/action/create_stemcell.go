@@ -7,16 +7,16 @@ import (
 )
 
 type CreateStemcellMethod struct {
-	config alicloud.AlicloudConfig
+	runner alicloud.Runner
 }
 
-func NewCreateStemcellMethod(config alicloud.AlicloudConfig) CreateStemcellMethod {
-	return CreateStemcellMethod{config: config}
+func NewCreateStemcellMethod(runner alicloud.Runner) CreateStemcellMethod {
+	return CreateStemcellMethod{runner}
 }
 
 func (this CreateStemcellMethod) CreateStemcell(imagePath string, _ apiv1.StemcellCloudProps) (apiv1.StemcellCID, error) {
 	// stemcell, err := a.stemcellImporter.ImportFromPath(imagePath)
-	stemcellId, err := this.config.FindStemcellId()
+	stemcellId, err := this.runner.FindStemcellId()
 
 	if err != nil {
 		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)

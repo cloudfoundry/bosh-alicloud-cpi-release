@@ -7,11 +7,11 @@ import (
 )
 
 type DetachDiskMethod struct {
-	config alicloud.AlicloudConfig
+	runner alicloud.Runner
 }
 
-func NewDetachDiskMethod(config alicloud.AlicloudConfig) DetachDiskMethod {
-	return DetachDiskMethod{config: config}
+func NewDetachDiskMethod(runner alicloud.Runner) DetachDiskMethod {
+	return DetachDiskMethod{runner}
 }
 
 func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {

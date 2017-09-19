@@ -9,19 +9,32 @@ import (
 )
 
 type CreateDiskMethod struct {
-	config alicloud.AlicloudConfig
+	runner alicloud.Runner
 }
 
-func NewCreateDiskMethod(config alicloud.AlicloudConfig) CreateDiskMethod {
-	return CreateDiskMethod{config: config}
+func NewCreateDiskMethod(runner alicloud.Runner) CreateDiskMethod {
+	return CreateDiskMethod{runner}
 }
 
-func (this CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid *apiv1.VMCID) (apiv1.DiskCID, error) {
-	var client = this.config.NewClient();
+func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid *apiv1.VMCID) (apiv1.DiskCID, error) {
+	client := a.runner.NewClient()
+	instid := vmcid.AsString()
+
+	inst, err := a.runner.GetInstance(instid)
+
+	if err != nil {
+		return apiv1.DiskCID{}, bosherr.WrapError(err, "GetInstance Failed")
+	}
+
+	if inst == nil {
+		return apiv1.DiskCID{}, bosherr.WrapErrorf(err, "Missing Vm cid = %s", instid)
+	}
+
+	zoneId := inst.ZoneId
 
 	var args = ecs.CreateDiskArgs {
-		RegionId: common.Region(this.config.RegionId),
-		ZoneId: this.config.ZoneId,
+		RegionId: common.Region(a.runner.Config.RegionId),
+		ZoneId: zoneId,
 		DiskName: "",			//TODO
 		Description: "",		//TODO
  		DiskCategory: "",		//TODO
