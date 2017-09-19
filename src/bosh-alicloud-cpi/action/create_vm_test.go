@@ -1,11 +1,13 @@
 package action
 
-var createVmInput = []byte(`
+import "testing"
+
+var createVmArgs = []byte(`
 {
     "method": "create_vm",
     "arguments": [
-        "be387a69-c5d5-4b94-86c2-978581354b50",	-agent id
-        "m-2zehhdtfg22hq46reabf ",	-- instance id
+        "be387a69-c5d5-4b94-86c2-978581354b50",
+        "m-2zehhdtfg22hq46reabf",
         {
             "ephemeral_disk": {
                 "size": 50,
@@ -45,3 +47,7 @@ var createVmInput = []byte(`
     }
 }
 `)
+
+func TestCreateVm(t *testing.T) {
+	CallTestCase(TestConfig, createVmArgs, t)
+}

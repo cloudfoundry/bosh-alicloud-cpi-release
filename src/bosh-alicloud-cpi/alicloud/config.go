@@ -6,6 +6,10 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"os"
+	"fmt"
+	"encoding/base64"
+	"bytes"
+	"strings"
 )
 
 type Config struct {
@@ -95,4 +99,10 @@ func NewConfigFromBytes(bytes []byte) (Config, error) {
 func (a *OpenApi) ApplySystemEnv() {
 	a.AccessKeyId = os.ExpandEnv(a.AccessKeyId)
 	a.AccessKeySecret = os.ExpandEnv(a.AccessKeySecret)
+}
+
+func (a *Registry) ToInstanceUserData() (string) {
+	endpoint := fmt.Sprintf("%s://%s:%s@%s:%s", a.Protocol, a.User, a.Password, a.Host, a.Port)
+	json := fmt.Sprintf(`{"Registry":{"Endpoint":"%s"}}`, endpoint)
+	return base64.StdEncoding.EncodeToString([]byte(json))
 }
