@@ -1,33 +1,57 @@
 package alicloud
 
 import (
-	"github.com/denverdino/aliyungo/ecs"
-	"strings"
-	"fmt"
+	"encoding/json"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type Region struct {
-	Name string;
-	ImageId string;
+	Name string
+	ImageId string
 }
 
-type AlicloudConfig struct {
+type Config struct {
 	RegionId string
 	ZoneId string
 	AccessKeyId string
 	AccessKeySecret string
-	Regions[] Region;
+	Regions[] Region
 }
 
-func (a AlicloudConfig) NewClient() (* ecs.Client) {
-	return ecs.NewClient(a.AccessKeyId, a.AccessKeySecret);
+func (c Config) Validate() (error) {
+
+	return nil;
 }
 
-func (this AlicloudConfig) FindStemcellId() (string, error) {
-	for _, region := range this.Regions {
-		if (strings.Compare(region.Name, this.RegionId) == 0) {
-			return region.ImageId, nil;
-		}
+func NewConfigFromFile(configFile string, fs boshsys.FileSystem) (Config, error) {
+	var config Config
+
+	if configFile == "" {
+		return config, bosherr.Errorf("Must provide a config file")
 	}
-	return "", fmt.Errorf("Unknown Region")
+
+	bytes, err := fs.ReadFile(configFile)
+	if err != nil {
+		return config, bosherr.WrapErrorf(err, "Reading config file '%s'", configFile)
+	}
+
+	return NewConfigFromBytes(bytes)
+}
+
+func NewConfigFromBytes(bytes []byte) (Config, error) {
+	var config Config
+
+	err := json.Unmarshal(bytes, &config)
+	if err != nil {
+		return config, bosherr.WrapError(err, "Unmarshalling config contents")
+	}
+
+	err = config.Validate()
+	if err != nil {
+		return config, bosherr.WrapError(err, "Validating config")
+	}
+
+	return config, nil
 }

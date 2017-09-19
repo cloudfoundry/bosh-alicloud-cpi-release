@@ -7,11 +7,11 @@ import (
 )
 
 type CreateVMMethod struct {
-	config alicloud.AlicloudConfig
+	runner alicloud.Runner
 }
 
-func NewCreateVMMethod(config alicloud.AlicloudConfig) CreateVMMethod {
-	return CreateVMMethod{config: config}
+func NewCreateVMMethod(runner alicloud.Runner) CreateVMMethod {
+	return CreateVMMethod{runner}
 }
 
 func (a CreateVMMethod) CreateVM(
@@ -19,8 +19,8 @@ func (a CreateVMMethod) CreateVM(
 	cloudProps apiv1.VMCloudProps, networks apiv1.Networks,
 	associatedDiskCIDs []apiv1.DiskCID, env apiv1.VMEnv) (apiv1.VMCID, error) {
 
-	client:=a.config.NewClient();
-	client.CreateIn
+	//client :=
+	//client.CreateIn
 
 	 // TODO
 	return apiv1.VMCID{}, bosherr.Error("NOT IMPLEMENTED")

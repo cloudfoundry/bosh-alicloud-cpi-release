@@ -1,20 +1,51 @@
 package main
 
 import (
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"os"
-	"encoding/json"
-	"github.com/google/bosh-google-cpi/src/bosh-google-cpi/api/dispatcher"
+	"github.com/cppforlife/bosh-warden-cpi-release/src/github.com/cppforlife/bosh-cpi-go/rpc"
+	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/action"
+	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/alicloud"
 )
 
 func main() {
+	logger, fs := basicDeps()
+	defer logger.HandlePanic("Main")
 
-	// os.Stdin
-	// os.Stdout
-	dispatcher.JSON{
-	json.Unmarshal(, )
+	if len(os.Args) != 1 {
+		logger.Error("main", "Usage cpi configFile")
+		os.Exit(1)
+	}
 
+	configFile := os.Args[1]
+	config, err := alicloud.NewConfigFromFile(configFile, fs)
+
+	if err != nil {
+		logger.Error("main", "readConfigFailed")
+		os.Exit(1)
+	}
+
+	logger.Info("LoadConfig", "load Configuration from", config)
+
+	cpiFactory := action.NewFactory(config)
+
+
+	cli := rpc.NewFactory(logger).NewCLIWithInOut(os.Stdin, os.Stdout, cpiFactory)
+
+	err = cli.ServeOnce()
+
+	if err != nil {
+		logger.Error("main", "Serving once %s", err)
+	}
+
+	os.Exit(1)
 }
 
-func InitDeps() {
-
+func basicDeps() (boshlog.Logger, boshsys.FileSystem) {
+	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
+	fs := boshsys.NewOsFileSystem(logger)
+	//cmdRunner := boshsys.NewExecCmdRunner(logger)
+	//uuidGen := boshuuid.NewGenerator()
+	return logger, fs
 }

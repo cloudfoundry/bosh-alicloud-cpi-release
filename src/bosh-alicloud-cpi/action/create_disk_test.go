@@ -1,11 +1,13 @@
 package action
 
+import "testing"
+
 var createDiskTestArgs = []byte (`{
     "method": "create_disk",
     "arguments": [
         50,
         {},
-        "i-2zebcjxbz8gmdghfnxan"
+        "i-2zefl7hfr7yb97ni5skw"
     ],
     "context": {
         "director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
@@ -13,5 +15,6 @@ var createDiskTestArgs = []byte (`{
 }`)
 
 
-
-
+func TestCreateDisk(t *testing.T) {
+	CallTestCase(TestConfig, createDiskTestArgs, t)
+}

@@ -6,7 +6,7 @@ import (
 )
 
 type Factory struct {
-	config alicloud.AlicloudConfig
+	runner alicloud.Runner
 }
 
 
@@ -30,7 +30,7 @@ type CPI struct {
 	HasDiskMethod
 }
 
-func NewFactory(config alicloud.AlicloudConfig) Factory {
+func NewFactory(runner alicloud.Runner) Factory {
 
 	//var decompressor bwcutil.Decompressor
 	//if opts.ExpandStemcellTarball {
@@ -74,7 +74,7 @@ func NewFactory(config alicloud.AlicloudConfig) Factory {
 	//
 	//diskFactory := bwcdisk.NewFSFactory(opts.DisksDir, fs, uuidGen, cmdRunner, logger)
 
-	return Factory{config:config}
+	return Factory{runner}
 }
 
 //type TestCPI interface {
@@ -86,21 +86,21 @@ func (this Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 	cpi := CPI {
 		NewInfoMethod(),
 
-		NewCreateStemcellMethod(this.config),
-		NewDeleteStemcellMethod(this.config),
+		NewCreateStemcellMethod(this.runner),
+		NewDeleteStemcellMethod(this.runner),
 
-		NewCreateVMMethod(this.config),
-		NewDeleteVMMethod(this.config),
-		NewHasVMMethod(this.config),
-		NewRebootVMMethod(),
+		NewCreateVMMethod(this.runner),
+		NewDeleteVMMethod(this.runner),
+		NewHasVMMethod(this.runner),
+		NewRebootVMMethod(this.runner),
 		NewSetVMMetadataMethod(),
-		NewGetDisksMethod(this.config),
+		NewGetDisksMethod(this.runner),
 
-		NewCreateDiskMethod(this.config),
-		NewDeleteDiskMethod(this.config),
-		NewAttachDiskMethod(this.config),
-		NewDetachDiskMethod(this.config),
-		NewHasDiskMethod(this.config),
+		NewCreateDiskMethod(this.runner),
+		NewDeleteDiskMethod(this.runner),
+		NewAttachDiskMethod(this.runner),
+		NewDetachDiskMethod(this.runner),
+		NewHasDiskMethod(this.runner),
 	}
 
 	return cpi, nil

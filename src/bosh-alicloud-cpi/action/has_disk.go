@@ -8,11 +8,11 @@ import (
 )
 
 type HasDiskMethod struct {
-	config alicloud.AlicloudConfig
+	runner alicloud.Runner
 }
 
-func NewHasDiskMethod(config alicloud.AlicloudConfig) HasDiskMethod {
-	return HasDiskMethod{config}
+func NewHasDiskMethod(runner alicloud.Runner) HasDiskMethod {
+	return HasDiskMethod{runner}
 }
 
 func (a HasDiskMethod) HasDisk(cid apiv1.DiskCID) (bool, error) {

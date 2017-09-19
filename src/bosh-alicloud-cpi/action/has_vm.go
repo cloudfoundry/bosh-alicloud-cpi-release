@@ -7,18 +7,26 @@ import (
 )
 
 type HasVMMethod struct {
-	config alicloud.AlicloudConfig
+	runner alicloud.Runner
 }
 
-func NewHasVMMethod(config alicloud.AlicloudConfig) HasVMMethod {
-	return HasVMMethod{config}
+func NewHasVMMethod(runner alicloud.Runner) HasVMMethod {
+	return HasVMMethod{runner}
 }
 
 func (a HasVMMethod) HasVM(cid apiv1.VMCID) (bool, error) {
-	//_, found, err := a.vmFinder.Find(cid)
-	//if err != nil {
-	//	return false, bosherr.WrapErrorf(err, "Finding VM '%s'", cid)
-	//}
+	//
+	//
+	instid := cid.AsString()
+	inst, err := a.runner.GetInstance(instid)
 
-	return false, bosherr.Error("NOT IMPLEMENTED")
+	if err != nil {
+		return false, bosherr.WrapErrorf(err, "Finding VM Failed '%s'", cid)
+	}
+
+	if inst != nil {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
