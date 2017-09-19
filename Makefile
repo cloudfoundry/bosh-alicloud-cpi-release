@@ -1,5 +1,6 @@
 BINDIR := $(CURDIR)/bin
-MAINFILE := $(CURDIR)/src/bosh-alicloud-cpi/main/main.go
+MAINDIR := bosh-alicloud-cpi
+MAINFILE := $(CURDIR)/src/$(MAINDIR)/main/main.go
 EXECUTABLE := $(CURDIR)/bin/bosh-alicloud-cpi
 
 GOPATH := $(CURDIR)
@@ -14,7 +15,7 @@ endif
 # TODO add local link invocation
 BUILD_OPTIONS = -a -ldflags "-X main.GitCommit=\"$(COMMIT)\""
 
-all: clean deps build
+all: clean deps build test
 
 clean:
 	rm -f $(BINDIR)/*
@@ -29,3 +30,7 @@ deps:
 build:
 	mkdir -p $(BINDIR)
 	go build $(GO_OPTIONS) $(BUILD_OPTIONS) -o $@ $(MAINFILE)
+
+test:
+	-go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/alicloud)
+	go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/action)
