@@ -7,7 +7,6 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
-	"go/types"
 )
 
 type HasDiskMethod struct {
@@ -23,7 +22,7 @@ func (a HasDiskMethod) HasDisk(cid apiv1.DiskCID) (bool, error) {
 	instid := cid.AsString()
 
 	var args ecs.DescribeDisksArgs
-	args.RegionId = common.Region(a.runner.Config.RegionId)
+	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
 	args.DiskIds = []string {cid.AsString()}
 
 	disks, _, err := client.DescribeDisks(&args)

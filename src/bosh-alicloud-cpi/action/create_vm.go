@@ -21,18 +21,18 @@ func (a CreateVMMethod) CreateVM(
 	cloudProps apiv1.VMCloudProps, networks apiv1.Networks,
 	associatedDiskCIDs []apiv1.DiskCID, env apiv1.VMEnv) (apiv1.VMCID, error) {
 
-	client := a.runner.NewClient()
-
-
-	var args ecs.CreateInstanceArgs
-	args.RegionId = common.Region(a.runner.Config.RegionId)
-	args.ImageId = stemcellCID.AsString()
-	args.
-
-
-
-
-	client.CreateInstance()
+	//client := a.runner.NewClient()
+	//
+	//
+	//var args ecs.CreateInstanceArgs
+	//args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
+	//args.ImageId = stemcellCID.AsString()
+	//args.
+	//
+	//
+	//
+	//
+	//client.CreateInstance()
 
 	//client :=
 	//client.CreateIn

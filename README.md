@@ -21,21 +21,32 @@ Create a configuration file, for example:
 ```
 {
     "alicloud": {
-        "access_key": "***",
-        "access_key_secret": "***"
-    }
+        "region_id": "cn-beijing",
+        "access_key_id": "${ACCESS_KEY_ID}",
+        "access_key_secret": "${ACCESS_KEY_SECRET}",
+        "regions": [
+            {
+                "name": "cn-beijing",
+                "image_id": "m-2zeggz4i4n2z510ajcvw"
+            },
+            {
+                "name": "cn-hangzhou",
+                "image_id": "m-bp1bidv1aeiaynlyhmu9"
+            }
+        ]
+    },
     "actions": {
         "agent": {
             "mbus": "http://mbus:mbus@0.0.0.0:6868",
             "blobstore": {
                 "provider": "dav",
                 "options": {
-                    endpoint: "http://10.0.0.2:25250",
-                    user: "agent",
-                    password: "agent-password"
+                    "endpoint": "http://10.0.0.2:25250",
+                    "user": "agent",
+                    "password": "agent-password"
                 }
             }
-        }
+        },
         "registry": {
             "user": "admin",
             "password": "admin",
@@ -46,6 +57,8 @@ Create a configuration file, for example:
     }
 }
 ```
+
+*For case of unit test, you can set your AccessKeyId and AccessKeySecret in system env*
 
 ### Run
 

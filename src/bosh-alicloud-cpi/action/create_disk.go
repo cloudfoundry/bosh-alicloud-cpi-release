@@ -33,7 +33,7 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid
 	zoneId := inst.ZoneId
 
 	var args = ecs.CreateDiskArgs {
-		RegionId: common.Region(a.runner.Config.RegionId),
+		RegionId: common.Region(a.runner.Config.OpenApi.RegionId),
 		ZoneId: zoneId,
 		DiskName: "",			//TODO
 		Description: "",		//TODO
