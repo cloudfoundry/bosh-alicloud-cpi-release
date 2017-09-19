@@ -10,6 +10,7 @@ inputs:
   - name: terraform
   - name: terraform-provider
   - name: terraform-module
+  - name: terraform-task
 
 outputs:
   - name: terraform-env
@@ -19,8 +20,8 @@ run:
   args:
   - -exc
   - |
-    chmod +x bosh-cpi-src/ci/tasks/build-environment.sh
-    bosh-cpi-src/ci/tasks/build-environment.sh
+    chmod +x terraform-task/build-environment.sh
+    terraform-task/build-environment.sh
 
 params:
   ALICLOUD_ACCESS_KEY_ID:     ""

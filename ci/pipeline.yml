@@ -200,8 +200,9 @@ jobs:
         - {trigger: true, get: terraform, resource: terraform}
         - {trigger: true, get: terraform-provider, resource: terraform-provider}
         - {trigger: true, get: terraform-module, resource: terraform-module}
+        - {trigger: true, get: terraform-task, resource: terraform-task}
       - task: test
-        file: bosh-cpi-src/ci/tasks/build-environment.yml
+        file: terraform-task/build-environment.yml
         params:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
@@ -904,6 +905,41 @@ resources:
       driver: git
       uri: git@github.com:xiaozhu36/cloudfoundryci.git
       branch: module
+      private_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpQIBAAKCAQEA9giUERVbjMusdUe9pXGUG1gGNjTC1bwxSdcr4mepdVkQTRGE
+        shGrHz9sZHimZgnUqhves5LFcdypJFwnyVdBHC/ATPIEes9LbiiKWjJ/ACnykQSe
+        ZqNhAts7gnakPZRGZyr/42sTEZAa4pXK6w7hgb1Rk8BDpxYuN3PswUBp8vvou0OI
+        uxccWMXY2Iruws80qLs2WHPr/M7Wm+qh4AJtWhwoLoSEHL0aIuYbN27q3X/PGiGr
+        zkzq4pEGfE8KbRK2tljadMPqOjSiHAUvE98VkHUbPdPBzRbB6W46UBHdIOUSpKbM
+        S5nTUI4sg9L7DzGvxN+4Iioz19O9tG+uf50TWwIDAQABAoIBAQCq84D2cdGf/fFB
+        uGx0pXuUmFAQoA509oOE3CaY9RBRAmaKNk7ub8poNuh400BDjDchT6YpPiVFHV7F
+        becTRjZugFts24jzUFAIJdEkJQwLsBnkW8I4bPM+SdiKqScrxng4vS759O9V97xG
+        jnBlbXyRalthf2lCku3gCAOMr9YuRzA18uoKHO3r5+1Hlr53GnaWPhMe+UfUfvQA
+        kJay576F3ugjLPcxiyX7oI3uHLs72oZ32ul2COpMIweVV6B5kB5Jp+XjrWel0dkD
+        M74Nw/KL60zhUBRnsuYlLPU7K1HKC8fTgA/LC+lbE2HmA9PSmV44dQHQQ7MHv9ew
+        welHJHn5AoGBAP/PpTHHAKoRhkMzfxnToci/iiyrnK/+f8SEusL2Ln6AWcOtEaAM
+        INvKURS2FQrqymlpFsktOvhs2xid/negFg+rCu4gV/fQg3psBkynMnPpEZqmfBen
+        y+t+23ZI8fOs4NTz9W+38m2j1/qaKHP4jDl68u/8oL2+zwTt492Fqn7FAoGBAPY3
+        FbrdLdPIpXB2/3aoU4WwQu+BYcjmRXF+ybFp0pNkRcNIfPUbebBhQlkaSGlaVixg
+        Cp0X6bLh7yNhWLWPLAALTxhVgUkTycBY5I/PLIaUe8GCIECKlwIbyH2yyIVwdGtM
+        XeShIBnCBoIYIzHo/wkGP5bl6vKEVW/odBeUjGufAoGBAOVExCit08GY/T1jfQm3
+        rGtQh9VrZX4y2W5XC0/K9na4MDt49K/9zsFOPYcTfh6PuiPpZNufZxfZ8C/LApNS
+        bhNS1/P+Fvlq7zucb7TpsQVDoVx61AMbh18kDiugSwF7MvKJR7L+KQ/s5Zib65+s
+        5nhp4iwGvkXxKnefgjc7IkiFAoGAc9rbuMAWrk79ufvknXr7Qi78cCKbVqM0DgGw
+        +nBnC7/lK8zSL6usCRja1X6OkDRX1C2lEOKNrwStOCK4UUZ7V9H6d+LUIQTUrFOn
+        yRudQf5gdV+7uWL9R5q3Lp6PyGpv/YVDsS84Iaaw1UpyVSvjxeVQyrqJYXBvm2bw
+        KaBWqtUCgYEA9ptDVdWqBKor81RrqfIy+D3EmeRPnvL1ASY0//k6pp5EZkWGi37H
+        R1Jyvid7eQgijwnz+p1J8ZwW2HwYBPO+RpWr6iGLgxPnws9cjgAzDkmm6X/g6gvu
+        FJdWaK1O3SvcDSit5h07HNvS133VKIB/eBdWaQdrGgLNieSqxF2+nW0=
+        -----END RSA PRIVATE KEY-----
+
+  - name: terraform-task
+    type: git
+    source:
+      driver: git
+      uri: git@github.com:xiaozhu36/cloudfoundryci.git
+      branch: task
       private_key: |
         -----BEGIN RSA PRIVATE KEY-----
         MIIEpQIBAAKCAQEA9giUERVbjMusdUe9pXGUG1gGNjTC1bwxSdcr4mepdVkQTRGE
