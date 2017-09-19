@@ -1,0 +1,9 @@
+{
+  "Region": "",
+  "AccessKeyId": "YourKeyId",
+  "AccessKeySecret": "YouSecret",
+  "Regions": [
+    { "Name": "cn-beijing", "ImageId": "m-2zeggz4i4n2z510ajcvw" },
+    { "Name": "cn-hangzhou", "ImageId": "m-bp1bidv1aeiaynlyhmu9" }
+  ]
+}
