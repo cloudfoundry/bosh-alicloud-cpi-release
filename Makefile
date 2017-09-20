@@ -1,6 +1,9 @@
 BINDIR := $(CURDIR)/bin
 MAINFILE := $(CURDIR)/src/bosh-alicloud-cpi/main/main.go
 EXECUTABLE := $(BINDIR)/bosh-alicloud-cpi
+MAINDIR := bosh-alicloud-cpi
+MAINFILE := $(CURDIR)/src/$(MAINDIR)/main/main.go
+EXECUTABLE := $(CURDIR)/bin/bosh-alicloud-cpi
 
 GOPATH := $(CURDIR)
 
@@ -18,7 +21,6 @@ all: clean deps build
 
 clean:
 	rm -f $(BINDIR)/*
-	rm -f ${EXECUTABLE}
 
 deps:
 	go get -v github.com/cppforlife/bosh-cpi-go/...
@@ -30,3 +32,8 @@ deps:
 build:
 	mkdir -p $(BINDIR)
 	go build $(GO_OPTIONS) $(BUILD_OPTIONS) -o ${EXECUTABLE} $(MAINFILE)
+	go build $(GO_OPTIONS) $(BUILD_OPTIONS) -o $@ $(MAINFILE)
+
+test:
+	-go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/alicloud)
+	go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/action)

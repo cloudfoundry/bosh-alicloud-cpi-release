@@ -2,6 +2,7 @@ package action
 
 import (
 	"testing"
+	"bosh-alicloud-cpi/action"
 )
 
 var createStemcellArgs = []byte(`
@@ -37,7 +38,7 @@ func TestConfigLoad(t *testing.T) {
 }
 
 func TestCreateStemcell(t *testing.T) {
-	CallTestCase(TestConfig, createStemcellArgs, t)
+	action.CallTestCase(action.TestConfig, createStemcellArgs, t)
 }
 //
 //wardenConn := wrdnconn.New(config.Warden.ConnectNetwork, config.Warden.ConnectAddress)
