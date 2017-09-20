@@ -8,8 +8,6 @@ import (
 	"os"
 	"fmt"
 	"encoding/base64"
-	"bytes"
-	"strings"
 )
 
 type Config struct {

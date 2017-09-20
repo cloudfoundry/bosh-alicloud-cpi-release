@@ -7,26 +7,24 @@ import (
 	"github.com/cppforlife/bosh-cpi-go/rpc"
 	"bosh-alicloud-cpi/action"
 	"bosh-alicloud-cpi/alicloud"
+	"flag"
 )
+
+var configFile = flag.String("config", "", `cpi -configFile=/path/to/configuration_file.json`)
 
 func main() {
 	logger, fs := basicDeps()
 	defer logger.HandlePanic("Main")
 
-	if len(os.Args) != 1 {
-		logger.Error("main", "Usage cpi configFile")
-		os.Exit(1)
-	}
-
-	configFile := os.Args[1]
-	config, err := alicloud.NewConfigFromFile(configFile, fs)
+	flag.Parse()
+	config, err := alicloud.NewConfigFromFile(*configFile, fs)
 
 	if err != nil {
-		logger.Error("main", "readConfigFailed")
+		logger.Error("main", "read config failed %s", err)
 		os.Exit(1)
 	}
 
-	logger.Info("LoadConfig", "load Configuration from", config)
+	logger.Info("CONFIG", "load Configuration: %s", config)
 
 	runner := alicloud.NewRunner(logger, config)
 	cpiFactory := action.NewFactory(runner)
