@@ -34,7 +34,6 @@ var createStemcellArgs = []byte(`
 }`)
 
 func TestConfigLoad(t *testing.T) {
-
 }
 
 func TestCreateStemcell(t *testing.T) {

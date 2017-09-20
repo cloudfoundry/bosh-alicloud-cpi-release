@@ -3,10 +3,9 @@ package action
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	"alibaba/bosh-alicloud-cpi/src/bosh-alicloud-cpi/alicloud"
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
-	"github.com/google/bosh-google-cpi/src/bosh-google-cpi/google/disk_service"
+	"bosh-alicloud-cpi/alicloud"
 )
 
 type CreateVMMethod struct {
@@ -85,6 +84,7 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "CreateInstance failed %s", args)
 	}
 
+	logger.Info("INFO", "FINISHE createvm %s", args)
 	return apiv1.NewVMCID(instid), nil
 }
 
