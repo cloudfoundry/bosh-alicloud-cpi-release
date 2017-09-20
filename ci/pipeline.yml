@@ -200,7 +200,7 @@ jobs:
         - {trigger: true, get: terraform, resource: terraform}
         - {trigger: true, get: terraform-provider, resource: terraform-provider}
         - {trigger: true, get: terraform-module, resource: terraform-module}
-        - {trigger: true, get: terraform-task, resource: terraform-task}
+        - {trigger: false, get: terraform-task, resource: terraform-task}
       - task: test
         file: terraform-task/build-environment.yml
         params:
