@@ -4,10 +4,10 @@ import (
 	"os"
 	"bytes"
 	"bosh-alicloud-cpi/alicloud"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cppforlife/bosh-cpi-go/rpc"
-
 	"testing"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var TestConfig = []byte(`{

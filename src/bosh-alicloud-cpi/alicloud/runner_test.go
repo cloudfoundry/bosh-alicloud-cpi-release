@@ -44,12 +44,12 @@ func TestStopStartVm(t *testing.T) {
 	t.Log("Stopping VM Done")
 
 
-	t.Log("Stopping VM ...")
+	t.Log("Starting VM ...")
 	err = runner.StartInstance(testInstId)
 	if err != nil {
-		t.Error("VmStatus", "Stoping failed, ", err)
+		t.Error("VmStatus", "Starting failed, ", err)
 	}
-	err = runner.WaitForInstanceStatus(testInstId, ecs.Stopped)
+	err = runner.WaitForInstanceStatus(testInstId, ecs.Running)
 	if err != nil {
 		t.Error("VmStatus", "WaitForVm failed, ", err)
 	}

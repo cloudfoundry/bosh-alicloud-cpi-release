@@ -1,6 +1,7 @@
 package action
 
 import "testing"
+import "bosh-alicloud-cpi/action"
 
 var createVmArgs = []byte(`
 {
@@ -49,5 +50,5 @@ var createVmArgs = []byte(`
 `)
 
 func TestCreateVm(t *testing.T) {
-	CallTestCase(TestConfig, createVmArgs, t)
+	action.CallTestCase(action.TestConfig, createVmArgs, t)
 }
