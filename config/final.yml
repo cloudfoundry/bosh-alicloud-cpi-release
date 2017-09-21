@@ -1,1 +1,5 @@
+---
 name: bosh-alicloud-cpi
+
+blobstore:
+  provider: local
