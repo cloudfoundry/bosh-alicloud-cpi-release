@@ -6,6 +6,7 @@ import (
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
 	"bosh-alicloud-cpi/alicloud"
+	"encoding/json"
 )
 
 type CreateVMMethod struct {
@@ -26,8 +27,8 @@ type DiskInfo struct {
 }
 
 type NetworkProps struct {
-	SecurityGroupId string `json:"SecurityGroupId"`
-	VSwitchId string `json:"VSwitchId"`
+	SecurityGroupId string	`json:"security_group_id"`
+	VSwitchId string		`json:"vswitch_id"`
 }
 
 func NewCreateVMMethod(runner alicloud.Runner) CreateVMMethod {
@@ -48,43 +49,72 @@ func (a CreateVMMethod) CreateVM(
 	cloudProps.As(&diskProps)
 
 	network := networks["private"]
+	if network == nil {
+		network = networks["default"]
+	}
 	var networkProps NetworkProps
 	network.CloudProps().As(&networkProps)
+
+	logger.Info("NETWORK", "IP: ", network.IP())
+	logger.Info("NETWORK", "NETMASK: ", network.Netmask())
 
 	//
 	// TODO stemcellCID verification
 
 	var args ecs.CreateInstanceArgs
 	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
+	args.ZoneId = a.runner.Config.OpenApi.ZoneId
 	args.ImageId = stemcellCID.AsString()
-	args.UserData = a.runner.Config.Actions.Registry.ToInstanceUserData()
-	args.ImageId = stemcellCID.AsString()
+	args.UserData = a.runner.Config.Registry.ToInstanceUserData()
+
+	args.InstanceType = "ecs.mn4.small"
+	args.IoOptimized = "optimized"
 
 	args.SecurityGroupId = networkProps.SecurityGroupId
-	args.InstanceType = diskProps.InstanceType
+	// args.InstanceType = diskProps.InstanceType
 
 	var disk ecs.DataDiskType
 	// if diskProps.EphemeralDisk != nil { TODO judge disk type
 	disk.Size = diskProps.EphemeralDisk.Size
+	args.DataDisk = []ecs.DataDiskType{
+		{Size: 50, Category: "cloud_efficiency", },
+	}
 
-	args.SystemDisk.Size = diskProps.SystemDisk.Size
-	args.SystemDisk.Category = diskProps.SystemDisk.GetCategory()
+	args.SystemDisk.Size = 50 // diskProps.SystemDisk.Size
+	args.SystemDisk.Category = "cloud_ssd"
 
 	args.VSwitchId = networkProps.VSwitchId
 	args.PrivateIpAddress = network.IP()
 
-
 	args.InstanceChargeType = "PostPaid"		// TODO
-	args.SpotStrategy = "NoSpot"				// TODO
 	args.AutoRenew = false
+
+	args.Password = "Cloud12345"
+
+	req, _ := json.Marshal(args)
+
+	logger.Info("OPENAPI", "Args %s", string(req))
+
 
 	instid, err := client.CreateInstance(&args)
 
 	if err != nil {
-		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "CreateInstance failed %s", args)
+		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "CreateInstance failed INPUT=%s AccessKeyId=%s", string(req), a.runner.Config.OpenApi.AccessKeyId)
 	}
 
-	logger.Info("INFO", "FINISHE createvm %s", args)
+	err = a.runner.StartInstance(instid)
+
+	if err != nil {
+		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed instanceid =", err)
+	}
+
+	err = a.runner.WaitForInstanceStatus(instid, ecs.Running)
+
+	if err != nil {
+		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed instanceid =", err)
+	}
+
+	logger.Info("INFO", "FINISH create_vm %s", args)
 	return apiv1.NewVMCID(instid), nil
 }
 

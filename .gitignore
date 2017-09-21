@@ -1,9 +1,8 @@
-out
-pkg
-bin
+/pkg
+/bin
 blobs
 *\.test
-.idea/*
+.idea
 src/github.com
 src/golang.org
 *.DS_Store

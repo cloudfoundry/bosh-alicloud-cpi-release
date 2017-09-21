@@ -10,7 +10,7 @@ import (
 	"flag"
 )
 
-var configFile = flag.String("config", "", `cpi -configFile=/path/to/configuration_file.json`)
+var configFile = flag.String("configFile", "", `cpi -configFile=/path/to/configuration_file.json`)
 
 func main() {
 	logger, fs := basicDeps()
@@ -24,7 +24,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("CONFIG", "load Configuration: %s", config)
+	logger.Info("CONFIG", "load Configuration from %s: %s", configFile, config)
 
 	runner := alicloud.NewRunner(logger, config)
 	cpiFactory := action.NewFactory(runner)
@@ -38,7 +38,7 @@ func main() {
 		logger.Error("main", "Serving once %s", err)
 	}
 
-	os.Exit(1)
+	os.Exit(0)
 }
 
 func basicDeps() (boshlog.Logger, boshsys.FileSystem) {

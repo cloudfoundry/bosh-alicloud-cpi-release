@@ -1,4 +1,4 @@
-name: bosh-alicloud-cpi
+name: alicloud_cpi
 version: "2"
 commit_hash: 31a479a
 uncommitted_changes: false

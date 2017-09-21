@@ -10,13 +10,12 @@ templates:
   config/cpi.json.erb: config/cpi.json
 
 properties:
-properties:
   alicloud.region_id:
     description: "Alicloud owned regions, such as ap-southeast-1, cn-qingdao"
-    default: cn-hangzhou
+    default: "cn-beijing"
   alicloud.zone_id:
     description: "Alicloud every region has zones, "
-    default: cn-hangzhou-a
+    default: "cn-beijing-a"
   alicloud.instance_type:
     description: "Alicloud ecs type, such as ecs.t1.small, ecs.s2.large, ecs.s3.large"
     default: "ecs.t1.small"
@@ -24,6 +23,9 @@ properties:
     default: "m-23h4o8945"
   alicloud.security_group_id:
     default: "sg-238ux30qe"
+  alicloud.vswitch_id:
+    description: "Alicloud vswitch_id for VPC"
+    default: "vsw-2zevwt3w7h5u761o405rd"
   alicloud.internet_charge_type:
     default: "PayByTraffic"
   alicloud.internet_max_band_width_out:
@@ -40,9 +42,9 @@ properties:
   alicloud.password:
     default: "1qaz@WSX"
   alicloud.access_key_id:
-    default: "OAtTkdQDHJyYGCmU"
-  alicloud.access_key:
-    default: "PzosfNHKsG6sFQKNnxvMjqQNx8x2of"
+    default: "LTAI4CkjuLxk2Adz"
+  alicloud.access_key_secret:
+    default: "WpPV1F3V1nurTAMbw7oS4SnGEWRyRe"
   alicloud.disk_snapshot_id:
     default: ""
   registry.username:

@@ -1,0 +1,32 @@
+{
+  "cloud": {
+    "plugin": "alicloud",
+    "properties": {
+      "alicloud": {
+        "region_id": "cn-beijing",
+        "zone_id": "cn-beijing-a",
+        "access_key_id": "OAtTkdQDHJyYGCmU",
+        "access_key_secret": "PzosfNHKsG6sFQKNnxvMjqQNx8x2of"
+      },
+      "registry": {
+        "user": "registry",
+        "password": "9481e9fc-fc7a-4f46-5827-3a82d16188fb",
+        "protocol": "http",
+        "address": "10.0.0.2",
+        "port": "6901"
+      },
+      "agent": {
+        "ntp": "ntp",
+        "mbus": "http://mbus:mbus@0.0.0.0:6868",
+        "blobstore": {
+          "provider": "dav",
+          "options": {
+            "endpoint": "http://10.0.0.2:25250",
+            "user": "agent",
+            "password": "agent-password"
+          }
+        }
+      }
+    }
+  }
+}

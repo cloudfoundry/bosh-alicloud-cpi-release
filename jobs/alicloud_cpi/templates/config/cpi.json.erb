@@ -1,30 +1,30 @@
 <%=
   params = {
-    'cloud' => {
-      'plugin' => 'alicloud',
-      'properties' => {
-        'alicloud' => {
-          'region_id' => p('alicloud.region_id'),
-          'zone_id' => p('alicloud.zone_id),
-          'access_key_id' => p('alicloud.access_key_id'),
-          'access_key_secret' => p('alicloud.access_key_secret')
+    "cloud" => {
+      "plugin" => "alicloud",
+      "properties" => {
+        "alicloud" => {
+          "region_id" => p("alicloud.region_id"),
+          "zone_id" => p("alicloud.zone_id"),
+          "access_key_id" => p("alicloud.access_key_id"),
+          "access_key_secret" => p("alicloud.access_key_secret"),
         },
-        'registry' => {
-          'user' => p('registry.username'),
-          'password' => p('registry.password'),
-          'protocol' => 'http',
-          'address' => p('registry.address'),
-          'port' => p('registry.port'),
+        "registry" => {
+          "user" => p("registry.username"),
+          "password" => p("registry.password"),
+          "protocol" => "http",
+          "address" => p("registry.address"),
+          "port" => "6901",
         },
-        'agent' => {
-          'ntp' => p('ntp'),
-          'mbus' => "nats://#{p('nats.user')}:#{p('nats.password')}@#{p('nats.address')}:#{p('nats.port')}",
-          'blobstore' => {
-            'provider' => p('blobstore.provider'),
-            'options' => {
-              'endpoint' => "http://#{p('blobstore.address')}:#{p('blobstore.port')}",
-              'user' => p('blobstore.agent.user'),
-              'password' => p('blobstore.agent.password')
+        "agent" => {
+          "ntp" => "ntp",
+          "mbus" => "http://mbus:mbus@0.0.0.0:6868",
+          "blobstore" => {
+            "provider" => "dav",
+            "options" => {
+              "endpoint" => "http://10.0.0.2:25250",
+              "user" => "agent",
+              "password" => "agent-password"
             }
           },
         }
