@@ -8,4 +8,5 @@ src/github.com
 src/golang.org
 *.DS_Store
 .dev_builds
+.final_builds
 dev_releases
