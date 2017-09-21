@@ -10,16 +10,27 @@ import (
 	"encoding/base64"
 )
 
+type CloudConfigShell struct {
+	Root CloudConfig	`json:"cloud"`
+}
+
+type CloudConfig struct {
+	Plugin string 		`json:"plugin"`
+	Properties Config	`json:"properties"`
+}
+
 type Config struct {
-	OpenApi OpenApi `json:"alicloud"`
-	Actions Actions `json:"actions"`
+	OpenApi OpenApi		`json:"alicloud"`
+	Registry Registry 	`json:"registry"`
+	Agent Agent 		`json:"agent"`
 }
 
 type OpenApi struct {
 	RegionId string			`json:"region_id"`
+	ZoneId string			`json:"zone_id"`
 	AccessKeyId string		`json:"access_key_id"`
 	AccessKeySecret string	`json:"access_key_secret"`
-	Regions[] Region		`json:regions`
+	Regions[] Region		`json:"regions"`
 }
 
 type Region struct {
@@ -27,34 +38,29 @@ type Region struct {
 	ImageId string			`json:"image_id"`
 }
 
-type Actions struct {
-	Agent Agent 			`json:"agent"`
-	Registry Registry 		`json:"blobstore"`
+type Registry struct {
+	User string				`json:"user"`
+	Password string			`json:"password"`
+	Protocol string			`json:"protocol"`
+	Host string				`json:"address"`
+	Port string	 			`json:"port"`
 }
 
 type Agent struct {
+	Ntp string				`json:"ntp"`
 	Mbus string 			`json:"mbus"`
 	Blobstore Blobstore		`json:"blobstore"`
 }
 
 type Blobstore struct {
-	Provider string			`json:"provider"`
-	Options BlobstoreOptions			`json:"options"`
-
+	Provider string				`json:"provider"`
+	Options BlobstoreOptions	`json:"options"`
 }
 
 type BlobstoreOptions struct {
 	Endpoint string			`json:"endpoint"`
 	User string				`json:"agent"`
 	Password string 		`json:"agent-password"`
-}
-
-type Registry struct {
-	User string				`json:"user"`
-	Password string			`json:"password"`
-	Protocol string			`json:"protocol"`
-	Host string				`json:"host"`
-	Port string 			`json:"port"`
 }
 
 func (c Config) Validate() (error) {
@@ -78,13 +84,16 @@ func NewConfigFromFile(configFile string, fs boshsys.FileSystem) (Config, error)
 }
 
 func NewConfigFromBytes(bytes []byte) (Config, error) {
+	var ccs CloudConfigShell
 	var config Config
 
-	err := json.Unmarshal(bytes, &config)
+	err := json.Unmarshal(bytes, &ccs)
 	if err != nil {
 		return config, bosherr.WrapError(err, "Unmarshalling config contents")
 	}
 
+	config = ccs.Root.Properties
+	config.OpenApi.AddDefaultRegions()
 	config.OpenApi.ApplySystemEnv()
 	err = config.Validate()
 	if err != nil {
@@ -92,6 +101,13 @@ func NewConfigFromBytes(bytes []byte) (Config, error) {
 	}
 
 	return config, nil
+}
+
+func (a *OpenApi) AddDefaultRegions() {
+	a.Regions = []Region{
+		{"cn-beijing", "m-2zeggz4i4n2z510ajcvw"},
+		{"cn-zhangjiakou", "m-8vbcsgb8bmh4iya739i8"},
+	}
 }
 
 func (a *OpenApi) ApplySystemEnv() {
