@@ -1,6 +1,7 @@
 out
 pkg
 bin
+blobs
 *\.test
 .idea/*
 src/github.com
