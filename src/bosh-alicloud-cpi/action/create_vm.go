@@ -13,21 +13,21 @@ type CreateVMMethod struct {
 }
 
 type DiskProps struct {
-	EphemeralDisk DiskInfo 	`json:"ephemeral_disk"`
-	ImageId string 			`json:"image_id"`
-	InstanceName string 	`json:"instance_name"`
-	InstanceType string 	`json:"instance_type"`
-	SystemDisk DiskInfo		`json:"system_disk"`
+	EphemeralDisk DiskInfo `json:"ephemeral_disk"`
+	ImageId       string   `json:"image_id"`
+	InstanceName  string   `json:"instance_name"`
+	InstanceType  string   `json:"instance_type"`
+	SystemDisk    DiskInfo `json:"system_disk"`
 }
 
 type DiskInfo struct {
-	Size int				`json:"size"`
-	Type string 			`json:"cloud_efficiency"`
+	Size int    `json:"size"`
+	Type string `json:"cloud_efficiency"`
 }
 
 type NetworkProps struct {
 	SecurityGroupId string `json:"SecurityGroupId"`
-	VSwitchId string `json:"VSwitchId"`
+	VSwitchId       string `json:"VSwitchId"`
 }
 
 func NewCreateVMMethod(runner alicloud.Runner) CreateVMMethod {
@@ -73,9 +73,8 @@ func (a CreateVMMethod) CreateVM(
 	args.VSwitchId = networkProps.VSwitchId
 	args.PrivateIpAddress = network.IP()
 
-
-	args.InstanceChargeType = "PostPaid"		// TODO
-	args.SpotStrategy = "NoSpot"				// TODO
+	args.InstanceChargeType = "PostPaid" // TODO
+	args.SpotStrategy = "NoSpot"         // TODO
 	args.AutoRenew = false
 
 	instid, err := client.CreateInstance(&args)
@@ -85,11 +84,31 @@ func (a CreateVMMethod) CreateVM(
 	}
 
 	logger.Info("INFO", "FINISHE createvm %s", args)
+
+	// TODO registry settings
+	var settings alicloud.RegistrySettings
+	settings.Vm.Name = instid
+	settings.AgentId = agentID.AsString()
+	// TODO
+	//settings.Networks=
+	if diskProps.SystemDisk.GetCategory() == "cloud" {
+		settings.Disks.System = "/dev/xvda"
+		settings.Disks.Ephemeral = "/dev/xvdb"
+	} else {
+		settings.Disks.System = "/dev/vda"
+		settings.Disks.Ephemeral = "/dev/vdb"
+	}
+	// TODO
+	//settings.Mbus
+	//settings.Blobstore
+
+
+	logger.Info("INFO", "FINISH update registry settings for VM: %s", instid)
+
 	return apiv1.NewVMCID(instid), nil
 }
 
-
-func (* DiskInfo) GetCategory() ecs.DiskCategory {
+func (*DiskInfo) GetCategory() ecs.DiskCategory {
 	//
 	// TODO
 	return ecs.DiskCategory("cloud_efficiency")

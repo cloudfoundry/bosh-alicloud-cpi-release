@@ -16,45 +16,64 @@ type Config struct {
 }
 
 type OpenApi struct {
-	RegionId string			`json:"region_id"`
-	AccessKeyId string		`json:"access_key_id"`
-	AccessKeySecret string	`json:"access_key_secret"`
-	Regions[] Region		`json:regions`
+	RegionId        string    `json:"region_id"`
+	AccessKeyId     string    `json:"access_key_id"`
+	AccessKeySecret string    `json:"access_key_secret"`
+	Regions         [] Region `json:regions`
 }
 
 type Region struct {
-	Name string				`json:"name"`
-	ImageId string			`json:"image_id"`
+	Name    string `json:"name"`
+	ImageId string `json:"image_id"`
 }
 
 type Actions struct {
-	Agent Agent 			`json:"agent"`
-	Registry Registry 		`json:"blobstore"`
+	Agent    Agent    `json:"agent"`
+	Registry Registry `json:"blobstore"`
 }
 
 type Agent struct {
-	Mbus string 			`json:"mbus"`
-	Blobstore Blobstore		`json:"blobstore"`
+	Mbus      string    `json:"mbus"`
+	Blobstore Blobstore `json:"blobstore"`
 }
 
 type Blobstore struct {
-	Provider string			`json:"provider"`
-	Options BlobstoreOptions			`json:"options"`
-
+	Provider string           `json:"provider"`
+	Options  BlobstoreOptions `json:"options"`
 }
 
 type BlobstoreOptions struct {
-	Endpoint string			`json:"endpoint"`
-	User string				`json:"agent"`
-	Password string 		`json:"agent-password"`
+	Endpoint string `json:"endpoint"`
+	User     string `json:"agent"`
+	Password string `json:"agent-password"`
 }
 
 type Registry struct {
-	User string				`json:"user"`
-	Password string			`json:"password"`
-	Protocol string			`json:"protocol"`
-	Host string				`json:"host"`
-	Port string 			`json:"port"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Protocol string `json:"protocol"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+}
+
+// registry settings
+type RegistrySettings struct {
+	AgentId      string        `json:"agent_id"`
+	Blobstore    Blobstore     `json:"agent_id"`
+	Disks        SettingsDisks `json:"disks"`
+	//Networks
+	Mbus         string
+	Vm           SettingsVm    `json:"vm"`
+}
+
+type SettingsDisks struct {
+	System     string `json:"system"`
+	Ephemeral  string `json:"ephemeral"`
+	Persistent string `json:"persistent"`
+}
+
+type SettingsVm struct {
+	Name string `json:"name"`
 }
 
 func (c Config) Validate() (error) {
