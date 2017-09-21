@@ -1,7 +1,7 @@
 BINDIR := $(CURDIR)/bin
 MAINDIR := bosh-alicloud-cpi
 MAINFILE := $(CURDIR)/src/$(MAINDIR)/main/main.go
-EXECUTABLE := $(BINDIR)/bosh-alicloud-cpi
+EXECUTABLE := $(BINDIR)/alicloud_cpi
 
 GOPATH := $(CURDIR)
 
