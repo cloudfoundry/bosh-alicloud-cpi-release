@@ -5,4 +5,4 @@ dependencies:
   - golang
 
 files:
-  - alicloud_cpi/**.*
+  - bosh-alicloud-cpi/**/*
