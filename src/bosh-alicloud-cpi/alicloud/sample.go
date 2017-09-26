@@ -1,10 +1,10 @@
 package alicloud
 
 import (
-bosherr "github.com/cloudfoundry/bosh-utils/errors"
-"github.com/cppforlife/bosh-cpi-go/apiv1"
-"github.com/denverdino/aliyungo/ecs"
-"fmt"
+	"fmt"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+	"github.com/denverdino/aliyungo/ecs"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type CreateStemcellMethod struct {

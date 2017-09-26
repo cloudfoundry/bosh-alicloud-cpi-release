@@ -5,6 +5,7 @@ blobs
 .idea
 src/github.com
 src/golang.org
+src/gopkg.in
 *.DS_Store
 .dev_builds
 .final_builds

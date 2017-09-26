@@ -1,18 +1,18 @@
 package alicloud
 
 import (
+	"fmt"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
+	"github.com/denverdino/aliyungo/ecs"
 	"strings"
-	"fmt"
 	"time"
 )
 
 const (
-	USE_FORCE_STOP = true
-	DEFAULT_TIMEOUT = 1200000
+	USE_FORCE_STOP        = true
+	DEFAULT_TIMEOUT       = 1200000
 	DEFAULT_WAIT_INTERVAL = 500
 )
 
@@ -21,14 +21,14 @@ type Runner struct {
 	Config Config
 }
 
-func NewRunner(logger logger.Logger, config Config) (Runner) {
+func NewRunner(logger logger.Logger, config Config) Runner {
 	return Runner{
 		Logger: logger,
 		Config: config,
 	}
 }
 
-func (a Runner) NewClient() (* ecs.Client) {
+func (a Runner) NewClient() *ecs.Client {
 	return ecs.NewClient(a.Config.OpenApi.AccessKeyId, a.Config.OpenApi.AccessKeySecret)
 }
 
@@ -42,7 +42,7 @@ func (a Runner) FindStemcellId() (string, error) {
 	return "", fmt.Errorf("Unknown Region")
 }
 
-func (a Runner) GetInstance(instid string) (* ecs.InstanceAttributesType, error) {
+func (a Runner) GetInstance(instid string) (*ecs.InstanceAttributesType, error) {
 	client := a.NewClient()
 
 	var args ecs.DescribeInstancesArgs
@@ -76,7 +76,7 @@ func (a Runner) GetInstanceStatus(instid string) (ecs.InstanceStatus, error) {
 	return inst.Status, nil
 }
 
-func (a Runner) WaitForInstanceStatus(instid string, to_status ecs.InstanceStatus) (error) {
+func (a Runner) WaitForInstanceStatus(instid string, to_status ecs.InstanceStatus) error {
 	timeout := DEFAULT_TIMEOUT
 	for {
 		status, err := a.GetInstanceStatus(instid)
@@ -98,17 +98,17 @@ func (a Runner) WaitForInstanceStatus(instid string, to_status ecs.InstanceStatu
 	}
 }
 
-func (a Runner) StopInstance(instid string) (error) {
+func (a Runner) StopInstance(instid string) error {
 	client := a.NewClient()
 	return client.StopInstance(instid, USE_FORCE_STOP)
 }
 
-func (a Runner) StartInstance(instid string) (error) {
+func (a Runner) StartInstance(instid string) error {
 	client := a.NewClient()
 	return client.StartInstance(instid)
 }
 
-func (a Runner) RebootInstance(instid string) (error) {
+func (a Runner) RebootInstance(instid string) error {
 	client := a.NewClient()
 	return client.RebootInstance(instid, USE_FORCE_STOP)
 }

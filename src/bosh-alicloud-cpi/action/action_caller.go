@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"encoding/json"
 )
 
 var TestConfig = []byte(`
@@ -18,8 +19,8 @@ var TestConfig = []byte(`
             "alicloud": {
                 "region_id": "cn-beijing",
                 "zone_id": "cn-beijing-a",
-                "access_key_id": "LTAI4CkjuLxk2Adz",
-                "access_key_secret": "WpPV1F3V1nurTAMbw7oS4SnGEWRyRe"
+                "access_key_id": "${ACCESS_KEY_ID}",
+                "access_key_secret": "${ACCESS_KEY_CONFIG}"
             },
             "registry": {
                 "user": "registry",
@@ -45,10 +46,21 @@ var TestConfig = []byte(`
 }
 `)
 
+type CpiResponse struct {
+	Result string		`json:"result"`
+	Error CpiError	 	`json:"error"`
+	Log string			`json:"log"`
+}
+
+type CpiError struct {
+	Type string			`json:"type"`
+	Message string		`json:"message"`
+	OkToRetry bool		`json:"ok_to_retry"`
+}
 
 //
 // FOR Unit Test
-func CallTestCase(testConfig []byte, testInput []byte, t *testing.T) {
+func CallTestCase(testConfig []byte, testInput []byte, t *testing.T) (CpiResponse) {
 	config, _ := alicloud.NewConfigFromBytes(testConfig)
 
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
@@ -57,12 +69,25 @@ func CallTestCase(testConfig []byte, testInput []byte, t *testing.T) {
 	cpiFactory := NewFactory(runner)
 
 	reader := bytes.NewReader(testInput)
+	output := new(bytes.Buffer)
 
-	cli := rpc.NewFactory(logger).NewCLIWithInOut(reader, os.Stdout, cpiFactory)
-
+	cli := rpc.NewFactory(logger).NewCLIWithInOut(reader, output, cpiFactory)
 	err := cli.ServeOnce()
 
 	if err != nil {
-		t.Errorf("main", "Serving once %s", err)
+		t.Errorf("CallTestCase() ServeOnce Failed %s", err)
 	}
+
+	var resp CpiResponse
+	err = json.Unmarshal(output.Bytes(), &resp)
+
+	if err != nil {
+		t.Errorf("ServeOnce Output Failed!")
+	}
+
+	if resp.Error.Type != "" {
+		t.Errorf("ServeOnce Output a Error: %s", resp.Error)
+	}
+
+	return resp
 }

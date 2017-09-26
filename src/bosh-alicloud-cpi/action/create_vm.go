@@ -68,6 +68,7 @@ func (a CreateVMMethod) CreateVM(
 	args.UserData = a.runner.Config.Registry.ToInstanceUserData()
 
 	args.InstanceType = "ecs.mn4.small"
+	args.InstanceName = diskProps.InstanceName
 	args.IoOptimized = "optimized"
 
 	args.SecurityGroupId = networkProps.SecurityGroupId
@@ -89,7 +90,7 @@ func (a CreateVMMethod) CreateVM(
 	args.InstanceChargeType = "PostPaid"		// TODO
 	args.AutoRenew = false
 
-	args.Password = "Cloud12345"
+	args.Password = "Cloud12345"	// TODO
 
 	req, _ := json.Marshal(args)
 

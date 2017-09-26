@@ -1,10 +1,10 @@
 package action
 
 import (
-	"testing"
-	"bosh-alicloud-cpi/alicloud"
-	"os"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+"testing"
+"bosh-alicloud-cpi/alicloud"
+"os"
+boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 func TestActionCaller(t *testing.T) {
