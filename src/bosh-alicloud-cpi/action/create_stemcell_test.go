@@ -8,7 +8,7 @@ var createStemcellArgs = []byte(`
 {
     "method": "create_stemcell",
     "arguments": [
-        "/Users/ailan/.bosh/installations/7a96cc73-17ac-40f4-5de2-49ecf08d968f/tmp/stemcell-manager653505843/image",
+        "/var/vcap/data/tmp/director/stemcell20170926-9684-17ncxdz/image",
         {
             "architecture": "x86_64",
             "container_format": "",
@@ -16,8 +16,9 @@ var createStemcellArgs = []byte(`
             "disk_format": "rawdisk",
             "hypervisor": "kvm",
             "image_id": {
-                "cn-beijing": "m-2zeggz4i4n2z510ajcvw",
-                "cn-zhangjiakou": "m-8vbcsgb8bmh4iya739i8"
+                "cn-beijing": "m-2zehhdtfg22hq46reabf",
+                "cn-qingdao": "m-m5e1bdeo0a0ujw2s0ovv",
+                "cn-zhangjiakou": "m-8vbdd1mi6hwlddicqt2x"
             },
             "infrastructure": "alicloud",
             "name": "bosh-alicloud-kvm-hubuntu-trusty-go_agent",
@@ -25,11 +26,11 @@ var createStemcellArgs = []byte(`
             "os_type": "linux",
             "root_device_name": "/dev/vda1",
             "source_url": "",
-            "version": "1002"
+            "version": 1003
         }
     ],
     "context": {
-        "director_uuid": "0670ad54-66b8-4055-57cc-788d48f0886a"
+        "director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"
     }
 }
 `)

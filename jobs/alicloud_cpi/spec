@@ -2,7 +2,7 @@
 name: alicloud_cpi
 
 packages:
-  - alicloud_cpi
+  - bosh-alicloud-cpi
 
 templates:
   bin/cpi.erb: bin/cpi

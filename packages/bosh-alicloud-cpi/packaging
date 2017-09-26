@@ -5,22 +5,26 @@ set -u # report the usage of uninitialized variables
 PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 
 # Set Golang dependency
-# export GOROOT=$(cd "${PACKAGES_DIR}/golang" && pwd -P)
-# export PATH=${GOROOT}/bin:${PATH}
-# export GOPATH=$GOPATH:
+PLATFORM=`uname | tr '[:upper:]' '[:lower:]'`
+
+if [ $PLATFORM = "linux" ]; then
+    export GOROOT=$(cd "${PACKAGES_DIR}/golang" && pwd -P)
+    export PATH=${GOROOT}/bin:${PATH}
+else
+    echo "Mac user set GOROOT and PATH first"
+fi
 
 # Build BOSH Alicloud CPI package
-echo " ========================================== " >> ~/Temp/bosh.log
-echo " Source Patch: " $BOSH_COMPILE_TARGET         >> ~/Temp/bosh.log
-echo " Installed in: " $BOSH_INSTALL_TARGET         >> ~/Temp/bosh.log
-echo " ========================================== " >> ~/Temp/bosh.log
+echo " ========================================== "
+echo " Source Patch: " $BOSH_COMPILE_TARGET
+echo " Installed in: " $BOSH_INSTALL_TARGET
+echo " ========================================== "
 
 mkdir -p ${BOSH_COMPILE_TARGET}/go/src
 mv ${BOSH_COMPILE_TARGET}/Makefile ${BOSH_COMPILE_TARGET}/go/
 mv ${BOSH_COMPILE_TARGET}/bosh-alicloud-cpi ${BOSH_COMPILE_TARGET}/go/src/
 mv ${BOSH_COMPILE_TARGET}/github.com ${BOSH_COMPILE_TARGET}/go/src/
 
-source /etc/enviornment
 export GOPATH=${BOSH_COMPILE_TARGET}/go
 
 # Copy BOSH Alicloud CPI package
@@ -29,8 +33,5 @@ mkdir -p ${BOSH_INSTALL_TARGET}/bin
 cd ${BOSH_COMPILE_TARGET}/go
 make
 
-export ALICLOUD_EXECUTABLE=`ls ${BOSH_COMPILE_TARGET}/go/bin`
-
 cp ${BOSH_COMPILE_TARGET}/go/bin/alicloud_cpi ${BOSH_INSTALL_TARGET}/bin/
 
-# cp -a ${BOSH_COMPILE_TARGET}/go/src/bosh-alicloud-cpi/out/cpi ${BOSH_INSTALL_TARGET}/bin/

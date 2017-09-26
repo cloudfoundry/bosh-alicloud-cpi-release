@@ -1,6 +1,8 @@
 builds:
-  f597f895-edc4-4a35-7d32-bdcfc6655b69:
-    version: "1"
-  f8b2c03f-92d2-4fa8-5b0b-0d3107bb7a8f:
+  09b8fdc1-3589-4fab-4239-9735ad87b68e:
+    version: "3"
+  5c6a1e2c-cbb7-4769-574f-32db5ca1d663:
     version: "2"
+  6ca9ee74-d424-445f-6f0c-f0e1894f320b:
+    version: "1"
 format-version: "2"

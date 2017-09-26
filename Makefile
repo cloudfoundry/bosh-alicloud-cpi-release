@@ -15,10 +15,10 @@ endif
 # TODO add local link invocation
 BUILD_OPTIONS = -a -ldflags "-X main.GitCommit=\"$(COMMIT)\""
 
-all: clean deps build create-release deploy-scp
+all: clean deps build
 
 clean:
-	rm -f $(BINDIR)/*
+	rm -f ${EXECUTABLE}
 
 deps:
 	go get -v github.com/cppforlife/bosh-cpi-go/...
@@ -26,20 +26,23 @@ deps:
 	go get -v github.com/cloudfoundry/bosh-utils/logger
 	go get -v github.com/cloudfoundry/bosh-utils/uuid
 	go get -v github.com/cloudfoundry/bosh-utils/system
-	go get -v github.com/onsi/ginkgo/ginkgo
-	go get -v github.com/onsi/gomega
 
 build: deps
 	mkdir -p $(BINDIR)
 	go build $(GO_OPTIONS) $(BUILD_OPTIONS) -o ${EXECUTABLE} $(MAINFILE)
 
-test: build
-	go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/action)
-	go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/alicloud)
+testdeps:
+	go get -v github.com/onsi/ginkgo/ginkgo
+	go get -v github.com/onsi/gomega
+	go install github.com/onsi/ginkgo/ginkgo
+	export PATH=$PATH:$PWD/bin
+
+test: testdeps
+	ginkgo -r
 
 create-release: build
-    git commit -c 'commit for test deploy release'
-    bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz
+	git commit -a -m "commit for create-release."
+	bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz
 
 deploy-scp: create-release
     scp bin/bosh-alicloud-cpi.tgz root@${DEPLOY_SERVER_IP}:/root
