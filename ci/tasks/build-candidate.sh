@@ -35,6 +35,11 @@ pushd candidate/repo
   export GIT_TRACE=1
   export GIT_CURL_VERBOSE=1
 
+  git version
+
+  git config --global http.postBuffer 20M
+  git config lfs.batch false
+
   pwd
   make
   
