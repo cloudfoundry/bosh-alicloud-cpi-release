@@ -13,22 +13,25 @@ type CreateVMMethod struct {
 	runner alicloud.Runner
 }
 
-type DiskProps struct {
-	EphemeralDisk DiskInfo 	`json:"ephemeral_disk"`
-	ImageId string 			`json:"image_id"`
-	InstanceName string 	`json:"instance_name"`
-	InstanceType string 	`json:"instance_type"`
-	SystemDisk DiskInfo		`json:"system_disk"`
+type InstanceProps struct {
+	ImageId string 				`json:"image_id"`
+	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
+	InstanceName string 		`json:"instance_name"`
+	InstanceChargeType string	`json:"instance_charge_type"`
+	InstanceType string 		`json:"instance_type"`
+	SystemDisk DiskInfo			`json:"system_disk"`
+	AvailabilityZone string		`json:"availability_zone"`
 }
 
 type DiskInfo struct {
 	Size int				`json:"size"`
-	Type string 			`json:"cloud_efficiency"`
+	Type string 			`json:"type"`
 }
 
 type NetworkProps struct {
-	SecurityGroupId string	`json:"security_group_id"`
-	VSwitchId string		`json:"vswitch_id"`
+	SecurityGroupId string		`json:"security_group_id"`
+	VSwitchId string			`json:"vswitch_id"`
+	InternetChargeType string	`json:"internet_charge_type"`
 }
 
 func NewCreateVMMethod(runner alicloud.Runner) CreateVMMethod {
@@ -45,21 +48,16 @@ func (a CreateVMMethod) CreateVM(
 
 	//
 	// convert CloudProps to alicloud dedicated Props
-	var diskProps DiskProps
-	cloudProps.As(&diskProps)
+	var instProps InstanceProps
+	cloudProps.As(&instProps)
 
 	network := networks["private"]
 	if network == nil {
 		network = networks["default"]
 	}
+
 	var networkProps NetworkProps
 	network.CloudProps().As(&networkProps)
-
-	logger.Info("NETWORK", "IP: ", network.IP())
-	logger.Info("NETWORK", "NETMASK: ", network.Netmask())
-
-	//
-	// TODO stemcellCID verification
 
 	var args ecs.CreateInstanceArgs
 	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
@@ -67,29 +65,36 @@ func (a CreateVMMethod) CreateVM(
 	args.ImageId = stemcellCID.AsString()
 	args.UserData = a.runner.Config.Registry.ToInstanceUserData()
 
-	args.InstanceType = "ecs.mn4.small"
-	args.InstanceName = diskProps.InstanceName
+	args.InstanceType = instProps.InstanceType
+	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
 
 	args.SecurityGroupId = networkProps.SecurityGroupId
-	// args.InstanceType = diskProps.InstanceType
 
-	var disk ecs.DataDiskType
-	// if diskProps.EphemeralDisk != nil { TODO judge disk type
-	disk.Size = diskProps.EphemeralDisk.Size
-	args.DataDisk = []ecs.DataDiskType{
-		{Size: 50, Category: "cloud_efficiency", },
+	disk := instProps.EphemeralDisk
+	if disk.Type != "" {
+		args.DataDisk = []ecs.DataDiskType{
+			{Size: disk.Size, Category: ecs.DiskCategory(disk.Type),},
+		}
 	}
 
-	args.SystemDisk.Size = 50 // diskProps.SystemDisk.Size
-	args.SystemDisk.Category = "cloud_ssd"
+	disk = instProps.SystemDisk
+	if disk.Type != "" {
+		args.SystemDisk.Size = disk.Size
+		args.SystemDisk.Category = ecs.DiskCategory(disk.Type)
+	} else {
+		args.SystemDisk.Size = 50
+		args.SystemDisk.Category = ecs.DiskCategory("cloud_efficiency")
+	}
 
 	args.VSwitchId = networkProps.VSwitchId
 	args.PrivateIpAddress = network.IP()
+	args.InternetMaxBandwidthIn = 5
+	args.InternetMaxBandwidthOut = 5
+	args.InternetChargeType = common.InternetChargeType(networkProps.InternetChargeType)
 
-	args.InstanceChargeType = "PostPaid"		// TODO
+	args.InstanceChargeType = common.InstanceChargeType(instProps.InstanceChargeType)
 	args.AutoRenew = false
-
 	args.Password = "Cloud12345"	// TODO
 
 	req, _ := json.Marshal(args)
@@ -119,9 +124,3 @@ func (a CreateVMMethod) CreateVM(
 	return apiv1.NewVMCID(instid), nil
 }
 
-
-func (* DiskInfo) GetCategory() ecs.DiskCategory {
-	//
-	// TODO
-	return ecs.DiskCategory("cloud_efficiency")
-}
