@@ -50,7 +50,7 @@ function check_go_version {
 
   local current=$(go version)
   if [[ "$current" != *"$release_go_version"* ]]; then
-    echo "Go version is incorrect. Required version: $release_go_version"
+    echo "Go version is incorrect. Current version: $current, Required version: $release_go_version"
     exit 1
   fi
 }
