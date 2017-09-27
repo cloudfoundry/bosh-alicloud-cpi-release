@@ -1,6 +1,9 @@
 package action
 
-import "testing"
+import (
+	"testing"
+	"encoding/json"
+)
 
 var createVmArgs = []byte(`
 {
@@ -52,21 +55,24 @@ var createVmBoshArgs = []byte (`
 {
     "method": "create_vm",
     "arguments": [
-        "1ed3b3ef-c948-4d6f-4051-b9920ae6078c",
+        "182a951a-2f8e-4d22-6489-d78b4a8b6f8a",
         "m-2zeggz4i4n2z510ajcvw",
         {
-            "availability_zone": "us=cn-beijing-a",
+            "availability_zone": "cn-beijing-a",
             "ephemeral_disk": {
-                "size": "50",
+                "size": "100",
                 "type": "cloud_efficiency"
             },
-            "instance_type": "ecs.n4.small"
+            "halt_mark": "true",
+            "instance_charge_type": "PostPaid",
+            "instance_type": "ecs.n4.large"
         },
         {
             "default": {
                 "cloud_properties": {
-                    "security_group_id": "sg-2zebs5qvgcqh6rhod27h",
-                    "vswitch_id": "vsw-2zeavutafz6yl1ixfvekx"
+                    "internet_charge_type": "PayByTraffic",
+                    "security_group_id": "sg-2ze7qg9qdmt1lt9lgvgt",
+                    "vswitch_id": "vsw-2ze1oepoom33cdt6nsk88"
                 },
                 "default": [
                     "dns",
@@ -81,7 +87,9 @@ var createVmBoshArgs = []byte (`
                 "type": "manual"
             }
         },
-        [],
+        [
+
+        ],
         {
             "bosh": {
                 "mbus": {
@@ -96,11 +104,95 @@ var createVmBoshArgs = []byte (`
         }
     ],
     "context": {
-        "director_uuid": "0670ad54-66b8-4055-57cc-788d48f0886a"
+        "director_uuid": "478b5c95-c143-4223-737f-7c1c834eebc0"
+    }
+}
+`)
+
+var createVmBoshArgs3 = []byte(`
+{
+    "method": "create_vm",
+    "arguments": [
+        "7bc16fab-52c3-4bb9-a5c3-560445986860",
+        "m-2zeggz4i4n2z510ajcvw",
+        {
+            "ephemeral_disk": {
+                "size": 50,
+                "type": "cloud_efficiency"
+            },
+            "image_id": "m-temp1234",
+            "instance_type": "ecs.n4.large",
+            "system_disk": {
+                "size": 50,
+                "type": "cloud_efficiency"
+            }
+        },
+        {
+            "private": {
+                "ip": "172.16.0.101",
+                "netmask": "255.240.0.0",
+                "cloud_properties": {
+                    "security_group_id": "sg-2ze7qg9qdmt1lt9lgvgt",
+                    "vswitch_id": "vsw-2ze1oepoom33cdt6nsk88"
+                },
+                "default": [
+                    "dns",
+                    "gateway"
+                ],
+                "gateway": "172.16.0.1"
+            }
+        },
+        [],
+        {}
+    ],
+    "context": {
+        "director_uuid": "ce4edd9a-0269-48ae-b934-76c76891ca34"
     }
 }
 `)
 
 func TestCreateVm(t *testing.T) {
 	CallTestCase(TestConfig, createVmBoshArgs, t)
+}
+
+var cloudPropsJson = []byte(`
+{
+    "ephemeral_disk": {
+        "size": 50,
+        "type": "cloud_efficiency"
+    },
+    "image_id": "m-temp1234",
+    "instance_type": "ecs.n4.large",
+    "system_disk": {
+        "size": 50,
+        "type": "cloud_efficiency"
+    }
+}
+`)
+
+var cloudPropsJson2 = []byte(`
+{
+    "availability_zone": "cn-beijing-a",
+    "ephemeral_disk": {
+        "size": "100",
+        "type": "cloud_efficiency"
+    },
+    "halt_mark": "true",
+    "instance_charge_type": "PostPaid",
+    "instance_type": "ecs.n4.large"
+}
+`)
+
+
+func TestCloudProps(t *testing.T) {
+	var props InstanceProps
+	json.Unmarshal(cloudPropsJson, &props)
+
+	t.Log(props)
+	t.Log(props.EphemeralDisk.Size)
+
+	var prop2 InstanceProps
+	json.Unmarshal(cloudPropsJson2, &prop2)
+	t.Log(prop2)
+	t.Log(prop2.EphemeralDisk.Size)
 }
