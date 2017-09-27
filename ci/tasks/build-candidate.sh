@@ -29,6 +29,12 @@ pushd candidate/repo
 
   cpi_release_name="bosh-alicloud-cpi"
 
+  # fix Git clone Error: RPC failed; result=56, HTTP code = 200
+  # https://confluence.atlassian.com/stashkb/git-clone-fails-error-rpc-failed-result-56-http-code-200-693897332.html
+  export GIT_TRACE_PACKET=1
+  export GIT_TRACE=1
+  export GIT_CURL_VERBOSE=1
+
   pwd
   make
   
