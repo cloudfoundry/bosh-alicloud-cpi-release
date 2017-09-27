@@ -29,6 +29,7 @@ pushd candidate/repo
 
   cpi_release_name="bosh-alicloud-cpi"
 
+  pwd
   make
   
   # add go cpi blob
