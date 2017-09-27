@@ -29,6 +29,8 @@ pushd candidate/repo
 
   cpi_release_name="bosh-alicloud-cpi"
 
+  make
+  
   # add go cpi blob
   #ls ../../go-cpi-blobs
   bosh2 add-blob ../../go-cpi-blobs/go1.9.linux-amd64.tar.gz go1.9.linux-amd64.tar.gz
