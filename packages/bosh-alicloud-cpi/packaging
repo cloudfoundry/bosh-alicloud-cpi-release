@@ -31,7 +31,7 @@ export GOPATH=${BOSH_COMPILE_TARGET}/go
 mkdir -p ${BOSH_INSTALL_TARGET}/bin
 
 cd ${BOSH_COMPILE_TARGET}/go
-make
+go build -v -a -o ${EXECUTABLE} $(MAINFILE)
 
 cp ${BOSH_COMPILE_TARGET}/go/bin/alicloud_cpi ${BOSH_INSTALL_TARGET}/bin/
 
