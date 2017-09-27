@@ -85,7 +85,7 @@ jobs:
     plan:
       - aggregate:
         - {trigger: true, get: bosh-cpi-src, resource: bosh-cpi-src-in}
-        - {trigger: true, get: ruby-cpi-blobs}
+        - {trigger: true, get: go-cpi-blobs}
         - {trigger: false, get: version-semver, params: {bump: patch}}
       - put: version-semver
         params: {file: version-semver/number}
@@ -248,10 +248,10 @@ resources:
         - .final_builds/**/*.yml
         - releases/**/*.yml
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
-  - name: ruby-cpi-blobs
+  - name: go-cpi-blobs
     type: git
     source:
-      uri: http://gitlab.alibaba-inc.com/demon.wy/ruby_alicloud_cpi.git
+      uri: http://gitlab.alibaba-inc.com/demon.wy/go_alicloud_cpi_blobs.git
       branch: master
   - name: bosh-cpi-src-out
     type: git

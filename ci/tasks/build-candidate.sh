@@ -5,10 +5,11 @@ set -x
 source bosh-cpi-src/ci/tasks/utils.sh
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
+cpi_release_name="bosh-alicloud-cpi"
 semver=`cat version-semver/number`
 
 # install bosh
-echo "installing bosh..."
+echo "Installing Bosh CLI..."
 curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
 chmod +x ./bosh-cli-*
 mv ./bosh-cli-* /usr/local/bin/bosh2
@@ -28,12 +29,9 @@ pushd candidate/repo
 
   cpi_release_name="bosh-alicloud-cpi"
 
-  # add ruby cpi blob
-  #ls ../../ruby-cpi-blobs
-  #bosh add-blob ../../ruby-cpi-blobs/bundler-1.10.6.gem ruby_alicloud_cpi/bundler-1.10.6.gem
-  #bosh add-blob ../../ruby-cpi-blobs/ruby-2.1.7.tar.gz ruby_alicloud_cpi/ruby-2.1.7.tar.gz
-  #bosh add-blob ../../ruby-cpi-blobs/rubygems-2.4.8.tgz ruby_alicloud_cpi/rubygems-2.4.8.tgz
-  #bosh add-blob ../../ruby-cpi-blobs/yaml-0.1.5.tar.gz ruby_alicloud_cpi/yaml-0.1.5.tar.gz
+  # add go cpi blob
+  #ls ../../go-cpi-blobs
+  bosh add-blob ../../go-cpi-blobs/go1.9.linux-amd64.tar.gz go1.9.linux-amd64.tar.gz
 
   export TERM=msys
   git status
