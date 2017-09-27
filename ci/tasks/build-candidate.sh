@@ -50,7 +50,7 @@ pushd candidate/repo
   
   # add go cpi blob
   #ls ../../go-cpi-blobs
-  bosh2 add-blob ../../go-cpi-blobs/go1.9.linux-amd64.tar.gz go1.9.linux-amd64.tar.gz
+  bosh2 add-blob ../../go-cpi-blobs/go1.8.1.linux-amd64.tar.gz go1.8.1.linux-amd64.tar.gz
 
   export TERM=msys
   git status
