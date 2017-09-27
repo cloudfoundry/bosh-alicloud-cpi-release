@@ -29,6 +29,11 @@ pushd candidate/repo
 
   cpi_release_name="bosh-alicloud-cpi"
 
+  # fix cannot find package "bosh-alicloud-cpi/action
+  echo $GOPATH
+  source .envrc
+  echo $GOPATH
+
   # fix Git clone Error: RPC failed; result=56, HTTP code = 200
   # https://confluence.atlassian.com/stashkb/git-clone-fails-error-rpc-failed-result-56-http-code-200-693897332.html
   export GIT_TRACE_PACKET=1
