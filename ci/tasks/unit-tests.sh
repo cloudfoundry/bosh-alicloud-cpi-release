@@ -25,6 +25,7 @@ source .envrc
 # git config --global https.proxy https://127.0.0.1:1080
 
 pushd src
-  go get github.com/golang/net
+  go get golang.org/x/net
+  go get golang.org/x/text
 popd
 make test
