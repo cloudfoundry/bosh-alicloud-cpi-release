@@ -55,7 +55,7 @@ pushd src
   pushd golang.org/x/text
     git clone https://github.com/golang/text
   popd
-  go install golang.org/x/text/gen.go
+  #go install golang.org/x/text/gen.go
 popd
 
 go env
