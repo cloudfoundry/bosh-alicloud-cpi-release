@@ -29,5 +29,14 @@ func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 		return bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
 	}
 
+	// client.DescribeDisks()
+	registryClient := a.runner.GetHttpRegistryClient()
+	agentSettings, _ := registryClient.Fetch(args.InstanceId)
+	agentSettings.DetachPersistentDisk(diskCID.AsString())
+	err = registryClient.Update(vmCID.AsString(), agentSettings)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "UpdateRegistry failed %s", diskCID)
+	}
+
 	return err
 }

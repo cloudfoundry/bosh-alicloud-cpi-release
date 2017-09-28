@@ -147,9 +147,16 @@ func (a CreateVMMethod) CreateVM(
 		Disks: registry.DisksSettings {
 			System: "/dev/vda",
 			Ephemeral: "/dev/vdb",
+			Persistent: map[string]registry.PersistentSettings {
+			},
 		},
 		Env: registry.EnvSettings {
-			"bosh": "",
+			BoshEnv: registry.BoshEnv {
+				Password: "",
+				KeepRootPassword: false,
+				RemoveDevTools: false,
+			},
+			PersistentDiskFs: "",
 		},
 		Mbus: a.runner.Config.Agent.Mbus,
 		Networks: map[string]registry.NetworkSettings {
@@ -192,29 +199,14 @@ func (a CreateVMMethod) CreateVM(
 }
 
 func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registry.AgentSettings) error {
-	r := a.runner.Config.Registry
-
-	if strings.Compare("", r.Host) == 0 {
-		//
-		// first start need skip this operation
-		return nil
-	}
-
-	clientOptions := registry.ClientOptions {
-		Protocol: r.Protocol,
-		Host: r.Host,
-		Port: r.Port,
-		Username: r.User,
-		Password: r.Password,
-	}
-
-	client := registry.NewHTTPClient(clientOptions, a.runner.Logger)
+	client := a.runner.GetHttpRegistryClient()
 	err := client.Update(instId, agentSettings)
 
 	if err != nil {
 		json, _ := json.Marshal(agentSettings)
-		a.runner.Logger.Error("UpdateAgentSettings to registery failed %s json:%s",
-			clientOptions.EndpointWithCredentials(), json)
+		a.runner.Logger.Error("create_vm", "UpdateAgentSettings to registery failed %s json:%s", json)
+		//
+		// TODO, when first time to create director, this action must failed, how to aviod it??
 		// return bosherr.WrapErrorf(err, "UpdateAgentSettings failed %s %s %s", clientOptions, agentSettings, conf)
 	}
 
