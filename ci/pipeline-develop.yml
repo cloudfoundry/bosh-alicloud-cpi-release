@@ -100,7 +100,7 @@ jobs:
       - aggregate:
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-src, resource: bosh-cpi-src-in}
-        - {trigger: true,  passed: [build-candidate], get: stemcell, resource: heavy-ubuntu-stemcell}
+        - {trigger: false,  get: stemcell, resource: heavy-ubuntu-stemcell}
         - {get: 2h,             trigger: true}
 #      - <<: *create-environment
       - task: test
