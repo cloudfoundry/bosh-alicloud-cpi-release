@@ -18,10 +18,11 @@ check_go_version $GOPATH
 
 #cd ${PWD}/bosh-cpi-src/src/bosh-alicloud-cpi
 cd ${PWD}/bosh-cpi-src
-#source .envrc
+export GOPATH=${PWD}/bosh-cpi-src
 
-pwd
 echo $GOPATH
+
+
 
 # fix https fetch failed: Get https://golang.org/x/net/html/charset?go-get=1: dial tcp 216.239.37.1:443: i/o timeout
 # git config --global http.proxy http://127.0.0.1:1080 
@@ -35,5 +36,11 @@ pushd src
   popd
   go install net
 popd
+
+go env
+
+ls -ll
+
+echo $GOBIN
 
 make test
