@@ -51,7 +51,11 @@ pushd src
   pushd golang.org/x/net
     git clone https://github.com/golang/net
   popd
-  go install golang.org/x/net
+  mkdir -p golang.org/x/text
+  pushd golang.org/x/text
+    git clone https://github.com/golang/text
+  popd
+  go install golang.org/x/text/gen.go
 popd
 
 go env
