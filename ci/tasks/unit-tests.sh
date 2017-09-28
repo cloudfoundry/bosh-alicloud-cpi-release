@@ -16,6 +16,10 @@ export ACCESS_KEY_SECRET=${ALICLOUD_SECRET_ACCESS_KEY}
 
 check_go_version $GOPATH
 
+#cd ${PWD}/bosh-cpi-src/src/bosh-alicloud-cpi
+cd ${PWD}/bosh-cpi-src
+export GOPATH=${PWD}/bosh-cpi-src
+
 # logs
 echo "current pwd..."
 pwd
@@ -23,10 +27,6 @@ echo "files..."
 ls -ll
 echo "go path..."
 echo $GOPATH
-
-#cd ${PWD}/bosh-cpi-src/src/bosh-alicloud-cpi
-cd ${PWD}/bosh-cpi-src
-export GOPATH=${PWD}/bosh-cpi-src
 
 
 # fix Git clone Error: RPC failed; result=56, HTTP code = 200
