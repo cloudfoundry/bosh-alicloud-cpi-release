@@ -26,7 +26,7 @@ source .envrc
 
 pushd src
   #go get github.com/golang/net
-  mkdir golang.org/x/net
+  mkdir -p golang.org/x/net
   pushd golang.org/x/net
     git clone https://github.com/golang/net
     go install
