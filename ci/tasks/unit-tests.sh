@@ -29,7 +29,7 @@ pushd src
   mkdir -p golang.org/x/net
   pushd golang.org/x/net
     git clone https://github.com/golang/net
-    go install
   popd
+  go install
 popd
 make test
