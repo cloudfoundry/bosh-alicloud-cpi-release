@@ -3,7 +3,7 @@
 set -e
 
 source bosh-cpi-src/ci/tasks/utils.sh
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
+#source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 check_param ALICLOUD_ACCESS_KEY_ID
 check_param ALICLOUD_DEFAULT_REGION
