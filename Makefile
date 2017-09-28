@@ -40,6 +40,9 @@ testdeps:
 test: testdeps
 	ginkgo -r
 
+testintci: testdeps
+	ginkgo integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
+
 create-release: build
 	git commit -a -m "commit for create-release."
 	bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz

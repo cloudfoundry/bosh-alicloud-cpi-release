@@ -44,6 +44,6 @@ export PATH=${GOPATH}/bin:$PATH
 
 check_go_version $GOPATH
 
-cd ${PWD}/bosh-cpi-src/src/bosh-alicloud-cpi
+cd ${PWD}/bosh-cpi-src
 env
 make testintci

@@ -24,6 +24,3 @@ build:
 test:
 	go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/action)
 	go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/alicloud)
-
-testintci: get-deps
-	ginkgo integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
