@@ -16,11 +16,19 @@ export ACCESS_KEY_SECRET=${ALICLOUD_SECRET_ACCESS_KEY}
 
 check_go_version $GOPATH
 
+# logs
+echo "current pwd..."
+pwd
+echo "files..."
+ls -ll
+echo "go path..."
+echo $GOPATH
+
 #cd ${PWD}/bosh-cpi-src/src/bosh-alicloud-cpi
 cd ${PWD}/bosh-cpi-src
 export GOPATH=${PWD}/bosh-cpi-src
 
-echo $GOPATH
+
 
 
 
@@ -39,7 +47,6 @@ popd
 
 go env
 
-ls -ll
 
 echo $GOBIN
 
