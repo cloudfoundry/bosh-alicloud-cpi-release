@@ -21,7 +21,8 @@ cd ${PWD}/bosh-cpi-src
 source .envrc
 
 # fix https fetch failed: Get https://golang.org/x/net/html/charset?go-get=1: dial tcp 216.239.37.1:443: i/o timeout
-git config --global http.proxy http://127.0.0.1:1080 
-git config --global https.proxy https://127.0.0.1:1080
+# git config --global http.proxy http://127.0.0.1:1080 
+# git config --global https.proxy https://127.0.0.1:1080
 
+git submodule update
 make test
