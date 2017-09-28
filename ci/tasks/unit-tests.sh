@@ -29,7 +29,16 @@ cd ${PWD}/bosh-cpi-src
 export GOPATH=${PWD}/bosh-cpi-src
 
 
+# fix Git clone Error: RPC failed; result=56, HTTP code = 200
+# https://confluence.atlassian.com/stashkb/git-clone-fails-error-rpc-failed-result-56-http-code-200-693897332.html
+export GIT_TRACE_PACKET=1
+export GIT_TRACE=1
+export GIT_CURL_VERBOSE=1
 
+git version
+
+git config --global http.postBuffer 20M
+git config lfs.batch false
 
 
 # fix https fetch failed: Get https://golang.org/x/net/html/charset?go-get=1: dial tcp 216.239.37.1:443: i/o timeout
@@ -47,7 +56,5 @@ popd
 
 go env
 
-
-echo $GOBIN
 
 make test
