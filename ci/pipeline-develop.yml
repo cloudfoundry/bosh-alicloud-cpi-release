@@ -100,6 +100,7 @@ jobs:
       - aggregate:
         - {trigger: true,  passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-src, resource: bosh-cpi-src-in}
+        - {trigger: true,  passed: [build-candidate], get: stemcell, resource: heavy-ubuntu-stemcell}
         - {get: 2h,             trigger: true}
 #      - <<: *create-environment
       - task: test
@@ -314,8 +315,9 @@ resources:
   - name: heavy-ubuntu-stemcell
     type: bosh-io-stemcell
     source:
-      name: &heavy-ubuntu-stemcell bosh-aws-xen-ubuntu-trusty-go_agent
+      name: bosh-google-kvm-ubuntu-trusty-go_agent
       force_regular: true
+      tarball: true
   - name: bats
     type: git
     source:

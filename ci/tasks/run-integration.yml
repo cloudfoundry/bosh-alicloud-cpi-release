@@ -5,6 +5,7 @@ image_resource:
   source: {repository: boshcpi/aws-cpi-release}
 inputs:
   - name: bosh-cpi-src
+  - name: stemcell
 #  - name: environment
 run:
   path: sh
