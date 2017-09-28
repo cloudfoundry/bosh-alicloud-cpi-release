@@ -235,16 +235,16 @@ resources:
   - name: bosh-cpi-dev-artifacts
     type: git
     source:
-      uri: git@gitlab.alibaba-inc.com:cloudfoundry_aliyun/bosh-alicloud-cpi.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
 #      uri: git@github.com:demonwy/bosh-cpi-dev-artifacts.git
-      branch: cpi_dev_artifacts
+      branch: cpi_dev_artifacts_tmp
 #      branch: master
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: git@gitlab.alibaba-inc.com:cloudfoundry_aliyun/bosh-alicloud-cpi.git
-      branch: concourse_ci
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+      branch: concourse_ci_tmp
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
@@ -252,19 +252,19 @@ resources:
   - name: go-cpi-blobs
     type: git
     source:
-      uri: http://gitlab.alibaba-inc.com/demon.wy/go_alicloud_cpi_blobs.git
+      uri: https://github.com/demonwy/go_alicloud_cpi_blobs.git
       branch: master
   - name: bosh-cpi-src-out
     type: git
     source:
-      uri: git@gitlab.alibaba-inc.com:cloudfoundry_aliyun/bosh-alicloud-cpi.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
       branch: promote_release_artifacts
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: version-semver
     type: semver
     source:
       driver: git
-      uri: git@gitlab.alibaba-inc.com:demon.wy/test-semver-version.git
+      uri: git@github.com:demonwy/test-semver-version.git
       branch: master
       file: version
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
@@ -272,7 +272,7 @@ resources:
     type: semver
     source:
       driver: git
-      uri: git@gitlab.alibaba-inc.com:demon.wy/test-semver-version.git
+      uri: git@github.com:demonwy/test-semver-version.git
       branch: release
       file: version
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
@@ -292,7 +292,7 @@ resources:
   - name: bosh-cli
     type: git
     source:
-      uri: http://gitlab.alibaba-inc.com/demon.wy/bosh-cli.git
+      uri: https://github.com/demonwy/bosh-cli.git
       branch: linux
   - name: pipelines
     type: git
@@ -310,7 +310,7 @@ resources:
   - name: precompiled-stemcell
     type: git
     source:
-      uri: http://gitlab.alibaba-inc.com/demon.wy/light-bosh-stemcell.git
+      uri: https://github.com/demonwy/light-bosh-stemcell.git
       branch: ubuntu
   - name: heavy-ubuntu-stemcell
     type: bosh-io-stemcell
