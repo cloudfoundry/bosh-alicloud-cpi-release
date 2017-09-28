@@ -292,7 +292,7 @@ resources:
   - name: bosh-cli
     type: git
     source:
-      uri: git@gitlab.alibaba-inc.com:demon.wy/bosh-cli.git
+      uri: http://gitlab.alibaba-inc.com/demon.wy/bosh-cli.git
       branch: linux
   - name: pipelines
     type: git
@@ -310,7 +310,7 @@ resources:
   - name: precompiled-stemcell
     type: git
     source:
-      uri: git@gitlab.alibaba-inc.com:demon.wy/light-bosh-stemcell.git
+      uri: http://gitlab.alibaba-inc.com/demon.wy/light-bosh-stemcell.git
       branch: ubuntu
   - name: heavy-ubuntu-stemcell
     type: bosh-io-stemcell
