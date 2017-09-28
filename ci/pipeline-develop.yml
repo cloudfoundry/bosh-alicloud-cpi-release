@@ -92,6 +92,7 @@ jobs:
       - task: build
         file: bosh-cpi-src/ci/tasks/build-candidate.yml
       - put: bosh-cpi-dev-artifacts
+        #params: {repository: candidate/repo, rebase: true, force: true}
         params: {repository: candidate/repo, rebase: true, force: true}
 
   - name: integration
@@ -232,14 +233,17 @@ resources:
   - name: 2h
     type: time
     source: {interval: 2h}
+  # - name: bosh-cpi-dev-artifacts
+  #   type: git
+  #   source:
+  #     uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+  #     branch: cpi_dev_artifacts_tmp
+  #     private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: bosh-cpi-dev-artifacts
-    type: git
+    type: github-release
     source:
-      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-#      uri: git@github.com:demonwy/bosh-cpi-dev-artifacts.git
-      branch: cpi_dev_artifacts_tmp
-#      branch: master
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      owner: demonwy
+      repository: cpi-release
   - name: bosh-cpi-src-in
     type: git
     source:
@@ -443,3 +447,4 @@ resources:
         R1Jyvid7eQgijwnz+p1J8ZwW2HwYBPO+RpWr6iGLgxPnws9cjgAzDkmm6X/g6gvu
         FJdWaK1O3SvcDSit5h07HNvS133VKIB/eBdWaQdrGgLNieSqxF2+nW0=
         -----END RSA PRIVATE KEY-----
+
