@@ -16,6 +16,6 @@ export ACCESS_KEY_SECRET=${ALICLOUD_SECRET_ACCESS_KEY}
 
 check_go_version $GOPATH
 
-cd ${PWD}/bosh-cpi-src/src/bosh-alicloud-cpi
-make
+#cd ${PWD}/bosh-cpi-src/src/bosh-alicloud-cpi
+cd ${PWD}/bosh-cpi-src
 make test
