@@ -50,12 +50,14 @@ pushd src
   mkdir -p golang.org/x/net
   pushd golang.org/x/net
     git clone https://github.com/golang/net
+    go build
   popd
+  echo "pkg list..."
+  ls ${PWD}/bosh-cpi-src/pkg -al
   mkdir -p golang.org/x/text
   pushd golang.org/x/text
     git clone https://github.com/golang/text
   popd
-  #go install golang.org/x/text/gen.go
 popd
 
 go env
