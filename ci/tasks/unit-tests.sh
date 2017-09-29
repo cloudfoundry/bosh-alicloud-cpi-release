@@ -15,7 +15,8 @@ export ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export ACCESS_KEY_SECRET=${ALICLOUD_SECRET_ACCESS_KEY}
 
 check_go_version $GOPATH
-check_go_version ACCESS_KEY_ID
+check_go_version $ACCESS_KEY_ID
+check_go_version $ACCESS_KEY_SECRET
 export GOPATH=${PWD}/bosh-cpi-src
 
 cd ${PWD}/bosh-cpi-src
@@ -24,11 +25,6 @@ cd ${PWD}/bosh-cpi-src
 # logs
 echo "begin unit test..."
 ls -ll
-
-
-# fix https fetch failed: Get https://golang.org/x/net/html/charset?go-get=1: dial tcp 216.239.37.1:443: i/o timeout
-# git config --global http.proxy http://127.0.0.1:1080 
-# git config --global https.proxy https://127.0.0.1:1080
 
 make
 make test
