@@ -93,7 +93,7 @@ jobs:
         file: bosh-cpi-src/ci/tasks/build-candidate.yml
       - put: bosh-cpi-dev-artifacts
         #params: {repository: candidate/repo, rebase: true, force: true}
-        params: {repository: candidate/repo, rebase: true, force: true}
+        params: {globs: ["candidate/repo/bosh-alicloud-cpi-0.0.205.tgz"], name: "candidate/repo/bosh-alicloud-cpi-0.0.206.tgz", tag: "abcd"}
 
   - name: integration
     serial: true

@@ -72,6 +72,9 @@ pushd candidate/repo
   #  rm -f *
   #popd
 
+  echo "put dir"
+  ls /tmp/build/put/
+
   mv $cpi_release_name-$semver.tgz dev-release-artifacts/
   git add .
   git commit -m 'create cpi release'
