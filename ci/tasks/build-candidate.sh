@@ -72,7 +72,12 @@ pushd candidate/repo
   #  rm -f *
   #popd
 
-  echo "put dir"
+  echo "put dir..."
+  ls /tmp/build
+  pushd /tmp/build
+    mkdir put
+  popd
+  cp $cpi_release_name-$semver.tgz /tmp/build/put/bosh-alicloud-cpi.tgz
   ls /tmp/build/put/
 
   mv $cpi_release_name-$semver.tgz dev-release-artifacts/
