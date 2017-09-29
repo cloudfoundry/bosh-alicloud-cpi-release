@@ -68,12 +68,9 @@ pushd candidate/repo
   bosh2 create-release --name $cpi_release_name --version $semver --tarball $cpi_release_name-$semver.tgz
 
   mkdir dev-release-artifacts
-  #pushd dev-release-artifacts
-  #  rm -f *
-  #popd
-
-  cp $cpi_release_name-$semver.tgz /tmp/build/put/bosh-alicloud-cpi.tgz
-  ls /tmp/build/put/
+  pushd dev-release-artifacts
+   rm -rf *.tgz
+  popd
 
   mv $cpi_release_name-$semver.tgz dev-release-artifacts/
   git add .

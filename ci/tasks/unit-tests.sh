@@ -17,14 +17,13 @@ export ACCESS_KEY_SECRET=${ALICLOUD_SECRET_ACCESS_KEY}
 check_go_version $GOPATH
 check_param $ACCESS_KEY_ID
 check_param $ACCESS_KEY_SECRET
-export GOPATH=${PWD}/bosh-cpi-src
+
 
 cd ${PWD}/bosh-cpi-src
 
 
 # logs
 echo "begin unit test..."
-ls -ll
 
 make
 make test
