@@ -69,10 +69,14 @@ pushd candidate/repo
 
   mkdir dev-release-artifacts
   pushd dev-release-artifacts
-   rm -rf *.tgz
+    ls
+    rm -rf *.tgz
+    ls
   popd
 
   mv $cpi_release_name-$semver.tgz dev-release-artifacts/
+  ls dev-release-artifacts
+  
   git add .
   git commit -m 'create cpi release'
 popd
