@@ -147,8 +147,7 @@ func (a CreateVMMethod) CreateVM(
 		Disks: registry.DisksSettings {
 			System: "/dev/vda",
 			Ephemeral: "/dev/vdb",
-			Persistent: map[string]registry.PersistentSettings {
-			},
+			Persistent: map[string]interface{} {},
 		},
 		Env: registry.EnvSettings {
 			BoshEnv: registry.BoshEnv {

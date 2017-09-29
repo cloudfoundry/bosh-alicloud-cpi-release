@@ -52,7 +52,7 @@ type DisksSettings struct {
 	Ephemeral string `json:"ephemeral"`
 
 	// Persistent disk
-	Persistent map[string]PersistentSettings `json:"persistent"`
+	Persistent map[string]interface{} `json:"persistent"`
 }
 
 // PersistentSettings are the Persistent Disk settings for a particular VM.
@@ -131,7 +131,7 @@ func NewAgentSettings(agentID string, vmCID string, networksSettings NetworksSet
 		AgentID: agentID,
 		Disks: DisksSettings{
 			System:     defaultSystemDisk,
-			Persistent: map[string]PersistentSettings{},
+			Persistent: map[string]interface{}{},
 		},
 		Blobstore: BlobstoreSettings{
 			Provider: agentOptions.Blobstore.Provider,
@@ -151,15 +151,19 @@ func NewAgentSettings(agentID string, vmCID string, networksSettings NetworksSet
 
 // AttachPersistentDisk updates the agent settings in order to add an attached persistent disk.
 func (as AgentSettings) AttachPersistentDisk(diskID string, volumeID string, path string) AgentSettings {
-	persistenDiskSettings := make(map[string]PersistentSettings)
+	persistenDiskSettings := make(map[string]interface{})
 	if as.Disks.Persistent != nil {
 		persistenDiskSettings = as.Disks.Persistent
 	}
-	persistenDiskSettings[diskID] = PersistentSettings{
-		ID:       diskID,
-		VolumeID: volumeID,
-		Path:     path,
-	}
+	//persistenDiskSettings[diskID] = PersistentSettings{
+	//	ID:       diskID,
+	//	VolumeID: volumeID,
+	//	Path:     path,
+	//}
+	// compaitable for old version
+
+	persistenDiskSettings[diskID] = path
+
 	as.Disks.Persistent = persistenDiskSettings
 
 	return as
