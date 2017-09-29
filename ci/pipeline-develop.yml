@@ -242,7 +242,7 @@ resources:
     type: git
     source:
       uri: git@gitlab.com:demonwy/bosh-alicloud-cpi-release.git
-      branch: cpi_dev_artifacts
+      branch: cpi_dev_artifacts_tmp
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: bosh-cpi-src-in
     type: git
