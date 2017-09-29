@@ -92,8 +92,7 @@ jobs:
       - task: build
         file: bosh-cpi-src/ci/tasks/build-candidate.yml
       - put: bosh-cpi-dev-artifacts
-        #params: {repository: candidate/repo, rebase: true, force: true}
-        params: {globs: ["candidate/repo"], name: "bosh-alicloud-cpi.tgz", tag: "abcd"}
+        params: {repository: candidate/repo, rebase: true, force: true}
 
   - name: integration
     serial: true
@@ -240,10 +239,11 @@ resources:
   #     branch: cpi_dev_artifacts_tmp
   #     private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: bosh-cpi-dev-artifacts
-    type: github-release
+    type: git
     source:
-      owner: demonwy
-      repository: cpi-release
+      uri: git@gitlab.com:demonwy/bosh-alicloud-cpi-release.git
+      branch: cpi_dev_artifacts
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: bosh-cpi-src-in
     type: git
     source:
