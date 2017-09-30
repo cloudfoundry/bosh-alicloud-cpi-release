@@ -79,6 +79,7 @@ func (a CreateVMMethod) CreateVM(
 		network = networks["default"]
 		networkName = "default"
 	}
+	_ = networkName
 
 	var networkProps NetworkProps
 	network.CloudProps().As(&networkProps)
@@ -159,13 +160,15 @@ func (a CreateVMMethod) CreateVM(
 		},
 		Mbus: a.runner.Config.Agent.Mbus,
 		Networks: map[string]registry.NetworkSettings {
-			networkName: {
-				Type: network.Type(),
-				IP: network.IP(),
-				Netmask: network.Netmask(),
-				Gateway: network.Gateway(),
-				DNS: network.DNS(),
-			},
+			"private": {Type: "vip"},
+			"public": {Type: "vip"},		// ? why
+			//networkName: {
+			//	Type: network.Type(),
+			//	IP: network.IP(),
+			//	Netmask: network.Netmask(),
+			//	Gateway: network.Gateway(),
+			//	DNS: network.DNS(),
+			//},
 		},
 		Ntp: a.runner.Config.Agent.Ntp,
 		VM: registry.VMSettings {

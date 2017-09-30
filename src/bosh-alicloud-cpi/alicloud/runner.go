@@ -161,24 +161,32 @@ func (a Runner) GetDiskStatus(diskid string) (*ecs.DiskItemType, error) {
 	return &disks[0], nil
 }
 
-func (a Runner) WaitForDiskStatus(diskid string, toStatus ecs.DiskStatus) (error) {
+func (a Runner) WaitForDiskStatus(diskid string, toStatus ecs.DiskStatus) (string, error) {
 	timeout := DEFAULT_TIMEOUT
 	for {
 		disk, err := a.GetDiskStatus(diskid)
 
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		if disk.Status == toStatus {
-			return nil
+			//
+			// 如果非普通云盘，需要去除x字母，如: xvdb -> vdb
+			// if not normal Cloud need trim first x: xvdc -> vcd
+			device := disk.Device
+			if device[5] == 'x' {
+				device = "/dev/" + string(device[6:])
+			}
+
+			return device, nil
 		}
 
 		if timeout > 0 {
 			timeout -= 1000
 			time.Sleep(time.Duration(DEFAULT_WAIT_INTERVAL) * time.Millisecond)
 		} else {
-			return bosherr.Error("WaitForInstanceStatus timeout")
+			return "", bosherr.Error("WaitForInstanceStatus timeout")
 		}
 	}
 }
