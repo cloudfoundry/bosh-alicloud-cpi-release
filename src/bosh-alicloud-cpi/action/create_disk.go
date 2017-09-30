@@ -37,7 +37,7 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid
 		ZoneId: zoneId,
 		DiskName: "",			//TODO
 		Description: "",		//TODO
- 		DiskCategory: "",		//TODO
+ 		DiskCategory: ecs.DiskCategoryCloudEfficiency,		//TODO
 		Size:     size,			//TODO
 		SnapshotId:   "",		//TODO
 		ClientToken:  "",		//TODO

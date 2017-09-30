@@ -30,16 +30,18 @@ func (a AttachDiskMethod) AttachDisk(vmcid apiv1.VMCID, diskCID apiv1.DiskCID) e
 		return bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmcid)
 	}
 
+	device, err := a.runner.WaitForDiskStatus(args.DiskId, ecs.DiskStatusInUse)
+
 	// client.DescribeDisks()
 	registryClient := a.runner.GetHttpRegistryClient()
-	agentSettings, _ := registryClient.Fetch(args.InstanceId)	//TODO, process error
-	agentSettings.AttachPersistentDisk(vmcid.AsString(), diskCID.AsString(), "dev/vdc") 	//TODO temp solution
+	agentSettings, _ := registryClient.Fetch(args.InstanceId)
+
+	agentSettings.AttachPersistentDisk(diskCID.AsString(), "", device)
 	err = registryClient.Update(vmcid.AsString(), agentSettings)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "UpdateRegistry failed %s %s", diskCID, vmcid)
 	}
 
-	err = a.runner.WaitForDiskStatus(args.DiskId, ecs.DiskStatusAvailable)
 
 	if err != nil {
 		return bosherr.WrapErrorf(err, "WaitForDiskStatus failed %s", diskCID)
