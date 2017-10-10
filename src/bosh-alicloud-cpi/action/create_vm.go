@@ -8,7 +8,6 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"encoding/json"
 	"strings"
-	"strconv"
 	"bosh-alicloud-cpi/registry"
 )
 
@@ -17,41 +16,27 @@ type CreateVMMethod struct {
 }
 
 type InstanceProps struct {
-	ImageId string 				`json:"image_id,omitempty"`
-	AvailabilityZone string		`json:"availability_zone,omitempty"`
-	EphemeralDisk DiskInfo 		`json:"ephemeral_disk,omitempty"`
-	InstanceName string 		`json:"instance_name,omitempty"`
-	InstanceChargeType string	`json:"instance_charge_type,omitempty"`
-	InstanceType string 		`json:"instance_type,omitempty"`
-	SystemDisk DiskInfo			`json:"system_disk,omitempty"`
-	HaltMark string	 			`json:"halt_mark,omitempty"`
+	ImageId string 				`json:"image_id"`
+	AvailabilityZone string		`json:"availability_zone"`
+	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
+	InstanceName string 		`json:"instance_name"`
+	InstanceChargeType string	`json:"instance_charge_type"`
+	InstanceType string 		`json:"instance_type"`
+	InstanceRole string			`json:"instance_role"`
+	SystemDisk DiskInfo			`json:"system_disk"`
 }
 
 type DiskInfo struct {
-	Size interface{}		`json:"size,omitempty"`
-	Type string 			`json:"type,omitempty"`
-}
-
-type NetworkProps struct {
-	SecurityGroupId string		`json:"security_group_id,omitempty"`
-	VSwitchId string			`json:"vswitch_id,omitempty"`
-	InternetChargeType string	`json:"internet_charge_type,omitempty"`
+	Size json.Number		`json:"size,omitempty"`
+	Type string				`json:"type,omitempty"`
 }
 
 func (a DiskInfo) GetSize() int {
-	switch a.Size.(type) {
-	case int:
-		return a.Size.(int)
-	case string:
-		s, _ := a.Size.(string)
-		n, err := strconv.Atoi(s)
-		if err != nil {
-			return 55
-		}
-		return n
-	default:
-		return 50
+	n, err := a.Size.Int64()
+	if err != nil {
+		n = 55
 	}
+	return int(n)
 }
 
 func NewCreateVMMethod(runner alicloud.Runner) CreateVMMethod {
@@ -60,35 +45,33 @@ func NewCreateVMMethod(runner alicloud.Runner) CreateVMMethod {
 
 func (a CreateVMMethod) CreateVM(
 	agentID apiv1.AgentID, stemcellCID apiv1.StemcellCID,
-	cloudProps apiv1.VMCloudProps, networks apiv1.Networks,
+	cloudProps apiv1.VMCloudProps, networkArgs apiv1.Networks,
 	associatedDiskCIDs []apiv1.DiskCID, env apiv1.VMEnv) (apiv1.VMCID, error) {
+
+	cid := apiv1.VMCID{}
 
 	logger := a.runner.Logger
 	client := a.runner.NewClient()
 
 	//
 	// convert CloudProps to alicloud dedicated Props
+	var args ecs.CreateInstanceArgs
+
 	var instProps InstanceProps
 	logger.Info("INPUT", "json %s", cloudProps)
 	cloudProps.As(&instProps)
-	logger.Info("INPUT", "unmarshall CloudProps<Instance>: %s", instProps)
+	logger.Info("INPUT", "unmarshal CloudProps<Instance>: %s", instProps)
 
-	network := networks["private"]
-	networkName := "private"
-	if network == nil {
-		network = networks["default"]
-		networkName = "default"
+	logger.Info("INPUT", "unmarshal NetworkProps<Instance>: %v", networkArgs)
+	networks, err := NewNetworks(networkArgs)
+	if err != nil {
+		return cid, bosherr.WrapErrorf(err, "create_vm failed when parse Networks %v", networkArgs)
 	}
-	_ = networkName
 
-	var networkProps NetworkProps
-	network.CloudProps().As(&networkProps)
+	networks.FillCreateInstanceArgs(&args)
 
-	logger.Info("INPUT", "unmarshall NetworkProps<Instance>: %s", networkProps)
-
-	var args ecs.CreateInstanceArgs
 	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
-	args.ZoneId = a.runner.Config.OpenApi.ZoneId
+	args.ZoneId = a.runner.Config.OpenApi.ZoneId //TODO use AZ
 	args.ImageId = stemcellCID.AsString()
 	args.UserData = a.runner.Config.Registry.ToInstanceUserData()
 
@@ -99,8 +82,6 @@ func (a CreateVMMethod) CreateVM(
 
 	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
-
-	args.SecurityGroupId = networkProps.SecurityGroupId
 
 	disk := instProps.EphemeralDisk
 	if disk.Type != "" {
@@ -118,13 +99,15 @@ func (a CreateVMMethod) CreateVM(
 		args.SystemDisk.Category = ecs.DiskCategory("cloud_efficiency")
 	}
 
-	args.VSwitchId = networkProps.VSwitchId
-	args.PrivateIpAddress = network.IP()
-	args.InternetMaxBandwidthIn = 5
-	args.InternetMaxBandwidthOut = 5
-	args.InternetChargeType = common.InternetChargeType(networkProps.InternetChargeType)
-	args.AutoRenew = false
-	args.Password = "Cloud12345"	// TODO
+	//
+	//args.SecurityGroupId = networks.GetSecurityGroupId()
+	//args.VSwitchId = networks.GetVSwitchId()
+	//args.PrivateIpAddress = networks.GetPrivateAddress()
+	//args.InternetMaxBandwidthIn = networks.GetInternetMaxBandwidthIn()
+	//args.InternetMaxBandwidthOut = networks.GetInternetMaxBandwidthOut()
+	//args.InternetChargeType = networks.GetInternetChargeType()
+	//args.AutoRenew = false
+	args.Password = "Cloud12345"
 
 	req, _ := json.Marshal(args)
 
@@ -132,9 +115,9 @@ func (a CreateVMMethod) CreateVM(
 
 	instid, err := client.CreateInstance(&args)
 
-	if strings.Compare("true", instProps.HaltMark) == 0 {
+	if strings.Compare("fake", instProps.InstanceRole) == 0 {
 		return apiv1.VMCID{}, bosherr.Errorf("Halt for test instProps=%s\n networkProps=%s\n args=%s\n",
-			instProps, networkProps, args)
+			instProps, networks, args)
 	}
 
 	if err != nil {
@@ -159,27 +142,18 @@ func (a CreateVMMethod) CreateVM(
 			PersistentDiskFs: "",
 		},
 		Mbus: a.runner.Config.Agent.Mbus,
-		Networks: map[string]registry.NetworkSettings {
-			"private": {Type: "vip"},
-			"public": {Type: "vip"},		// ? why
-			//networkName: {
-			//	Type: network.Type(),
-			//	IP: network.IP(),
-			//	Netmask: network.Netmask(),
-			//	Gateway: network.Gateway(),
-			//	DNS: network.DNS(),
-			//},
-		},
+		Networks: networks.AsRegistrySettings(),
 		Ntp: a.runner.Config.Agent.Ntp,
 		VM: registry.VMSettings {
 			Name: instid,
 		},
 	}
 
-
-	err = a.UpdateAgentSettings(instid, agentSettings)
-	if err != nil {
-		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
+	if strings.Compare("director", instProps.InstanceRole) != 0 {
+		err = a.UpdateAgentSettings(instid, agentSettings)
+		if err != nil {
+			return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
+		}
 	}
 
 	err = a.runner.StartInstance(instid)

@@ -29,7 +29,6 @@ func main() {
 	runner := alicloud.NewRunner(logger, config)
 	cpiFactory := action.NewFactory(runner)
 
-
 	cli := rpc.NewFactory(logger).NewCLIWithInOut(os.Stdin, os.Stdout, cpiFactory)
 
 	err = cli.ServeOnce()

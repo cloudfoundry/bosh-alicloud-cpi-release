@@ -32,5 +32,13 @@
     }
   }
 
+  agent_params = params["cloud"]["properties"]["agent"]
+
+  if_p('agent.mbus') do |mbus|
+    agent_params["mbus"] = mbus
+  end.else_if_p('nats') do
+    agent_params["mbus"] = "nats://#{p('nats.user')}:#{p('nats.password')}@#{p(['agent.nats.address', 'nats.address'])}:#{p('nats.port')}"
+  end
+
   JSON.dump(params)
 %>

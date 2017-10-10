@@ -14,11 +14,13 @@ import (
 const (
 	USE_FORCE_STOP        = true
 	DEFAULT_TIMEOUT       = 1200000
-	DEFAULT_WAIT_INTERVAL = 500
+	DEFAULT_WAIT_INTERVAL = 2000
 )
 
 type Runner struct {
 	Logger logger.Logger
+	InstanceManager
+	DiskManager
 	Config Config
 }
 
@@ -71,7 +73,7 @@ func (a Runner) GetInstanceStatus(instid string) (ecs.InstanceStatus, error) {
 	}
 
 	if inst == nil {
-		return "", bosherr.Error("Missing Instance: id=" + instid)
+		return ecs.Deleted, bosherr.Error("Missing Instance: id=" + instid)
 	}
 
 	return inst.Status, nil
@@ -83,6 +85,10 @@ func (a Runner) WaitForInstanceStatus(instid string, to_status ecs.InstanceStatu
 		status, err := a.GetInstanceStatus(instid)
 
 		if err != nil {
+			if status == ecs.Deleted && to_status == ecs.Deleted {
+				return nil
+			}
+
 			return err
 		}
 
@@ -91,7 +97,7 @@ func (a Runner) WaitForInstanceStatus(instid string, to_status ecs.InstanceStatu
 		}
 
 		if timeout > 0 {
-			timeout -= 1000
+			timeout -= DEFAULT_WAIT_INTERVAL
 			time.Sleep(time.Duration(DEFAULT_WAIT_INTERVAL) * time.Millisecond)
 		} else {
 			return bosherr.Error("WaitForInstanceStatus timeout")

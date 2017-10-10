@@ -22,6 +22,9 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 	status, err := a.runner.GetInstanceStatus(instid)
 
 	if err != nil {
+		if status == ecs.Deleted {
+			return nil
+		}
 		return bosherr.WrapErrorf(err, "DeleteVM get status failed cid=%s", instid)
 	}
 
@@ -53,6 +56,12 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Deleting vm '%s'", cid)
+	}
+
+	err = a.runner.WaitForInstanceStatus(cid.AsString(), ecs.Deleted)
+
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Deleting vm waitForStatus '%s", cid)
 	}
 
 	return nil
