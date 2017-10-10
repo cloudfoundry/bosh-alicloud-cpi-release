@@ -18,16 +18,16 @@ func NewCreateDiskMethod(runner alicloud.Runner) CreateDiskMethod {
 
 func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid *apiv1.VMCID) (apiv1.DiskCID, error) {
 	client := a.runner.NewClient()
-	instid := vmcid.AsString()
+	instCid := vmcid.AsString()
 
-	inst, err := a.runner.GetInstance(instid)
+	inst, err := a.runner.GetInstance(instCid)
 
 	if err != nil {
 		return apiv1.DiskCID{}, bosherr.WrapError(err, "GetInstance Failed")
 	}
 
 	if inst == nil {
-		return apiv1.DiskCID{}, bosherr.WrapErrorf(err, "Missing Vm cid = %s", instid)
+		return apiv1.DiskCID{}, bosherr.WrapErrorf(err, "Missing Vm cid = %s", instCid)
 	}
 
 	zoneId := inst.ZoneId
@@ -37,7 +37,7 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid
 		ZoneId: zoneId,
 		DiskName: "",			//TODO
 		Description: "",		//TODO
- 		DiskCategory: "",		//TODO
+ 		DiskCategory: ecs.DiskCategoryCloudEfficiency,		//TODO
 		Size:     size,			//TODO
 		SnapshotId:   "",		//TODO
 		ClientToken:  "",		//TODO

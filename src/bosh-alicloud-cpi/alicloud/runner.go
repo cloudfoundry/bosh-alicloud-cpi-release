@@ -8,16 +8,19 @@ import (
 	"github.com/denverdino/aliyungo/ecs"
 	"strings"
 	"time"
+	"bosh-alicloud-cpi/registry"
 )
 
 const (
 	USE_FORCE_STOP        = true
 	DEFAULT_TIMEOUT       = 1200000
-	DEFAULT_WAIT_INTERVAL = 500
+	DEFAULT_WAIT_INTERVAL = 2000
 )
 
 type Runner struct {
 	Logger logger.Logger
+	InstanceManager
+	DiskManager
 	Config Config
 }
 
@@ -70,7 +73,7 @@ func (a Runner) GetInstanceStatus(instid string) (ecs.InstanceStatus, error) {
 	}
 
 	if inst == nil {
-		return "", bosherr.Error("Missing Instance: id=" + instid)
+		return ecs.Deleted, bosherr.Error("Missing Instance: id=" + instid)
 	}
 
 	return inst.Status, nil
@@ -82,6 +85,10 @@ func (a Runner) WaitForInstanceStatus(instid string, to_status ecs.InstanceStatu
 		status, err := a.GetInstanceStatus(instid)
 
 		if err != nil {
+			if status == ecs.Deleted && to_status == ecs.Deleted {
+				return nil
+			}
+
 			return err
 		}
 
@@ -90,7 +97,7 @@ func (a Runner) WaitForInstanceStatus(instid string, to_status ecs.InstanceStatu
 		}
 
 		if timeout > 0 {
-			timeout -= 1000
+			timeout -= DEFAULT_WAIT_INTERVAL
 			time.Sleep(time.Duration(DEFAULT_WAIT_INTERVAL) * time.Millisecond)
 		} else {
 			return bosherr.Error("WaitForInstanceStatus timeout")
@@ -112,6 +119,84 @@ func (a Runner) RebootInstance(instid string) error {
 	client := a.NewClient()
 	return client.RebootInstance(instid, USE_FORCE_STOP)
 }
+
+func (a Runner) GetHttpRegistryClient() (registry.Client) {
+	r := a.Config.Registry
+
+	if strings.Compare("", r.Host) == 0 {
+		//
+		// first start need skip this operation
+		return nil
+	}
+
+	clientOptions := registry.ClientOptions {
+		Protocol: r.Protocol,
+		Host: r.Host,
+		Port: r.Port,
+		Username: r.User,
+		Password: r.Password,
+	}
+
+	client := registry.NewHTTPClient(clientOptions, a.Logger)
+	return client
+}
+
+func (a Runner) GetDisks(instid string) ([]ecs.DiskItemType, error) {
+	client := a.NewClient()
+	args := ecs.DescribeDisksArgs {
+		RegionId: common.Region(a.Config.OpenApi.RegionId),
+		InstanceId: instid,
+	}
+	disks, _, err := client.DescribeDisks(&args)
+	return disks, err
+}
+
+func (a Runner) GetDiskStatus(diskid string) (*ecs.DiskItemType, error) {
+	client := a.NewClient()
+	args := ecs.DescribeDisksArgs {
+		RegionId: common.Region(a.Config.OpenApi.RegionId),
+		DiskIds: []string { diskid, },
+	}
+	disks, _, err := client.DescribeDisks(&args)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "GetDisk() Failed %s", args)
+	}
+	if len(disks) == 0 {
+		return nil, nil
+	}
+	return &disks[0], nil
+}
+
+func (a Runner) WaitForDiskStatus(diskid string, toStatus ecs.DiskStatus) (string, error) {
+	timeout := DEFAULT_TIMEOUT
+	for {
+		disk, err := a.GetDiskStatus(diskid)
+
+		if err != nil {
+			return "", err
+		}
+
+		if disk.Status == toStatus {
+			//
+			// 如果非普通云盘，需要去除x字母，如: xvdb -> vdb
+			// if not normal Cloud need trim first x: xvdc -> vcd
+			device := disk.Device
+			if device[5] == 'x' {
+				device = "/dev/" + string(device[6:])
+			}
+
+			return device, nil
+		}
+
+		if timeout > 0 {
+			timeout -= 1000
+			time.Sleep(time.Duration(DEFAULT_WAIT_INTERVAL) * time.Millisecond)
+		} else {
+			return "", bosherr.Error("WaitForInstanceStatus timeout")
+		}
+	}
+}
+
 
 //func (a Runner) HasDisk(diskid string) (error) {
 //	client := a.NewClient()

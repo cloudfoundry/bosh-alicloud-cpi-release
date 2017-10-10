@@ -1,6 +1,6 @@
 # BOSH Alibaba Cloud CPI
 
-This is the BOSH CPI for Alibaba Cloud developed by 4 Alibaba engineers with great excitement, energy and coffee.
+This is the [BOSH](http://bosh.io) CPI for Alibaba Cloud developed by 4 Alibaba engineers with great excitement, energy and coffee.
 
 ## Usage
 

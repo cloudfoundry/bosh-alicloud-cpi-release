@@ -19,6 +19,7 @@ all: clean deps build
 
 clean:
 	rm -f ${EXECUTABLE}
+	rm -f bin/bosh-alicloud-cpi.tgz
 
 deps:
 	go get -v github.com/cppforlife/bosh-cpi-go/...
@@ -44,8 +45,10 @@ testintci: testdeps
 	ginkgo integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
 
 create-release: build
-	git commit -a -m "commit for create-release."
-	bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz
+    bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz
 
-deploy-scp: create-release
-    scp bin/bosh-alicloud-cpi.tgz root@${DEPLOY_SERVER_IP}:/root
+# upload-release: create-release
+#    scp bin/bosh-alicloud-cpi.tgz root@${CPI_UPLOAD_HOST}:/root
+#    rm -f bin/bosh-alicloud-cpi.tgz
+
+

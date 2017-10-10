@@ -20,7 +20,3 @@ clean:
 build:
 	mkdir -p $(BINDIR)
 	go build $(GO_OPTIONS) $(BUILD_OPTIONS) -o ${EXECUTABLE} $(MAINFILE)
-
-test:
-	go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/action)
-	go test -v $(shell find $(CURDIR) -name *_test.go | grep $(MAINDIR)/alicloud)

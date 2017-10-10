@@ -1,57 +1,3 @@
-package action
-
-import (
-	"testing"
-	"encoding/json"
-)
-
-var createVmArgs = []byte(`
-{
-    "method": "create_vm",
-    "arguments": [
-        "be387a69-c5d5-4b94-86c2-978581354b50",
-        "m-2zehhdtfg22hq46reabf",
-        {
-            "ephemeral_disk": {
-                "size": 50,
-                "type": "cloud_efficiency"
-            },
-            "image_id": "m-2ze200tcuotb5uk2kol4",
-            "instance_name": "test-cc",
-            "instance_type": "ecs.n4.small",
-            "system_disk": {
-                "size": 50,
-                "type": "cloud_efficiency"
-            }
-        },
-        {
-            "private": {
-                "ip": "172.16.0.63",
-                "netmask": "255.240.0.0",
-                "cloud_properties": {
-                    "security_group_id": "sg-2zec8ubi1q5aeo5mqcbb",
-                    "vswitch_id": "vsw-2zeavutafz6yl1ixfvekx"
-                },
-                "default": [
-                    "dns",
-                    "gateway"
-                ],
-                "dns": [
-                    "8.8.8.8"
-                ],
-                "gateway": "172.16.0.1"
-            }
-        },
-        [],
-        {}
-    ],
-    "context": {
-        "director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
-    }
-}
-`)
-
-var createVmBoshArgs = []byte (`
 {
     "method": "create_vm",
     "arguments": [
@@ -63,7 +9,7 @@ var createVmBoshArgs = []byte (`
                 "size": "100",
                 "type": "cloud_efficiency"
             },
-            "halt_mark": "true",
+            "halt_mark": 1,
             "instance_charge_type": "PostPaid",
             "instance_type": "ecs.n4.large"
         },
@@ -87,9 +33,7 @@ var createVmBoshArgs = []byte (`
                 "type": "manual"
             }
         },
-        [
-
-        ],
+        [],
         {
             "bosh": {
                 "mbus": {
@@ -106,93 +50,4 @@ var createVmBoshArgs = []byte (`
     "context": {
         "director_uuid": "478b5c95-c143-4223-737f-7c1c834eebc0"
     }
-}
-`)
-
-var createVmBoshArgs3 = []byte(`
-{
-    "method": "create_vm",
-    "arguments": [
-        "7bc16fab-52c3-4bb9-a5c3-560445986860",
-        "m-2zeggz4i4n2z510ajcvw",
-        {
-            "ephemeral_disk": {
-                "size": 50,
-                "type": "cloud_efficiency"
-            },
-            "image_id": "m-temp1234",
-            "instance_type": "ecs.n4.large",
-            "system_disk": {
-                "size": 50,
-                "type": "cloud_efficiency"
-            }
-        },
-        {
-            "private": {
-                "ip": "172.16.0.101",
-                "netmask": "255.240.0.0",
-                "cloud_properties": {
-                    "security_group_id": "sg-2ze7qg9qdmt1lt9lgvgt",
-                    "vswitch_id": "vsw-2ze1oepoom33cdt6nsk88"
-                },
-                "default": [
-                    "dns",
-                    "gateway"
-                ],
-                "gateway": "172.16.0.1"
-            }
-        },
-        [],
-        {}
-    ],
-    "context": {
-        "director_uuid": "ce4edd9a-0269-48ae-b934-76c76891ca34"
-    }
-}
-`)
-
-func TestCreateVm(t *testing.T) {
-	CallTestCase(TestConfig, createVmBoshArgs, t)
-}
-
-var cloudPropsJson = []byte(`
-{
-    "ephemeral_disk": {
-        "size": 50,
-        "type": "cloud_efficiency"
-    },
-    "image_id": "m-temp1234",
-    "instance_type": "ecs.n4.large",
-    "system_disk": {
-        "size": 50,
-        "type": "cloud_efficiency"
-    }
-}
-`)
-
-var cloudPropsJson2 = []byte(`
-{
-    "availability_zone": "cn-beijing-a",
-    "ephemeral_disk": {
-        "size": "100",
-        "type": "cloud_efficiency"
-    },
-    "halt_mark": "true",
-    "instance_charge_type": "PostPaid",
-    "instance_type": "ecs.n4.large"
-}
-`)
-
-
-func TestCloudProps(t *testing.T) {
-	var props InstanceProps
-	json.Unmarshal(cloudPropsJson, &props)
-
-	t.Log(props)
-	t.Log(props.EphemeralDisk.Size)
-
-	var prop2 InstanceProps
-	json.Unmarshal(cloudPropsJson2, &prop2)
-	t.Log(prop2)
-	t.Log(prop2.EphemeralDisk.Size)
 }

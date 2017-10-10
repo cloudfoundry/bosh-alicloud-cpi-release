@@ -4,9 +4,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"encoding/json"
-	"encoding/base64"
 	"fmt"
 	"os"
+	"bosh-alicloud-cpi/registry"
 )
 
 type CloudConfigShell struct {
@@ -42,11 +42,11 @@ type Registry struct {
 	Password string `json:"password"`
 	Protocol string `json:"protocol"`
 	Host     string `json:"address"`
-	Port     string `json:"port"`
+	Port     int	`json:"port"`
 }
 
 type Agent struct {
-	Ntp       string    `json:"ntp"`
+	Ntp       []string  `json:"ntp"`
 	Mbus      string    `json:"mbus"`
 	Blobstore Blobstore `json:"blobstore"`
 }
@@ -58,8 +58,8 @@ type Blobstore struct {
 
 type BlobstoreOptions struct {
 	Endpoint string `json:"endpoint"`
-	User     string `json:"agent"`
-	Password string `json:"agent-password"`
+	User     string `json:"user"`
+	Password string `json:"password"`
 }
 
 func (c Config) Validate() error {
@@ -107,7 +107,18 @@ func (a *OpenApi) ApplySystemEnv() {
 }
 
 func (a *Registry) ToInstanceUserData() string {
-	endpoint := fmt.Sprintf("%s://%s:%s@%s:%s", a.Protocol, a.User, a.Password, a.Host, a.Port)
+	endpoint := fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, a.Port)
 	json := fmt.Sprintf(`{"Registry":{"Endpoint":"%s"}}`, endpoint)
-	return base64.StdEncoding.EncodeToString([]byte(json))
+	return json
+}
+
+func (a *Blobstore) AsRegistrySettings() (registry.BlobstoreSettings) {
+	return registry.BlobstoreSettings {
+		Provider: a.Provider,
+		Options: map[string]interface{} {
+			"endpoint": a.Options.Endpoint,
+			"password": a.Options.Password,
+			"user": a.Options.User,
+		},
+	}
 }

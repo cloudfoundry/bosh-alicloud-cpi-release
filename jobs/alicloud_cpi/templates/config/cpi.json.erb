@@ -14,23 +14,31 @@
           "password" => p("registry.password"),
           "protocol" => "http",
           "address" => p("registry.address"),
-          "port" => "6901",
+          "port" => p("registry.port"),
         },
-        "agent" => {
-          "ntp" => "ntp",
-          "mbus" => "http://mbus:mbus@0.0.0.0:6868",
-          "blobstore" => {
-            "provider" => "dav",
-            "options" => {
-              "endpoint" => "http://10.0.0.2:25250",
-              "user" => "agent",
-              "password" => "agent-password"
+        'agent' => {
+          'ntp' => p('ntp'),
+          'mbus' => "nats://#{p('nats.user')}:#{p('nats.password')}@#{p('nats.address')}:#{p('nats.port')}",
+          'blobstore' => {
+            'provider' => p('blobstore.provider'),
+            'options' => {
+              'endpoint' => "http://#{p('blobstore.address')}:#{p('blobstore.port')}",
+              'user' => p('blobstore.agent.user'),
+              'password' => p('blobstore.agent.password')
             }
           },
         }
       }
     }
   }
+
+  agent_params = params["cloud"]["properties"]["agent"]
+
+  if_p('agent.mbus') do |mbus|
+    agent_params["mbus"] = mbus
+  end.else_if_p('nats') do
+    agent_params["mbus"] = "nats://#{p('nats.user')}:#{p('nats.password')}@#{p(['agent.nats.address', 'nats.address'])}:#{p('nats.port')}"
+  end
 
   JSON.dump(params)
 %>
