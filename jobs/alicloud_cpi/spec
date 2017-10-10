@@ -42,20 +42,20 @@ properties:
   alicloud.password:
     default: "1qaz@WSX"
   alicloud.access_key_id:
-    default: "***REMOVED***"
+    default: "${ACCESS_KEY_ID}"
   alicloud.access_key_secret:
-    default: "***REMOVED***"
+    default: "${ACCESS_KEY_SECRET}"
   alicloud.disk_snapshot_id:
     default: ""
   registry.username:
     description: "User to access the Registry"
-    default: admin
+    default: registry
   registry.password:
     description: "Password to access the Registry"
-    default: admin
+    default: "75imrz1jjl6yjw7b67th"
   registry.address:
     description: Address of the Registry to connect to
-    default: "10.0.0.2"
+    default: "59.110.174.237"
   registry.port:
     description: Port of the Registry to connect to
     default: 25777
@@ -82,7 +82,9 @@ properties:
     default: "nats-password"
   nats.address:
     description: Address of the nats server
-    default: "10.0.0.2"
+    default: "127.0.0.1"
   nats.port:
     description: Port that the nats server listens on
     default: 4222
+  agent.mbus:
+    description: mbus address
