@@ -68,7 +68,6 @@ pushd candidate/repo
   bosh2 create-release --name $cpi_release_name --version $semver --tarball $cpi_release_name-$semver.tgz
 
   mkdir dev-release-artifacts
-
   mv $cpi_release_name-$semver.tgz dev-release-artifacts/
   ls dev-release-artifacts
 
