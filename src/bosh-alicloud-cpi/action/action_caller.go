@@ -18,7 +18,7 @@ var TestConfig = []byte(`
         "properties": {
             "alicloud": {
                 "region_id": "cn-beijing",
-                "zone_id": "cn-beijing-a",
+                "zone_id": "cn-beijing-c",
                 "access_key_id": "${ACCESS_KEY_ID}",
                 "access_key_secret": "${ACCESS_KEY_CONFIG}"
             },
@@ -27,10 +27,10 @@ var TestConfig = []byte(`
                 "password": "2a57f7c0-7726-4e76-43aa-00b10b073229",
                 "protocol": "http",
                 "address": "10.0.0.2",
-                "port": "6901"
+                "port": 6901
             },
             "agent": {
-                "ntp": "ntp",
+                "ntp": ["0.pool.ntp.org", "1.pool.ntp.org"],
                 "mbus": "http://mbus:mbus@0.0.0.0:6868",
                 "blobstore": {
                     "provider": "dav",
