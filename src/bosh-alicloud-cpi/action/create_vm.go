@@ -70,14 +70,6 @@ func (a CreateVMMethod) CreateVM(
 
 	networks.FillCreateInstanceArgs(&args)
 
-	//if networks.HasPublicEip() {
-	//	var eipArgs ecs.AllocatePublicIpAddressArgs {
-	//
-	//	}
-	//
-	//	client.DescribeEipAddresses()
-	//}
-
 	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
 	args.ZoneId = a.runner.Config.OpenApi.ZoneId //TODO use AZ
 	args.ImageId = stemcellCID.AsString()
@@ -174,6 +166,11 @@ func (a CreateVMMethod) CreateVM(
 
 	if err != nil {
 		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed instanceid=", instid)
+	}
+
+	err = networks.BindInstanceEip(client, instid, args.RegionId)
+	if err != nil {
+		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed instanceid=")
 	}
 
 	//
