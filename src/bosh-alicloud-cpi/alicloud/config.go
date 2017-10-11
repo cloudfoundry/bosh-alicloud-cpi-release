@@ -53,7 +53,7 @@ type Agent struct {
 
 type Blobstore struct {
 	Provider string           `json:"provider"`
-	Options  BlobstoreOptions `json:"options"`
+	Options  map[string]interface{} `json:"options"`
 }
 
 type BlobstoreOptions struct {
@@ -115,10 +115,6 @@ func (a *Registry) ToInstanceUserData() string {
 func (a *Blobstore) AsRegistrySettings() (registry.BlobstoreSettings) {
 	return registry.BlobstoreSettings {
 		Provider: a.Provider,
-		Options: map[string]interface{} {
-			"endpoint": a.Options.Endpoint,
-			"password": a.Options.Password,
-			"user": a.Options.User,
-		},
+		Options: a.Options,
 	}
 }

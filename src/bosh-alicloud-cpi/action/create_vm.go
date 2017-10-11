@@ -70,6 +70,14 @@ func (a CreateVMMethod) CreateVM(
 
 	networks.FillCreateInstanceArgs(&args)
 
+	//if networks.HasPublicEip() {
+	//	var eipArgs ecs.AllocatePublicIpAddressArgs {
+	//
+	//	}
+	//
+	//	client.DescribeEipAddresses()
+	//}
+
 	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
 	args.ZoneId = a.runner.Config.OpenApi.ZoneId //TODO use AZ
 	args.ImageId = stemcellCID.AsString()
