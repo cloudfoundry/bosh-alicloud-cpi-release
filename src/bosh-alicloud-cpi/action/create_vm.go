@@ -168,6 +168,11 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed instanceid=", instid)
 	}
 
+	err = networks.BindInstanceEip(client, instid, args.RegionId)
+	if err != nil {
+		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed instanceid=")
+	}
+
 	//
 	// TODO: every error must free created vm before terminated
 	logger.Info("INFO", "FINISH create_vm %s", args)
