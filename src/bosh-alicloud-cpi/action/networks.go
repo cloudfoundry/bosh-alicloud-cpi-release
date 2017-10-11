@@ -7,6 +7,7 @@ import (
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
 	"strings"
+	"fmt"
 )
 
 type Networks struct {
@@ -28,14 +29,14 @@ func NewNetworks(args apiv1.Networks) (Networks, error) {
 		main: nil,
 		props: NetworkProps{},
 	}
-	var p *apiv1.Network
+	var p apiv1.Network
 	for k, v := range args {
 		if strings.Compare("private", k) == 0 {
-			p = &v
+			p = v
 		}
 
 		if strings.Compare("default", k) == 0 {
-			p = &v
+			p = v
 		}
 	}
 
@@ -43,7 +44,7 @@ func NewNetworks(args apiv1.Networks) (Networks, error) {
 		return a, bosherr.Errorf("No main network find %v", args)
 	}
 
-	a.main = *p
+	a.main = p
 	err := a.main.CloudProps().As(&a.props)
 	if err != nil {
 		return a, bosherr.WrapErrorf(err, "unmarshal json failed, %v", a.main.CloudProps())
@@ -62,6 +63,42 @@ func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) (error) {
 	} else {
 		return bosherr.Errorf("NOT IMPLEMENTED Dynamic Networks")
 	}
+}
+
+func (a Networks) BindInstanceEip(client *ecs.Client, instanceId string, regionId common.Region) (error) {
+	net := a.VipNetwork()
+
+	if net == nil{
+		return nil
+	}
+
+	var allocationId string
+	var arg ecs.DescribeEipAddressesArgs
+	arg.EipAddress = net.IP()
+	arg.RegionId = regionId
+
+	eipAddresses, _, _:=client.DescribeEipAddresses(&arg)
+	for _, address := range eipAddresses {
+		allocationId = address.AllocationId
+	}
+
+	if err := client.AssociateEipAddress(allocationId, instanceId); err != nil {
+		return err
+	}
+
+	if err := client.WaitForEip(regionId, allocationId, ecs.EipStatusInUse, 60); err != nil {
+		return fmt.Errorf("Error Waitting for EIP allocated: %#v", err)
+	}
+	return nil
+}
+
+func (a Networks) VipNetwork() (apiv1.Network) {
+	for _, net := range a.networks {
+		if net.Type() == "vip" {
+			return net
+		}
+	}
+	return nil
 }
 
 func (a Networks) AsRegistrySettings() (registry.NetworksSettings) {
