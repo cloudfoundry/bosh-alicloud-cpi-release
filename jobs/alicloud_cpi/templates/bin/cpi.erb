@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+# Set directories
+PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+JOBS_DIR=${BOSH_JOBS_DIR:-/var/vcap/jobs}
+LOGS_DIR=/var/vcap/sys/log/alicloud_cpi
+
+export DIR=`ls ${JOBS_DIR}`
+
+# Invoke CPI
+cmd="${PACKAGES_DIR}/bosh-alicloud-cpi/bin/alicloud_cpi -configFile=${JOBS_DIR}/alicloud_cpi/config/cpi.json"
+
+if [ -d ${LOGS_DIR} ]; then
+  exec $cmd 2>>${LOGS_DIR}/cpi.stderr.log <&0
+else
+  exec $cmd <&0
+fi

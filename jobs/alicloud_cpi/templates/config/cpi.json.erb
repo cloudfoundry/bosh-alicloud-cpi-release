@@ -1,0 +1,44 @@
+<%=
+  params = {
+    "cloud" => {
+      "plugin" => "alicloud",
+      "properties" => {
+        "alicloud" => {
+          "region_id" => p("alicloud.region_id"),
+          "zone_id" => p("alicloud.zone_id"),
+          "access_key_id" => p("alicloud.access_key_id"),
+          "access_key_secret" => p("alicloud.access_key_secret"),
+        },
+        "registry" => {
+          "user" => p("registry.username"),
+          "password" => p("registry.password"),
+          "protocol" => "http",
+          "address" => p("registry.address"),
+          "port" => p("registry.port"),
+        },
+        'agent' => {
+          'ntp' => p('ntp'),
+          'mbus' => "nats://#{p('nats.user')}:#{p('nats.password')}@#{p('nats.address')}:#{p('nats.port')}",
+          'blobstore' => {
+            'provider' => p('blobstore.provider'),
+            'options' => {
+              'endpoint' => "http://#{p('blobstore.address')}:#{p('blobstore.port')}",
+              'user' => p('blobstore.agent.user'),
+              'password' => p('blobstore.agent.password')
+            }
+          },
+        }
+      }
+    }
+  }
+
+  agent_params = params["cloud"]["properties"]["agent"]
+
+  if_p('agent.mbus') do |mbus|
+    agent_params["mbus"] = mbus
+  end.else_if_p('nats') do
+    agent_params["mbus"] = "nats://#{p('nats.user')}:#{p('nats.password')}@#{p(['agent.nats.address', 'nats.address'])}:#{p('nats.port')}"
+  end
+
+  JSON.dump(params)
+%>

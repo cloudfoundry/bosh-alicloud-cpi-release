@@ -1,12 +1,3 @@
-ruby_alicloud_cpi/bundler-1.10.6.gem:
-  size: 251392
-  sha: 55a37fccd1c0cb5542d468e35d3be46dd0667f73
-ruby_alicloud_cpi/ruby-2.1.7.tar.gz:
-  size: 15151458
-  sha: e2e195a4a58133e3ad33b955c829bb536fa3c075
-ruby_alicloud_cpi/rubygems-2.4.8.tgz:
-  size: 447712
-  sha: 0db6b2f1cdd2267fe19f1f875057c2f2ce9f5696
-ruby_alicloud_cpi/yaml-0.1.5.tar.gz:
-  size: 504897
-  sha: 8b78cb9f759c7d80db8a7328c0ebecfe34fde737
+go1.8.1.linux-amd64.tar.gz:
+  size: 91277742
+  sha: a433f76c569055ff8536d796995518dd91a9fa5b

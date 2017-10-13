@@ -18,28 +18,28 @@ cp -r bosh-cpi-src promoted/repo
 
 dev_release=$(echo $PWD/bosh-cpi-release/*.tgz)
 
-#pushd promoted/repo
-#  echo creating config/private.yml with blobstore secrets
-#  cat > config/private.yml << EOF
-#---
-#blobstore:
-#  s3:
-#    access_key_id: $ALICLOUD_ACCESS_KEY_ID
-#    secret_access_key: $ALICLOUD_SECRET_ACCESS_KEY
-#EOF
+pushd promoted/repo
+  echo creating config/private.yml with blobstore secrets
+  cat > config/private.yml << EOF
+---
+blobstore:
+  s3:
+    access_key_id: $ALICLOUD_ACCESS_KEY_ID
+    secret_access_key: $ALICLOUD_SECRET_ACCESS_KEY
+EOF
 
   echo "using bosh CLI version..."
-#  bosh version
+  bosh version
 
   echo "finalizing CPI release..."
-#  bosh finalize release ${dev_release} --version $integer_version
+  bosh finalize release ${dev_release} --version $integer_version
 
-#  rm config/private.yml
+  rm config/private.yml
 
-#  git diff | cat
-#  git add .
+  git diff | cat
+  git add .
 
-#  git config --global user.email demon.wy@alibaba-inc.com
-#  git config --global user.name demonwy
-#  git commit -m "New final release v $integer_version"
-#popd
+  git config --global user.email demon.wy@alibaba-inc.com
+  git config --global user.name demonwy
+  git commit -m "New final release v $integer_version"
+popd

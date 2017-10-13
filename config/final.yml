@@ -1,6 +1,5 @@
----
-final_name: bosh-alicloud-cpi
+name: bosh-alicloud-cpi
 blobstore:
   provider: local
   options:
-    blobstore_path: ./blobs_packages
+    blobstore_path: ./blobs

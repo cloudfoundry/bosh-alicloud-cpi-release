@@ -2,21 +2,23 @@
 
 set -e
 
+source bosh-cpi-src/ci/tasks/utils.sh
+#source /etc/profile.d/chruby-with-ruby-2.1.2.sh
+
+check_param ALICLOUD_ACCESS_KEY_ID
+check_param ALICLOUD_DEFAULT_REGION
+
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 
-# NOTE: To run with specific line numbers, set:
-RSPEC_ARGUMENTS="bosh-cpi-src/src/bosh_alicloud_cpi/spec/integration/lifecycle_spec.rb:mm:nn"
-: ${RSPEC_ARGUMENTS:=bosh-cpi-src/src/bosh_alicloud_cpi/spec/integration}
-#: ${METADATA_FILE:=environment/metadata}
-
-release_dir="$( cd $(dirname $0) && cd ../.. && pwd )"
-
-if [[ -f "/etc/profile.d/chruby.sh" ]] ; then
-  source /etc/profile.d/chruby.sh
-  chruby 2.1.2
-fi
+# Stemcell stuff
+export STEMCELL_VERSION=`cat stemcell/version`
+export STEMCELL_FILE=`pwd`/stemcell/image.tgz
+pushd stemcell
+  tar -zxvf stemcell.tgz
+  mv image image.tgz
+popd
 
 #metadata=$(cat ${METADATA_FILE})
 
@@ -35,8 +37,13 @@ export BOSH_ALICLOUD_SECRET_ACCESS_KEY=${ALICLOUD_SECRET_ACCESS_KEY}
 
 export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
 
-pushd ${release_dir}/src/bosh_alicloud_cpi > /dev/null
+ls ${PWD}
+# Setup Go and run tests
+export GOPATH=${PWD}/bosh-cpi-src
+export PATH=${GOPATH}/bin:$PATH
 
-  bundle install
-  bundle exec rspec spec/integration/lifecycle_spec.rb
-popd > /dev/null
+check_go_version $GOPATH
+
+cd ${PWD}/bosh-cpi-src
+env
+make testintci

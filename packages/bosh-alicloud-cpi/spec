@@ -1,0 +1,9 @@
+---
+name: bosh-alicloud-cpi
+
+dependencies:
+  - golang
+files:
+  - bosh-alicloud-cpi/**/*
+  - github.com/**/*
+  - Makefile

@@ -1,18 +1,21 @@
 ---
 name: alicloud_cpi
 
-templates:
-  cpi.erb: bin/cpi
-  cpi.json.erb: config/cpi.json
-
 packages:
-- ruby_alicloud_cpi
-- bosh_alicloud_cpi
+  - bosh-alicloud-cpi
+
+templates:
+  bin/cpi.erb: bin/cpi
+  bin/pre-start.erb: bin/pre-start
+  config/cpi.json.erb: config/cpi.json
 
 properties:
   alicloud.region_id:
     description: "Alicloud owned regions, such as ap-southeast-1, cn-qingdao"
-    default: cn-hangzhou
+    default: "cn-beijing"
+  alicloud.zone_id:
+    description: "Alicloud every region has zones, "
+    default: "cn-beijing-a"
   alicloud.instance_type:
     description: "Alicloud ecs type, such as ecs.t1.small, ecs.s2.large, ecs.s3.large"
     default: "ecs.t1.small"
@@ -20,6 +23,9 @@ properties:
     default: "m-23h4o8945"
   alicloud.security_group_id:
     default: "sg-238ux30qe"
+  alicloud.vswitch_id:
+    description: "Alicloud vswitch_id for VPC"
+    default: "vsw-2zevwt3w7h5u761o405rd"
   alicloud.internet_charge_type:
     default: "PayByTraffic"
   alicloud.internet_max_band_width_out:
@@ -36,29 +42,26 @@ properties:
   alicloud.password:
     default: "1qaz@WSX"
   alicloud.access_key_id:
-    default: "OAtTkdQDHJyYGCmU"
-  alicloud.access_key:
-    default: "PzosfNHKsG6sFQKNnxvMjqQNx8x2of"
+    default: "${ACCESS_KEY_ID}"
+  alicloud.access_key_secret:
+    default: "${ACCESS_KEY_SECRET}"
   alicloud.disk_snapshot_id:
     default: ""
-
   registry.username:
-    description: User to access the Registry
-    default: admin
+    description: "User to access the Registry"
+    default: registry
   registry.password:
-    description: Password to access the Registry
-    default: admin
+    description: "Password to access the Registry"
+    default: "75imrz1jjl6yjw7b67th"
   registry.address:
     description: Address of the Registry to connect to
-    default: "10.0.0.2"
+    default: "59.110.174.237"
   registry.port:
     description: Port of the Registry to connect to
     default: 25777
-
   ntp:
     description: List of ntp server IPs. pool.ntp.org attempts to return IPs closest to your location, but you can still specify if needed.
     default: [0.pool.ntp.org, 1.pool.ntp.org]
-
   blobstore.provider:
     description: Provider of the blobstore used by director and agent (dav|simple|s3)
     default: 'dav'
@@ -71,7 +74,6 @@ properties:
     description: Username agent uses to connect to blobstore used by simple blobstore plugin
   blobstore.agent.password:
     description: Password agent uses to connect to blobstore used by simple blobstore plugin
-
   nats.user:
     description: Username to connect to nats with
     default: "nats"
@@ -80,7 +82,9 @@ properties:
     default: "nats-password"
   nats.address:
     description: Address of the nats server
-    default: "10.0.0.2"
+    default: "127.0.0.1"
   nats.port:
     description: Port that the nats server listens on
     default: 4222
+  agent.mbus:
+    description: mbus address
