@@ -19,6 +19,8 @@ TERRAFORM_PROVIDER_VERSION=1.2.4
 curl -O https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_$TERRAFORM_VERSION_linux_amd64.zip
 curl -O https://github.com/alibaba/terraform-provider/releases/download/V$TERRAFORM_PROVIDER_VERSION/terraform-provider-alicloud_linux-amd64.tgz
 mkdir -p ${TERRAFORM_PATH}
+ls -l ./
+ls -l ../
 unzip -o terraform_$TERRAFORM_VERSION_linux_amd64.zip -d ${TERRAFORM_PATH}
 tar -xzvf terraform-provider-alicloud_linux-amd64.tgz
 mv -f bin/terraform* ${TERRAFORM_PATH}
