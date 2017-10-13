@@ -216,7 +216,7 @@ jobs:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
           ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-          DESTROY_ENVIRONMENT: false
+          DESTROY_ENVIRONMENT: true
       - put: terraform-metadata
         params: {repository: terraform-metadata, rebase: true, force: true}
 
@@ -339,6 +339,6 @@ resources:
     type: git
     source:
       uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
-      branch: concourse_ci
+      branch: concourse_ci_tmp
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
 

@@ -17,3 +17,5 @@ vars*.*
 all_state
 crash.log
 terraform.log
+terraform.tfstate.backup
+
