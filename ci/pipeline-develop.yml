@@ -245,8 +245,8 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-#      uri: git@gitlab.alibaba-inc.com:cloudfoundry_aliyun/bosh-alicloud-cpi.git
-      uri: git@gitlab.alibaba-inc.com:guimin.hgm/bosh-alicloud-cpi.git
+#      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
       ignore_paths:
         - .final_builds/**/*.yml
@@ -336,9 +336,9 @@ resources:
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
   - name: terraform-metadata
-      type: git
-      source:
-        uri: git@gitlab.alibaba-inc.com:guimin.hgm/bosh-alicloud-cpi.git
-        branch: concourse_ci
-        private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
+    type: git
+    source:
+      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      branch: concourse_ci
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
 
