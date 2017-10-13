@@ -38,11 +38,9 @@ testdeps:
 	go install github.com/onsi/ginkgo/ginkgo
 	export PATH=$PATH:$PWD/bin
 
-test: testdeps
-	ginkgo -r
 
 testintci: testdeps
-	ginkgo integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
+	ginkgo src/bosh-alicloud-cpi/integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
 
 create-release: build
 	bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz
