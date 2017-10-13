@@ -11,3 +11,9 @@ src/gopkg.in
 .final_builds
 dev_releases
 vars*.*
+
+**/\.terraform/
+*.terraform/
+all_state
+crash.log
+terraform.log

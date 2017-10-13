@@ -7,23 +7,20 @@ image_resource:
 
 inputs:
   - name: bosh-cpi-src
-  - name: terraform
-  - name: terraform-provider
-  - name: terraform-module
-  - name: terraform-task
 
 outputs:
-  - name: terraform-env
+  - name: terraform-metadata
 
 run:
   path: sh
   args:
   - -exc
   - |
-    chmod +x terraform-task/build-environment.sh
-    terraform-task/build-environment.sh
+    chmod +x bosh-cpi-src/ci/tasks/build-environment.sh
+    bosh-cpi-src/ci/tasks/build-environment.sh
 
 params:
   ALICLOUD_ACCESS_KEY_ID:     ""
   ALICLOUD_SECRET_ACCESS_KEY: ""
   ALICLOUD_DEFAULT_REGION:    ""
+  DESTROY_ENVIRONMENT:  ""
