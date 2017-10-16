@@ -24,6 +24,7 @@ popd
 
 export BOSH_ALICLOUD_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export BOSH_ALICLOUD_SECRET_ACCESS_KEY=${ALICLOUD_SECRET_ACCESS_KEY}
+export ACCESS_KEY_CONFIG=${ALICLOUD_SECRET_ACCESS_KEY}
 #export BOSH_ALICLOUD_DEFAULT_KEY_NAME=$(echo ${metadata} | jq -e --raw-output ".default_key_name")
 #export BOSH_ALICLOUD_REGION=$(echo ${metadata} | jq -e --raw-output ".region")
 #export BOSH_ALICLOUD_SUBNET_ID=$(echo ${metadata} | jq -e --raw-output ".subnet_id")
