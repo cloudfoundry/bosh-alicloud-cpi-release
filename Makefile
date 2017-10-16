@@ -38,18 +38,10 @@ testdeps:
 	go install github.com/onsi/ginkgo/ginkgo
 	export PATH=$PATH:$PWD/bin
 
-get-deps:
-	go get -v github.com/onsi/ginkgo/ginkgo
-	go get -v github.com/onsi/gomega
-	go install github.com/onsi/ginkgo/ginkgo
-	export PATH=$PATH:$PWD/bin
+test: testdeps
+	ginkgo src/bosh-alicloud-cpi/action -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
 
-# Runs the unit tests with coverage
-test: get-deps clean fmt lint vet build
-	# ginkgo -r -race -skipPackage=integration .
-	go test -v ./src/bosh-alicloud-cpi/action -run=TestCreateVm
-
-testintci: get-deps
+testintci: testdeps
 	ginkgo src/bosh-alicloud-cpi/integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
 
 create-release: build
