@@ -102,17 +102,17 @@ jobs:
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-src, resource: bosh-cpi-src-in}
         - {trigger: false,  get: stemcell, resource: heavy-ubuntu-stemcell}
         - {get: 2h,             trigger: true}
-#      - <<: *create-environment
+      - <<: *create-environment
       - task: test
         file: bosh-cpi-src/ci/tasks/run-integration.yml
         params:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
           ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-#        ensure:
-#          do:
+        ensure:
+          do:
 #            - <<: *ensure-terminated
-#            - <<: *destroy-environment
+            - <<: *destroy-environment
 
   - name: bats
     serial: true

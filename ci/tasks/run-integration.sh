@@ -20,6 +20,9 @@ pushd stemcell
   mv image image.tgz
 popd
 
+echo "get metadata..."
+cat environment/ci/assets/terraform/metadata
+
 #metadata=$(cat ${METADATA_FILE})
 
 export BOSH_ALICLOUD_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}

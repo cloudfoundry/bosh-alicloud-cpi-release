@@ -6,7 +6,7 @@ image_resource:
 inputs:
   - name: bosh-cpi-src
   - name: stemcell
-#  - name: environment
+  - name: environment
 run:
   path: sh
   args:
