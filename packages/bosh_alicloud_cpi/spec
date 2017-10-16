@@ -1,6 +1,0 @@
----
-name: bosh_alicloud_cpi
-dependencies:
-- ruby_alicloud_cpi
-files:
-- bosh_alicloud_cpi/**/*

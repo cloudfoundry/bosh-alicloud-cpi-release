@@ -6,6 +6,8 @@ set -e
 : ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 : ${DESTROY_ENVIRONMENT:?}
+: ${GIT_UAER_EMAIL:?}
+: ${GIT_UAER_NAME:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-cpi-src
@@ -53,8 +55,8 @@ function copyToOutput(){
     cp -rf $1/. $2
 
     cd $2
-    git config --global user.email "guimin.hgm@alibaba-inc.com "
-    git config --global user.name "He Guimin"
+    git config --global user.email ${GIT_USER_EMAIL}
+    git config --global user.name ${GIT_USER_NAME}
     git config --local -l
 
     git status | sed -n '$p' | while read LINE
@@ -107,6 +109,8 @@ do
         sed -i '/^id/d' $METADATA
     fi
 done
+
+rm -rf ./all_state
 
 sed -i 's/=/:/g' $METADATA
 

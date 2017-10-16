@@ -1,3 +1,0 @@
-[submodule "src/bosh_alicloud_cpi"]
-	path = src/bosh_alicloud_cpi
-	url = git@github.com:alibaba/bosh_alicloud_cpi.git

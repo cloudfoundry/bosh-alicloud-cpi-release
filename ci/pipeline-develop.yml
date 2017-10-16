@@ -217,6 +217,8 @@ jobs:
           ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
           ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
           DESTROY_ENVIRONMENT: true
+          GIT_UAER_EMAIL: {{github_user_email}
+          GIT_UAER_NAME: {{github_user_name}
       - put: terraform-metadata
         params: {repository: terraform-metadata, rebase: true, force: true}
 
@@ -245,14 +247,12 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-#      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
-#      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: go-cpi-blobs
     type: git
     source:
@@ -338,7 +338,7 @@ resources:
   - name: terraform-metadata
     type: git
     source:
-      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
