@@ -39,7 +39,7 @@ testdeps:
 	export PATH=$PATH:$PWD/bin
 
 test: testdeps
-	ginkgo -r
+	ginkgo src/bosh-alicloud-cpi/action -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
 
 create-release: build
     bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz
