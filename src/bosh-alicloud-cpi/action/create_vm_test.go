@@ -13,14 +13,14 @@ var createVmArgs = []byte(`
         "m-2zehhdtfg22hq46reabf",
         {
             "ephemeral_disk": {
-                "size": 50,
+                "size": 40_000,
                 "type": "cloud_efficiency"
             },
             "image_id": "m-2ze200tcuotb5uk2kol4",
             "instance_name": "test-cc",
             "instance_type": "ecs.n4.small",
             "system_disk": {
-                "size": 50,
+                "size": 60_000,
                 "type": "cloud_efficiency"
             }
         },
@@ -60,10 +60,9 @@ var createVmBoshArgs = []byte (`
         {
             "availability_zone": "cn-beijing-c",
             "ephemeral_disk": {
-                "size": "100",
+                "size": 40_000,
                 "type": "cloud_efficiency"
             },
-            "halt_mark": "true",
             "instance_charge_type": "PostPaid",
             "instance_type": "ecs.n4.large"
         },
@@ -118,7 +117,11 @@ var createVmBoshBindEipArgs = []byte (`
         {
             "availability_zone": "cn-beijing-c",
             "ephemeral_disk": {
-                "size": "100",
+                "size": 100000,
+                "type": "cloud_efficiency"
+            },
+			"system_disk": {
+                "size": 100000,
                 "type": "cloud_efficiency"
             },
             "halt_mark": "true",
@@ -182,7 +185,7 @@ var createVmBoshArgs3 = []byte(`
         "m-2zeggz4i4n2z510ajcvw",
         {
             "ephemeral_disk": {
-                "size": 50,
+                "size": 50_000,
                 "type": "cloud_efficiency"
             },
             "image_id": "m-temp1234",
@@ -258,10 +261,10 @@ func TestCloudProps(t *testing.T) {
 	json.Unmarshal(cloudPropsJson, &props)
 
 	t.Log(props)
-	t.Log(props.EphemeralDisk.Size)
+	t.Log(props.EphemeralDisk.GetSizeGB())
 
 	var prop2 InstanceProps
 	json.Unmarshal(cloudPropsJson2, &prop2)
 	t.Log(prop2)
-	t.Log(prop2.EphemeralDisk.Size)
+	t.Log(prop2.EphemeralDisk.GetSizeGB())
 }

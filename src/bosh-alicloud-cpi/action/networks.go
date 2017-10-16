@@ -16,7 +16,6 @@ type Networks struct {
 	props NetworkProps
 }
 
-
 type NetworkProps struct {
 	SecurityGroupId string		`json:"security_group_id,omitempty"`
 	VSwitchId string			`json:"vswitch_id,omitempty"`
@@ -59,6 +58,8 @@ func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) (error) {
 		args.VSwitchId = a.GetVSwitchId()
 		args.SecurityGroupId = a.GetSecurityGroupId()
 		args.InternetChargeType = a.GetInternetChargeType()
+		args.InternetMaxBandwidthIn = a.GetInternetMaxBandwidthIn()
+		args.InternetMaxBandwidthOut = a.GetInternetMaxBandwidthOut()
 		return nil
 	} else {
 		return bosherr.Errorf("NOT IMPLEMENTED Dynamic Networks")
@@ -87,7 +88,7 @@ func (a Networks) BindInstanceEip(client *ecs.Client, instanceId string, regionI
 	}
 
 	if err := client.WaitForEip(regionId, allocationId, ecs.EipStatusInUse, 60); err != nil {
-		return fmt.Errorf("Error Waitting for EIP allocated: %#v", err)
+		return fmt.Errorf("error waitting for EIP allocated: %#v", err)
 	}
 	return nil
 }
