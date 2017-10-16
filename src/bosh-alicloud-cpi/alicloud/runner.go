@@ -18,9 +18,10 @@ const (
 )
 
 type Runner struct {
+	//DiskManager
+	//InstanceManager
+	//NetworkManager
 	Logger logger.Logger
-	InstanceManager
-	DiskManager
 	Config Config
 }
 
@@ -149,6 +150,15 @@ func (a Runner) GetDisks(instid string) ([]ecs.DiskItemType, error) {
 	}
 	disks, _, err := client.DescribeDisks(&args)
 	return disks, err
+}
+
+func (a Runner) AttachDisk(instid string, diskid string) (error) {
+	client := a.NewClient()
+	var args ecs.AttachDiskArgs
+	args.InstanceId = instid
+	args.DiskId = diskid
+	err := client.AttachDisk(&args)
+	return err
 }
 
 func (a Runner) GetDiskStatus(diskid string) (*ecs.DiskItemType, error) {
