@@ -46,4 +46,5 @@ check_go_version $GOPATH
 
 cd ${PWD}/bosh-cpi-src
 env
+make
 make testintci
