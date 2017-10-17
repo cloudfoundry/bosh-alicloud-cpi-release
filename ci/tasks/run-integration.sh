@@ -25,7 +25,8 @@ ls -al bosh-cpi-src/ci/assets/terraform
 cat bosh-cpi-src/ci/assets/terraform/metadata
 
 echo "get metadata from output..."
-ls terraform-metadata
+ls -al terraform-metadata
+cat terraform-metadata
 
 #metadata=$(cat ${METADATA_FILE})
 
