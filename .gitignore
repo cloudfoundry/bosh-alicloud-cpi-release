@@ -1,11 +1,11 @@
-out
-pkg
-bin
+/pkg
+/bin
 blobs
 *\.test
-.idea/*
+.idea
 src/github.com
 src/golang.org
+src/gopkg.in
 *.DS_Store
 .dev_builds
 .final_builds

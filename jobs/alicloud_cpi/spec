@@ -1,0 +1,124 @@
+---
+name: alicloud_cpi
+
+packages:
+  - bosh-alicloud-cpi
+
+templates:
+  bin/cpi.erb: bin/cpi
+  bin/pre-start.erb: bin/pre-start
+  config/cpi.json.erb: config/cpi.json
+
+properties:
+  alicloud.region_id:
+    description: "Alicloud owned regions, such as ap-southeast-1, cn-qingdao"
+    default: "cn-beijing"
+  alicloud.zone_id:
+    description: "Alicloud every region has zones, "
+    default: "cn-beijing-a"
+  alicloud.instance_type:
+    description: "Alicloud ecs type, such as ecs.t1.small, ecs.s2.large, ecs.s3.large"
+    default: "ecs.t1.small"
+  alicloud.image_id:
+    default: "m-23h4o8945"
+  alicloud.security_group_id:
+    default: "sg-238ux30qe"
+  alicloud.vswitch_id:
+    description: "Alicloud vswitch_id for VPC"
+    default: "vsw-2zevwt3w7h5u761o405rd"
+  alicloud.internet_charge_type:
+    default: "PayByTraffic"
+  alicloud.internet_max_band_width_out:
+    default: "10"
+  alicloud.instance_name:
+    default: bosh_alicloud_cpi_test
+  alicloud.data_disk_1_size:
+    default: "300"
+  alicloud.desc:
+    description: "VM description"
+    default: "bosh-using"
+  alicloud.hostname:
+    default: "bosh-vm"
+  alicloud.password:
+    default: "1qaz@WSX"
+  alicloud.access_key_id:
+    default: "${ACCESS_KEY_ID}"
+  alicloud.access_key_secret:
+    default: "${ACCESS_KEY_SECRET}"
+  alicloud.disk_snapshot_id:
+    default: ""
+  registry.username:
+    description: "User to access the Registry"
+    default: registry
+  registry.password:
+    description: "Password to access the Registry"
+    default: "75imrz1jjl6yjw7b67th"
+  registry.address:
+    description: Address of the Registry to connect to
+    default: "59.110.174.237"
+  registry.port:
+    description: Port of the Registry to connect to
+    default: 25777
+  ntp:
+    description: List of ntp server IPs. pool.ntp.org attempts to return IPs closest to your location, but you can still specify if needed.
+    default: [0.pool.ntp.org, 1.pool.ntp.org]
+
+  blobstore.provider:
+    description: Provider of the blobstore used by director and agent (dav|simple|s3)
+    default: 'dav'
+  blobstore.bucket_name:
+    description: AWS S3 Bucket used by s3 blobstore plugin
+  blobstore.credentials_source:
+    description: Where to get AWS credentials for the aws cpi. This can be set to `static` for to use an `access_key_id` and `secret_access_key` or `env_or_profile` to get the credentials from environment variables or an EC2 instance profile.
+    default: 'static'
+  blobstore.access_key_id:
+    description: AWS access_key_id used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
+    default: null
+  blobstore.secret_access_key:
+    description: AWS secret_access_key used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
+    default: null
+  blobstore.s3_region:
+    description: AWS region used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
+  blobstore.use_ssl:
+    description: Whether the s3 blobstore plugin should use SSL to connect to the blobstore server
+    default: true
+  blobstore.s3_port:
+    description: Port of blobstore server used by s3 blobstore plugin
+    default: 443
+  blobstore.host:
+    description: Host of blobstore server used by s3 blobstore plugin
+  blobstore.ssl_verify_peer:
+    description: Whether the s3 blobstore plugin should verify its peer when using SSL
+  blobstore.s3_signature_version:
+    description: Signature version used to connect to an s3 blobstore
+
+  blobstore.path:
+    description: Address of blobstore server used by simple blobstore plugin
+    default: ""
+
+  blobstore.address:
+    description: Address of blobstore server used by simple blobstore plugin
+    default: ""
+  blobstore.port:
+    description: Port of blobstore server used by simple blobstore plugin
+    default: 25250
+  blobstore.agent.user:
+    description: Username agent uses to connect to blobstore used by simple blobstore plugin
+    default: ""
+  blobstore.agent.password:
+    description: Password agent uses to connect to blobstore used by simple blobstore plugin
+    default: ""
+  nats.user:
+    description: Username to connect to nats with
+    default: "nats"
+  nats.password:
+    description: Password to connect to nats with
+    default: "nats-password"
+  nats.address:
+    description: Address of the nats server
+    default: "127.0.0.1"
+  nats.port:
+    description: Port that the nats server listens on
+    default: 4222
+  agent.mbus:
+    description: mbus address

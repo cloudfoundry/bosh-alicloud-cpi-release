@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo " ========================================"
+echo " pre-start.erb "
+echo " ========================================"
+
+# Set directories
+LOGS_DIR=/var/vcap/sys/log
+
+if [ -d ${LOGS_DIR} ]; then
+  mkdir -p ${LOGS_DIR}/alicloud_cpi
+fi
+chown -R vcap:vcap ${LOGS_DIR}/alicloud_cpi
