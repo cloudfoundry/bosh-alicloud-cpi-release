@@ -21,7 +21,6 @@ pushd stemcell
 popd
 
 echo "get metadata..."
-ls terraform-metadata
 ls bosh-cpi-src/ci/assets/terraform
 cat environment/ci/assets/terraform/metadata
 
