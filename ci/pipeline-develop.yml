@@ -9,7 +9,7 @@ groups:
       - end-2-end
 #      - delivery
       - promote-candidate
-      - build-environment
+#      - build-environment
 
 shared:
   - &prepare-director
@@ -45,6 +45,19 @@ shared:
       delete_on_failure: true
       generate_random_name: true
       terraform_source: bosh-cpi-src/ci/assets/terraform
+
+  - &build-environment
+    task: build-environment
+    file: bosh-cpi-src/ci/tasks/build-environment.yml
+    params:
+      ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
+      ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
+      ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
+      DESTROY_ENVIRONMENT: true
+      GIT_UAER_EMAIL: {{github_user_email}}
+      GIT_UAER_NAME: {{github_user_name}}
+#    - put: environment
+#        params: {repository: terraform-metadata, rebase: true, force: true}
 
   - &destroy-environment
     put: environment
@@ -102,7 +115,7 @@ jobs:
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-src, resource: bosh-cpi-src-in}
         - {trigger: false,  get: stemcell, resource: heavy-ubuntu-stemcell}
         - {get: 2h,             trigger: true}
-      - <<: *create-environment
+      - <<: *build-environment
       - task: test
         file: bosh-cpi-src/ci/tasks/run-integration.yml
         params:
@@ -205,22 +218,6 @@ jobs:
       - put: release-version-semver
         params: {file: release-version-semver/number}
 
-  - name: build-environment
-#    serial: true
-    plan:
-      - aggregate:
-         - {trigger: true, get: bosh-cpi-src, resource: bosh-cpi-src-in}
-      - task: test
-        file: bosh-cpi-src/ci/tasks/build-environment.yml
-        params:
-          ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-          ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
-          ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-          DESTROY_ENVIRONMENT: true
-          GIT_UAER_EMAIL: {{github_user_email}
-          GIT_UAER_NAME: {{github_user_name}
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
 
 resource_types:
   - name: terraform_type
@@ -253,6 +250,12 @@ resources:
         - .final_builds/**/*.yml
         - releases/**/*.yml
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+#  - name: environment
+#      type: git
+#      source:
+#        uri: git@gitlab.com:demonwy/bosh-alicloud-cpi-release.git
+#        branch: cpi_dev_terraform_tmp
+#        private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: go-cpi-blobs
     type: git
     source:
@@ -335,7 +338,7 @@ resources:
       branch: support_alicloud
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
-  - name: terraform-metadata
+  - name: environment
     type: git
     source:
       uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
