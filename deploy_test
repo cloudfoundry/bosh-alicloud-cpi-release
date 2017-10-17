@@ -1,5 +1,0 @@
-git commit -c "dev release"
-
-bosh create-release --force --tarball=~/Temp/blobs/bosh-alicloud-cpi.tgz
-
-scp ~/Temp/blobs/bosh-alicloud-cpi.tgz root@47.95.116.180:/root
