@@ -29,6 +29,7 @@ func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 		return bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
 	}
 
+	//
 	// client.DescribeDisks()
 	registryClient := a.runner.GetHttpRegistryClient()
 	agentSettings, _ := registryClient.Fetch(args.InstanceId)

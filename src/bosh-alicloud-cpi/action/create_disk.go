@@ -38,7 +38,7 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid
 		DiskName: "",			//TODO
 		Description: "",		//TODO
  		DiskCategory: ecs.DiskCategoryCloudEfficiency,		//TODO
-		Size:     size,			//TODO
+		Size:     ConvertToGB(float64(size)),			//TODO
 		SnapshotId:   "",		//TODO
 		ClientToken:  "",		//TODO
 	}
@@ -51,7 +51,7 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid
 
 	diskcid := apiv1.NewDiskCID(diskId)
 
-	// TODO? need Attact?
+	// TODO? need Attach?
 	// NewAttachDiskMethod(a.runner).AttachDisk(*vmcid, diskcid)
 
 	return diskcid, nil

@@ -35,6 +35,10 @@ func NewHTTPClient(
 	}
 }
 
+func (c HTTPClient) GetOptions() (ClientOptions) {
+	return c.options
+}
+
 // Delete deletes the instance settings for a given instance ID.
 func (c HTTPClient) Delete(instanceID string) error {
 	endpoint := fmt.Sprintf("%s/instances/%s/settings", c.options.EndpointWithCredentials(), instanceID)

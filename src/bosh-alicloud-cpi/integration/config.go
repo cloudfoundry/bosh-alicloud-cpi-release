@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"fmt"
 )
 
 type CpiResponse struct {
@@ -23,14 +24,24 @@ type CpiError struct {
 	OkToRetry bool   `json:"ok_to_retry"`
 }
 
-var TestConfig = []byte(`
-{
+var (
+	// provider config
+	regionId         = envOrDefault("REGION_ID", "cn-beijing")
+	zoneId           = envOrDefault("ZONE_ID", "cn-beijing-c")
+	registry_address = envOrDefault("REGISTRY_ADDRESS", "172.16.0.3")
+
+	// Configurable defaults
+	boshStemcellImageId = envOrDefault("BOSH_STEMCELL_FILE", "m-2zeggz4i4n2z510ajcvw")
+	securityGroupId     = envOrDefault("SECURITY_GROUP_ID", "sg-2ze7qg9qdmt1lt9lgvgt")
+	vswitchId           = envOrDefault("VSWITCH_ID", "vsw-2ze1oepoom33cdt6nsk88")
+
+	cfgContent = fmt.Sprintf(`{
     "cloud": {
         "plugin": "alicloud",
         "properties": {
             "alicloud": {
-                "region_id": "cn-beijing",
-                "zone_id": "cn-beijing-c",
+                "region_id": "%v",
+                "zone_id": "%v",
                 "access_key_id": "${ACCESS_KEY_ID}",
                 "access_key_secret": "${ACCESS_KEY_CONFIG}"
             },
@@ -38,7 +49,7 @@ var TestConfig = []byte(`
                 "user": "registry",
                 "password": "2a57f7c0-7726-4e76-43aa-00b10b073229",
                 "protocol": "http",
-                "address": "172.16.0.3",
+                "address": "%v",
                 "port": 6901
             },
             "agent": {
@@ -55,12 +66,12 @@ var TestConfig = []byte(`
             }
         }
     }
-}
-`)
+}`, regionId, zoneId, registry_address)
+)
 
 func execCPI(request string) (CpiResponse, error) {
 	var resp CpiResponse
-	config, _ := alicloud.NewConfigFromBytes(TestConfig)
+	config, _ := alicloud.NewConfigFromBytes([]byte(cfgContent))
 
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
 	runner := alicloud.NewRunner(logger, config)
@@ -85,4 +96,11 @@ func execCPI(request string) (CpiResponse, error) {
 	}
 
 	return resp, err
+}
+
+func envOrDefault(key, defaultVal string) (val string) {
+	if val = os.Getenv(key); val == "" {
+		val = defaultVal
+	}
+	return
 }
