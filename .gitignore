@@ -1,0 +1,12 @@
+out
+pkg
+bin
+blobs
+*\.test
+.idea/*
+src/github.com
+src/golang.org
+*.DS_Store
+.dev_builds
+.final_builds
+dev_releases

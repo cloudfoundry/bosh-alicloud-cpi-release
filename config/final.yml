@@ -1,0 +1,7 @@
+---
+name: bosh-alicloud-cpi
+
+blobstore:
+  provider: local
+  options:
+    blobstore_path: ./blobs
