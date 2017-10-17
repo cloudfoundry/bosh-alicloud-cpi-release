@@ -6,8 +6,8 @@ set -e
 : ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 : ${DESTROY_ENVIRONMENT:?}
-: ${GIT_UAER_EMAIL:?}
-: ${GIT_UAER_NAME:?}
+: ${GIT_USER_EMAIL:?}
+: ${GIT_USER_NAME:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-cpi-src
@@ -53,6 +53,29 @@ fi
 function copyToOutput(){
 
     cp -rf $1/. $2
+
+    cd $2
+    echo "******* ls -l *******"
+    ls -la
+
+    git config --global user.email ${GIT_USER_EMAIL}
+    git config --global user.name ${GIT_USER_NAME}
+    git config --local -l
+
+    echo "******* git end****"
+    git status
+
+    git status | sed -n '$p' | while read LINE
+    do
+        echo $LINE
+        if [[ $LINE != nothing* ]];
+        then
+            echo "********* git add and commit"
+            git add .
+            git commit -m 'commit metadata'
+            echo "********* git add and commit end"
+        fi
+    done
     return 0
 }
 
@@ -101,7 +124,5 @@ rm -rf ./all_state
 
 sed -i 's/=/:/g' $METADATA
 
-ls -l
-cat $METADATA
 echo "Copy to output ......"
-#copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
+copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}

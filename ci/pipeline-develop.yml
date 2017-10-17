@@ -54,10 +54,8 @@ shared:
       ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
       ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
       DESTROY_ENVIRONMENT: false
-      GIT_UAER_EMAIL: {{github_user_email}}
-      GIT_UAER_NAME: {{github_user_name}}
-#    - put: environment
-#        params: {repository: terraform-metadata, rebase: true, force: true}
+      GIT_USER_EMAIL: {{github_user_email}}
+      GIT_USER_NAME: {{github_user_name}}
 
   - &destroy-environment
     put: environment
@@ -116,16 +114,18 @@ jobs:
         - {trigger: false,  get: stemcell, resource: heavy-ubuntu-stemcell}
         - {get: 2h,             trigger: true}
       - <<: *build-environment
+      - put: terraform-metadata
+        params: {repository: terraform-metadata, rebase: true, force: true}
       - task: test
         file: bosh-cpi-src/ci/tasks/run-integration.yml
         params:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
           ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-        ensure:
-          do:
+#        ensure:
+#          do:
 #            - <<: *ensure-terminated
-            - <<: *destroy-environment
+#            - <<: *destroy-environment
 
   - name: bats
     serial: true
@@ -338,7 +338,7 @@ resources:
       branch: support_alicloud
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
-  - name: environment
+  - name: terraform-metadata
     type: git
     source:
       uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
