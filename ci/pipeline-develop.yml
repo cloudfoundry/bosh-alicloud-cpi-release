@@ -59,7 +59,7 @@ shared:
 
   - &destroy-environment
     task: build-environment
-    file: bosh-cpi-src/ci/tasks/build-environment.yml
+    file: bosh-cpi-src/ci/tasks/destroy-environment.yml
     params:
       ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
       ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
@@ -128,6 +128,23 @@ jobs:
 #          do:
 #            - <<: *ensure-terminated
 #            - <<: *destroy-environment
+
+  - name: test-environment
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
+      - <<: *destroy-environment
+      - <<: *build-environment
+      - put: terraform-metadata
+        params: {repository: terraform-metadata, rebase: true, force: true}
+      - task: test
+        file: bosh-cpi-src/ci/tasks/run-integration.yml
+        params:
+          ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
+          ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
+          ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
+      - <<: *destroy-environment
 
   - name: bats
     serial: true
@@ -246,12 +263,13 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+#      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
 #  - name: environment
 #      type: git
 #      source:
@@ -343,7 +361,8 @@ resources:
   - name: terraform-metadata
     type: git
     source:
-      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+#      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
 

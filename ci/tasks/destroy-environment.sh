@@ -5,7 +5,6 @@ set -e
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
-: ${DESTROY_ENVIRONMENT:?}
 : ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
 
@@ -32,13 +31,16 @@ export PATH="${TERRAFORM_PATH}:$PATH"
 cd ${TERRAFORM_MODULE}
 
 rm -rf ${METADATA}
-touch ${METADATA}
 
-echo "Build terraform environment......"
-
-terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
-
-echo "Build terraform environment successfully."
+echo "Destroy terraform environment......"
+terraform init
+echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
+echo yes >> terraform_destroy.sh
+echo EOF >> terraform_destroy.sh
+chmod +x terraform_destroy.sh
+./terraform_destroy.sh
+echo "Destroy terraform environment successfully."
+rm -rf ./terraform_destroy.sh
 
 function copyToOutput(){
 
@@ -64,49 +66,6 @@ function copyToOutput(){
     done
     return 0
 }
-
-if [ ! -e "./terraform.tfstate" ];
-then
-    echo "./terraform.tfstate is not exist and then quit."
-    exit 0
-fi
-
-terraform state list > all_state
-echo "Write metadata ......"
-cat all_state | while read LINE
-do
-    if [ $LINE == "alicloud_vswitch.default" ];
-    then
-        terraform state show $LINE >> $METADATA
-        cat $METADATA | while read line
-        do
-          echo $line
-          if [[ $line == id* ]];
-          then
-              echo vswitch_$line >> $METADATA
-          fi
-        done
-        sed -i '/^id/d' $METADATA
-    fi
-    if [ $LINE == "alicloud_security_group.sg" ];
-    then
-        terraform state show $LINE >> $METADATA
-        cat $METADATA | while read line
-        do
-          echo $line
-          if [[ $line == id* ]];
-          then
-              echo security_group_$line >> $METADATA
-          fi
-        done
-        sed -i '/^id/d' $METADATA
-    fi
-done
-echo "Write metadata successfully"
-
-rm -rf ./all_state
-
-sed -i 's/=/:/g' $METADATA
 
 echo "Copy to output ......"
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
