@@ -1,0 +1,10 @@
+description : tf_sg
+name        : bosh_init_sg_911
+vpc_id      : vpc-2ze5y4r2kswrta9cwtfte
+security_group_id : sg-2ze8zydjlnxv9p76j368
+availability_zone : cn-beijing-a
+cidr_block        : 172.16.0.0/24
+description       : 
+name              : 
+vpc_id            : vpc-2ze5y4r2kswrta9cwtfte
+vswitch_id : vsw-2zemy66cy0v34pvs0stm2
