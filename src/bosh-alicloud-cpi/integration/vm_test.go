@@ -14,7 +14,7 @@ var _ = Describe("VM", func() {
 			  "method": "create_vm",
 			  "arguments": [
 				"7bc16fab-52c3-4bb9-a5c3-560445986860",
-				"m-2zeggz4i4n2z510ajcvw",
+				"%v",
 				{
 					"ephemeral_disk": {
 						"size": 50,
@@ -43,7 +43,7 @@ var _ = Describe("VM", func() {
 					}
 				}
 			]
-			}`, "sg-2ze7qg9qdmt1lt9lgvgt", "vsw-2ze1oepoom33cdt6nsk88")
+			}`, boshStemcellImageId, securityGroupId, vswitchId)
 		resp, err := execCPI(request)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resp.Error.Message).ToNot(BeEmpty())
@@ -95,7 +95,6 @@ var _ = Describe("VM", func() {
 					}
 				},
 				[
-
 				],
 				{
 					"bosh": {

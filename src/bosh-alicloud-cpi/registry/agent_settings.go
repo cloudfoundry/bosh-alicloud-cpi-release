@@ -1,5 +1,10 @@
 package registry
 
+import (
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+	"encoding/json"
+)
+
 const defaultSystemDisk = "/dev/sda"
 
 type agentSettingsResponse struct {
@@ -68,24 +73,23 @@ type PersistentSettings struct {
 }
 
 // EnvSettings are the Environment settings for a particular VM.
-type EnvSettings struct {
-	BoshEnv BoshEnv			`json:"bosh"`
-	PersistentDiskFs string `json:"persistent_disk_fs"`
-}
+type EnvSettings map[string]interface{}
 
-type BoshEnv struct {
-	Password              string   `json:"password"`
-	KeepRootPassword      bool     `json:"keep_root_password"`
-	RemoveDevTools        bool     `json:"remove_dev_tools"`
-	// RemoveStaticLibraries bool     `json:"remove_static_libraries"`
-	// AuthorizedKeys        []string `json:"authorized_keys"`
-	// SwapSizeInMB          *uint64  `json:"swap_size"`
-	//  Mbus                  struct {
-	//	  Cert CertKeyPair `json:"cert"`
-	//  } `json:"mbus"`
+//type BoshEnv struct {
+//	Password              string   `json:"password"`
+//	KeepRootPassword      bool     `json:"keep_root_password"`
+//	RemoveDevTools        bool     `json:"remove_dev_tools"`
+//	// RemoveStaticLibraries bool     `json:"remove_static_libraries"`
+//	// AuthorizedKeys        []string `json:"authorized_keys"`
+//	// SwapSizeInMB          *uint64  `json:"swap_size"`
+//	//  Mbus                  struct {
+//	//	  Cert CertKeyPair `json:"cert"`
+//	//  } `json:"mbus"`
+//
+//	// IPv6 IPv6 `json:"ipv6"`
+//}
 
-	// IPv6 IPv6 `json:"ipv6"`
-}
+
 // NetworksSettings are the Networks settings for a particular VM.
 type NetworksSettings map[string]NetworkSettings
 
@@ -183,4 +187,20 @@ func (as AgentSettings) DetachPersistentDisk(diskID string) AgentSettings {
 	as.Disks.Persistent = persistenDiskSettings
 
 	return as
+}
+
+func UnmarshalEnvSettings(env apiv1.VMEnv) (EnvSettings, error) {
+	var r EnvSettings
+
+	bytes, err := env.MarshalJSON()
+
+	if err != nil {
+		return r, err
+	}
+
+	err = json.Unmarshal(bytes, &r)
+	if err != nil {
+		return r, err
+	}
+	return r, nil
 }

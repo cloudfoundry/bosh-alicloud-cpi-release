@@ -18,25 +18,12 @@ type CreateVMMethod struct {
 type InstanceProps struct {
 	ImageId string 				`json:"image_id"`
 	AvailabilityZone string		`json:"availability_zone"`
-	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
 	InstanceName string 		`json:"instance_name"`
 	InstanceChargeType string	`json:"instance_charge_type"`
 	InstanceType string 		`json:"instance_type"`
 	InstanceRole string			`json:"instance_role"`
+	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
 	SystemDisk DiskInfo			`json:"system_disk"`
-}
-
-type DiskInfo struct {
-	Size json.Number		`json:"size,omitempty"`
-	Type string				`json:"type,omitempty"`
-}
-
-func (a DiskInfo) GetSize() int {
-	n, err := a.Size.Int64()
-	if err != nil {
-		n = 55
-	}
-	return int(n)
 }
 
 func NewCreateVMMethod(runner alicloud.Runner) CreateVMMethod {
@@ -53,13 +40,24 @@ func (a CreateVMMethod) CreateVM(
 	logger := a.runner.Logger
 	client := a.runner.NewClient()
 
+	logger.Info("ENV", "inv: %v", env)
+	env2, err := registry.UnmarshalEnvSettings(env)
+	if err != nil {
+		return cid, bosherr.WrapErrorf(err,"UnmarshalEnvSettings failed %v", env)
+	}
+	logger.Info("ENV", "inv: %v", env2)
+
 	//
 	// convert CloudProps to alicloud dedicated Props
 	var args ecs.CreateInstanceArgs
 
 	var instProps InstanceProps
 	logger.Info("INPUT", "json %s", cloudProps)
-	cloudProps.As(&instProps)
+	err = cloudProps.As(&instProps)
+	if err != nil {
+		return cid, bosherr.WrapErrorf(err, "unmarshal CloudProps failed %v", cloudProps)
+	}
+
 	logger.Info("INPUT", "unmarshal CloudProps<Instance>: %s", instProps)
 
 	logger.Info("INPUT", "unmarshal NetworkProps<Instance>: %v", networkArgs)
@@ -71,11 +69,12 @@ func (a CreateVMMethod) CreateVM(
 	networks.FillCreateInstanceArgs(&args)
 
 	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
-	args.ZoneId = a.runner.Config.OpenApi.ZoneId //TODO use AZ
+	args.ZoneId = instProps.AvailabilityZone
 	args.ImageId = stemcellCID.AsString()
 	args.UserData = a.runner.Config.Registry.ToInstanceUserData()
 
 	args.InstanceType = instProps.InstanceType
+	args.InstanceChargeType = common.PostPaid
 	if strings.Compare(args.InstanceType, "") == 0 {
 		args.InstanceType = "ecs.n4.xlarge"
 	}
@@ -83,21 +82,11 @@ func (a CreateVMMethod) CreateVM(
 	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
 
-	disk := instProps.EphemeralDisk
-	if disk.Type != "" {
-		args.DataDisk = []ecs.DataDiskType{
-			{Size: disk.GetSize(), Category: ecs.DiskCategory(disk.Type),},
-		}
+	disks, err := NewDisks(instProps.SystemDisk, []DiskInfo{instProps.EphemeralDisk})
+	if err != nil {
+		return cid, bosherr.WrapErrorf(err, "bad disks format, %v", instProps)
 	}
-
-	disk = instProps.SystemDisk
-	if disk.Type != "" {
-		args.SystemDisk.Size = disk.GetSize()
-		args.SystemDisk.Category = ecs.DiskCategory(disk.Type)
-	} else {
-		args.SystemDisk.Size = 50
-		args.SystemDisk.Category = ecs.DiskCategory("cloud_efficiency")
-	}
+	disks.FillCreateInstanceArgs(&args)
 
 	//
 	//args.SecurityGroupId = networks.GetSecurityGroupId()
@@ -113,59 +102,70 @@ func (a CreateVMMethod) CreateVM(
 
 	logger.Info("OPENAPI", "Args %s", string(req))
 
-	instid, err := client.CreateInstance(&args)
-
-	if strings.Compare("fake", instProps.InstanceRole) == 0 {
-		return apiv1.VMCID{}, bosherr.Errorf("Halt for test instProps=%s\n networkProps=%s\n args=%s\n",
-			instProps, networks, args)
-	}
-
-	if err != nil {
-		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "CreateInstance failed INPUT=%s ", string(req))
-	}
-
+	//
 	// insert agent re
 	agentSettings := registry.AgentSettings {
 		AgentID: agentID.AsString(),
 		Blobstore: a.runner.Config.Agent.Blobstore.AsRegistrySettings(),
-		Disks: registry.DisksSettings {
-			System: "/dev/vda",
-			Ephemeral: "/dev/vdb",
-			Persistent: map[string]interface{} {},
-		},
-		Env: registry.EnvSettings {
-			BoshEnv: registry.BoshEnv {
-				Password: "",
-				KeepRootPassword: false,
-				RemoveDevTools: false,
-			},
-			PersistentDiskFs: "",
-		},
+		Disks: disks.AsRegistrySettings(),
+		Env: env2,
 		Mbus: a.runner.Config.Agent.Mbus,
 		Networks: networks.AsRegistrySettings(),
 		Ntp: a.runner.Config.Agent.Ntp,
 		VM: registry.VMSettings {
-			Name: instid,
+			Name: "",
 		},
 	}
 
-	if strings.Compare("director", instProps.InstanceRole) != 0 {
-		err = a.UpdateAgentSettings(instid, agentSettings)
+	if strings.Compare("fake", instProps.InstanceRole) == 0 {
+		j1, _ := json.Marshal(args)
+		j2, _ := json.Marshal(agentSettings)
+		return apiv1.VMCID{}, bosherr.Errorf("haltForTest instProps=%v\n networkProps=%v\n args=%s\n registry=%s\n",
+			instProps, networks, j1, j2)
+	}
+
+	//
+	// do create instance
+	instid, err := client.CreateInstance(&args)
+	if err != nil {
+		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "CreateInstance failed INPUT=%s ", string(req))
+	}
+
+	agentSettings.VM.Name = instid
+
+	//
+	//
+	for _, diskCid := range associatedDiskCIDs {
+		err := a.runner.AttachDisk(instid, diskCid.AsString())
 		if err != nil {
-			return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
+			return cid, bosherr.WrapErrorf(err, "associate Persistent Disk error diskCid=%s", diskCid)
 		}
+
+		path, err := a.runner.WaitForDiskStatus(diskCid.AsString(), ecs.DiskStatusInUse)
+		if err != nil {
+			return cid, bosherr.WrapErrorf(err, "associate and WaitForDiskStatus Failed diskCid=%s", diskCid)
+		}
+		disks.AssociatePersistentDisk(diskCid.AsString(), path)
+	}
+
+	err = a.UpdateAgentSettings(instid, agentSettings)
+	if err != nil {
+		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
 	}
 
 	err = a.runner.StartInstance(instid)
-
 	if err != nil {
-		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed instanceid =", instid)
+		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed cid =", instid)
 	}
 
 	err = a.runner.WaitForInstanceStatus(instid, ecs.Running)
-
 	if err != nil {
-		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed instanceid=", instid)
+		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed cid=", instid)
+	}
+
+	err = networks.BindInstanceEip(client, instid, args.RegionId)
+	if err != nil {
+		return apiv1.NewVMCID(instid), bosherr.WrapErrorf(err, "StartInstance failed cid=")
 	}
 
 	err = networks.BindInstanceEip(client, instid, args.RegionId)
@@ -186,9 +186,7 @@ func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registr
 	if err != nil {
 		json, _ := json.Marshal(agentSettings)
 		a.runner.Logger.Error("create_vm", "UpdateAgentSettings to registery failed %s json:%s", json)
-		//
-		// TODO, when first time to create director, this action must failed, how to aviod it??
-		// return bosherr.WrapErrorf(err, "UpdateAgentSettings failed %s %s %s", clientOptions, agentSettings, conf)
+		return bosherr.WrapErrorf(err, "UpdateAgentSettings failed %v %s", client, json)
 	}
 
 	return nil

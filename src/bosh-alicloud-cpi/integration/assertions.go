@@ -18,4 +18,5 @@ func assertSucceedsWithResult(request string) interface{} {
 
 	Expect(response.Result).ToNot(BeNil())
 	return response.Result
+
 }
