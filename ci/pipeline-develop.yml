@@ -53,6 +53,7 @@ shared:
       ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
       ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
       ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
+      DESTROY_ENVIRONMENT: true
       GIT_UAER_EMAIL: {{github_user_email}}
       GIT_UAER_NAME: {{github_user_name}}
 #    - put: environment

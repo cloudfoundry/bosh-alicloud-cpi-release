@@ -114,4 +114,4 @@ rm -rf ./all_state
 
 sed -i 's/=/:/g' $METADATA
 
-copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
+#copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
