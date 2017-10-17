@@ -22,7 +22,7 @@ popd
 
 echo "get metadata...."
 ls bosh-cpi-src/ci/assets/terraform
-cat environment/ci/assets/terraform/metadata
+cat bosh-cpi-src/ci/assets/terraform/metadata
 
 #metadata=$(cat ${METADATA_FILE})
 
