@@ -5,6 +5,8 @@ set -e
 source bosh-cpi-src/ci/tasks/utils.sh
 #source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
+METADATA_FILE=$(pwd)/terraform-metadata/ci/assets/terraform/metadata
+
 check_param ALICLOUD_ACCESS_KEY_ID
 check_param ALICLOUD_DEFAULT_REGION
 
@@ -20,15 +22,11 @@ pushd stemcell
   mv image image.tgz
 popd
 
-echo "get metadata..."
-ls -al bosh-cpi-src/ci/assets/terraform
-cat bosh-cpi-src/ci/assets/terraform/metadata
-
 echo "get metadata from output..."
-ls -al terraform-metadata
-cat terraform-metadata
+ls -al terraform-metadata/ci/assets/terraform
+cat terraform-metadata/ci/assets/terraform/metadata
 
-#metadata=$(cat ${METADATA_FILE})
+metadata=$(cat ${METADATA_FILE})
 
 export BOSH_ALICLOUD_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export BOSH_ALICLOUD_SECRET_ACCESS_KEY=${ALICLOUD_SECRET_ACCESS_KEY}
