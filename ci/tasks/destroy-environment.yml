@@ -1,0 +1,26 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: boshcpi/aws-cpi-release}
+
+inputs:
+  - name: bosh-cpi-src
+
+outputs:
+  - name: terraform-metadata
+
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    chmod +x bosh-cpi-src/ci/tasks/destroy-environment.sh
+    bosh-cpi-src/ci/tasks/destroy-environment.sh
+params:
+  ALICLOUD_ACCESS_KEY_ID:     ""
+  ALICLOUD_SECRET_ACCESS_KEY: ""
+  ALICLOUD_DEFAULT_REGION:    ""
+  GIT_USER_EMAIL: ""
+  GIT_USER_NAME: ""
