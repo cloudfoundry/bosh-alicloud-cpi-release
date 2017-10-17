@@ -53,21 +53,6 @@ fi
 function copyToOutput(){
 
     cp -rf $1/. $2
-
-    cd $2
-    git config --global user.email ${GIT_USER_EMAIL}
-    git config --global user.name ${GIT_USER_NAME}
-    git config --local -l
-
-    git status | sed -n '$p' | while read LINE
-    do
-        echo $LINE
-        if [[ $LINE != nothing* ]];
-        then
-            git add .
-            git commit -m 'commit metadata'
-        fi
-    done
     return 0
 }
 
@@ -116,5 +101,7 @@ rm -rf ./all_state
 
 sed -i 's/=/:/g' $METADATA
 
+ls -l
+cat $METADATA
 echo "Copy to output ......"
 #copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}

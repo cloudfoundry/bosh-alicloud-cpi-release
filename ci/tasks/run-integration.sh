@@ -21,7 +21,7 @@ pushd stemcell
 popd
 
 echo "get metadata...."
-ls bosh-cpi-src/ci/assets/terraform
+ls -al bosh-cpi-src/ci/assets/terraform
 cat bosh-cpi-src/ci/assets/terraform/metadata
 
 #metadata=$(cat ${METADATA_FILE})
@@ -42,10 +42,6 @@ export ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 #export BOSH_ALICLOUD_KMS_KEY_ARN=$(echo ${metadata} | jq -e --raw-output ".alicloud_kms_key_arn")
 
 export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
-
-echo "ak: "
-echo $ACCESS_KEY_ID
-echo $ACCESS_KEY_CONFIG
 
 ls ${PWD}
 # Setup Go and run tests
