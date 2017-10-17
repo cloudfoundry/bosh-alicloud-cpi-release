@@ -46,7 +46,7 @@ then
    echo EOF >> terraform_destroy.sh
    chmod +x terraform_destroy.sh
    ./terraform_destroy.sh
-
+   echo "Destroy terraform environment successfully."
    rm -rf ./terraform_destroy.sh
 fi
 
@@ -73,13 +73,15 @@ function copyToOutput(){
 
 if [ ! -e "./terraform.tfstate" ];
 then
-    copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
+#    copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
     echo "./terraform.tfstate is not exist and then quit."
     exit 0
 fi
 
 terraform state list > all_state
-
+ls -l
+ls -l ../
+echo "Write metadata ......"
 cat all_state | while read LINE
 do
     if [ $LINE == "alicloud_vswitch.default" ];
@@ -109,9 +111,10 @@ do
         sed -i '/^id/d' $METADATA
     fi
 done
-
+echo "Write metadata successfully"
 rm -rf ./all_state
 
 sed -i 's/=/:/g' $METADATA
 
+echo "Copy to output ......"
 #copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
