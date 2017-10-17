@@ -117,11 +117,11 @@ var createVmBoshBindEipArgs = []byte (`
         {
             "availability_zone": "cn-beijing-c",
             "ephemeral_disk": {
-                "size": 100000,
+                "size": "40_000",
                 "type": "cloud_efficiency"
             },
 			"system_disk": {
-                "size": 100000,
+                "size": "40_000",
                 "type": "cloud_efficiency"
             },
             "halt_mark": "true",

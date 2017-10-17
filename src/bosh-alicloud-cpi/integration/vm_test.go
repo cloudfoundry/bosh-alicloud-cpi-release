@@ -17,13 +17,13 @@ var _ = Describe("VM", func() {
 				"%v",
 				{
 					"ephemeral_disk": {
-						"size": 50,
+						"size": "50_000",
 						"type": "cloud_efficiency"
 					},
 					"image_id": "m-temp1234",
 					"instance_type": "ecs.n4.large",
 					"system_disk": {
-						"size": 50,
+						"size": "50_000",
 						"type": "cloud_efficiency"
 					}
 				},
@@ -60,7 +60,7 @@ var _ = Describe("VM", func() {
 				{
 					"availability_zone": "%v",
 					"ephemeral_disk": {
-						"size": "100",
+						"size": "50_000",
 						"type": "cloud_efficiency"
 					},
 					"halt_mark": "true",
