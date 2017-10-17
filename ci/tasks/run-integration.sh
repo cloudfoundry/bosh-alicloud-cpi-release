@@ -20,9 +20,12 @@ pushd stemcell
   mv image image.tgz
 popd
 
-echo "get metadata...."
+echo "get metadata..."
 ls -al bosh-cpi-src/ci/assets/terraform
 cat bosh-cpi-src/ci/assets/terraform/metadata
+
+echo "get metadata from output..."
+ls terraform-metadata
 
 #metadata=$(cat ${METADATA_FILE})
 

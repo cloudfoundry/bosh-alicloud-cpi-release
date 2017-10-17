@@ -6,7 +6,7 @@ image_resource:
 inputs:
   - name: bosh-cpi-src
   - name: stemcell
-#  - name: environment
+  - name: terraform-metadata
 run:
   path: sh
   args:
