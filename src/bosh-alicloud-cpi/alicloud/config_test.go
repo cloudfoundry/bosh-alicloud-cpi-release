@@ -20,8 +20,8 @@ var _ = Describe("Testing with Ginkgo", func() {
 						"alicloud": {
 							"region_id": "cn-beijing",
 							"zone_id": "cn-beijing-a",
-							"access_key_id": "***REMOVED***",
-							"access_key_secret": "***REMOVED***"
+							"access_key_id": "${ACCESS_KEY_ID}",
+							"access_key_secret": "${ACCESS_KEY_SECRET}"
 						},
 						"registry": {
 							"user": "registry",
