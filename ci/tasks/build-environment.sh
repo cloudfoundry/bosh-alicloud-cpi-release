@@ -8,6 +8,7 @@ set -e
 : ${DESTROY_ENVIRONMENT:?}
 : ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
+: ${GIT_USER_PASSWORD:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-cpi-src
@@ -17,6 +18,7 @@ TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
 METADATA=metadata
 TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
+GIT_USER_ID=xiaozhu36
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
@@ -61,7 +63,8 @@ function copyToOutput(){
             git remote add https https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
             git pull https concourse_ci_tmp
             echo git pull https concourse_ci_tmp  \<\< EOF > git_pull.sh
-            echo ${GIT_USER_NAME} >> git_pull.sh
+            echo ${GIT_USER_ID} >> git_pull.sh
+            echo ${GIT_USER_PASSWORD} >> git_pull.sh
             echo EOF >> git_pull.sh
             chmod +x git_pull.sh
             ./git_pull.sh
