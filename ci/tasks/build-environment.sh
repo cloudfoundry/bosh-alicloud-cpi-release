@@ -51,15 +51,19 @@ function copyToOutput(){
     git config --global user.name ${GIT_USER_NAME}
     git config --local -l
 
+    git status
     git status | sed -n '$p' |while read LINE
     do
         echo $LINE
         if [[ $LINE != nothing*clean ]];
         then
-            echo $LINE
-            git fetch
+            echo "brew ....."
+            brew unlink git
+            brew link git
+            echo "brew end!"
+            git pull origin concourse_ci_tmp
             git add .
-            git commit -m 'commit metadata'
+            git commit -m 'create environment commit'
             return 0
         fi
     done

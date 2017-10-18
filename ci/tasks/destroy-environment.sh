@@ -74,7 +74,7 @@ function copyToOutput(){
         then
             echo $LINE
             git add .
-            git commit -m 'commit metadata'
+            git commit -m 'destroy environment commit'
             return 0
         fi
     done
