@@ -63,7 +63,7 @@ function copyToOutput(){
             git remote add https https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
 #            git pull https concourse_ci_tmp
             echo "******** git start ********"
-            git pull https concourse_ci_tmp
+#            git pull https concourse_ci_tmp
             echo -e "${GIT_USER_ID}\n${GIT_USER_PASSWORD}\n" | git pull https concourse_ci_tmp
 #            echo "${GIT_USER_ID}"
 #            echo $'\n'
