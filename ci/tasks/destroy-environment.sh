@@ -51,12 +51,13 @@ function copyToOutput(){
     git config --global user.name ${GIT_USER_NAME}
     git config --local -l
 
+    echo "&&&&&&&&git status"
     git status
-    git status | sed -n '$p' | while read LINE
+    git config --local -l | sed -n '$p' | while read LINE
     do
         echo "&&&&&&&&hahah"
         echo $LINE
-        if [[ $LINE != *detached* ]];
+        if [[ $LINE == *detached* ]];
         then
             read -r -a Words <<< $LINE
             echo "****" + $Words[2]
