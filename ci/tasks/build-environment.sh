@@ -77,7 +77,7 @@ function copyToOutput(){
 #            echo read -p "Password for 'https://${GIT_USER_ID}@github.com':" pass >> git_pull.sh
 #            echo you have entered $no, $name
             echo "${GIT_USER_ID}" >> git_pull.sh
-            ecsh sleep 2 >> git_pull.sh
+            echo sleep 2 >> git_pull.sh
             echo "${GIT_USER_PASSWORD}" >> git_pull.sh
 #            echo $'\n' >> git_pull.sh
             echo EOF >> git_pull.sh
