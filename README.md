@@ -6,14 +6,35 @@ This is a [BOSH](http://bosh.io) release for the BOSH Alibaba Cloud CPI.
 
 ## Usage
 
-## 1. Prepare your `Alibaba Cloud` environment
+### Prepare your `Alibaba Cloud` environment
 
 - Create a vpc with switch and get `vswtich_id`
 - Create security group get `security_group_id`
 - Create user access key, get `access_key_id/access_key_secret`
 - Create a jumpbox vm
 
-## 2. Install bosh in Alibaba Cloud
+### Make release
+
+- Clone this repo
+- Install golang and export $GOROOT
+- Install bosh-cli
+- Download `go1.9.linux-amd64.tar.gz` from https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz
+- Add blob and create release
+- Configure golang env and make
+- Create bosh release
+
+```
+git clone https://github.com/aliyun/bosh-alicloud-cpi-release.git
+cd bosh-alicloud-cpi-release
+mkdir blobs
+bosh add-blob ~/Downloads/go1.9.linux-amd64.tar.gz go1.9.linux-amd64.tar.gz
+source .envrc
+make
+bosh create-release --force --tarball=../bosh-alicloud-cpi.tgz
+```
+*Binary download is not provided now, so make it by your self*
+
+### Install bosh in Alibaba Cloud
 
 - clone [bosh-deployment](https://github.com/aliyun/bosh-deployment) repo from github
 - checkout alicloud branch
@@ -24,8 +45,10 @@ cd bosh-deployment
 git checkout alicloud
 ```
 
-use this command, modify following settings
+use this command, modify the parameters
 
+- vswitch_id
+- security_group_id
 - access_key_id
 - access_key_secret
 - region
@@ -47,8 +70,7 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
  -v zone=cn-beijing-a
 ```
 
-
-## Install with external-ip(not recommended)
+### Install with external-ip(not recommended)
 
 - Create a `Elastic IP` in `Alibaba Cloud Console`, get an `external_ip`
 
@@ -71,10 +93,16 @@ bosh create-env bosh.yml \
  -v external_ip=...
 ```
 
-## *NOTICE*
+### *NOTICE*
 
 - *This version of cpi use a temporary public `registry` for install bosh-director, it not safe, we will fix it in later version*
-- *Not support mbus_bootstrap_ssl *
+- *Not support mbus_bootstrap_ssl*
 - *Not support ssh-tunnel*
 
+### Run Integration Test
 
+**TODO**
+
+### Run Unit Test
+
+**TODO**
