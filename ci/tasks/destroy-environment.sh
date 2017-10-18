@@ -65,9 +65,8 @@ function copyToOutput(){
             git checkout concourse_ci_tmp
             echo "**** git merge temp"
             git merge temp
-            echo "**** push"
-            git push origin concourse_ci_tmp
-            echo "**** push end"
+            echo "**** branch"
+            git branch
             break
         fi
     done
