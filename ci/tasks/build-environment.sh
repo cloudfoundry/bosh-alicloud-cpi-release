@@ -61,7 +61,7 @@ function copyToOutput(){
             git remote add https https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
             git pull https concourse_ci_tmp
             echo git pull https concourse_ci_tmp  \<\< EOF > git_pull.sh
-            echo ${GIT_USER_EMAIL} >> git_pull.sh
+            echo ${GIT_USER_NAME} >> git_pull.sh
             echo EOF >> git_pull.sh
             chmod +x git_pull.sh
             ./git_pull.sh
