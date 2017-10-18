@@ -57,11 +57,11 @@ function copyToOutput(){
         echo $LINE
         if [[ $LINE != nothing*clean ]];
         then
-            echo "brew ....."
-            brew unlink git
-            brew link git
-            echo "brew end!"
-            git pull origin concourse_ci_tmp
+            echo "******** git remote and pull ********"
+            git remote add https https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
+            git pull https concourse_ci_tmp
+
+            echo "******** git add and commit ********"
             git add .
             git commit -m 'create environment commit'
             return 0

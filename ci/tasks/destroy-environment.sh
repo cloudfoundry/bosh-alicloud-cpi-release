@@ -67,6 +67,9 @@ function copyToOutput(){
         fi
     done
 
+    echo "******* git status ******"
+    git status
+
     git status | sed -n '$p' |while read LINE
     do
         echo $LINE
