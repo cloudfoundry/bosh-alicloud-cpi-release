@@ -50,6 +50,10 @@ function copyToOutput(){
     git config --global user.email ${GIT_USER_EMAIL}
     git config --global user.name ${GIT_USER_NAME}
     git config --local -l
+    echo "***** git branch"
+    git branch
+    echo "**** git pull"
+    git pull origin concourse_ci_tmp
 
     git status
     git add .
