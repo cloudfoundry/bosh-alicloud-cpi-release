@@ -67,7 +67,7 @@ function copyToOutput(){
             sudo apt-get install expect -y
 
             echo "#!/usr/bin/expect" > git_install.sh
-            echo spawn git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp >> git_install.sh
+            echo spawn git fetch https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp >> git_install.sh
             echo "expect \"Password for 'https://xiaozhu36@github.com': \"" >> git_install.sh
             echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
             echo exit >> git_install.sh
