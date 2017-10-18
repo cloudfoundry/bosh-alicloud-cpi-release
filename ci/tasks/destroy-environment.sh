@@ -51,30 +51,27 @@ function copyToOutput(){
     git config --global user.name ${GIT_USER_NAME}
     git config --local -l
 
-    echo "&&&&&&&&git status"
-    git status
     git status | sed -n 'p' |while read LINE
     do
-        echo "&&&&&&&&hahah"
         echo $LINE
         if [[ $LINE == *detached* ]];
         then
             read -r -a Words <<< $LINE
-            echo "**** ${Words[3]}"
             git branch temp ${Words[3]}
             git checkout concourse_ci_tmp
-            echo "**** git merge temp"
             git merge temp
             echo "**** branch"
             git branch
+            git branch -d temp
             break
         fi
     done
-    echo "***** git sattus"
     git status
     git add .
     git commit -m 'commit metadata'
+    echo "***** git sattus"
     git status
+    echo "***** git status end"
     return 0
 }
 
