@@ -18,22 +18,6 @@ TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
 GIT_USER_PASSWORD=xiaozhu123
 
-cd ${TERRAFORM_MODULE}
-echo "******** install expect ********"
-sudo apt-get install expect -y
-
-echo "#!/usr/bin/expect" > git_install.sh
-echo spawn git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp >> git_install.sh
-echo "expect \"Password for 'https://xiaozhu36@github.com': \"" >> git_install.sh
-echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
-echo exit >> git_install.sh
-
-echo "*******"
-cat git_install.sh
-chmod +x git_install.sh
-./git_install.sh
-
-
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
