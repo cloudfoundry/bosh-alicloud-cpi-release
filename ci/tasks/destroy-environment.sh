@@ -60,32 +60,26 @@ function copyToOutput(){
             git branch temp ${Words[3]}
             git checkout concourse_ci_tmp
             git merge temp
-            echo "**** branch"
+            echo "******* git branch ******"
             git branch
             git branch -d temp
             break
         fi
     done
-    echo "***** git sattus"
-    git status
+
     git status | sed -n '$p' |while read LINE
     do
         echo $LINE
         if [[ $LINE != nothing*clean ]];
         then
-            echo "hahahaha"
             echo $LINE
             git add .
             git commit -m 'commit metadata'
             return 0
         fi
     done
+
     git status
-#    git add .
-#    git commit -m 'commit metadata'
-#    echo "***** git sattus"
-#    git status
-    echo "***** git status end"
     return 0
 }
 
