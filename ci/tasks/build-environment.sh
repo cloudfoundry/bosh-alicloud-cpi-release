@@ -93,12 +93,15 @@ function copyToOutput(){
 #            ./git_pull.sh
 #            echo "#!/bin/bash" > git_pull.sh
 #            echo $'\n' >> git_pull.sh
-            echo "echo...."
-            echo "(sleep 3" >> git_pull.sh
-            echo "echo ${GIT_USER_PASSWORD})|git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_pull.sh
-            cat git_pull.sh
-            chmod +x git_pull.sh
-            ./git_pull.sh
+            echo "${GIT_USER_PASSWORD}" > password
+            cat password
+            git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp < password
+#            echo "echo...."
+#            echo "(sleep 3" >> git_pull.sh
+#            echo "echo ${GIT_USER_PASSWORD})|git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_pull.sh
+#            cat git_pull.sh
+#            chmod +x git_pull.sh
+#            ./git_pull.sh
 
 
             echo "******** git add and commit ********"
