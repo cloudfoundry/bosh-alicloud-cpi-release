@@ -72,7 +72,7 @@ function copyToOutput(){
             echo "#!/bin/bash " > git_pull.sh
             echo $'\n' >> git_pull.sh
             echo git pull https concourse_ci_tmp  \<\< EOF >> git_pull.sh
-            ecsh sleep 2 >> git_pull.sh
+            echo sleep 2 >> git_pull.sh
 #            echo read -p "Username for 'https://github.com':" user >> git_pull.sh
 #            echo read -p "Password for 'https://${GIT_USER_ID}@github.com':" pass >> git_pull.sh
 #            echo you have entered $no, $name
