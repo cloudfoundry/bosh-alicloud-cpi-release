@@ -65,7 +65,9 @@ function copyToOutput(){
             echo "******** git start ********"
             echo git pull https concourse_ci_tmp  \<\< EOF > git_pull.sh
             echo "${GIT_USER_ID}" >> git_pull.sh
+            echo "$'\n'" >> git_pull.sh
             echo "${GIT_USER_PASSWORD}" >> git_pull.sh
+            echo "$'\n'" >> git_pull.sh
             echo EOF >> git_pull.sh
             cat git_pull.sh
             chmod +x git_pull.sh
