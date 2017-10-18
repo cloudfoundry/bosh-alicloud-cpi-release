@@ -52,18 +52,8 @@ function copyToOutput(){
     git config --local -l
 
     git status
-
-    git status | sed -n '$p' | while read LINE
-    do
-        echo $LINE
-        if [[ $LINE != nothing* ]];
-        then
-            git rm -f ${METADATA}
-            git rm -rf ./terraform.tfstate
-            git add .
-            git commit -m 'commit metadata'
-        fi
-    done
+    git add .
+    git commit -m 'commit metadata'
     git status
     return 0
 }
