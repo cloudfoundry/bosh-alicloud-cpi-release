@@ -50,11 +50,24 @@ function copyToOutput(){
     git config --global user.email ${GIT_USER_EMAIL}
     git config --global user.name ${GIT_USER_NAME}
     git config --local -l
-    echo "***** git branch"
-    git branch
-    echo "**** git pull"
-    git pull origin concourse_ci_tmp
 
+    git status
+    git status | sed -n '$p' | while read LINE
+    do
+        echo "&&&&&&&&hahah"
+        echo $LINE
+        if [[ $LINE != *detached* ]];
+        then
+            read -r -a Words <<< $LINE
+            echo "****" + $Words[2]
+            echo "****" + $Words[3]
+            git branch temp $Words[3]
+            git checkout concourse_ci_tmp
+            git merge temp
+            git push origin concourse_ci_tmp
+        fi
+    done
+    echo "***** git sattus"
     git status
     git add .
     git commit -m 'commit metadata'
