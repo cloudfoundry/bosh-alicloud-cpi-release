@@ -53,7 +53,7 @@ function copyToOutput(){
 
     echo "&&&&&&&&git status"
     git status
-    git status | sed -n '$p' | while read LINE
+    git status | while read LINE
     do
         echo "&&&&&&&&hahah"
         echo $LINE
