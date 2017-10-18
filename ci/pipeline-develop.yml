@@ -115,6 +115,9 @@ jobs:
         - {trigger: false, passed: [build-candidate], get: bosh-cpi-src, resource: bosh-cpi-src-in}
         - {trigger: false,  get: stemcell, resource: heavy-ubuntu-stemcell}
         - {get: 2h,             trigger: true}
+      - <<: *destroy-environment
+      - put: terraform-metadata
+        params: {repository: terraform-metadata, rebase: true, force: true}
       - <<: *build-environment
       - put: terraform-metadata
         params: {repository: terraform-metadata, rebase: true, force: true}
