@@ -26,14 +26,15 @@ type CpiError struct {
 
 var (
 	// provider config
-	regionId         = envOrDefault("REGION_ID", "cn-beijing")
-	zoneId           = envOrDefault("ZONE_ID", "cn-beijing-c")
-	registry_address = envOrDefault("REGISTRY_ADDRESS", "172.16.0.3")
+	regionId         = envOrDefault("BOSH_ALICLOUD_REGION_ID", "cn-beijing")
+	zoneId           = envOrDefault("BOSH_ALICLOUD_ZONE_ID", "cn-beijing-c")
+	registry_address = envOrDefault("BOSH_ALICLOUD_REGISTRY_ADDRESS", "172.16.0.3")
 
 	// Configurable defaults
-	boshStemcellImageId = envOrDefault("BOSH_STEMCELL_FILE", "m-2zeggz4i4n2z510ajcvw")
-	securityGroupId     = envOrDefault("SECURITY_GROUP_ID", "sg-2ze7qg9qdmt1lt9lgvgt")
-	vswitchId           = envOrDefault("VSWITCH_ID", "vsw-2ze1oepoom33cdt6nsk88")
+	boshStemcellImageId = envOrDefault("BOSH_ALICLOUD_STEMCELL_ID", "m-2zeggz4i4n2z510ajcvw")
+	securityGroupId     = envOrDefault("BOSH_ALICLOUD_SECURITY_GROUP_ID", "sg-2ze7qg9qdmt1lt9lgvgt")
+	vswitchId           = envOrDefault("BOSH_ALICLOUD_VSWITCH_ID", "vsw-2ze1oepoom33cdt6nsk88")
+	externalIp          = envOrDefault("BOSH_ALICLOUD_EXTERNAL_IP", "47.94.216.146")
 
 	cfgContent = fmt.Sprintf(`{
     "cloud": {

@@ -115,7 +115,7 @@ var _ = Describe("VM", func() {
 			"context": {
 				"director_uuid": "478b5c95-c143-4223-737f-7c1c834eebc0"
 			}
-		}`, "cn-beijing-c", "47.94.216.146", "sg-2zec8ubi1q5aeo5mqcbb", "vsw-2zevwt3w7h5u761o405rd")
+		}`, zoneId, externalIp, securityGroupId, vswitchId)
 		vmCID = assertSucceedsWithResult(request).(string)
 		log.Printf("VM cid:", vmCID)
 		//By("locating the VM")
