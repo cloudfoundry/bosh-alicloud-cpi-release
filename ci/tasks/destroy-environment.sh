@@ -60,8 +60,9 @@ function copyToOutput(){
         if [[ $LINE == *detached* ]];
         then
             read -r -a Words <<< $LINE
-            echo "****" + $Words[2]
-            echo "****" + $Words[3]
+            echo "**** $Words"
+            echo "**** $Words[2]"
+            echo "**** $Words[3]"
             git branch temp $Words[3]
             git checkout concourse_ci_tmp
             git merge temp
