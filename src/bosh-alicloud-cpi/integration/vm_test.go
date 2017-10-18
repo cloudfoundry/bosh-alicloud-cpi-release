@@ -17,13 +17,13 @@ var _ = Describe("VM", func() {
 				"%v",
 				{
 					"ephemeral_disk": {
-						"size": 50,
+						"size": "51_200",
 						"type": "cloud_efficiency"
 					},
 					"image_id": "m-temp1234",
 					"instance_type": "ecs.n4.large",
 					"system_disk": {
-						"size": 50,
+						"size": "40_960",
 						"type": "cloud_efficiency"
 					}
 				},
@@ -60,12 +60,15 @@ var _ = Describe("VM", func() {
 				{
 					"availability_zone": "%v",
 					"ephemeral_disk": {
-						"size": "100",
+						"size": "51_200",
 						"type": "cloud_efficiency"
 					},
-					"halt_mark": "true",
-					"instance_charge_type": "PostPaid",
-					"instance_type": "ecs.n4.large"
+					"image_id": "m-temp1234",
+					"instance_type": "ecs.n4.large",
+					"system_disk": {
+						"size": "40_960",
+						"type": "cloud_efficiency"
+					}
 				},
 				{
 					"public": {
@@ -112,7 +115,7 @@ var _ = Describe("VM", func() {
 			"context": {
 				"director_uuid": "478b5c95-c143-4223-737f-7c1c834eebc0"
 			}
-		}`, "cn-beijing-c", "47.94.216.146", "sg-2zec8ubi1q5aeo5mqcbb", "vsw-2zevwt3w7h5u761o405rd")
+		}`, zoneId, externalIp, securityGroupId, vswitchId)
 		vmCID = assertSucceedsWithResult(request).(string)
 		log.Printf("VM cid:", vmCID)
 		//By("locating the VM")

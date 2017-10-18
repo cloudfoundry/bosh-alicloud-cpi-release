@@ -74,9 +74,9 @@ func NewDiskInfo(size int, props apiv1.DiskCloudProps) (DiskInfo, error){
 func (a DiskInfo) Validate() (DiskInfo, error) {
 	switch a.SizeRaw.(type) {
 	case int:
-		a.sizeGB = ConvertToGB(a.SizeRaw.(float64))
-	case float64:
 		a.sizeGB = ConvertToGB(float64(a.SizeRaw.(int)))
+	case float64:
+		a.sizeGB = ConvertToGB(a.SizeRaw.(float64))
 	case string:
 		s, _ := a.SizeRaw.(string)
 		if strings.Compare("", s) == 0 {

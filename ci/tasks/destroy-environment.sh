@@ -30,8 +30,6 @@ export PATH="${TERRAFORM_PATH}:$PATH"
 
 cd ${TERRAFORM_MODULE}
 
-rm -rf ${METADATA}
-
 echo "Destroy terraform environment......"
 terraform init
 echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
@@ -54,16 +52,9 @@ function copyToOutput(){
     git config --local -l
 
     git status
-
-    git status | sed -n '$p' | while read LINE
-    do
-        echo $LINE
-        if [[ $LINE != nothing* ]];
-        then
-            git add .
-            git commit -m 'commit metadata'
-        fi
-    done
+    git add .
+    git commit -m 'commit metadata'
+    git status
     return 0
 }
 

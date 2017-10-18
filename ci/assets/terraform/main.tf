@@ -22,7 +22,7 @@ data "alicloud_zones" "default" {
 }
 
 resource "alicloud_vpc" "default" {
-  name = "bosh_init_vpc${var.prefix}"
+  name = "concourse_${var.prefix}"
   cidr_block = "${var.vpc_cidr}"
 }
 

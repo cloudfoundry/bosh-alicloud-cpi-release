@@ -23,7 +23,6 @@ pushd stemcell
 popd
 
 echo "get metadata from output..."
-ls -al terraform-metadata/ci/assets/terraform
 cat terraform-metadata/ci/assets/terraform/metadata
 
 metadata=$(cat ${METADATA_FILE})
@@ -32,26 +31,24 @@ export BOSH_ALICLOUD_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export BOSH_ALICLOUD_SECRET_ACCESS_KEY=${ALICLOUD_SECRET_ACCESS_KEY}
 export ACCESS_KEY_CONFIG=${ALICLOUD_SECRET_ACCESS_KEY}
 export ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
-#export BOSH_ALICLOUD_DEFAULT_KEY_NAME=$(echo ${metadata} | jq -e --raw-output ".default_key_name")
-#export BOSH_ALICLOUD_REGION=$(echo ${metadata} | jq -e --raw-output ".region")
-#export BOSH_ALICLOUD_SUBNET_ID=$(echo ${metadata} | jq -e --raw-output ".subnet_id")
-#export BOSH_ALICLOUD_SUBNET_ZONE=$(echo ${metadata} | jq -e --raw-output ".az")
-#export BOSH_ALICLOUD_LIFECYCLE_MANUAL_IP=$(echo ${metadata} | jq -e --raw-output ".internal_ip")
-#export BOSH_ALICLOUD_ELB_ID=$(echo ${metadata} | jq -e --raw-output ".elb")
-#export BOSH_ALICLOUD_TARGET_GROUP_NAME=$(echo ${metadata} | jq -e --raw-output ".alb_target_group")
-#export BOSH_ALICLOUD_ELASTIC_IP=$(echo ${metadata} | jq -e --raw-output ".bats_eip")
-#export BOSH_ALICLOUD_IPV6_IP=$(echo ${metadata} | jq -e --raw-output ".static_ipv6")
-#export BOSH_ALICLOUD_KMS_KEY_ARN=$(echo ${metadata} | jq -e --raw-output ".alicloud_kms_key_arn")
-
+export BOSH_ALICLOUD_REGION_ID=cn-beijing
+export BOSH_ALICLOUD_ZONE_ID=$(echo ${metadata} | jq -e --raw-output ".availability_zone")
+export BOSH_ALICLOUD_SECURITY_GROUP_ID=$(echo ${metadata} | jq -e --raw-output ".security_group_id")
+export BOSH_ALICLOUD_VSWITCH_ID=$(echo ${metadata} | jq -e --raw-output ".vswitch_id")
 export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
 
-ls ${PWD}
+echo "vswitch id: "
+echo $BOSH_ALICLOUD_VSWITCH_ID
+
 # Setup Go and run tests
+echo "set go path..."
 export GOPATH=${PWD}/bosh-cpi-src
 export PATH=${GOPATH}/bin:$PATH
 
+echo "go version..."
 check_go_version $GOPATH
 
+echo "do integration test..."
 cd ${PWD}/bosh-cpi-src
 env
 make

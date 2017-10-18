@@ -13,14 +13,14 @@ var createVmArgs = []byte(`
         "m-2zehhdtfg22hq46reabf",
         {
             "ephemeral_disk": {
-                "size": 40_000,
+                "size": "51_200",
                 "type": "cloud_efficiency"
             },
             "image_id": "m-2ze200tcuotb5uk2kol4",
             "instance_name": "test-cc",
             "instance_type": "ecs.n4.small",
             "system_disk": {
-                "size": 60_000,
+                "size": "40_960",
                 "type": "cloud_efficiency"
             }
         },
@@ -60,7 +60,7 @@ var createVmBoshArgs = []byte (`
         {
             "availability_zone": "cn-beijing-c",
             "ephemeral_disk": {
-                "size": 40_000,
+                "size": "51_200",
                 "type": "cloud_efficiency"
             },
             "instance_charge_type": "PostPaid",
@@ -117,11 +117,11 @@ var createVmBoshBindEipArgs = []byte (`
         {
             "availability_zone": "cn-beijing-c",
             "ephemeral_disk": {
-                "size": 100000,
+                "size": "40_960",
                 "type": "cloud_efficiency"
             },
 			"system_disk": {
-                "size": 100000,
+                "size": "40_960",
                 "type": "cloud_efficiency"
             },
             "halt_mark": "true",
@@ -185,13 +185,13 @@ var createVmBoshArgs3 = []byte(`
         "m-2zeggz4i4n2z510ajcvw",
         {
             "ephemeral_disk": {
-                "size": 50_000,
+                "size": "51_200",
                 "type": "cloud_efficiency"
             },
             "image_id": "m-temp1234",
             "instance_type": "ecs.n4.large",
             "system_disk": {
-                "size": 50,
+                "size": "51_200",
                 "type": "cloud_efficiency"
             }
         },
