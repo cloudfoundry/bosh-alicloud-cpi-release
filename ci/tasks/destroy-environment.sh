@@ -53,7 +53,7 @@ function copyToOutput(){
 
     echo "&&&&&&&&git status"
     git status
-    git config --local -l | sed -n '$p' | while read LINE
+    git status | sed -n '$p' | while read LINE
     do
         echo "&&&&&&&&hahah"
         echo $LINE
