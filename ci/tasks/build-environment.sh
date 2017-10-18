@@ -30,6 +30,14 @@ rm -rf ./bin
 export PATH="${TERRAFORM_PATH}:$PATH"
 
 cd ${TERRAFORM_MODULE}
+git config --global user.email ${GIT_USER_EMAIL}
+git config --global user.name ${GIT_USER_NAME}
+git config --local -l
+echo "***** git branch"
+git branch
+echo "**** git pull"
+git pull origin concourse_ci_tmp
+
 
 rm -rf ${METADATA}
 touch ${METADATA}
@@ -47,9 +55,9 @@ function copyToOutput(){
     cd $2
     ls -la
 
-    git config --global user.email ${GIT_USER_EMAIL}
-    git config --global user.name ${GIT_USER_NAME}
-    git config --local -l
+#    git config --global user.email ${GIT_USER_EMAIL}
+#    git config --global user.name ${GIT_USER_NAME}
+#    git config --local -l
 
     git status
     git add .
