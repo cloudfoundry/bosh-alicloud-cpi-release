@@ -71,47 +71,6 @@ function copyToOutput(){
             echo "expect \"Password for 'https://xiaozhu36@github.com': \"" >> git_install.sh
             echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
             echo exit >> git_install.sh
-#            git pull https concourse_ci_tmp
-#            echo -e "${GIT_USER_ID}\n${GIT_USER_PASSWORD}\n" | git pull https concourse_ci_tmp
-#            echo "${GIT_USER_ID}"
-#            echo $'\n'
-#            echo "${GIT_USER_PASSWORD}"
-#            echo $'\n'
-#            echo "#!/bin/bash " > git_pull.sh
-#            echo $'\n' >> git_pull.sh
-#            echo git pull https concourse_ci_tmp  \<\< EOF >> git_pull.sh
-#            echo sleep 2 >> git_pull.sh
-##            echo read -p "Username for 'https://github.com':" user >> git_pull.sh
-##            echo read -p "Password for 'https://${GIT_USER_ID}@github.com':" pass >> git_pull.sh
-##            echo you have entered $no, $name
-#            echo "${GIT_USER_ID}" >> git_pull.sh
-#            echo sleep 2 >> git_pull.sh
-#            echo "${GIT_USER_PASSWORD}" >> git_pull.sh
-##            echo $'\n' >> git_pull.sh
-#            echo EOF >> git_pull.sh
-#            cat git_pull.sh
-#            chmod +x git_pull.sh
-#            ./git_pull.sh
-#            echo "${GIT_USER_PASSWORD}"|git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp
-#            echo git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp \<\< EOF > git_pull.sh
-#            echo "${GIT_USER_PASSWORD}" >> git_pull.sh
-#            echo EOF >> git_pull.sh
-#            cat git_pull.sh
-#            chmod +x git_pull.sh
-#            ./git_pull.sh
-#            echo "#!/bin/bash" > git_pull.sh
-#            echo $'\n' >> git_pull.sh
-#            echo "${GIT_USER_PASSWORD}" > password
-#            cat password
-#            git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp < password
-#            echo "echo...."
-#            echo "(sleep 3" >> git_pull.sh
-#            echo "echo ${GIT_USER_PASSWORD})|git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_pull.sh
-#            cat git_pull.sh
-#            chmod +x git_pull.sh
-#            ./git_pull.sh
-
-
             echo "******** git add and commit ********"
             git add .
             git commit -m 'create environment commit'
