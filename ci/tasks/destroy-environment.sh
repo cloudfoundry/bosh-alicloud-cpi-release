@@ -17,38 +17,38 @@ METADATA=metadata
 TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
 
-sudo apt-get install expect
+sudo apt-get install expect -y
 
 echo "*******"
-wget http://nchc.dl.sourceforge.net/sourceforge/tcl/tcl8.4.11-src.tar.gz
-tar xfvz tcl8.4.11-src.tar.gz
-cd tcl8.4.11/unix
-./configure --prefix=/usr/tcl --enable-shared
-make
-make install
-cd ..
-cp ./unix/tclUnixPort.h ./generic
-
-cd ..
-wget http://sourceforge.net/projects/expect/files/Expect/5.45/expect5.45.tar.gz/download
-tar xzvf expect5.45.tar.gz
-cd expect5.45
-./configure --prefix=/usr/expect --with-tcl=/usr/tcl/lib --with-tclinclude=../tcl8.4.11/generic
-
-make
-make install
-ln -s /usr/tcl/bin/expect /usr/expect/bin/expect
-
-echo "#!/usr/bin/expect" > git_install.sh
-echo spawn git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp >> git_install.sh
-echo expect "Password for 'https://xiaozhu36@github.com': " >> git_install.sh
-echo send "${GIT_USER_PASSWORD}\r" >> git_install.sh
-echo exit >> git_install.sh
-
-echo "*******"
-cat git_install.sh
-chmod +x git_install.sh
-./git_install.sh
+#wget http://nchc.dl.sourceforge.net/sourceforge/tcl/tcl8.4.11-src.tar.gz
+#tar xfvz tcl8.4.11-src.tar.gz
+#cd tcl8.4.11/unix
+#./configure --prefix=/usr/tcl --enable-shared
+#make
+#make install
+#cd ..
+#cp ./unix/tclUnixPort.h ./generic
+#
+#cd ..
+#wget http://sourceforge.net/projects/expect/files/Expect/5.45/expect5.45.tar.gz/download
+#tar xzvf expect5.45.tar.gz
+#cd expect5.45
+#./configure --prefix=/usr/expect --with-tcl=/usr/tcl/lib --with-tclinclude=../tcl8.4.11/generic
+#
+#make
+#make install
+#ln -s /usr/tcl/bin/expect /usr/expect/bin/expect
+#
+#echo "#!/usr/bin/expect" > git_install.sh
+#echo spawn git pull https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp >> git_install.sh
+#echo expect "Password for 'https://xiaozhu36@github.com': " >> git_install.sh
+#echo send "${GIT_USER_PASSWORD}\r" >> git_install.sh
+#echo exit >> git_install.sh
+#
+#echo "*******"
+#cat git_install.sh
+#chmod +x git_install.sh
+#./git_install.sh
 
 
 
