@@ -64,23 +64,26 @@ function copyToOutput(){
 #            git pull https concourse_ci_tmp
             echo "******** git start ********"
 #            git pull https concourse_ci_tmp
-            echo -e "${GIT_USER_ID}\n${GIT_USER_PASSWORD}\n" | git pull https concourse_ci_tmp
+#            echo -e "${GIT_USER_ID}\n${GIT_USER_PASSWORD}\n" | git pull https concourse_ci_tmp
 #            echo "${GIT_USER_ID}"
 #            echo $'\n'
 #            echo "${GIT_USER_PASSWORD}"
 #            echo $'\n'
-#            echo git pull https concourse_ci_tmp  \<\< EOF > git_pull.sh
+            echo "#!/bin/bash " > git_pull.sh
+            echo $'\n' >> git_pull.sh
+            echo git pull https concourse_ci_tmp  \<\< EOF >> git_pull.sh
+            ecsh sleep 2 >> git_pull.sh
 #            echo read -p "Username for 'https://github.com':" user >> git_pull.sh
 #            echo read -p "Password for 'https://${GIT_USER_ID}@github.com':" pass >> git_pull.sh
 #            echo you have entered $no, $name
-#            echo "Username for 'https://github.com': ${GIT_USER_ID}" >> git_pull.sh
-##            echo $'\n' >> git_pull.sh
-#            echo "Password for 'https://${GIT_USER_ID}@github.com': ${GIT_USER_PASSWORD}" >> git_pull.sh
-##            echo $'\n' >> git_pull.sh
-#            echo EOF >> git_pull.sh
-#            cat git_pull.sh
-#            chmod +x git_pull.sh
-#            ./git_pull.sh
+            echo "${GIT_USER_ID}" >> git_pull.sh
+            ecsh sleep 2 >> git_pull.sh
+            echo "${GIT_USER_PASSWORD}" >> git_pull.sh
+#            echo $'\n' >> git_pull.sh
+            echo EOF >> git_pull.sh
+            cat git_pull.sh
+            chmod +x git_pull.sh
+            ./git_pull.sh
 
             echo "******** git add and commit ********"
             git add .
