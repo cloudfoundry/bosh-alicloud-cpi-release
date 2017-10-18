@@ -18,6 +18,7 @@ TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
 GIT_USER_PASSWORD=xiaozhu123
 
+cd ${TERRAFORM_MODULE}
 echo "******** install expect ********"
 sudo apt-get install expect -y
 
