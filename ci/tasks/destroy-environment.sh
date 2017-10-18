@@ -17,6 +17,8 @@ METADATA=metadata
 TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
 
+sudo apt-get install expect
+
 echo "*******"
 wget http://nchc.dl.sourceforge.net/sourceforge/tcl/tcl8.4.11-src.tar.gz
 tar xfvz tcl8.4.11-src.tar.gz
