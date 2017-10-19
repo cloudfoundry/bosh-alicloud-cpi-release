@@ -60,17 +60,22 @@ function copyToOutput(){
         echo $LINE
         if [[ $LINE != nothing*clean ]];
         then
-            echo "******** git pull by https ********"
+
 #            git remote add https https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
 #            git pull https concourse_ci_tmp
-            echo "******** git start ********"
+            echo "******** git install expect ********"
             sudo apt-get install expect -y
 
+            echo "******** git pull by https ********"
             echo "#!/usr/bin/expect" > git_install.sh
-            echo spawn git fetch https://xiaozhu36@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp >> git_install.sh
+            echo "spawn git fetch https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git" >> git_install.sh
             echo "expect \"Password for 'https://xiaozhu36@github.com': \"" >> git_install.sh
             echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
             echo exit >> git_install.sh
+            cat git_pull.sh
+            chmod +x git_pull.sh
+            ./git_pull.sh
+
             echo "******** git add and commit ********"
             git add .
             git commit -m 'create environment commit'
