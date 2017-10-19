@@ -9,6 +9,7 @@ set -e
 : ${GIT_USER_NAME:?}
 : ${GIT_USER_ID:?}
 : ${GIT_USER_PASSWORD:?}
+#: ${BOSH_REPO_HOST:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-cpi-src
@@ -37,7 +38,7 @@ sudo apt-get install expect -y
 
 echo "******** git pull by https ********"
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git fetch https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git" >> git_install.sh
+echo "spawn git pull https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_install.sh
 echo "expect \"Password for 'https://xiaozhu36@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
 echo exit >> git_install.sh
@@ -45,7 +46,7 @@ cat git_install.sh
 chmod +x git_install.sh
 ./git_install.sh
 
-echo "Destroy terraform environment......"
+echo "\nDestroy terraform environment......"
 terraform init
 echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
 echo yes >> terraform_destroy.sh
