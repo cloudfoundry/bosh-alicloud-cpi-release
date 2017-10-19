@@ -1,11 +1,11 @@
 
 description : tf_sg
 name        : bosh_init_sg_911
-vpc_id      : vpc-m5eb3atrt6d7fgufocia5
-security_group_id : sg-m5e1cneefoiy1dkqak25
+vpc_id      : vpc-m5e3dykjxjbv5azyjwlix
+security_group_id : sg-m5ee2i7regbohdo8fnws
 availability_zone : cn-qingdao-c
 cidr_block        : 172.16.0.0/24
 description       : 
 name              : 
-vpc_id            : vpc-m5eb3atrt6d7fgufocia5
-vswitch_id : vsw-m5epf04hqzfgiwopyf69n
+vpc_id            : vpc-m5e3dykjxjbv5azyjwlix
+vswitch_id : vsw-m5eygod3z1gnq0knotv2o
