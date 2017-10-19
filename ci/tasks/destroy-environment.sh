@@ -127,7 +127,6 @@ function copyToOutput(){
             git branch
             git branch -d temp
 
-            vcap c1oudc0w
             break
         fi
     done
