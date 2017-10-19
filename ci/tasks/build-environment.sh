@@ -80,8 +80,8 @@ echo "Build terraform environment......"
 
 terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
 echo "******** git pull by https ********"
-./git_install.sh
-git status
+#./git_install.sh
+#git status
 rm -rf ./git_install.sh
 
 

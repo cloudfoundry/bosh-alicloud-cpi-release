@@ -74,7 +74,7 @@ chmod +x terraform_destroy.sh
 echo "Destroy terraform environment successfully."
 rm -rf ./terraform_destroy.sh
 echo "******** git pull by https ********"
-./git_install.sh
+#./git_install.sh
 rm -rf ./git_install.sh
 
 function copyToOutput(){
