@@ -14,6 +14,10 @@ import (
 	"bosh-alicloud-cpi/registry"
 )
 
+const (
+	DefaultPassword = "Cloud12345"
+)
+
 type CreateVMMethod struct {
 	runner alicloud.Runner
 }
@@ -25,6 +29,8 @@ type InstanceProps struct {
 	InstanceChargeType string	`json:"instance_charge_type"`
 	InstanceType string 		`json:"instance_type"`
 	InstanceRole string			`json:"instance_role"`
+	KeyPairName string 			`json:"key_pair"`
+	Password string 			`json:"password"`
 	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
 	SystemDisk DiskInfo			`json:"system_disk"`
 }
@@ -76,6 +82,14 @@ func (a CreateVMMethod) CreateVM(
 	args.ImageId = stemcellCID.AsString()
 	args.UserData = a.runner.Config.Registry.ToInstanceUserData()
 
+	if len(strings.TrimSpace(instProps.KeyPairName)) > 0 {
+		args.KeyPairName = instProps.KeyPairName
+	} else if len(strings.TrimSpace(instProps.Password)) > 0 {
+		args.Password = instProps.Password
+	} else {
+		args.Password = DefaultPassword
+	}
+
 	args.InstanceType = instProps.InstanceType
 	args.InstanceChargeType = common.PostPaid
 	if strings.Compare(args.InstanceType, "") == 0 {
@@ -99,7 +113,6 @@ func (a CreateVMMethod) CreateVM(
 	//args.InternetMaxBandwidthOut = networks.GetInternetMaxBandwidthOut()
 	//args.InternetChargeType = networks.GetInternetChargeType()
 	//args.AutoRenew = false
-	args.Password = "Cloud12345"
 
 	req, _ := json.Marshal(args)
 
