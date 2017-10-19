@@ -21,7 +21,8 @@ TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
 
 echo "******** valid ********"
-
+echo "******** which terraform ********"
+which terraform
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
 
@@ -93,10 +94,14 @@ function copyToOutput(){
 
     git status | sed -n 'p' |while read LINE
     do
+        echo "***** line"
         echo $LINE
-        if [[ $LINE == *detached* ]];
+        echo "***** line end"
+        if [[ $LINE == HEAD*detached* ]];
         then
+            echo "****** detached ******"
             read -r -a Words <<< $LINE
+            echo "****** ${Words[3]}"
             git branch temp ${Words[3]}
             git checkout concourse_ci_tmp
             git merge temp
