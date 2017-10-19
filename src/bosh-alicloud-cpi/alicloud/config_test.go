@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Testing with Ginkgo", func() {
+var _ = Describe("LoadConfig from Json", func() {
 	var (
 		config Config
 		err error
@@ -49,7 +49,6 @@ var _ = Describe("Testing with Ginkgo", func() {
 				}
 			}
 		`))
-
 	})
 
 	It("loading from JSON", func() {

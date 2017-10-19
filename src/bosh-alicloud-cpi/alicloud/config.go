@@ -6,13 +6,16 @@ package alicloud
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"encoding/json"
 	"fmt"
 	"os"
 	"bosh-alicloud-cpi/registry"
+	"github.com/denverdino/aliyungo/ecs"
+	"strings"
 )
 
-type CloudConfigShell struct {
+type CloudConfigJson struct {
 	Root CloudConfig `json:"cloud"`
 }
 
@@ -22,25 +25,18 @@ type CloudConfig struct {
 }
 
 type Config struct {
-	OpenApi  OpenApi  `json:"alicloud"`
-	Registry Registry `json:"registry"`
-	Agent    Agent    `json:"agent"`
+	OpenApi  OpenApi        `json:"alicloud"`
+	Registry RegistryConfig `json:"registry"`
+	Agent    AgentConfig    `json:"agent"`
 }
 
 type OpenApi struct {
 	RegionId        string   `json:"region_id"`
-	ZoneId          string   `json:"zone_id"`
 	AccessKeyId     string   `json:"access_key_id"`
 	AccessKeySecret string   `json:"access_key_secret"`
-	Regions         []Region `json:"regions"`
 }
 
-type Region struct {
-	Name    string `json:"name"`
-	ImageId string `json:"image_id"`
-}
-
-type Registry struct {
+type RegistryConfig struct {
 	User     string `json:"user"`
 	Password string `json:"password"`
 	Protocol string `json:"protocol"`
@@ -48,15 +44,15 @@ type Registry struct {
 	Port     int	`json:"port"`
 }
 
-type Agent struct {
-	Ntp       []string  `json:"ntp"`
-	Mbus      string    `json:"mbus"`
-	Blobstore Blobstore `json:"blobstore"`
+type AgentConfig struct {
+	Ntp       []string        `json:"ntp"`
+	Mbus      string          `json:"mbus"`
+	Blobstore BlobstoreConfig `json:"blobstore"`
 }
 
-type Blobstore struct {
-	Provider string           `json:"provider"`
-	Options  map[string]interface{} `json:"options"`
+type BlobstoreConfig struct {
+	Provider string          		`json:"provider"`
+	Options  map[string]interface{}	`json:"options"`
 }
 
 type BlobstoreOptions struct {
@@ -86,7 +82,7 @@ func NewConfigFromFile(configFile string, fs boshsys.FileSystem) (Config, error)
 }
 
 func NewConfigFromBytes(bytes []byte) (Config, error) {
-	var ccs CloudConfigShell
+	var ccs CloudConfigJson
 	var config Config
 
 	err := json.Unmarshal(bytes, &ccs)
@@ -109,15 +105,41 @@ func (a *OpenApi) ApplySystemEnv() {
 	a.AccessKeySecret = os.ExpandEnv(a.AccessKeySecret)
 }
 
-func (a *Registry) ToInstanceUserData() string {
+func (a *RegistryConfig) ToInstanceUserData() string {
 	endpoint := fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, a.Port)
-	json := fmt.Sprintf(`{"Registry":{"Endpoint":"%s"}}`, endpoint)
+	json := fmt.Sprintf(`{"RegistryConfig":{"Endpoint":"%s"}}`, endpoint)
 	return json
 }
 
-func (a *Blobstore) AsRegistrySettings() (registry.BlobstoreSettings) {
+func (a *BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
 	return registry.BlobstoreSettings {
 		Provider: a.Provider,
 		Options: a.Options,
 	}
+}
+
+func (c Config) NewEcsClient() (*ecs.Client) {
+	return ecs.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+}
+
+
+func (c Config) GetHttpRegistryClient(logger boshlog.Logger) (registry.Client) {
+	r := c.Registry
+
+	if strings.Compare("", r.Host) == 0 {
+		//
+		// first start need skip this operation
+		return nil
+	}
+
+	clientOptions := registry.ClientOptions {
+		Protocol: r.Protocol,
+		Host: r.Host,
+		Port: r.Port,
+		Username: r.User,
+		Password: r.Password,
+	}
+
+	client := registry.NewHTTPClient(clientOptions, logger)
+	return client
 }

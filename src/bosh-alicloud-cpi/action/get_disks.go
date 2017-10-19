@@ -4,42 +4,33 @@
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
-	"github.com/denverdino/aliyungo/common"
 )
 
 type GetDisksMethod struct {
-	runner alicloud.Runner
+	CallContext
+	disks alicloud.DiskManager
 }
 
-func NewGetDisksMethod(runner alicloud.Runner) GetDisksMethod {
-	return GetDisksMethod{runner}
+func NewGetDisksMethod(cc CallContext, disks alicloud.DiskManager) GetDisksMethod {
+	return GetDisksMethod{cc, disks}
 }
 
 func (a GetDisksMethod) GetDisks(cid apiv1.VMCID) ([]apiv1.DiskCID, error) {
 
-	client := a.runner.NewClient()
-	instid := cid.AsString()
+	instCid := cid.AsString()
 
-	var args ecs.DescribeDisksArgs
-	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
-	args.InstanceId = instid
-
-	disks, _, err := client.DescribeDisks(&args)
+	disks, err := a.disks.GetDisks(instCid)
 
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "DescribeDisks failed cid=%s", instid)
+		return nil, a.WrapErrorf(err, "DescribeDisks failed cid=%s", instCid)
 	}
 
 	var results []apiv1.DiskCID
-	for i, v := range disks {
-		results[i] = apiv1.NewDiskCID(v.DiskId)
+	for _, v := range disks {
+		results = append(results, apiv1.NewDiskCID(v.DiskId))
 	}
-
-	//TODO? go array not IndexOutOfRange
 
 	return results, nil
 }

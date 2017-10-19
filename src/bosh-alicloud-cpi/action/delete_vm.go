@@ -11,57 +11,56 @@ import (
 )
 
 type DeleteVMMethod struct {
-	runner alicloud.Runner
+	CallContext
+	instances alicloud.InstanceManager
 }
 
-func NewDeleteVMMethod(runner alicloud.Runner) DeleteVMMethod {
-	return DeleteVMMethod{runner}
+func NewDeleteVMMethod(cc CallContext, instances alicloud.InstanceManager) DeleteVMMethod {
+	return DeleteVMMethod{cc, instances}
 }
 
 func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
-	client := a.runner.NewClient()
-
-	instid := cid.AsString()
-	status, err := a.runner.GetInstanceStatus(instid)
+	instCid := cid.AsString()
+	status, err := a.instances.GetInstanceStatus(instCid)
 
 	if err != nil {
 		if status == ecs.Deleted {
 			return nil
 		}
-		return bosherr.WrapErrorf(err, "DeleteVM get status failed cid=%s", instid)
+		return bosherr.WrapErrorf(err, "DeleteVM get status failed cid=%s", instCid)
 	}
 
 	if status == ecs.Running {
-		err = a.runner.StopInstance(instid)
+		err = a.instances.StopInstance(instCid)
 
 		if err != nil {
-			return bosherr.WrapErrorf(err, "DeleteVM when stopping vm failed cid=%s", instid)
+			return bosherr.WrapErrorf(err, "DeleteVM when stopping vm failed cid=%s", instCid)
 		}
 
-		err = a.runner.WaitForInstanceStatus(instid, ecs.Stopped)
+		err = a.instances.WaitForInstanceStatus(instCid, ecs.Stopped)
 
 		if err != nil {
-			return bosherr.WrapErrorf(err, "DeleteVM waiting for vm stopped failed cid=%s", instid)
+			return bosherr.WrapErrorf(err, "DeleteVM waiting for vm stopped failed cid=%s", instCid)
 		}
 	} else if status == ecs.Stopping {
-		err = a.runner.WaitForInstanceStatus(instid, ecs.Stopped)
+		err = a.instances.WaitForInstanceStatus(instCid, ecs.Stopped)
 
 		if err != nil {
-			return bosherr.WrapErrorf(err, "DeleteVM waiting for vm stopped failed cid=%s", instid)
+			return bosherr.WrapErrorf(err, "DeleteVM waiting for vm stopped failed cid=%s", instCid)
 		}
 	} else {
-		return bosherr.WrapErrorf(err, "DeleteVM unexcepted status: %s cid=%s", status, instid)
+		return bosherr.WrapErrorf(err, "DeleteVM unexcepted status: %s cid=%s", status, instCid)
 	}
 
-	a.runner.Logger.Info("CLOUD", "try DeleteVM:", cid.AsString())
+	a.Logger.Info("CLOUD", "try DeleteVM:", cid.AsString())
 
-	err = client.DeleteInstance(cid.AsString())
+	err = a.instances.DeleteInstance(cid.AsString())
 
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Deleting vm '%s'", cid)
 	}
 
-	err = a.runner.WaitForInstanceStatus(cid.AsString(), ecs.Deleted)
+	err = a.instances.WaitForInstanceStatus(cid.AsString(), ecs.Deleted)
 
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Deleting vm waitForStatus '%s", cid)

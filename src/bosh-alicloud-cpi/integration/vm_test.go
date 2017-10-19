@@ -9,10 +9,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"log"
+	"testing"
 )
 
 var _ = Describe("VM", func() {
 	It("creates a VM with an invalid configuration and receives an error message with logs", func() {
+		testing.Short()
 		request := fmt.Sprintf(`{
 			  "method": "create_vm",
 			  "arguments": [

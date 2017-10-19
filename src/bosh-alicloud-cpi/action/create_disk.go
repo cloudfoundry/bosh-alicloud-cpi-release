@@ -4,58 +4,45 @@
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
-	"github.com/denverdino/aliyungo/common"
 )
 
 type CreateDiskMethod struct {
-	runner alicloud.Runner
+	CallContext
+	disks alicloud.DiskManager
 }
 
-func NewCreateDiskMethod(runner alicloud.Runner) CreateDiskMethod {
-	return CreateDiskMethod{runner}
+func NewCreateDiskMethod(cc CallContext, disks alicloud.DiskManager) CreateDiskMethod {
+	return CreateDiskMethod{cc, disks}
 }
 
-func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmcid *apiv1.VMCID) (apiv1.DiskCID, error) {
-	client := a.runner.NewClient()
-	instCid := vmcid.AsString()
+func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid *apiv1.VMCID) (apiv1.DiskCID, error) {
+	a.Logger.Debug("create_disk", "size=%d, props=%v, vmCid=%v", size, props, vmCid)
+	var cid apiv1.DiskCID
 
-	inst, err := a.runner.GetInstance(instCid)
-
-	if err != nil {
-		return apiv1.DiskCID{}, bosherr.WrapError(err, "GetInstance Failed")
-	}
-
-	if inst == nil {
-		return apiv1.DiskCID{}, bosherr.WrapErrorf(err, "Missing Vm cid = %s", instCid)
-	}
-
-	zoneId := inst.ZoneId
-
-	var args = ecs.CreateDiskArgs {
-		RegionId: common.Region(a.runner.Config.OpenApi.RegionId),
-		ZoneId: zoneId,
-		DiskName: "",			//TODO
-		Description: "",		//TODO
- 		DiskCategory: ecs.DiskCategoryCloudEfficiency,		//TODO
-		Size:     ConvertToGB(float64(size)),			//TODO
-		SnapshotId:   "",		//TODO
-		ClientToken:  "",		//TODO
-	}
-
-	diskId, err := client.CreateDisk(&args)
+	diskInfo, err := NewDiskInfo(size, props)
 
 	if err != nil {
-		return apiv1.DiskCID{}, bosherr.WrapErrorf(err, "Creating disk of size '%d'", size)
+		return cid, a.WrapErrorf(err, "check CreateDisk input failed %n, %v", size, props)
 	}
 
-	diskcid := apiv1.NewDiskCID(diskId)
+	diskCid, err := a.disks.CreateDisk(diskInfo.GetSizeGB(), diskInfo.GetCategory())
 
+	if err != nil {
+		return cid, a.WrapError(err, "CreateDisk failed")
+	}
+
+	cid = apiv1.NewDiskCID(diskCid)
+
+	//
 	// TODO? need Attach?
 	// NewAttachDiskMethod(a.runner).AttachDisk(*vmcid, diskcid)
 
-	return diskcid, nil
+	if vmCid != nil {
+		return cid, a.WrapError(nil, "NOT_IMPLEMENTED create_disk and attach with vm")
+
+	}
+
+	return cid, nil
 }

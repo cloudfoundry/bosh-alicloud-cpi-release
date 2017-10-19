@@ -1,16 +1,15 @@
 /*
  * Copyright (C) 2017-2017 Alibaba Group Holding Limited
  */
-package integration
+package alicloud
 
 import (
+	"testing"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
-func TestIntegration(t *testing.T) {
+func TestAlicloud(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Integration Suite")
+	RunSpecs(t, "Alicloud Suite")
 }

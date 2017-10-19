@@ -4,26 +4,26 @@
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
 	"github.com/denverdino/aliyungo/ecs"
 )
 
 type DeleteDiskMethod struct {
-	runner alicloud.Runner
+	CallContext
+	disks alicloud.DiskManager
 }
 
-func NewDeleteDiskMethod(runner alicloud.Runner) DeleteDiskMethod {
-	return DeleteDiskMethod{runner}
+func NewDeleteDiskMethod(cc CallContext, disks alicloud.DiskManager) DeleteDiskMethod {
+	return DeleteDiskMethod{cc, disks}
 }
 
-func (a DeleteDiskMethod) DeleteDisk(cid apiv1.DiskCID) error {
-	client := a.runner.NewClient()
+func (a DeleteDiskMethod) DeleteDisk(diskCID apiv1.DiskCID) error {
+	diskCid := diskCID.AsString()
 
-	disk, err := a.runner.GetDiskStatus(cid.AsString())
+	disk, err := a.disks.GetDisk(diskCid)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "delete_disk/getStatus cid=%s", cid.AsString())
+		return a.WrapErrorf(err, "delete_disk/getStatus cid=%s", diskCid)
 	}
 
 	if disk == nil {
@@ -32,19 +32,19 @@ func (a DeleteDiskMethod) DeleteDisk(cid apiv1.DiskCID) error {
 
 	switch disk.Status {
 	case ecs.DiskStatusDetaching:
-		_, err := a.runner.WaitForDiskStatus(cid.AsString(), ecs.DiskStatusAvailable)
+		_, err := a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusAvailable)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "delete_disk/wait for detaching failed=%s", cid.AsString())
+			return a.WrapErrorf(err, "delete_disk/wait for detaching failed=%s", diskCid)
 		}
 	case ecs.DiskStatusAvailable:
 		break
 	default:
-		return bosherr.Errorf("delete_disk/unexcepted_DiskStatus: %s-%v", cid.AsString(), disk.Status)
+		return a.WrapErrorf(nil,"delete_disk/unexcepted_DiskStatus: %s-%v", diskCid, disk.Status)
 	}
 
-	err = client.DeleteDisk(cid.AsString())
+	err = a.disks.DeleteDisk(diskCid)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "DeleteDisk %s failed", cid)
+		return a.WrapErrorf(err, "DeleteDisk %s failed", diskCid)
 	}
 
 	return nil
