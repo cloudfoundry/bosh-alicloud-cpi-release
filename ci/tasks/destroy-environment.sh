@@ -9,7 +9,7 @@ set -e
 : ${GIT_USER_NAME:?}
 : ${GIT_USER_ID:?}
 : ${GIT_USER_PASSWORD:?}
-#: ${BOSH_REPO_HOST:?}
+: ${BOSH_REPO_HOST:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-cpi-src
@@ -38,8 +38,8 @@ sudo apt-get install expect -y
 
 echo "******** git pull by https ********"
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git pull https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_install.sh
-echo "expect \"Password for 'https://xiaozhu36@github.com': \"" >> git_install.sh
+echo "spawn git pull https://${GIT_USER_ID}@${BOSH_REPO_HOST} concourse_ci_tmp" >> git_install.sh
+echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
 echo exit >> git_install.sh
 cat git_install.sh
