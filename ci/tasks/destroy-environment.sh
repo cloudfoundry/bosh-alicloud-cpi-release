@@ -20,6 +20,8 @@ METADATA=metadata
 TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
 
+echo "******** valid ********"
+
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
 
@@ -38,14 +40,24 @@ sudo apt-get install expect -y
 
 echo "******** git pull by https ********"
 echo ${BOSH_REPO_HOST}
+git reset --hard FETCH_HEAD
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git pull -f https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_install.sh
+echo "spawn git fetch https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
 echo exit >> git_install.sh
 cat git_install.sh
 chmod +x git_install.sh
 ./git_install.sh
+
+echo "******** git status ********"
+git status
+
+if [ -e "./terraform.tfstate" ];
+then
+    echo "./terraform.tfstate is exist."
+    cat ./terraform.tfstate
+fi
 
 echo "\nDestroy terraform environment......"
 terraform init
@@ -97,7 +109,7 @@ function copyToOutput(){
         then
             echo $LINE
             git add .
-            git commit -m 'destroy environment commit'
+            git commit -m 'destroy environment commit -a'
             return 0
         fi
     done

@@ -21,6 +21,7 @@ METADATA=metadata
 TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
 
+echo "******** valid ********"
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
@@ -46,8 +47,9 @@ sudo apt-get install expect -y
 
 echo "******** git pull by https ********"
 echo ${BOSH_REPO_HOST}
+git reset --hard FETCH_HEAD
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git pull -f https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_install.sh
+echo "spawn git fetch -f https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
 echo exit >> git_install.sh
@@ -116,7 +118,7 @@ function copyToOutput(){
 
             echo "******** git add and commit ********"
             git add .
-            git commit -m 'create environment commit'
+            git commit -m 'create environment commit -a'
             return 0
         fi
     done
