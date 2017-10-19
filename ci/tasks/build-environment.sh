@@ -8,6 +8,7 @@ set -e
 : ${DESTROY_ENVIRONMENT:?}
 : ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
+: ${GIT_USER_ID:?}
 : ${GIT_USER_PASSWORD:?}
 
 CURRENT_PATH=$(pwd)
@@ -18,7 +19,6 @@ TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
 METADATA=metadata
 TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
-GIT_USER_ID=xiaozhu36
 
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip

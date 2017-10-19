@@ -7,6 +7,8 @@ set -e
 : ${ALICLOUD_DEFAULT_REGION:?}
 : ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
+: ${GIT_USER_ID:?}
+: ${GIT_USER_PASSWORD:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-cpi-src
@@ -16,7 +18,6 @@ TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
 METADATA=metadata
 TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
-GIT_USER_PASSWORD=xiaozhu123
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
