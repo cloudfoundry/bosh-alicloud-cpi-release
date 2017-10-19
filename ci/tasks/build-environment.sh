@@ -34,12 +34,26 @@ export PATH="${TERRAFORM_PATH}:$PATH"
 
 cd ${TERRAFORM_MODULE}
 
+echo "******** git install expect ********"
+sudo apt-get install expect -y
+
+echo "******** git pull by https ********"
+echo "#!/usr/bin/expect" > git_install.sh
+echo "spawn git fetch https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git" >> git_install.sh
+echo "expect \"Password for 'https://xiaozhu36@github.com': \"" >> git_install.sh
+echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+echo exit >> git_install.sh
+cat git_install.sh
+chmod +x git_install.sh
+./git_install.sh
+
 rm -rf ${METADATA}
 touch ${METADATA}
 
 echo "Build terraform environment......"
 
 terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
+rm -rf ./git_install.sh
 
 echo "Build terraform environment successfully."
 
@@ -61,20 +75,18 @@ function copyToOutput(){
         if [[ $LINE != nothing*clean ]];
         then
 
-#            git remote add https https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
-#            git pull https concourse_ci_tmp
-            echo "******** git install expect ********"
-            sudo apt-get install expect -y
-
-            echo "******** git pull by https ********"
-            echo "#!/usr/bin/expect" > git_install.sh
-            echo "spawn git fetch https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git" >> git_install.sh
-            echo "expect \"Password for 'https://xiaozhu36@github.com': \"" >> git_install.sh
-            echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
-            echo exit >> git_install.sh
-            cat git_pull.sh
-            chmod +x git_pull.sh
-            ./git_pull.sh
+#            echo "******** git install expect ********"
+#            sudo apt-get install expect -y
+#
+#            echo "******** git pull by https ********"
+#            echo "#!/usr/bin/expect" > git_install.sh
+#            echo "spawn git fetch https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git" >> git_install.sh
+#            echo "expect \"Password for 'https://xiaozhu36@github.com': \"" >> git_install.sh
+#            echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+#            echo exit >> git_install.sh
+#            cat git_install.sh
+#            chmod +x git_install.sh
+#            ./git_install.sh
 
             echo "******** git add and commit ********"
             git add .
