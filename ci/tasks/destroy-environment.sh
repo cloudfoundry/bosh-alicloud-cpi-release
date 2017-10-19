@@ -21,7 +21,6 @@ TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
 
 echo "******** valid ********"
-echo "******** valid ********"
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
@@ -41,9 +40,12 @@ sudo apt-get install expect -y
 
 echo "******** git pull by https ********"
 echo ${BOSH_REPO_HOST}
+git remote add https https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
 #git reset --hard origin/concourse_ci_tmp
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git fetch https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_install.sh
+echo "spawn git fetch https concourse_ci_tmp" >> git_install.sh
+echo "expect \"Username for 'https://github.com': \"" >> git_install.sh
+echo "send \"${GIT_USER_ID}\r\"" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
 echo exit >> git_install.sh
