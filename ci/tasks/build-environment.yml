@@ -18,7 +18,6 @@ run:
   - |
     chmod +x bosh-cpi-src/ci/tasks/build-environment.sh
     bosh-cpi-src/ci/tasks/build-environment.sh
-
 params:
   ALICLOUD_ACCESS_KEY_ID:     ""
   ALICLOUD_SECRET_ACCESS_KEY: ""
@@ -26,3 +25,7 @@ params:
   DESTROY_ENVIRONMENT:  ""
   GIT_USER_EMAIL: ""
   GIT_USER_NAME: ""
+  GIT_USER_ID: ""
+  GIT_USER_PASSWORD: ""
+  BOSH_REPO_HOST: ""
+  BOSH_REPO_BRANCH: ""
