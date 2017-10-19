@@ -20,7 +20,6 @@ METADATA=metadata
 TERRAFORM_VERSION=0.10.0
 TERRAFORM_PROVIDER_VERSION=1.2.4
 
-echo "******** valid ********"
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
@@ -39,35 +38,22 @@ echo "******** git install expect ********"
 sudo apt-get install expect -y
 
 echo "******** git pull by https ********"
-echo ${BOSH_REPO_HOST}
-git remote add https https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
-#git reset --hard origin/concourse_ci_tmp
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} concourse_ci_tmp" >> git_install.sh
-#echo "expect \"Username for 'https://github.com': \"" >> git_install.sh
-#echo "send \"${GIT_USER_ID}\r\"" >> git_install.sh
+echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
 echo "expect eof" >> git_install.sh
 echo exit >> git_install.sh
-cat git_install.sh
 chmod +x git_install.sh
 ./git_install.sh
+rm -rf ./git_install.sh
+
 echo $'\n'
 echo "****** git merge ******"
-#git fetch https concourse_ci_tmp
 git merge FETCH_HEAD
 
-echo "******** git status ********"
-git status
-
-if [ -e "./terraform.tfstate" ];
-then
-    echo "./terraform.tfstate is exist."
-    cat ./terraform.tfstate
-fi
-
-echo "\nDestroy terraform environment......"
+echo $'\n'
+echo "Destroy terraform environment......"
 terraform init
 echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
 echo yes >> terraform_destroy.sh
@@ -76,9 +62,7 @@ chmod +x terraform_destroy.sh
 ./terraform_destroy.sh
 echo "Destroy terraform environment successfully."
 rm -rf ./terraform_destroy.sh
-echo "******** git pull by https ********"
-#./git_install.sh
-rm -rf ./git_install.sh
+
 
 function copyToOutput(){
 
@@ -93,15 +77,12 @@ function copyToOutput(){
 
     git status | sed -n 'p' |while read LINE
     do
-        echo "***** line"
-        echo $LINE
-        echo "***** line end"
+        echo "echo LINE: $LINE"
         if [[ $LINE == HEAD*detached* ]];
         then
-            echo "****** detached ******"
+            echo "****** fix detached branch ******"
             read -r -a Words <<< $LINE
 
-            git status
             git status | sed -n 'p' |while read LI
             do
                 echo "echo LI: $LI"
@@ -110,12 +91,8 @@ function copyToOutput(){
                     git add .
                     git commit -m 'destroy environment commit on detached'
                     git branch temp
-#                    break
-                    echo "****** checkout2 ******"
-                    git checkout concourse_ci_tmp
-                    echo "****** merge ******"
+                    git checkout ${BOSH_REPO_BRANCH}
                     git merge temp
-                    echo "******* git branch ******"
                     git branch
                     git branch -d temp
                 fi

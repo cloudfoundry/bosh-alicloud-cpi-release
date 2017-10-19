@@ -60,6 +60,7 @@ shared:
       GIT_USER_ID: {{github_user_id}}
       GIT_USER_PASSWORD: {{github_user_password}}
       BOSH_REPO_HOST: github.com/xiaozhu36/bosh-alicloud-cpi-release.git
+      BOSH_REPO_BRANCH: concourse_ci_tmp
 
   - &destroy-environment
       task: destroy-environment
@@ -74,6 +75,7 @@ shared:
         GIT_USER_ID: {{github_user_id}}
         GIT_USER_PASSWORD: {{github_user_password}}
         BOSH_REPO_HOST: github.com/xiaozhu36/bosh-alicloud-cpi-release.git
+        BOSH_REPO_BRANCH: concourse_ci_tmp
 
   - &ensure-terminated
     task: ensure-terminated
