@@ -100,9 +100,12 @@ function copyToOutput(){
         then
             echo "****** detached ******"
             read -r -a Words <<< $LINE
+            git branch
             echo "****** ${Words[3]}"
             git branch temp ${Words[3]}
+            echo "****** checkout ******"
             git checkout concourse_ci_tmp
+            echo "****** merge ******"
             git merge temp
             echo "******* git branch ******"
             git branch
