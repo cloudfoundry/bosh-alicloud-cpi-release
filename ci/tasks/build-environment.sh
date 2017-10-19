@@ -35,6 +35,12 @@ export PATH="${TERRAFORM_PATH}:$PATH"
 
 cd ${TERRAFORM_MODULE}
 
+if [ -e "./terraform.tfstate" ];
+then
+    echo "./terraform.tfstate is exist."
+    cat ./terraform.tfstate
+fi
+
 echo "******** git install expect ********"
 sudo apt-get install expect -y
 
@@ -48,13 +54,22 @@ echo exit >> git_install.sh
 cat git_install.sh
 chmod +x git_install.sh
 ./git_install.sh
+echo "******** git status ********"
 git status
+
+if [ -e "./terraform.tfstate" ];
+then
+    echo "./terraform.tfstate is exist."
+    cat ./terraform.tfstate
+fi
+
 
 
 #rm -rf ${METADATA}
 touch ${METADATA}
 
-echo "\nBuild terraform environment......"
+echo $'\n'
+echo "Build terraform environment......"
 
 terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
 echo "******** git pull by https ********"
