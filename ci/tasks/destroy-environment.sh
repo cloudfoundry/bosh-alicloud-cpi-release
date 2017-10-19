@@ -37,8 +37,9 @@ echo "******** git install expect ********"
 sudo apt-get install expect -y
 
 echo "******** git pull by https ********"
+echo ${BOSH_REPO_HOST}
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git pull https://${GIT_USER_ID}@${BOSH_REPO_HOST} concourse_ci_tmp" >> git_install.sh
+echo "spawn git pull https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
 echo exit >> git_install.sh
