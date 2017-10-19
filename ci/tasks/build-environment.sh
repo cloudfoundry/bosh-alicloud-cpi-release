@@ -70,9 +70,9 @@ function copyToOutput(){
     cd $2
     ls -la
 
-#    git config --global user.email ${GIT_USER_EMAIL}
-#    git config --global user.name ${GIT_USER_NAME}
-#    git config --local -l
+    git config --global user.email ${GIT_USER_EMAIL}
+    git config --global user.name ${GIT_USER_NAME}
+    git config --local -l
 
     git status | sed -n 'p' |while read LINE
     do
