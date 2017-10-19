@@ -48,8 +48,10 @@ echo exit >> git_install.sh
 cat git_install.sh
 chmod +x git_install.sh
 ./git_install.sh
+git status
 
-rm -rf ${METADATA}
+
+#rm -rf ${METADATA}
 touch ${METADATA}
 
 echo "\nBuild terraform environment......"
@@ -57,6 +59,7 @@ echo "\nBuild terraform environment......"
 terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
 echo "******** git pull by https ********"
 ./git_install.sh
+git status
 rm -rf ./git_install.sh
 
 
@@ -115,6 +118,7 @@ fi
 
 terraform state list > all_state
 echo "Write metadata ......"
+echo "" > $METADATA
 cat all_state | while read LINE
 do
     if [ $LINE == "alicloud_vswitch.default" ];
