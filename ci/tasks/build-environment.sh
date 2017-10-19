@@ -54,7 +54,10 @@ touch ${METADATA}
 echo "\nBuild terraform environment......"
 
 terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
+echo "******** git pull by https ********"
+./git_install.sh
 rm -rf ./git_install.sh
+
 
 echo "Build terraform environment successfully."
 
@@ -88,6 +91,9 @@ function copyToOutput(){
 #            cat git_install.sh
 #            chmod +x git_install.sh
 #            ./git_install.sh
+#            echo "******** git pull by https ********"
+#            ./git_install.sh
+#            rm -rf ./git_install.sh
 
             echo "******** git add and commit ********"
             git add .
