@@ -102,11 +102,12 @@ function copyToOutput(){
             read -r -a Words <<< $LINE
             git branch
             echo "****** ${Words[3]}"
-            git branch temp ${Words[3]}
+#            git branch temp ${Words[3]}
 
             git status
             git status | sed -n '$p' |while read LI
             do
+                echo "******* LI*****"
                 echo $LI
                 if [[ $LI == Please*commit*your* ]];
                 then
@@ -118,7 +119,7 @@ function copyToOutput(){
             done
             git branch
             echo "****** checkout1 ******"
-            git checkout temp
+            git branch temp ${Words[3]}
             echo "****** checkout2 ******"
             git checkout concourse_ci_tmp
             echo "****** merge ******"
