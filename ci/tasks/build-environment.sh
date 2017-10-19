@@ -55,6 +55,7 @@ echo "expect \"Username for 'https://github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_ID}\r\"" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+echo "expect eof" >> git_install.sh
 echo exit >> git_install.sh
 cat git_install.sh
 chmod +x git_install.sh

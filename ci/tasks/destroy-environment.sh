@@ -22,16 +22,16 @@ TERRAFORM_PROVIDER_VERSION=1.2.4
 
 echo "******** valid ********"
 
-wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
-
-mkdir -p ${TERRAFORM_PATH}
-
-unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d ${TERRAFORM_PATH}
-tar -xzvf terraform-provider-alicloud_linux-amd64.tgz
-mv -f bin/terraform* ${TERRAFORM_PATH}
-rm -rf ./bin
-export PATH="${TERRAFORM_PATH}:$PATH"
+#wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+#wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
+#
+#mkdir -p ${TERRAFORM_PATH}
+#
+#unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d ${TERRAFORM_PATH}
+#tar -xzvf terraform-provider-alicloud_linux-amd64.tgz
+#mv -f bin/terraform* ${TERRAFORM_PATH}
+#rm -rf ./bin
+#export PATH="${TERRAFORM_PATH}:$PATH"
 
 cd ${TERRAFORM_MODULE}
 
@@ -48,6 +48,7 @@ echo "expect \"Username for 'https://github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_ID}\r\"" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+echo "expect eof" >> git_install.sh
 echo exit >> git_install.sh
 cat git_install.sh
 chmod +x git_install.sh
