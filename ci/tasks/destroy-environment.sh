@@ -52,6 +52,8 @@ echo exit >> git_install.sh
 cat git_install.sh
 chmod +x git_install.sh
 ./git_install.sh
+echo "****** git merge ******"
+git merge FETCH_HEAD
 
 echo "******** git status ********"
 git status
