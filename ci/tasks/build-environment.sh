@@ -23,7 +23,7 @@ TERRAFORM_PROVIDER_VERSION=1.2.4
 
 echo "******** valid ********"
 echo "******** which terraform ********"
-which terraform
+#which terraform
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
