@@ -17,14 +17,14 @@ type CreateStemcellMethod struct {
 type StemcellProps struct {
 	Architecture string 	`json:"architecture"`
 	ContainerFormat string 	`json:"container_format"`
-	Disk string				`json:"disk"`
-	DiskFormat string 		`json:"disk_format"`
+	//Disk string				`json:"disk"`
+	//DiskFormat string 		`json:"disk_format"`
 	Hypervisor string 		`json:"hypervisor"`
-	Name string 			`json:"name"`
-	OsDistro string			`json:"os_distro"`
-	OsType string 			`json:"os_type"`
-	RootDeviceName string 	`json:"root_device_name"`
-	SourceUrl string		`json:"source_url"`
+	//Name string 			`json:"name"`
+	//OsDistro string			`json:"os_distro"`
+	//OsType string 			`json:"os_type"`
+	//RootDeviceName string 	`json:"root_device_name"`
+	//SourceUrl string		`json:"source_url"`
 //	Version string 			`json:"version"`		TODO  sometimes string, and sometimes int
 	Images map[string]interface{} 	`json:"image_id"`
 }
