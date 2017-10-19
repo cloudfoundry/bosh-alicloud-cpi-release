@@ -109,7 +109,7 @@ function copyToOutput(){
             do
                 echo "******* LI*****"
                 echo $LI
-                if [[ $LI == Please*commit*your* ]];
+                if [[ $LI == Changes*not*staged*for*commit* ]];
                 then
                     echo $LI
                     git add .
