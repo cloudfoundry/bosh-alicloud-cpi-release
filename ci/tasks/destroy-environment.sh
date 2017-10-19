@@ -41,7 +41,7 @@ sudo apt-get install expect -y
 
 echo "******** git pull by https ********"
 echo ${BOSH_REPO_HOST}
-git reset --hard origin/concourse_ci_tmp
+#git reset --hard origin/concourse_ci_tmp
 echo "#!/usr/bin/expect" > git_install.sh
 echo "spawn git fetch https://${GIT_USER_ID}@github.com/xiaozhu36/bosh-alicloud-cpi-release.git concourse_ci_tmp" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
