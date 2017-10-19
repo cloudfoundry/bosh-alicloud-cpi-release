@@ -114,12 +114,11 @@ function copyToOutput(){
                     echo $LI
                     git add .
                     git commit -m 'destroy environment commit -detached'
+                    git branch temp
                     break
                 fi
             done
-            git branch
             echo "****** checkout1 ******"
-            git branch temp ${Words[3]}
             git branch
             echo "****** checkout2 ******"
             git checkout concourse_ci_tmp
