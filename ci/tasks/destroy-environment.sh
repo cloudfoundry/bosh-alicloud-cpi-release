@@ -105,7 +105,7 @@ function copyToOutput(){
 #            git branch temp ${Words[3]}
 
             git status
-            git status | sed -n '$p' |while read LI
+            git status | sed -n 'p' |while read LI
             do
                 echo "******* LI*****"
                 echo $LI
@@ -120,6 +120,7 @@ function copyToOutput(){
             git branch
             echo "****** checkout1 ******"
             git branch temp ${Words[3]}
+            git branch
             echo "****** checkout2 ******"
             git checkout concourse_ci_tmp
             echo "****** merge ******"
