@@ -22,16 +22,16 @@ TERRAFORM_PROVIDER_VERSION=1.2.4
 
 echo "******** valid ********"
 
-#wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-#wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
-#
-#mkdir -p ${TERRAFORM_PATH}
-#
-#unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d ${TERRAFORM_PATH}
-#tar -xzvf terraform-provider-alicloud_linux-amd64.tgz
-#mv -f bin/terraform* ${TERRAFORM_PATH}
-#rm -rf ./bin
-#export PATH="${TERRAFORM_PATH}:$PATH"
+wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+wget -N https://github.com/alibaba/terraform-provider/releases/download/V${TERRAFORM_PROVIDER_VERSION}/terraform-provider-alicloud_linux-amd64.tgz
+
+mkdir -p ${TERRAFORM_PATH}
+
+unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d ${TERRAFORM_PATH}
+tar -xzvf terraform-provider-alicloud_linux-amd64.tgz
+mv -f bin/terraform* ${TERRAFORM_PATH}
+rm -rf ./bin
+export PATH="${TERRAFORM_PATH}:$PATH"
 
 cd ${TERRAFORM_MODULE}
 
@@ -55,7 +55,7 @@ chmod +x git_install.sh
 ./git_install.sh
 echo $'\n'
 echo "****** git merge ******"
-git fetch https concourse_ci_tmp
+#git fetch https concourse_ci_tmp
 git merge FETCH_HEAD
 
 echo "******** git status ********"

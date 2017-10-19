@@ -62,7 +62,7 @@ chmod +x git_install.sh
 ./git_install.sh
 echo $'\n'
 echo "****** git merge ******"
-git fetch https concourse_ci_tmp
+#git fetch https concourse_ci_tmp
 git merge FETCH_HEAD
 echo "******** git status ********"
 git status
