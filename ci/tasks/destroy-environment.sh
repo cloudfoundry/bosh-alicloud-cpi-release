@@ -103,10 +103,22 @@ function copyToOutput(){
             git branch
             echo "****** ${Words[3]}"
             git branch temp ${Words[3]}
+
+            git status
+            git status | sed -n '$p' |while read LI
+            do
+                echo $LI
+                if [[ $LI == Please*commit*your* ]];
+                then
+                    echo $LI
+                    git add .
+                    git commit -m 'destroy environment commit -detached'
+                    break
+                fi
+            done
             git branch
             echo "****** checkout1 ******"
             git checkout temp
-            git status
             echo "****** checkout2 ******"
             git checkout concourse_ci_tmp
             echo "****** merge ******"
@@ -114,6 +126,8 @@ function copyToOutput(){
             echo "******* git branch ******"
             git branch
             git branch -d temp
+
+            vcap c1oudc0w
             break
         fi
     done
