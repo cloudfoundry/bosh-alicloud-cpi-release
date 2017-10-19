@@ -100,24 +100,17 @@ function copyToOutput(){
         then
             echo "****** detached ******"
             read -r -a Words <<< $LINE
-            git branch
-            echo "****** ${Words[3]}"
-#            git branch temp ${Words[3]}
 
             git status
             git status | sed -n 'p' |while read LI
             do
-                echo "******* LI*****"
-                echo $LI
+                echo "echo LI: $LI"
                 if [[ $LI == Changes*not*staged*for*commit* ]];
                 then
-                    echo $LI
                     git add .
-                    git commit -m 'destroy environment commit -detached'
+                    git commit -m 'destroy environment commit on detached'
                     git branch temp
-                    break
-                    echo "****** checkout1 ******"
-                    git branch
+#                    break
                     echo "****** checkout2 ******"
                     git checkout concourse_ci_tmp
                     echo "****** merge ******"
@@ -127,16 +120,6 @@ function copyToOutput(){
                     git branch -d temp
                 fi
             done
-#            echo "****** checkout1 ******"
-#            git branch
-#            echo "****** checkout2 ******"
-#            git checkout concourse_ci_tmp
-#            echo "****** merge ******"
-#            git merge temp
-#            echo "******* git branch ******"
-#            git branch
-#            git branch -d temp
-
             break
         fi
     done
