@@ -116,17 +116,26 @@ function copyToOutput(){
                     git commit -m 'destroy environment commit -detached'
                     git branch temp
                     break
+                    echo "****** checkout1 ******"
+                    git branch
+                    echo "****** checkout2 ******"
+                    git checkout concourse_ci_tmp
+                    echo "****** merge ******"
+                    git merge temp
+                    echo "******* git branch ******"
+                    git branch
+                    git branch -d temp
                 fi
             done
-            echo "****** checkout1 ******"
-            git branch
-            echo "****** checkout2 ******"
-            git checkout concourse_ci_tmp
-            echo "****** merge ******"
-            git merge temp
-            echo "******* git branch ******"
-            git branch
-            git branch -d temp
+#            echo "****** checkout1 ******"
+#            git branch
+#            echo "****** checkout2 ******"
+#            git checkout concourse_ci_tmp
+#            echo "****** merge ******"
+#            git merge temp
+#            echo "******* git branch ******"
+#            git branch
+#            git branch -d temp
 
             break
         fi
