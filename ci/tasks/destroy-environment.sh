@@ -18,7 +18,7 @@ TERRAFORM_MODULE=$SOURCE_PATH/ci/assets/terraform
 TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
 METADATA=metadata
 TERRAFORM_VERSION=0.10.0
-TERRAFORM_PROVIDER_VERSION=1.2.4
+TERRAFORM_PROVIDER_VERSION=1.2.6
 
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
