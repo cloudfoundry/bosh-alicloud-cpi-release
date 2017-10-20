@@ -33,9 +33,9 @@ export ACCESS_KEY_CONFIG=${ALICLOUD_SECRET_ACCESS_KEY}
 export ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export BOSH_ALICLOUD_REGION_ID=cn-beijing
 #export BOSH_ALICLOUD_ZONE_ID=$(echo ${metadata} | jq -e --raw-output ".availability_zone")
-export BOSH_ALICLOUD_ZONE_ID=$(cat metadata | grep availability_zone | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
-export BOSH_ALICLOUD_SECURITY_GROUP_ID=$(cat metadata | grep security_group_id | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
-export BOSH_ALICLOUD_VSWITCH_ID=$(cat metadata | grep vswitch_id | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
+export BOSH_ALICLOUD_ZONE_ID=$(cat ${METADATA_FILE} | grep availability_zone | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
+export BOSH_ALICLOUD_SECURITY_GROUP_ID=$(cat ${METADATA_FILE} | grep security_group_id | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
+export BOSH_ALICLOUD_VSWITCH_ID=$(cat ${METADATA_FILE} | grep vswitch_id | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
 export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
 
 echo "vswitch id: "
