@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"bosh-alicloud-cpi/registry"
 	"fmt"
+	"bosh-alicloud-cpi/mock"
 )
 
 type CpiResponse struct {
@@ -59,46 +60,18 @@ func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
 	return Caller {config, logger,services}
 }
 
-func NewTestCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
+func NewTestCaller(config alicloud.Config, logger boshlog.Logger, mc mock.TestContext) (Caller) {
 	services := Services {
-		Stemcells: alicloud.NewStemcellManagerMock(),
-		Instances: alicloud.NewInstanceManagerMock(),
-		Disks: alicloud.NewDiskManagerMock(),
-		Networks: alicloud.NewNetworkManagerMock(),
+		Stemcells: mock.NewStemcellManagerMock(mc),
+		Instances: mock.NewInstanceManagerMock(mc),
+		Disks: mock.NewDiskManagerMock(mc),
+		Networks: mock.NewNetworkManagerMock(mc),
 		Registry: registry.NewClientMock(),
 	}
 	return Caller {config, logger, services}
 }
 
-func (c Caller)RunTest(input []byte) (CpiResponse) {
-//	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-
-	reader := bytes.NewReader(input)
-	output := new(bytes.Buffer)
-
-	cc := NewCallContext(input, c.Logger, c.Config)
-
-	cpiFactory := NewFactory(cc, c.Services)
-	cli := boshrpc.NewFactory(c.Logger).NewCLIWithInOut(reader, output, cpiFactory)
-	err := cli.ServeOnce()
-
-	if err != nil {
-		return WrapErrorResponse(err, "ServeOnce() Failed")
-	}
-
-	var resp CpiResponse
-	err = json.Unmarshal(output.Bytes(), &resp)
-
-	if err != nil {
-		return WrapErrorResponse(err, "ServeOnce() result unmarshal failed %s", output.Bytes())
-	}
-
-	return resp
-}
-
-func (c Caller)Run(input []byte) (CpiResponse) {
-	//	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-
+func (c Caller) Run(input []byte) (CpiResponse) {
 	reader := bytes.NewReader(input)
 	output := new(bytes.Buffer)
 

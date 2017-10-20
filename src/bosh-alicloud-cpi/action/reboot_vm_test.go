@@ -10,7 +10,7 @@ import (
 
 var _ = Describe("cpi:reboot_vm", func() {
 	It("can run reboot vm", func() {
-		r :=  caller.RunTest([]byte(`
+		r :=  caller.Run([]byte(`
 
 
 		`), )

@@ -102,7 +102,7 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 
 
 func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
-	timeout := DEFAULT_TIMEOUT
+	timeout := DefaultTimeoutMs
 	for {
 		disk, err := a.GetDisk(diskCid)
 
@@ -111,22 +111,29 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 		}
 
 		if disk.Status == toStatus {
-			//
-			// 如果非普通云盘，需要去除x字母，如: xvdb -> vdb
-			// if not normal Cloud need trim first x: xvdc -> vcd
-			device := disk.Device
-			if device[5] == 'x' {
-				device = "/dev/" + string(device[6:])
-			}
-
-			return device, nil
+			path := amendDiskPath(disk.Device, disk.Category)
+			return path, nil
 		}
 
 		if timeout > 0 {
 			timeout -= 1000
-			time.Sleep(time.Duration(DEFAULT_WAIT_INTERVAL) * time.Millisecond)
+			time.Sleep(time.Duration(DefaultWaitInterval) * time.Millisecond)
 		} else {
 			return "", bosherr.Error("WaitForInstanceStatus timeout")
 		}
 	}
+}
+
+
+func amendDiskPath(path string, category ecs.DiskCategory) (string) {
+	//
+	// 如果非普通云盘，需要去除x字母，如: xvdb -> vdb
+	// if not normal Cloud need trim first x: xvdc -> vcd
+	if category == ecs.DiskCategoryCloudEfficiency {
+		if path[5] == 'x' {
+			path = "/dev/" + string(path[6:])
+		}
+	}
+
+	return path
 }

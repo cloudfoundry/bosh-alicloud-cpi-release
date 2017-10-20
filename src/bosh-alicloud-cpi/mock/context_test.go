@@ -1,14 +1,14 @@
 /*
  * Copyright (C) 2017-2017 Alibaba Group Holding Limited
  */
-package action
+package mock
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+. "github.com/onsi/ginkgo"
+. "github.com/onsi/gomega"
 )
 
-var _ = Describe("caller", func() {
+var _ = Describe("mock:TestContext", func() {
 	It("foo", func() {
 		Expect(true).To(Equal(true))
 	})

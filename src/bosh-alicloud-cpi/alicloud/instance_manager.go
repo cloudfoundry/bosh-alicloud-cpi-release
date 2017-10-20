@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+const (
+	UseForceStop = false
+	DefaultTimeoutMs = 1200000
+	DefaultWaitInterval = 2000
+)
+
 type InstanceManager interface {
 	GetInstance(cid string) (*ecs.InstanceAttributesType, error)
 
@@ -72,12 +78,12 @@ func (a InstanceManagerImpl) StartInstance(cid string) error {
 
 func (a InstanceManagerImpl) StopInstance(cid string) error {
 	client := a.config.NewEcsClient()
-	return client.StopInstance(cid, USE_FORCE_STOP)
+	return client.StopInstance(cid, UseForceStop)
 }
 
 func (a InstanceManagerImpl) RebootInstance(cid string) error {
 	client := a.config.NewEcsClient()
-	return client.RebootInstance(cid, USE_FORCE_STOP)
+	return client.RebootInstance(cid, UseForceStop)
 }
 
 func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, error) {
@@ -95,7 +101,7 @@ func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, 
 }
 
 func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (error) {
-	timeout := DEFAULT_TIMEOUT
+	timeout := DefaultTimeoutMs
 	for {
 		status, err := a.GetInstanceStatus(cid)
 
@@ -112,8 +118,8 @@ func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.Inst
 		}
 
 		if timeout > 0 {
-			timeout -= DEFAULT_WAIT_INTERVAL
-			time.Sleep(time.Duration(DEFAULT_WAIT_INTERVAL) * time.Millisecond)
+			timeout -= DefaultWaitInterval
+			time.Sleep(time.Duration(DefaultWaitInterval) * time.Millisecond)
 		} else {
 			return bosherr.Error("WaitForInstanceStatus timeout")
 		}

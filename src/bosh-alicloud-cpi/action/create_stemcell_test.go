@@ -10,7 +10,7 @@ import (
 
 var _ = Describe("create_stemcell", func() {
 	It("can create stemcell", func() {
-		r := caller.RunTest([]byte(`{
+		r := caller.Run([]byte(`{
 			"method": "create_stemcell",
 				"arguments": [
 			"/var/vcap/data/tmp/director/stemcell20170926-9684-17ncxdz/image",

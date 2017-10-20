@@ -7,9 +7,10 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"bosh-alicloud-cpi/alicloud"
-	"testing"
 	"os"
+	"testing"
+	"bosh-alicloud-cpi/mock"
+	"bosh-alicloud-cpi/alicloud"
 )
 
 func TestActions(t *testing.T) {
@@ -18,6 +19,7 @@ func TestActions(t *testing.T) {
 }
 
 var caller Caller
+var mockContext mock.TestContext
 
 var configForTest = []byte(`
 {
@@ -61,5 +63,5 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-	caller = NewTestCaller(config, logger)
+	caller = NewTestCaller(config, logger, mockContext)
 })

@@ -12,7 +12,6 @@ import (
 	"os"
 	"bosh-alicloud-cpi/registry"
 	"github.com/denverdino/aliyungo/ecs"
-	"strings"
 )
 
 type CloudConfigJson struct {
@@ -31,17 +30,17 @@ type Config struct {
 }
 
 type OpenApi struct {
-	RegionId        string   `json:"region_id"`
-	AccessKeyId     string   `json:"access_key_id"`
-	AccessKeySecret string   `json:"access_key_secret"`
+	RegionId        string  `json:"region_id"`
+	AccessKeyId     string  `json:"access_key_id"`
+	AccessKeySecret string  `json:"access_key_secret"`
 }
 
 type RegistryConfig struct {
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Protocol string `json:"protocol"`
-	Host     string `json:"address"`
-	Port     int	`json:"port"`
+	User     string			`json:"user"`
+	Password string			`json:"password"`
+	Protocol string			`json:"protocol"`
+	Host     string			`json:"address"`
+	Port     json.Number	`json:"port"`
 }
 
 type AgentConfig struct {
@@ -55,14 +54,16 @@ type BlobstoreConfig struct {
 	Options  map[string]interface{}	`json:"options"`
 }
 
-type BlobstoreOptions struct {
-	Endpoint string `json:"endpoint"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-}
-
 func (c Config) Validate() error {
-	// TODO check configuration validation
+	if c.OpenApi.RegionId == "" {
+		return fmt.Errorf("region can't be empty")
+	}
+	_, err := c.Registry.Port.Int64()
+	if err != nil {
+		return fmt.Errorf("bad registry.port %s", c.Registry.Port.String())
+	}
+
+	//TODO: validate more
 	return nil
 }
 
@@ -100,18 +101,20 @@ func NewConfigFromBytes(bytes []byte) (Config, error) {
 	return config, nil
 }
 
-func (a *OpenApi) ApplySystemEnv() {
+func (a OpenApi) ApplySystemEnv() (OpenApi){
 	a.AccessKeyId = os.ExpandEnv(a.AccessKeyId)
 	a.AccessKeySecret = os.ExpandEnv(a.AccessKeySecret)
+	return a
 }
 
-func (a *RegistryConfig) ToInstanceUserData() string {
-	endpoint := fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, a.Port)
+func (a RegistryConfig) ToInstanceUserData() string {
+	port, _ := a.Port.Int64()
+	endpoint := fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, port)
 	json := fmt.Sprintf(`{"RegistryConfig":{"Endpoint":"%s"}}`, endpoint)
 	return json
 }
 
-func (a *BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
+func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
 	return registry.BlobstoreSettings {
 		Provider: a.Provider,
 		Options: a.Options,
@@ -126,16 +129,11 @@ func (c Config) NewEcsClient() (*ecs.Client) {
 func (c Config) GetHttpRegistryClient(logger boshlog.Logger) (registry.Client) {
 	r := c.Registry
 
-	if strings.Compare("", r.Host) == 0 {
-		//
-		// first start need skip this operation
-		return nil
-	}
-
+	port, _ := r.Port.Int64()
 	clientOptions := registry.ClientOptions {
 		Protocol: r.Protocol,
 		Host: r.Host,
-		Port: r.Port,
+		Port: int(port),
 		Username: r.User,
 		Password: r.Password,
 	}

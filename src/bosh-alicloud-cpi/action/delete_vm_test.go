@@ -11,7 +11,7 @@ import (
 var _ = Describe("cpi:delete_vm", func() {
 	It("can delete_vm with right registry", func() {
 		By("attach disk")
-		r :=  caller.RunTest([]byte(`
+		r :=  caller.Run([]byte(`
 
 
 		`), )
@@ -22,6 +22,7 @@ var _ = Describe("cpi:delete_vm", func() {
 		// Expect(disks.GetDiskStatus(id)).To(Equal())
 
 		By("update registry right")
+
 
 	})
 })

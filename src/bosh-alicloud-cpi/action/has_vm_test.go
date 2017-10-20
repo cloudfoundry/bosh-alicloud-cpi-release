@@ -10,7 +10,7 @@ import (
 
 var _ = Describe("cpi:has_vm", func() {
 	It("can run when vm exists", func() {
-		r :=  caller.RunTest([]byte(`
+		r :=  caller.Run([]byte(`
 
 
 		`), )
@@ -18,7 +18,7 @@ var _ = Describe("cpi:has_vm", func() {
 	})
 
 	It("can run when vm not exists", func() {
-		r :=  caller.RunTest([]byte(`
+		r :=  caller.Run([]byte(`
 
 
 		`), )

@@ -10,7 +10,7 @@ import (
 
 var _ = Describe("cpi:get_disks", func() {
 	It("can get exists disk", func() {
-		r :=  caller.RunTest([]byte(`
+		r :=  caller.Run([]byte(`
 
 
 		`), )

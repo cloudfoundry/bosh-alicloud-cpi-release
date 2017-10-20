@@ -10,9 +10,10 @@ import (
 
 
 var _ = Describe("cpi:create_disk", func() {
-	It("create disk", func() {
+	It("create disk with ", func() {
 		By("create disk right")
-		r := caller.RunTest([]byte(`{
+
+		r := caller.Run([]byte(`{
 			"method": "create_disk",
 				"arguments": [
 					30_000,
