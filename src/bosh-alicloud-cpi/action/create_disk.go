@@ -18,7 +18,7 @@ func NewCreateDiskMethod(cc CallContext, disks alicloud.DiskManager) CreateDiskM
 }
 
 func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid *apiv1.VMCID) (apiv1.DiskCID, error) {
-	a.Logger.Debug("create_disk", "size=%d, props=%v, vmCid=%v", size, props, vmCid)
+	a.Logger.Debug("create_disk", "size=%d, cloudProps=%v, vmCid=%v", size, props, vmCid)
 	var cid apiv1.DiskCID
 
 	diskInfo, err := NewDiskInfo(size, props)

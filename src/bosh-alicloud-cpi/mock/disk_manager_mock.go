@@ -9,19 +9,23 @@ import (
 	"github.com/denverdino/aliyungo/ecs"
 )
 
+const (
+	MaxDiskSizeGB=32768
+)
+
 type DiskManagerMock struct {
-	mc TestContext
+	mc *TestContext
 }
 
 func NewDiskManagerMock(mc TestContext) alicloud.DiskManager {
-	return DiskManagerMock{mc}
+	return DiskManagerMock{&mc}
 }
 
 func (a DiskManagerMock) GetDisks(instCid string) ([]ecs.DiskItemType, error) {
 	r := []ecs.DiskItemType{}
 	for _, d := range a.mc.Disks {
 		if d.InstanceId == instCid {
-			r = append(r, d)
+			r = append(r, *d)
 		}
 	}
 	return r, nil
@@ -29,15 +33,15 @@ func (a DiskManagerMock) GetDisks(instCid string) ([]ecs.DiskItemType, error) {
 
 func (a DiskManagerMock) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
 	if d, ok := a.mc.Disks[diskCid]; ok {
-		return &d, nil
+		return d, nil
 	} else {
 		return nil, nil
 	}
 }
 
 func (a DiskManagerMock) CreateDisk(sizeGB int, category ecs.DiskCategory) (string, error) {
-	if sizeGB == 0 || sizeGB > 1000 {
-		return "", fmt.Errorf("CreateDisk size failed size=%d", sizeGB)
+	if sizeGB == 0 || sizeGB > MaxDiskSizeGB {
+		return "", fmt.Errorf("CreateDisk size too small or large %d", sizeGB)
 	}
 	if category == "" {
 		return "", fmt.Errorf("CreateDisk category empty")
@@ -73,6 +77,7 @@ func (a DiskManagerMock) AttachDisk(instCid string, diskCid string) error {
 
 	disk.InstanceId = instCid
 	disk.Status = ecs.DiskStatusInUse
+	a.mc.Disks[disk.DiskId] = disk
 	return nil
 }
 

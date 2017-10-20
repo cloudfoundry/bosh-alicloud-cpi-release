@@ -108,7 +108,7 @@ func (a CreateVMMethod) CreateVM(
 	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
 
-	disks, err := NewDisks(instProps.SystemDisk, []DiskInfo{instProps.EphemeralDisk})
+	disks, err := NewDisks(instProps.SystemDisk, instProps.EphemeralDisk)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "bad disks format, %v", instProps)
 	}
@@ -218,11 +218,11 @@ func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registr
 //
 //
 //func TestCloudProps(t *testing.T) {
-//	var props InstanceProps
-//	json.Unmarshal(cloudPropsJson, &props)
+//	var cloudProps InstanceProps
+//	json.Unmarshal(cloudPropsJson, &cloudProps)
 //
-//	t.Log(props)
-//	t.Log(props.EphemeralDisk.GetSizeGB())
+//	t.Log(cloudProps)
+//	t.Log(cloudProps.EphemeralDisk.GetSizeGB())
 //
 //	var prop2 InstanceProps
 //	json.Unmarshal(cloudPropsJson2, &prop2)

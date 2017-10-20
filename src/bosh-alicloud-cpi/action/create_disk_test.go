@@ -10,15 +10,14 @@ import (
 
 
 var _ = Describe("cpi:create_disk", func() {
-	It("create disk with ", func() {
+	It("can create disk with ", func() {
 		By("create disk right")
 
 		r := caller.Run([]byte(`{
 			"method": "create_disk",
 				"arguments": [
-					30_000,
+					30720,
 					{},
-					"i-2zefl7hfr7yb97ni5skw"
 				],
 				"context": {
 				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
@@ -26,4 +25,20 @@ var _ = Describe("cpi:create_disk", func() {
 		}`))
 		Expect(r.GetError()).NotTo(HaveOccurred())
 	})
+	//It("create disk with instance", func() {
+	//	By("create disk right")
+	//
+	//	r := caller.Run([]byte(`{
+	//		"method": "create_disk",
+	//			"arguments": [
+	//				30720,
+	//				{},
+	//				"i-2zefl7hfr7yb97ni5skw"
+	//			],
+	//			"context": {
+	//			"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
+	//		}
+	//	}`))
+	//	Expect(r.GetError()).NotTo(HaveOccurred())
+	//})
 })

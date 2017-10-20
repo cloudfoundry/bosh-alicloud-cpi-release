@@ -10,7 +10,6 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"bytes"
 	"encoding/json"
-	"bosh-alicloud-cpi/registry"
 	"fmt"
 	"bosh-alicloud-cpi/mock"
 )
@@ -66,12 +65,16 @@ func NewTestCaller(config alicloud.Config, logger boshlog.Logger, mc mock.TestCo
 		Instances: mock.NewInstanceManagerMock(mc),
 		Disks: mock.NewDiskManagerMock(mc),
 		Networks: mock.NewNetworkManagerMock(mc),
-		Registry: registry.NewClientMock(),
+		Registry: mock.NewRegistryMock(),
 	}
 	return Caller {config, logger, services}
 }
 
 func (c Caller) Run(input []byte) (CpiResponse) {
+	if !json.Valid(input) {
+		return WrapErrorResponse(nil, "Input json invalid %s", string(input))
+	}
+
 	reader := bytes.NewReader(input)
 	output := new(bytes.Buffer)
 

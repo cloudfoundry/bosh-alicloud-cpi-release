@@ -111,7 +111,7 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 		}
 
 		if disk.Status == toStatus {
-			path := amendDiskPath(disk.Device, disk.Category)
+			path := AmendDiskPath(disk.Device, disk.Category)
 			return path, nil
 		}
 
@@ -125,10 +125,15 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 }
 
 
-func amendDiskPath(path string, category ecs.DiskCategory) (string) {
+func AmendDiskPath(path string, category ecs.DiskCategory) (string) {
 	//
 	// 如果非普通云盘，需要去除x字母，如: xvdb -> vdb
 	// if not normal Cloud need trim first x: xvdc -> vcd
+	//
+	// cloud:
+	// cloud_efficiency:
+	// cloud_ssd:
+	// ephemeral_ssd:
 	if category == ecs.DiskCategoryCloudEfficiency {
 		if path[5] == 'x' {
 			path = "/dev/" + string(path[6:])

@@ -56,6 +56,7 @@ var configForTest = []byte(`
 `)
 
 var _ = BeforeSuite(func() {
+	mockContext = mock.NewTestContext()
 	config, err := alicloud.NewConfigFromBytes(configForTest)
 	Expect(err).NotTo(HaveOccurred())
 

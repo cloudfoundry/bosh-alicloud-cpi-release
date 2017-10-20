@@ -10,11 +10,11 @@ import (
 )
 
 type InstanceManagerMock struct {
-	mc TestContext
+	mc *TestContext
 }
 
 func NewInstanceManagerMock(mc TestContext) (alicloud.InstanceManager) {
-	return InstanceManagerMock{mc}
+	return InstanceManagerMock{&mc}
 }
 
 func (a InstanceManagerMock) GetInstance(cid string) (*ecs.InstanceAttributesType, error) {
@@ -22,7 +22,7 @@ func (a InstanceManagerMock) GetInstance(cid string) (*ecs.InstanceAttributesTyp
 	if !ok {
 		return nil, nil
 	}  else {
-		return &i, nil
+		return i, nil
 	}
 }
 
@@ -68,6 +68,7 @@ func (a InstanceManagerMock) StopInstance(cid string) error {
 		return fmt.Errorf("StopInstance instance %s status %s is not Running", cid, inst.Status)
 	}
 	inst.Status = ecs.Stopped
+	a.mc.Instances[inst.InstanceId] = inst
 	return nil
 }
 
