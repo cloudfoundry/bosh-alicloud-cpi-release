@@ -12,13 +12,23 @@ import (
 	"testing"
 )
 
-var _ = Describe("VM", func() {
+var _ = Describe("integration:vm", func() {
+	It("can create vm, start, stop, and delete", func() {})
+	It("can create vm with disks, and delete", func() {})
+	It("can create vm with manual ip, and delete it", func() {})
+	It("can create vm with dynamic ip, and delete it", func() {})
+	It("can create vm with external ip, and delete it", func() {})
+	It("can create vm with key pair, and delete it", func() {})
+	It("can create vm, then start, stop and delete it", func() {})
+	It("can create vm, then start, reboot, stop and delete it", func() {})
+	It("can create vm, then start, reboot, stop and delete it", func() {})
+
 	It("creates a VM with an invalid configuration and receives an error message with logs", func() {
 		testing.Short()
 		request := fmt.Sprintf(`{
-			  "method": "create_vm",
-			  "arguments": [
-				"7bc16fab-52c3-4bb9-a5c3-560445986860",
+			"method": "create_vm",
+			"arguments": [
+			"7bc16fab-52c3-4bb9-a5c3-560445986860",
 				"%v",
 				{
 					"ephemeral_disk": {

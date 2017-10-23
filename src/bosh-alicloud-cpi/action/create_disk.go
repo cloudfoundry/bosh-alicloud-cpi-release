@@ -36,13 +36,17 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid
 	cid = apiv1.NewDiskCID(diskCid)
 
 	//
-	// TODO? need Attach?
+	// TODO?
+	// vm_cid [String]: Cloud ID of the VM created disk will most likely be attached; it could be used to
+	// .optimize disk placement so that disk is located near the VM.
+	//
+	// with zone
 	// NewAttachDiskMethod(a.runner).AttachDisk(*vmcid, diskcid)
-
-	if vmCid != nil {
-		return cid, a.WrapError(nil, "NOT_IMPLEMENTED create_disk and attach with vm")
-
-	}
+	//
+	//if vmCid != nil {
+	//	return cid, a.WrapError(nil, "NOT_IMPLEMENTED create_disk and attach with vm")
+	//
+	//}
 
 	return cid, nil
 }

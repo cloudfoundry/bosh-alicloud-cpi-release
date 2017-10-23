@@ -31,7 +31,7 @@ var _ = Describe("tester", func() {
 		}`).
 		P("KEY", key).
 		P("${SECRET}", secret).		// compatible for key surround with ${} or not
-			ToBytes()
+		ToBytes()
 
 		var v TestJson
 		err := json.Unmarshal(bytes, &v)
