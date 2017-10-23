@@ -35,9 +35,6 @@ pushd candidate/repo
   echo "****** git merge ******"
   git merge FETCH_HEAD
 
-  echo "****** git log ******"
-  git log
-
   echo "using bosh CLI version..."
   bosh2 -v
 
