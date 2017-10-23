@@ -31,7 +31,7 @@ pushd candidate/repo
   echo "#!/usr/bin/expect" > git_install.sh
   echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
   echo "expect \"Password for 'https://${GIT_USER_ID}@gitlab.com': \"" >> git_install.sh
-  echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+  echo "send \"${GIT_USER_PASSWORD}\"" >> git_install.sh
   echo "expect eof" >> git_install.sh
   echo exit >> git_install.sh
   chmod +x git_install.sh
