@@ -28,6 +28,7 @@ var configForTest = []byte(`
         "properties": {
             "alicloud": {
                 "region_id": "cn-beijing",
+				"zone_id": "cn-beijing-a",
                 "access_key_id": "---",
                 "access_key_secret": "---"
             },
@@ -64,5 +65,14 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-	caller = NewTestCaller(config, logger, mockContext)
+
+	services := Services {
+		Stemcells: mock.NewStemcellManagerMock(mockContext),
+		Instances: mock.NewInstanceManagerMock(mockContext),
+		Disks: mock.NewDiskManagerMock(mockContext),
+		Networks: mock.NewNetworkManagerMock(mockContext),
+		Registry: mock.NewRegistryMock(),
+	}
+
+	caller = NewCallerWithServices(config, logger, services)
 })

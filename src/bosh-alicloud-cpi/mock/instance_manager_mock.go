@@ -96,7 +96,11 @@ func (a InstanceManagerMock) GetInstanceStatus(cid string) (ecs.InstanceStatus, 
 func (a InstanceManagerMock) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (error) {
 	inst, ok := a.mc.Instances[cid]
 	if !ok {
-		return fmt.Errorf("WaitForInstanceStatus instance not exists %s", cid)
+		if toStatus == ecs.Deleted {
+			return nil
+		} else {
+			return fmt.Errorf("WaitForInstanceStatus instance not exists %s", cid)
+		}
 	}
 	if inst.Status != toStatus {
 		return fmt.Errorf("WaitForInstanceStatus instance %s excepted status %s but get %s", cid, toStatus, inst.Status)

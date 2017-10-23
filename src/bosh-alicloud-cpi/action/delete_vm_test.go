@@ -9,20 +9,10 @@ import (
 )
 
 var _ = Describe("cpi:delete_vm", func() {
-	It("can delete_vm with right registry", func() {
-		By("attach disk")
-		r :=  caller.Run([]byte(`
+	It("can delete existent vm", func() {
+		cid, _ := mockContext.NewInstance()
 
-
-		`), )
-		Expect(r.GetError()).NotTo(HaveOccurred())
-		//
-		// TODO: use mock method to detect execution results
-		// disks := caller.Disks.GetDisk()
-		// Expect(disks.GetDiskStatus(id)).To(Equal())
-
-		By("update registry right")
-
-
+		_, err :=  caller.Call("delete_vm", cid)
+		Expect(err).NotTo(HaveOccurred())
 	})
 })

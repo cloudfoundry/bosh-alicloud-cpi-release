@@ -4,21 +4,16 @@
 package integration
 
 import (
-	"testing"
 	. "github.com/onsi/ginkgo"
 	_ "github.com/onsi/gomega"
 )
 
-var _ = Describe("Integration for Disks", func() {
-	BeforeEach(func() {
+var _ = Describe("integration:disk", func() {
+	It("can create disk and delete it", func() {
 
 	})
 
-	It("", func() {
-
-	})
-
-	It("", func() {
+	It("can create disk, attach to instance, detach, and delete it", func() {
 
 	})
 })

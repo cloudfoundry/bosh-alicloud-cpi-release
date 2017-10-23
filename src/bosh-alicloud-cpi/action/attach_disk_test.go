@@ -6,27 +6,17 @@ package action
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"bosh-alicloud-cpi/mock"
 )
 
 var _ = Describe("cpi:attach_disk", func() {
 	It("can attach disk", func() {
-		diskCid, _ := mockContext.NewDisk()
+		diskCid, _ := mockContext.NewDisk("")
 		instCid, _ := mockContext.NewInstance()
 
-		in := mock.NewBuilder(`{
-			"method": "attach_disk",
-				"arguments": [
-					"${INST_CID}",
-					"${DISK_CID}"
-				],
-				"context": {
-				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
-			}
-		}`).P("DISK_CID", diskCid).P("INST_CID", instCid).ToBytes()
-		r := caller.Run(in)
-		Expect(r.GetError()).NotTo(HaveOccurred())
+		_, err := caller.Call("attach_disk", instCid, diskCid)
+		Expect(err).NotTo(HaveOccurred())
 	})
+
 	//It("can attach disk with right registry", func() {
 	//	By("attach disk")
 	//	diskCid, _ := mockContext.NewDisk()

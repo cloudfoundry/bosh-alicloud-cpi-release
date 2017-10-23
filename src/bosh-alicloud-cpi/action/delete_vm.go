@@ -30,7 +30,9 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 		return bosherr.WrapErrorf(err, "DeleteVM get status failed cid=%s", instCid)
 	}
 
-	if status == ecs.Running {
+	if status == ecs.Stopped {
+		// nothing to do, can delete now
+	} else if status == ecs.Running {
 		err = a.instances.StopInstance(instCid)
 
 		if err != nil {

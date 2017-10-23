@@ -9,15 +9,12 @@ import (
 )
 
 
-var _ = Describe("cpi:create_disk", func() {
-	It("can create disk", func() {
-		By("create disk right")
-		instCid, _ := mockContext.NewInstance()
+var _ = Describe("cpi:delete_disk", func() {
+	It("can delete disk", func() {
+		cid, _ := mockContext.NewDisk("")
 
-		cid, err := caller.Call("create_disk", 30720, `{ "type": "cloud" }`, instCid)
+		_, err := caller.Call("delete_disk", cid)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(cid)).To(Equal(22))
-
 		//r = caller.Call("has_disk", cid)
 		//Expect(r.GetError()).NotTo(HaveOccurred())
 		//Expect(r.Result)
@@ -30,7 +27,7 @@ var _ = Describe("cpi:create_disk", func() {
 	//			"arguments": [
 	//				30720,
 	//				{},
-	//				""
+	//				"i-2zefl7hfr7yb97ni5skw"
 	//			],
 	//			"context": {
 	//			"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"

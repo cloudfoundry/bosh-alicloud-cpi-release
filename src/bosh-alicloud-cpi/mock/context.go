@@ -17,24 +17,24 @@ func NewTestContext() TestContext {
 	}
 }
 
-func (tc TestContext) NewDisk() (string, ecs.DiskItemType) {
+func (tc TestContext) NewDisk(instCid string) (string, *ecs.DiskItemType) {
 	d := ecs.DiskItemType {
 		DiskId:NewDiskId(),
 		Status:ecs.DiskStatusAvailable,
 		Category:ecs.DiskCategoryCloudEfficiency,
-		InstanceId:"",
+		InstanceId:instCid,
 	}
 	tc.Disks[d.DiskId] = &d
-	return d.DiskId, d
+	return d.DiskId, &d
 }
 
-func (tc TestContext) NewInstance() (string, ecs.InstanceAttributesType) {
+func (tc TestContext) NewInstance() (string, *ecs.InstanceAttributesType) {
 	i := ecs.InstanceAttributesType{
 		InstanceId:NewInstanceId(),
 		Status: ecs.Stopped,
 	}
 	tc.Instances[i.InstanceId] = &i
-	return i.InstanceId, i
+	return i.InstanceId, &i
 }
 
 

@@ -46,7 +46,7 @@ func (a DiskManagerMock) CreateDisk(sizeGB int, category ecs.DiskCategory) (stri
 	if category == "" {
 		return "", fmt.Errorf("CreateDisk category empty")
 	}
-	id, d := a.mc.NewDisk()
+	id, d := a.mc.NewDisk("")
 	d.Size = sizeGB
 	d.Category = category
 	return id, nil
