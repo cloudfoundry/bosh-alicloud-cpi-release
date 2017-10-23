@@ -71,9 +71,9 @@ func NewTestCaller(config alicloud.Config, logger boshlog.Logger, mc mock.TestCo
 }
 
 func (c Caller) Run(input []byte) (CpiResponse) {
-	if !json.Valid(input) {
-		return WrapErrorResponse(nil, "Input json invalid %s", string(input))
-	}
+	//if !json.Valid(input) {
+	//	return WrapErrorResponse(nil, "Input json invalid %s", string(input))
+	//}
 
 	reader := bytes.NewReader(input)
 	output := new(bytes.Buffer)
