@@ -17,12 +17,26 @@ mv ./bosh-cli-* /usr/local/bin/bosh2
 cp -r bosh-cpi-src candidate/repo
 
 pushd candidate/repo
-  #echo "running unit tests"
-  #pushd src/bosh_alicloud_cpi
-  #  bundle install
-  #  # bundle exec rspec spec/unit/*
-  #  bundle exec rspec --tag debug spec/unit/cloud_spec.rb
-  #popd
+  echo "******** git install expect ********"
+  sudo apt-get install expect -y
+
+  echo "******** git pull by https ********"
+  echo "#!/usr/bin/expect" > git_install.sh
+  echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
+  echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
+  echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+  echo "expect eof" >> git_install.sh
+  echo exit >> git_install.sh
+  chmod +x git_install.sh
+  ./git_install.sh
+  rm -rf ./git_install.sh
+
+  echo $'\n'
+  echo "****** git merge ******"
+  git merge FETCH_HEAD
+
+  echo "****** git log ******"
+  git log
 
   echo "using bosh CLI version..."
   bosh2 -v
@@ -30,29 +44,17 @@ pushd candidate/repo
   cpi_release_name="bosh-alicloud-cpi"
 
   # fix cannot find package "bosh-alicloud-cpi/action
-  echo $GOPATH
   source .envrc
-  echo $GOPATH
+  #echo $GOPATH
 
-  # fix Git clone Error: RPC failed; result=56, HTTP code = 200
-  # https://confluence.atlassian.com/stashkb/git-clone-fails-error-rpc-failed-result-56-http-code-200-693897332.html
-  export GIT_TRACE_PACKET=1
-  export GIT_TRACE=1
-  export GIT_CURL_VERBOSE=1
-
-  git version
-
-  git config --global http.postBuffer 20M
-  git config lfs.batch false
-
-  pwd
   make
   
   # add go cpi blob
   #ls ../../go-cpi-blobs
   bosh2 add-blob ../../go-cpi-blobs/go1.8.1.linux-amd64.tar.gz go1.8.1.linux-amd64.tar.gz
 
-  export TERM=msys
+  # export TERM=msys
+  echo "git status..."
   git status
 
   # todo: get email and user from params
@@ -63,13 +65,20 @@ pushd candidate/repo
   git commit -m 'do nothing'
   #git pull
 
+  ls -al
+
   echo "building CPI release..."
   # refers: https://bosh.io/docs/cli-v2#create-release
   bosh2 create-release --name $cpi_release_name --version $semver --tarball $cpi_release_name-$semver.tgz
 
+  ls -al dev-release-artifacts
   mkdir dev-release-artifacts
+  rm -rf dev-release-artifacts/*
   mv $cpi_release_name-$semver.tgz dev-release-artifacts/
-  ls dev-release-artifacts
+  ls -al dev-release-artifacts
+
+  echo "git status..."
+  git status
 
   git add .
   git commit -m 'create cpi release'
