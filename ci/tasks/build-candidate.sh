@@ -2,6 +2,13 @@
 
 set -x
 
+: ${GIT_USER_EMAIL:?}
+: ${GIT_USER_NAME:?}
+: ${GIT_USER_ID:?}
+: ${GIT_USER_PASSWORD:?}
+: ${BOSH_REPO_HOST:?}
+: ${BOSH_REPO_BRANCH:?}
+
 source bosh-cpi-src/ci/tasks/utils.sh
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 

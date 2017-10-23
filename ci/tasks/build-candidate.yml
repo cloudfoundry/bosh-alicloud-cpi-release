@@ -22,3 +22,11 @@ run:
   - |
     chmod +x bosh-cpi-src/ci/tasks/build-candidate.sh
     bash bosh-cpi-src/ci/tasks/build-candidate.sh
+
+params:
+  GIT_USER_EMAIL: ""
+  GIT_USER_NAME: ""
+  GIT_USER_ID: ""
+  GIT_USER_PASSWORD: ""
+  BOSH_REPO_HOST: ""
+  BOSH_REPO_BRANCH: ""
