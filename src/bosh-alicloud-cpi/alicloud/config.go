@@ -9,7 +9,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"encoding/json"
 	"fmt"
-	"os"
 	"bosh-alicloud-cpi/registry"
 	"github.com/denverdino/aliyungo/ecs"
 )
@@ -94,40 +93,12 @@ func NewConfigFromBytes(bytes []byte) (Config, error) {
 
 	config = ccs.Root.Properties
 
-	//err = config.OpenApi.ApplySystemEnv()
-	//if err != nil {
-	//	return config, bosherr.WrapError(err, "env not found")
-	//}
-
 	err = config.Validate()
 	if err != nil {
 		return config, bosherr.WrapError(err, "Validating config")
 	}
 
 	return config, nil
-}
-
-func (a *OpenApi) ApplySystemEnv() (error) {
-	a.RegionId = os.ExpandEnv(a.RegionId)
-	if a.RegionId == "" {
-		return fmt.Errorf("can't find sysenv: CPI_REGION")
-	}
-
-	a.ZoneId = os.ExpandEnv(a.ZoneId)
-	if a.ZoneId == "" {
-		return fmt.Errorf("can't find sysenv: CPI_ZONE")
-	}
-
-	a.AccessKeyId = os.ExpandEnv(a.AccessKeyId)
-	if a.AccessKeyId == "" {
-		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_ID")
-	}
-
-	a.AccessKeySecret = os.ExpandEnv(a.AccessKeySecret)
-	if a.AccessKeySecret == "" {
-		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_SECRET")
-	}
-	return nil
 }
 
 func (a RegistryConfig) ToInstanceUserData() string {

@@ -41,5 +41,5 @@ func (c CallContext) WrapError(err error, msg string) (error) {
 
 func (c CallContext) WrapErrorf(err error, fmt string, args... interface{}) (error) {
 	// TODO add input json to error output
-	return bosherr.WrapErrorf(err, fmt, args)
+	return bosherr.WrapErrorf(err, fmt, args...)
 }

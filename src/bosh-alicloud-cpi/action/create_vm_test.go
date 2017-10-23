@@ -235,8 +235,7 @@ var _ = Describe("create_vm", func() {
     		"method": "create_vm",
 			"arguments": [
 				"243bf6fc-8f26-4aef-b40f-824763fcdfa2",
-				"m-2zehhdtfg22hq46reabf",
-				{
+				"m-2zehhdtfg22hq46reabf",{
 					"instance_type": "ecs.n4.xlarge"
 				},
 				{

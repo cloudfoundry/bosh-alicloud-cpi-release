@@ -36,6 +36,14 @@ func (r CpiResponse) GetError() error {
 	return r.Error.ToError()
 }
 
+func (r CpiResponse) GetResultString() (string) {
+	return r.Result.(string)
+}
+
+func (r CpiResponse) GetResult() interface{} {
+	return r.Result
+}
+
 type CpiError struct {
 	Type string			`json:"type"`
 	Message string		`json:"message"`
@@ -59,7 +67,7 @@ type Caller struct {
 func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
 	services := Services {
 		Stemcells: alicloud.NewStemcellManager(config),
-		Instances: alicloud.NewInstanceManager(config),
+		Instances: alicloud.NewInstanceManager(config, logger),
 		Disks: alicloud.NewDiskManager(config),
 		Networks: alicloud.NewNetworkManager(config),
 		Registry: config.GetHttpRegistryClient(logger),
