@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ */
 package integration
 
 import (
@@ -6,10 +9,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"log"
+	"testing"
 )
 
 var _ = Describe("VM", func() {
 	It("creates a VM with an invalid configuration and receives an error message with logs", func() {
+		testing.Short()
 		request := fmt.Sprintf(`{
 			  "method": "create_vm",
 			  "arguments": [
@@ -17,13 +22,13 @@ var _ = Describe("VM", func() {
 				"%v",
 				{
 					"ephemeral_disk": {
-						"size": "51_200",
+						"size": 50,
 						"type": "cloud_efficiency"
 					},
 					"image_id": "m-temp1234",
 					"instance_type": "ecs.n4.large",
 					"system_disk": {
-						"size": "40_960",
+						"size": 50,
 						"type": "cloud_efficiency"
 					}
 				},
@@ -60,15 +65,12 @@ var _ = Describe("VM", func() {
 				{
 					"availability_zone": "%v",
 					"ephemeral_disk": {
-						"size": "51_200",
+						"size": "100",
 						"type": "cloud_efficiency"
 					},
-					"image_id": "m-temp1234",
-					"instance_type": "ecs.n4.large",
-					"system_disk": {
-						"size": "40_960",
-						"type": "cloud_efficiency"
-					}
+					"halt_mark": "true",
+					"instance_charge_type": "PostPaid",
+					"instance_type": "ecs.n4.large"
 				},
 				{
 					"public": {
@@ -115,7 +117,7 @@ var _ = Describe("VM", func() {
 			"context": {
 				"director_uuid": "478b5c95-c143-4223-737f-7c1c834eebc0"
 			}
-		}`, zoneId, externalIp, securityGroupId, vswitchId)
+		}`, "cn-beijing-c", "47.94.216.146", "sg-2zec8ubi1q5aeo5mqcbb", "vsw-2zevwt3w7h5u761o405rd")
 		vmCID = assertSucceedsWithResult(request).(string)
 		log.Printf("VM cid:", vmCID)
 		//By("locating the VM")

@@ -1,5 +1,7 @@
+/*
+ * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ */
 package action
-
 
 import (
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
@@ -12,5 +14,5 @@ func NewInfoMethod() InfoMethod {
 }
 
 func (a InfoMethod) Info() (apiv1.Info, error) {
-	return apiv1.Info{StemcellFormats: []string{"warden-tar", "general-tar"}}, nil
+	return apiv1.Info{StemcellFormats: []string{"general-tar","alicloud-tar","alicloud-raw"}}, nil
 }

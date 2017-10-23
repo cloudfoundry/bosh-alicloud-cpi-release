@@ -1,42 +1,42 @@
+/*
+ * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ */
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
+	"bosh-alicloud-cpi/registry"
 )
 
 type DetachDiskMethod struct {
-	runner alicloud.Runner
+	CallContext
+	disks alicloud.DiskManager
+	registry registry.Client
 }
 
-func NewDetachDiskMethod(runner alicloud.Runner) DetachDiskMethod {
-	return DetachDiskMethod{runner}
+func NewDetachDiskMethod(cc CallContext, disks alicloud.DiskManager, rc registry.Client) DetachDiskMethod {
+	return DetachDiskMethod{cc, disks, rc}
 }
 
 func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
-	client := a.runner.NewClient()
+	instCid := vmCID.AsString()
+	diskCid := diskCID.AsString()
 
-	var args ecs.DetachDiskArgs
-
-	args.InstanceId = vmCID.AsString()
-	args.DiskId = diskCID.AsString()
-
-	err := client.DetachDisk(args.InstanceId, args.DiskId)
+	err := a.disks.DetachDisk(instCid, diskCid)
 
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
+		return a.WrapErrorf(err, "Detach disk '%s' to VM '%s'", diskCid, instCid)
 	}
 
 	//
 	// client.DescribeDisks()
-	registryClient := a.runner.GetHttpRegistryClient()
-	agentSettings, _ := registryClient.Fetch(args.InstanceId)
-	agentSettings.DetachPersistentDisk(diskCID.AsString())
+	registryClient := a.registry
+	agentSettings, _ := registryClient.Fetch(instCid)
+	agentSettings.DetachPersistentDisk(diskCid)
 	err = registryClient.Update(vmCID.AsString(), agentSettings)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "UpdateRegistry failed %s", diskCID)
+		return a.WrapErrorf(err, "UpdateRegistry failed %s", diskCID)
 	}
 
 	return err

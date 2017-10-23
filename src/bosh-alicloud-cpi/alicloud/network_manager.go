@@ -1,9 +1,18 @@
+/*
+ * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ */
 package alicloud
 
-type NetworkManager struct {
-	runner Runner
+type NetworkManager interface {
+
 }
 
-func NewNetworkManager(runner Runner) NetworkManager {
-	return NetworkManager{runner}
+type NetworkManagerImpl struct {
+
+}
+
+func NewNetworkManager(config Config) (NetworkManager) {
+	return NetworkManagerImpl {
+
+	}
 }

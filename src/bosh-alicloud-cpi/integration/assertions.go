@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ */
 package integration
 
 import (
@@ -18,5 +21,4 @@ func assertSucceedsWithResult(request string) interface{} {
 
 	Expect(response.Result).ToNot(BeNil())
 	return response.Result
-
 }

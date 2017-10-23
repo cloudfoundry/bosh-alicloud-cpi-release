@@ -10,11 +10,3 @@ src/gopkg.in
 .dev_builds
 .final_builds
 dev_releases
-vars*.*
-
-**/\.terraform/
-*.terraform/
-crash.log
-terraform.log
-terraform.tfstate.backup
-
