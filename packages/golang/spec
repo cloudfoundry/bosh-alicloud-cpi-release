@@ -2,4 +2,4 @@
 name: golang
 
 files:
-  - go1.8.linux-amd64.tar.gz  # from https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz
+  - go1.8.1.linux-amd64.tar.gz  # from https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz
