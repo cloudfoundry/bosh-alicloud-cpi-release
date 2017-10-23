@@ -8,6 +8,10 @@ import (
 )
 
 var _ = Describe("integration:alicloud", func() {
+	It("can run basic", func() {
+
+	})
+
 	//It("get vm status", func() {
 	//
 	//	config, _ := NewConfigFromBytes(TestConfig)

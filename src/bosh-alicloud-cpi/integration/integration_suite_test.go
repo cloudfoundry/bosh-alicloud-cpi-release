@@ -4,13 +4,14 @@
 package integration
 
 import (
+	"os"
 	"testing"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"bosh-alicloud-cpi/action"
 	"bosh-alicloud-cpi/alicloud"
-	"os"
 	"bosh-alicloud-cpi/mock"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 func TestIntegration(t *testing.T) {
@@ -20,20 +21,21 @@ func TestIntegration(t *testing.T) {
 
 var caller action.Caller
 
-var configForIntergation = string(`{
+var configForIntegration = string(`{
     "cloud": {
         "plugin": "alicloud",
         "properties": {
             "alicloud": {
-                "region_id": "${REGION}",
-                "access_key_id": "${ACCESS_KEY_ID}",
-                "access_key_secret": "${ACCESS_KEY_SECRET}"
+                "region_id": "${CPI_REGION}",
+				"zone_id": "${CPI_ZONE}",
+                "access_key_id": "${CPI_ACCESS_KEY_ID}",
+                "access_key_secret": "${CPI_ACCESS_KEY_SECRET}"
             },
             "registry": {
-                "user": "registry",
-                "password": "registry",
+                "user": "${CPI_REGISTRY_USER}",
+                "password": "${CPI_REGISTRY_PASSWORD},
                 "protocol": "http",
-                "address": "127.0.0.1",
+                "address": "${CPI_REGISTRY_ADDRESS}",
                 "port": 25777
             },
             "agent": {
@@ -53,15 +55,18 @@ var configForIntergation = string(`{
 }`)
 
 var _ = BeforeSuite(func() {
-	b, err := mock.NewBuilder(configForIntergation).ApplyEnvs()
-	Expect(err).NotTo(HaveOccurred())
-
-	config, err := alicloud.NewConfigFromBytes(b.ToBytes())
-	Expect(err).NotTo(HaveOccurred())
-
-	err = config.Validate()
+	config, err := alicloud.NewConfigFromBytes([]byte(configForIntegration))
 	Expect(err).NotTo(HaveOccurred())
 
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-	caller = NewTestCaller(config, logger, mockContext)
+
+	services := action.Services {
+		Stemcells: alicloud.NewStemcellManager(config),
+		Instances: alicloud.NewInstanceManager(config),
+		Disks: alicloud.NewDiskManager(config),
+		Networks: alicloud.NewNetworkManager(config),
+		Registry: mock.NewRegistryMock(),
+	}
+
+	caller = action.NewCallerWithServices(config, logger, services)
 })

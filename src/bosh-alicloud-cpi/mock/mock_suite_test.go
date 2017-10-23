@@ -11,5 +11,5 @@ import (
 
 func TestBooks(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Registry Suite")
+	RunSpecs(t, "Mock Suite")
 }

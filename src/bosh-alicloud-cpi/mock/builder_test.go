@@ -15,7 +15,7 @@ type TestJson struct {
 	Secret string `json:Secret`
 }
 
-var _ = Describe("tester", func() {
+var _ = Describe("mock:builder", func() {
 	It("should make json with parameter for input", func() {
 		By("generate test parameters")
 		key := RandomString(8)
@@ -40,5 +40,9 @@ var _ = Describe("tester", func() {
 		By("with correct field values")
 		Expect(key).To(Equal(v.Key))
 		Expect(secret).To(Equal(v.Secret))
+	})
+
+	It("should apply env", func() {
+
 	})
 })

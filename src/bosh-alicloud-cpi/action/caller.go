@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"bosh-alicloud-cpi/mock"
 	"strings"
 )
 
@@ -65,25 +64,19 @@ func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
 		Networks: alicloud.NewNetworkManager(config),
 		Registry: config.GetHttpRegistryClient(logger),
 	}
-	return Caller {config, logger,services}
+	return NewCallerWithServices(config, logger, services)
 }
 
-func NewTestCaller(config alicloud.Config, logger boshlog.Logger, mc mock.TestContext) (Caller) {
-	services := Services {
-		Stemcells: mock.NewStemcellManagerMock(mc),
-		Instances: mock.NewInstanceManagerMock(mc),
-		Disks: mock.NewDiskManagerMock(mc),
-		Networks: mock.NewNetworkManagerMock(mc),
-		Registry: mock.NewRegistryMock(),
-	}
+func NewCallerWithServices(config alicloud.Config, logger boshlog.Logger, services Services) (Caller) {
 	return Caller {config, logger, services}
 }
 
 func (c Caller) Run(input []byte) (CpiResponse) {
-	if !json.Valid(input) {
-		err := fmt.Errorf("input json invalid %s", string(input))
-		return WrapErrorResponse(err, "Run failed")
-	}
+	// json.Validate not support with golang 1.8.1
+	//if !json.Validate(input) {
+	//	err := fmt.Errorf("input json invalid %s", string(input))
+	//	return WrapErrorResponse(err, "Run failed")
+	//}
 
 	reader := bytes.NewReader(input)
 	output := new(bytes.Buffer)
