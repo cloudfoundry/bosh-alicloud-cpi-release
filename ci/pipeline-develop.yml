@@ -59,7 +59,7 @@ shared:
       GIT_USER_NAME: {{github_user_name}}
       GIT_USER_ID: {{github_user_id}}
       GIT_USER_PASSWORD: {{github_user_password}}
-      BOSH_REPO_HOST: github.com/xiaozhu36/bosh-alicloud-cpi-release.git
+      BOSH_REPO_HOST: github.com/alibaba/bosh-alicloud-cpi-release.git
       BOSH_REPO_BRANCH: concourse_ci_tmp
 
   - &destroy-environment
@@ -74,7 +74,7 @@ shared:
         GIT_USER_NAME: {{github_user_name}}
         GIT_USER_ID: {{github_user_id}}
         GIT_USER_PASSWORD: {{github_user_password}}
-        BOSH_REPO_HOST: github.com/xiaozhu36/bosh-alicloud-cpi-release.git
+        BOSH_REPO_HOST: github.com/alibaba/bosh-alicloud-cpi-release.git
         BOSH_REPO_BRANCH: concourse_ci_tmp
 
   - &ensure-terminated
@@ -113,9 +113,9 @@ jobs:
       - <<: *build-environment
       - put: terraform-metadata
         params: {repository: terraform-metadata, rebase: true, force: true}
-#      - <<: *destroy-environment
-#      - put: terraform-metadata
-#        params: {repository: terraform-metadata, rebase: true, force: true}
+      - <<: *destroy-environment
+      - put: terraform-metadata
+        params: {repository: terraform-metadata, rebase: true, force: true}
 
   - name: build-candidate
     serial: true
@@ -283,7 +283,7 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
       ignore_paths:
         - .final_builds/**/*.yml
@@ -380,7 +380,7 @@ resources:
   - name: terraform-metadata
     type: git
     source:
-      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 

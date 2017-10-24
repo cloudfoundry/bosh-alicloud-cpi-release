@@ -11,3 +11,4 @@ src/gopkg.in
 .final_builds
 dev_releases
 ci/vars*.*
+.terraform
