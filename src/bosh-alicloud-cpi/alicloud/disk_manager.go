@@ -15,7 +15,7 @@ type DiskManager interface {
 	GetDisks(instCid string) ([]ecs.DiskItemType, error)
 	GetDisk(diskCid string) (*ecs.DiskItemType, error)
 
-	CreateDisk(sizeGB int, category ecs.DiskCategory) (string, error)
+	CreateDisk(sizeGB int, category ecs.DiskCategory, zone string) (string, error)
 	DeleteDisk(diskCid string) (error)
 
 	AttachDisk(instCid string, diskCid string) (error)
@@ -62,9 +62,10 @@ func (a DiskManagerImpl) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
 	return &disks[0], nil
 }
 
-func (a DiskManagerImpl) CreateDisk(sizeGB int, category ecs.DiskCategory) (string, error) {
+func (a DiskManagerImpl) CreateDisk(sizeGB int, category ecs.DiskCategory, zone string) (string, error) {
 	var args = ecs.CreateDiskArgs {
 		RegionId: common.Region(a.region),
+		ZoneId: zone,
 		DiskCategory: category,
 		Size: sizeGB,
 	}
@@ -102,7 +103,7 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 
 
 func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
-	timeout := DefaultTimeoutMs
+	timeout := DefaultTimeoutSecond
 	for {
 		disk, err := a.GetDisk(diskCid)
 
@@ -116,8 +117,8 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 		}
 
 		if timeout > 0 {
-			timeout -= 1000
-			time.Sleep(time.Duration(DefaultWaitInterval) * time.Millisecond)
+			timeout -= DefaultWaitSecond
+			time.Sleep(time.Duration(DefaultWaitSecond) * time.Second)
 		} else {
 			return "", bosherr.Error("WaitForInstanceStatus timeout")
 		}

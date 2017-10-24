@@ -57,7 +57,6 @@ var configForTest = []byte(`
 `)
 
 var _ = BeforeSuite(func() {
-	mockContext = mock.NewTestContext()
 	config, err := alicloud.NewConfigFromBytes(configForTest)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -66,6 +65,7 @@ var _ = BeforeSuite(func() {
 
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
 
+	mockContext = mock.NewTestContext(config)
 	services := Services {
 		Stemcells: mock.NewStemcellManagerMock(mockContext),
 		Instances: mock.NewInstanceManagerMock(mockContext),

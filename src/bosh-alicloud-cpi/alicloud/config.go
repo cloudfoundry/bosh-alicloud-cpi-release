@@ -9,9 +9,9 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"encoding/json"
 	"fmt"
-	"os"
 	"bosh-alicloud-cpi/registry"
 	"github.com/denverdino/aliyungo/ecs"
+	"github.com/denverdino/aliyungo/common"
 )
 
 type CloudConfigJson struct {
@@ -34,6 +34,7 @@ type OpenApi struct {
 	ZoneId			string	`json:"zone_id"`
 	AccessKeyId     string  `json:"access_key_id"`
 	AccessKeySecret string  `json:"access_key_secret"`
+	Region			common.Region	`json:"-"`
 }
 
 type RegistryConfig struct {
@@ -59,6 +60,8 @@ func (c Config) Validate() error {
 	if c.OpenApi.RegionId == "" {
 		return fmt.Errorf("region can't be empty")
 	}
+	c.OpenApi.Region = common.Region(c.OpenApi.RegionId)
+
 	_, err := c.Registry.Port.Int64()
 	if err != nil {
 		return fmt.Errorf("bad registry.port %s", c.Registry.Port.String())
@@ -94,11 +97,6 @@ func NewConfigFromBytes(bytes []byte) (Config, error) {
 
 	config = ccs.Root.Properties
 
-	//err = config.OpenApi.ApplySystemEnv()
-	//if err != nil {
-	//	return config, bosherr.WrapError(err, "env not found")
-	//}
-
 	err = config.Validate()
 	if err != nil {
 		return config, bosherr.WrapError(err, "Validating config")
@@ -107,34 +105,15 @@ func NewConfigFromBytes(bytes []byte) (Config, error) {
 	return config, nil
 }
 
-func (a *OpenApi) ApplySystemEnv() (error) {
-	a.RegionId = os.ExpandEnv(a.RegionId)
-	if a.RegionId == "" {
-		return fmt.Errorf("can't find sysenv: CPI_REGION")
-	}
-
-	a.ZoneId = os.ExpandEnv(a.ZoneId)
-	if a.ZoneId == "" {
-		return fmt.Errorf("can't find sysenv: CPI_ZONE")
-	}
-
-	a.AccessKeyId = os.ExpandEnv(a.AccessKeyId)
-	if a.AccessKeyId == "" {
-		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_ID")
-	}
-
-	a.AccessKeySecret = os.ExpandEnv(a.AccessKeySecret)
-	if a.AccessKeySecret == "" {
-		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_SECRET")
-	}
-	return nil
+func (a RegistryConfig) ToInstanceUserData() string {
+	endpoint := a.GetEndpoint()
+	json := fmt.Sprintf(`{"registry":{"endpoint":"%s"}}`, endpoint)
+	return json
 }
 
-func (a RegistryConfig) ToInstanceUserData() string {
+func (a RegistryConfig) GetEndpoint() (string) {
 	port, _ := a.Port.Int64()
-	endpoint := fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, port)
-	json := fmt.Sprintf(`{"RegistryConfig":{"Endpoint":"%s"}}`, endpoint)
-	return json
+	return fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, port)
 }
 
 func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {

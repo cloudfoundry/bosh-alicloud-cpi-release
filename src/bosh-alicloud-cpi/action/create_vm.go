@@ -61,7 +61,7 @@ func (a CreateVMMethod) CreateVM(
 	logger.Info("ENV", "inv: %v", env)
 	env2, err := registry.UnmarshalEnvSettings(env)
 	if err != nil {
-		return cid, a.WrapErrorf(err,"UnmarshalEnvSettings failed %v", env)
+		return cid, a.WrapErrorf(err, "UnmarshalEnvSettings failed %v", env)
 	}
 	logger.Info("ENV", "inv: %v", env2)
 
@@ -87,7 +87,11 @@ func (a CreateVMMethod) CreateVM(
 	networks.FillCreateInstanceArgs(&args)
 
 	args.RegionId = common.Region(a.Config.OpenApi.RegionId)
-	args.ZoneId = instProps.AvailabilityZone
+	if instProps.AvailabilityZone != "" {
+		args.ZoneId = instProps.AvailabilityZone
+	} else {
+		args.ZoneId = a.Config.OpenApi.ZoneId
+	}
 	args.ImageId = stemcellCID.AsString()
 	args.UserData = a.Config.Registry.ToInstanceUserData()
 
@@ -129,15 +133,15 @@ func (a CreateVMMethod) CreateVM(
 
 	//
 	// insert agent re
-	agentSettings := registry.AgentSettings {
-		AgentID: agentID.AsString(),
+	agentSettings := registry.AgentSettings{
+		AgentID:   agentID.AsString(),
 		Blobstore: a.Config.Agent.Blobstore.AsRegistrySettings(),
-		Disks: disks.AsRegistrySettings(),
-		Env: env2,
-		Mbus: a.Config.Agent.Mbus,
-		Networks: networks.AsRegistrySettings(),
-		Ntp: a.Config.Agent.Ntp,
-		VM: registry.VMSettings {
+		Disks:     disks.AsRegistrySettings(),
+		Env:       env2,
+		Mbus:      a.Config.Agent.Mbus,
+		Networks:  networks.AsRegistrySettings(),
+		Ntp:       a.Config.Agent.Ntp,
+		VM: registry.VMSettings{
 			Name: "",
 		},
 	}
@@ -188,9 +192,11 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=", instCid)
 	}
 
-	err = networks.BindInstanceEip(a.Config.NewEcsClient(), instCid, args.RegionId)
-	if err != nil {
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=")
+	if networks.HasVip() {
+		err = networks.BindInstanceEip(a.Config.NewEcsClient(), instCid, args.RegionId)
+		if err != nil {
+			return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=")
+		}
 	}
 
 	//
