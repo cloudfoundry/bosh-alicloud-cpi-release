@@ -23,6 +23,10 @@ mv ./bosh-cli-* /usr/local/bin/bosh2
 
 cp -r bosh-cpi-src candidate/repo
 
+# todo: get email and user from params
+git config --global user.email "demon.wy@alibaba-inc.com"
+git config --global user.name "demonwy"
+
 pushd candidate/repo
   git fetch https://${GIT_USER_ID}:${GIT_USER_PASSWORD}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}
   echo "****** git merge ******"
@@ -47,9 +51,7 @@ pushd candidate/repo
   echo "git status..."
   git status
 
-  # todo: get email and user from params
-  git config --global user.email "demon.wy@alibaba-inc.com"
-  git config --global user.name "demonwy"
+
 
   git add .
   git commit -m 'do nothing'
