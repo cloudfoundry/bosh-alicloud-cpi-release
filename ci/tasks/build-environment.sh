@@ -143,7 +143,7 @@ do
           fi
           if [[ $line == availability_zone* ]];
           then
-              echo internal_$line >> $METADATA
+              echo $line >> $METADATA
           fi
           if [[ $line == cidr_block* ]];
           then
