@@ -39,7 +39,7 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 	err := cloudProps.As(&props)
 
 	if err != nil {
-		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "BadInput for CreateStemcell %s", cloudProps)
+		return apiv1.StemcellCID{}, a.WrapErrorf(err, "BadInput for CreateStemcell %s", cloudProps)
 	}
 
 	//
@@ -48,7 +48,7 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 	stemcellId, err := props.FindStemcellId(region)
 
 	if err != nil {
-		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
+		return apiv1.StemcellCID{}, a.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
 	}
 
 	return apiv1.NewStemcellCID(stemcellId), nil

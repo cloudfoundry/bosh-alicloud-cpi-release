@@ -33,7 +33,7 @@ var configForIntegration = string(`{
             },
             "registry": {
                 "user": "${CPI_REGISTRY_USER}",
-                "password": "${CPI_REGISTRY_PASSWORD},
+                "password": "${CPI_REGISTRY_PASSWORD}",
                 "protocol": "http",
                 "address": "${CPI_REGISTRY_ADDRESS}",
                 "port": 25777
@@ -58,11 +58,14 @@ var _ = BeforeSuite(func() {
 	config, err := alicloud.NewConfigFromBytes([]byte(configForIntegration))
 	Expect(err).NotTo(HaveOccurred())
 
+	err = ApplySystemEnv(&config)
+	Expect(err).NotTo(HaveOccurred())
+
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
 
 	services := action.Services {
 		Stemcells: alicloud.NewStemcellManager(config),
-		Instances: alicloud.NewInstanceManager(config),
+		Instances: alicloud.NewInstanceManager(config, logger),
 		Disks: alicloud.NewDiskManager(config),
 		Networks: alicloud.NewNetworkManager(config),
 		Registry: mock.NewRegistryMock(),

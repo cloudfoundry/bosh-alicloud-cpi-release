@@ -55,7 +55,7 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		NewSetVMMetadataMethod(),
 
 		NewGetDisksMethod(cc, ss.Disks),
-		NewCreateDiskMethod(cc, ss.Disks),
+		NewCreateDiskMethod(cc, ss.Disks, ss.Instances),
 		NewDeleteDiskMethod(cc, ss.Disks),
 		NewAttachDiskMethod(cc, ss.Disks, ss.Registry),
 		NewDetachDiskMethod(cc, ss.Disks, ss.Registry),

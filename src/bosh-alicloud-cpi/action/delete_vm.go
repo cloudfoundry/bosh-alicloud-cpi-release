@@ -59,7 +59,7 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 	err = a.instances.DeleteInstance(cid.AsString())
 
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Deleting vm '%s'", cid)
+		return bosherr.WrapErrorf(err, "Deleting vm '%s' failed %s", cid, status)
 	}
 
 	err = a.instances.WaitForInstanceStatus(cid.AsString(), ecs.Deleted)
