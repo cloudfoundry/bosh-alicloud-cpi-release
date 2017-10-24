@@ -1,1 +1,6 @@
-
+region : cn-beijing
+external_ip_address : 39.106.8.154
+security_group_id : sg-2ze90db3tymugzr9qhng
+vswitch_id : vsw-2zegx86s1fnfrshwe222e
+availability_zone : cn-beijing-a
+internal_cidr_block : 172.16.0.0/24
