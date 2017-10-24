@@ -96,7 +96,7 @@ resource "alicloud_vswitch" "default" {
 //  internal_port = "6868"
 //}
 //
-resource "alicloud_security_group" "sg" {
+resource "alicloud_security_group" "default" {
   name = "bosh_init_sg${var.prefix}"
   description = "tf_sg"
   vpc_id = "${alicloud_vpc.default.id}"
@@ -109,7 +109,7 @@ resource "alicloud_security_group_rule" "all-in" {
   policy = "accept"
   port_range = "-1/-1"
   priority = 1
-  security_group_id = "${alicloud_security_group.sg.id}"
+  security_group_id = "${alicloud_security_group.default.id}"
   cidr_ip = "0.0.0.0/0"
 }
 //resource "alicloud_security_group_rule" "http-in" {
@@ -119,7 +119,7 @@ resource "alicloud_security_group_rule" "all-in" {
 //  policy = "accept"
 //  port_range = "80/80"
 //  priority = 1
-//  security_group_id = "${alicloud_security_group.sg.id}"
+//  security_group_id = "${alicloud_security_group.default.id}"
 //  cidr_ip = "0.0.0.0/0"
 //}
 resource "alicloud_security_group_rule" "http-out" {
@@ -129,7 +129,7 @@ resource "alicloud_security_group_rule" "http-out" {
   policy = "accept"
   port_range = "-1/-1"
   priority = 1
-  security_group_id = "${alicloud_security_group.sg.id}"
+  security_group_id = "${alicloud_security_group.default.id}"
   cidr_ip = "0.0.0.0/0"
 }
 
@@ -141,7 +141,7 @@ resource "alicloud_security_group_rule" "ssh" {
   policy = "accept"
   port_range = "22/22"
   priority = 1
-  security_group_id = "${alicloud_security_group.sg.id}"
+  security_group_id = "${alicloud_security_group.default.id}"
   cidr_ip = "0.0.0.0/0"
 }
 
@@ -152,7 +152,7 @@ resource "alicloud_security_group_rule" "boshtarget" {
   policy = "accept"
   port_range = "25555/25555"
   priority = 1
-  security_group_id = "${alicloud_security_group.sg.id}"
+  security_group_id = "${alicloud_security_group.default.id}"
   cidr_ip = "0.0.0.0/0"
 }
 
@@ -163,8 +163,13 @@ resource "alicloud_security_group_rule" "boshagent" {
   policy = "accept"
   port_range = "6868/6868"
   priority = 1
-  security_group_id = "${alicloud_security_group.sg.id}"
+  security_group_id = "${alicloud_security_group.default.id}"
   cidr_ip = "0.0.0.0/0"
+}
+
+resource "alicloud_eip" "default" {
+  bandwidth = "10"
+  internet_charge_type = "PayByBandwidth"
 }
 
 //resource "alicloud_key_pair" "key_pair" {
@@ -175,7 +180,7 @@ resource "alicloud_security_group_rule" "boshagent" {
 //resource "alicloud_instance" "default" {
 ////  availability_zone = "${data.alicloud_zones.default.zones.0.id}"
 //  security_groups = [
-//    "${alicloud_security_group.sg.id}"]
+//    "${alicloud_security_group.default.id}"]
 //
 //  vswitch_id = "${alicloud_vswitch.default.id}"
 //
@@ -203,7 +208,7 @@ resource "alicloud_security_group_rule" "boshagent" {
 //        echo internal_cidr: ${var.vpc_cidr} >> ../group_vars/all
 //        echo internal_gw: 172.16.0.1 >> ../group_vars/all
 //        echo internal_ip: ${var.bosh_ip} >> ../group_vars/all
-//        echo security_group_id: ${alicloud_security_group.sg.id} >> ../group_vars/all
+//        echo security_group_id: ${alicloud_security_group.default.id} >> ../group_vars/all
 //        echo subnet_id: ${alicloud_vswitch.default.id} >> ../group_vars/all
 //        echo xip_ip_domain: ${element(split(",", alicloud_nat_gateway.default.bandwidth_packages.0.public_ip_addresses),1)}.xip.io >> ../group_vars/all
 //

@@ -10,6 +10,7 @@ groups:
 #      - delivery
       - promote-candidate
 #      - build-environment
+      - test-environment
 
 shared:
   - &prepare-director
@@ -100,6 +101,21 @@ jobs:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
           ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
+
+  - name: test-environment
+    serial: true
+    plan:
+      - aggregate:
+        - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
+      - <<: *destroy-environment
+      - put: terraform-metadata
+        params: {repository: terraform-metadata, rebase: true, force: true}
+      - <<: *build-environment
+      - put: terraform-metadata
+        params: {repository: terraform-metadata, rebase: true, force: true}
+      - <<: *destroy-environment
+      - put: terraform-metadata
+        params: {repository: terraform-metadata, rebase: true, force: true}
 
   - name: build-candidate
     serial: true
@@ -274,7 +290,7 @@ resources:
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
 #  - name: environment
 #      type: git
 #      source:
