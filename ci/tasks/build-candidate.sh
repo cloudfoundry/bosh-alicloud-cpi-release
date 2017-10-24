@@ -32,44 +32,27 @@ pushd bosh-cpi-src
   echo "using bosh CLI version..."
   bosh2 -v
 
-  cpi_release_name="bosh-alicloud-cpi"
-
-  # fix cannot find package "bosh-alicloud-cpi/action
-  source .envrc
   #echo $GOPATH
+  source .envrc
 
-  #make
-  
   # add go cpi blob
   bosh2 add-blob ../go-cpi-blobs/go1.8.1.linux-amd64.tar.gz go1.8.1.linux-amd64.tar.gz
 
   make
 
-  # export TERM=msys
-  echo "git status..."
-  git status
-  git add .
-  git commit -m 'do nothing'
-  #git pull
-
-  ls -al
-
   echo "building CPI release..."
   # refers: https://bosh.io/docs/cli-v2#create-release
   bosh2 create-release --name $cpi_release_name --version $semver --tarball $cpi_release_name-$semver.tgz
 
-  ls -al ${DESC}
-  mkdir dev-release-artifacts
   rm -rf ${DESC}/*
   mv $cpi_release_name-$semver.tgz ${DESC}/
-  ls -al ${DESC}/
 popd
 
 cp -r bosh-cpi-dev-artifacts candidate/repo
-
-pushd bosh-cpi-src
+pushd candidate/repo
+  ls -al ${DESC}/
   echo "git status..."
-   git status
-   git add .
-   git commit -m 'create cpi release $cpi_release_name-$semver.tgz'
+  git status
+  git add .
+  git commit -m 'create cpi release $cpi_release_name-$semver.tgz'
 popd
