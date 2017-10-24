@@ -38,11 +38,13 @@ pushd bosh-cpi-src
   source .envrc
   #echo $GOPATH
 
-  make
+  #make
   
   # add go cpi blob
   #ls ../../go-cpi-blobs
   bosh2 add-blob ../../go-cpi-blobs/go1.8.1.linux-amd64.tar.gz go1.8.1.linux-amd64.tar.gz
+
+  make
 
   # export TERM=msys
   echo "git status..."
@@ -62,12 +64,13 @@ pushd bosh-cpi-src
   rm -rf ${DESC}/*
   mv $cpi_release_name-$semver.tgz ${DESC}/
   ls -al ${DESC}/
-
-  echo "git status..."
-  git status
-
-  git add .
-  git commit -m 'create cpi release'
 popd
 
 cp -r bosh-cpi-dev-artifacts candidate/repo
+
+pushd bosh-cpi-src
+  echo "git status..."
+   git status
+   git add .
+   git commit -m 'create cpi release $cpi_release_name-$semver.tgz'
+popd

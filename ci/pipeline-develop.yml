@@ -106,7 +106,7 @@ jobs:
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
-        - {trigger: false, resource: bosh-cpi-dev-artifacts}
+        - {trigger: false, get: bosh-cpi-dev-artifacts}
         - {trigger: true, get: go-cpi-blobs}
         - {trigger: false, get: version-semver, params: {bump: patch}}
       - put: version-semver
