@@ -7,8 +7,6 @@ source bosh-cpi-src/ci/tasks/utils.sh
 
 METADATA_FILE=$(pwd)/terraform-metadata/ci/assets/terraform/metadata
 
-check_param ALICLOUD_ACCESS_KEY_ID
-
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_ACCESS_KEY_SECRET:?}
 : ${CPI_STEMCELL_ID:?}
@@ -18,6 +16,7 @@ check_param ALICLOUD_ACCESS_KEY_ID
 # Stemcell stuff
 export STEMCELL_VERSION=`cat stemcell/version`
 export STEMCELL_FILE=`pwd`/stemcell/image.tgz
+
 pushd stemcell
   tar -zxvf stemcell.tgz
   mv image image.tgz
@@ -48,9 +47,6 @@ export CIDR_NOTATION=$(getCidrNotation $CPI_INTERNAL_CIDR)
 export CPI_INTERNAL_NETMASK=$(cdr2mask $CIDR_NOTATION)
 
 
-echo "vswitch id: "
-echo $BOSH_ALICLOUD_VSWITCH_ID
-
 # Setup Go and run tests
 echo "set go path..."
 export GOPATH=${PWD}/bosh-cpi-src
@@ -62,5 +58,6 @@ check_go_version $GOPATH
 echo "do integration test..."
 cd ${PWD}/bosh-cpi-src
 env
+
 make
 make testintci
