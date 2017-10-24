@@ -36,6 +36,11 @@ export PATH="${TERRAFORM_PATH}:$PATH"
 
 cd ${TERRAFORM_MODULE}
 
+echo "******** tell docker who am I ********"
+git config --global user.email ${GIT_USER_EMAIL}
+git config --global user.name ${GIT_USER_NAME}
+git config --local -l
+
 echo "******** git install expect ********"
 sudo apt-get install expect -y
 
@@ -69,10 +74,6 @@ function copyToOutput(){
 
     cd $2
     ls -la
-
-    git config --global user.email ${GIT_USER_EMAIL}
-    git config --global user.name ${GIT_USER_NAME}
-    git config --local -l
 
     git status | sed -n 'p' |while read LINE
     do
@@ -127,26 +128,31 @@ fi
 
 terraform state list > all_state
 echo "Write metadata ......"
-echo "" > $METADATA
+echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
 cat all_state | while read LINE
 do
     if [ $LINE == "alicloud_vswitch.default" ];
     then
-        terraform state show $LINE >> $METADATA
-        cat $METADATA | while read line
+        terraform state show $LINE | while read line
         do
           echo $line
           if [[ $line == id* ]];
           then
               echo vswitch_$line >> $METADATA
           fi
+          if [[ $line == availability_zone* ]];
+          then
+              echo $line >> $METADATA
+          fi
+          if [[ $line == cidr_block* ]];
+          then
+              echo internal_$line >> $METADATA
+          fi
         done
-        sed -i '/^id/d' $METADATA
     fi
-    if [ $LINE == "alicloud_security_group.sg" ];
+    if [ $LINE == "alicloud_security_group.default" ];
     then
-        terraform state show $LINE >> $METADATA
-        cat $METADATA | while read line
+        terraform state show $LINE | while read line
         do
           echo $line
           if [[ $line == id* ]];
@@ -154,7 +160,17 @@ do
               echo security_group_$line >> $METADATA
           fi
         done
-        sed -i '/^id/d' $METADATA
+    fi
+    if [ $LINE == "alicloud_eip.default" ];
+    then
+        terraform state show $LINE | while read line
+        do
+          echo $line
+          if [[ $line == ip_address* ]];
+          then
+              echo external_$line >> $METADATA
+          fi
+        done
     fi
 done
 echo "Write metadata successfully"
