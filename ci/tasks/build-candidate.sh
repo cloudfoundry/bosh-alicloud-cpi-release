@@ -29,6 +29,9 @@ git config --global user.name "demonwy"
 
 pushd candidate/repo
   git fetch https://${GIT_USER_ID}:${GIT_USER_PASSWORD}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}
+  git status
+  git add .
+  git commit -m 'ci build candidate'
   echo "****** git merge ******"
   git merge FETCH_HEAD
 
@@ -50,9 +53,6 @@ pushd candidate/repo
   # export TERM=msys
   echo "git status..."
   git status
-
-
-
   git add .
   git commit -m 'do nothing'
   #git pull
