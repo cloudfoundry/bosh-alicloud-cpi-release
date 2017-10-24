@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
+
 
 : ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
