@@ -1,13 +1,17 @@
+/*
+ * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ */
 package main
 
 import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"os"
-	"github.com/cppforlife/bosh-cpi-go/rpc"
 	"bosh-alicloud-cpi/action"
 	"bosh-alicloud-cpi/alicloud"
 	"flag"
+	"io/ioutil"
+	"encoding/json"
 )
 
 var configFile = flag.String("configFile", "", `cpi -configFile=/path/to/configuration_file.json`)
@@ -26,12 +30,13 @@ func main() {
 
 	logger.Info("CONFIG", "load Configuration from %s: %s", configFile, config)
 
-	runner := alicloud.NewRunner(logger, config)
-	cpiFactory := action.NewFactory(runner)
+	caller := action.NewCaller(config, logger)
 
-	cli := rpc.NewFactory(logger).NewCLIWithInOut(os.Stdin, os.Stdout, cpiFactory)
+	input, err := ioutil.ReadAll(os.Stdin)
+	resp := caller.Run(input)
+	output, _ := json.Marshal(resp)
 
-	err = cli.ServeOnce()
+	os.Stdout.Write(output)
 
 	if err != nil {
 		logger.Error("main", "Serving once %s", err)

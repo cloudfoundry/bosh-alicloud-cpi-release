@@ -1,37 +1,33 @@
+/*
+ * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ */
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
-	"github.com/denverdino/aliyungo/common"
 )
 
 type HasDiskMethod struct {
-	runner alicloud.Runner
+	CallContext
+	disks alicloud.DiskManager
 }
 
-func NewHasDiskMethod(runner alicloud.Runner) HasDiskMethod {
-	return HasDiskMethod{runner}
+func NewHasDiskMethod(cc CallContext, disks alicloud.DiskManager) HasDiskMethod {
+	return HasDiskMethod{cc, disks}
 }
 
-func (a HasDiskMethod) HasDisk(cid apiv1.DiskCID) (bool, error) {
-	client := a.runner.NewClient()
-	instid := cid.AsString()
+func (a HasDiskMethod) HasDisk(diskCID apiv1.DiskCID) (bool, error) {
 
-	var args ecs.DescribeDisksArgs
-	args.RegionId = common.Region(a.runner.Config.OpenApi.RegionId)
-	args.DiskIds = []string {cid.AsString()}
-
-	disks, _, err := client.DescribeDisks(&args)
+	diskCid := diskCID.AsString()
+	disk, err := a.disks.GetDisk(diskCid)
 
 	if err != nil {
-		return false, bosherr.WrapErrorf(err, "DescribeDisks failed cid=%s", instid)
+		return false, a.WrapErrorf(err, "DescribeDisks failed cid=%s", diskCid)
 	}
 
-	if len(disks) == 0 {
+	if disk == nil {
 		return false, nil
 	} else {
 		return true, nil

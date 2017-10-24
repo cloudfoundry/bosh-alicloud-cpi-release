@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ */
 package action
 
 import (
@@ -6,11 +9,12 @@ import (
 )
 
 type DeleteStemcellMethod struct {
-	runner alicloud.Runner
+	CallContext
+	stemcells alicloud.StemcellManager
 }
 
-func NewDeleteStemcellMethod(runner alicloud.Runner) DeleteStemcellMethod {
-	return DeleteStemcellMethod{runner}
+func NewDeleteStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager) DeleteStemcellMethod {
+	return DeleteStemcellMethod{cc, stemcells}
 }
 
 func (a DeleteStemcellMethod) DeleteStemcell(cid apiv1.StemcellCID) error {

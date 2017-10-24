@@ -4,7 +4,7 @@ set -u # report the usage of uninitialized variables
 # Grab the latest versions that are in the directory
 PLATFORM=`uname | tr '[:upper:]' '[:lower:]'`
 
-export GOLANG_VERSION=1.8.1
+export GOLANG_VERSION=1.9
 
 if [ $PLATFORM = "linux" ]; then
     # Set package dependencies directory

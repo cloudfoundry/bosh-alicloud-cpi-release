@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ */
 package action
 
 import (
@@ -7,27 +10,28 @@ import (
 	"strings"
 )
 
-type CreateStemcellMethod struct {
-	runner alicloud.Runner
-}
-
 type StemcellProps struct {
 	Architecture string 	`json:"architecture"`
 	ContainerFormat string 	`json:"container_format"`
-	Disk string				`json:"disk"`
-	DiskFormat string 		`json:"disk_format"`
+	//Disk string				`json:"disk"`
+	//DiskFormat string 		`json:"disk_format"`
 	Hypervisor string 		`json:"hypervisor"`
-	Name string 			`json:"name"`
-	OsDistro string			`json:"os_distro"`
-	OsType string 			`json:"os_type"`
-	RootDeviceName string 	`json:"root_device_name"`
-	SourceUrl string		`json:"source_url"`
+	//Name string 			`json:"name"`
+	//OsDistro string			`json:"os_distro"`
+	//OsType string 			`json:"os_type"`
+	//RootDeviceName string 	`json:"root_device_name"`
+	//SourceUrl string		`json:"source_url"`
 //	Version string 			`json:"version"`		TODO  sometimes string, and sometimes int
 	Images map[string]interface{} 	`json:"image_id"`
 }
 
-func NewCreateStemcellMethod(runner alicloud.Runner) CreateStemcellMethod {
-	return CreateStemcellMethod{runner}
+type CreateStemcellMethod struct {
+	CallContext
+	stemcells alicloud.StemcellManager
+}
+
+func NewCreateStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager) CreateStemcellMethod {
+	return CreateStemcellMethod{cc, stemcells}
 }
 
 func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.StemcellCloudProps) (apiv1.StemcellCID, error) {
@@ -40,7 +44,7 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 
 	//
 	// find stemcell from manifest.MF
-	region := a.runner.Config.OpenApi.RegionId
+	region := a.Config.OpenApi.RegionId
 	stemcellId, err := props.FindStemcellId(region)
 
 	if err != nil {
