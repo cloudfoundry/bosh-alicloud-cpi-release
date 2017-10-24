@@ -8,6 +8,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/registry"
+	"fmt"
 )
 
 type CallContext struct {
@@ -34,12 +35,16 @@ func NewCallContext(input []byte, logger boshlog.Logger, config alicloud.Config)
 	}
 }
 
-func (c CallContext) WrapError(err error, msg string) (error) {
-	// TODO add input to output
-	return bosherr.WrapError(err, msg)
+func (c CallContext) Errorf(msg string, args... interface{}) (error) {
+	s := "input=`" + c.Input + "` " + fmt.Sprintf(msg, args...)
+	return bosherr.Error(s)
 }
 
-func (c CallContext) WrapErrorf(err error, fmt string, args... interface{}) (error) {
-	// TODO add input json to error output
-	return bosherr.WrapErrorf(err, fmt, args...)
+func (c CallContext) WrapError(err error, msg string) (error) {
+	return bosherr.WrapErrorf(err, "input=`%s` message=%s", c.Input, msg)
+}
+
+func (c CallContext) WrapErrorf(err error, msg string, args... interface{}) (error) {
+	s := "input=`" + c.Input + "` " + fmt.Sprintf(msg, args...)
+	return bosherr.WrapError(err, s)
 }

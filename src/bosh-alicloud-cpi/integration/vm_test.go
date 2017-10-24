@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"bosh-alicloud-cpi/mock"
+	"time"
 )
 
 var _ = Describe("integration:vm", func() {
@@ -67,6 +68,9 @@ var _ = Describe("integration:vm", func() {
 		r := caller.Run(in)
 		Expect(r.GetError()).NotTo(HaveOccurred())
 		cid := r.GetResultString()
+
+		By("sleep 90 seconds to make sure vm is fully started")
+		time.Sleep(time.Duration(90) * time.Second)
 
 		By("delete vm")
 		_, err := caller.Call("delete_vm", cid)

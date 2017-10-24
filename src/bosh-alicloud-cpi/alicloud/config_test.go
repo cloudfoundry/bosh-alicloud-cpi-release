@@ -60,7 +60,7 @@ var _ = Describe("LoadConfig from Json", func() {
 
 	It("generate registry settings correctly", func() {
 		s1 := config.Registry.ToInstanceUserData()
-		s2 := `{"RegistryConfig":{"Endpoint":"http://registry:registry-password@10.0.0.2:6901"}}`
+		s2 := `{"registry":{"endpoint":"http://registry:registry-password@10.0.0.2:6901"}}`
 		Expect(s2).To(Equal(s1))
 	})
 

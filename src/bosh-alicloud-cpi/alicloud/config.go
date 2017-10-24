@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"bosh-alicloud-cpi/registry"
 	"github.com/denverdino/aliyungo/ecs"
+	"github.com/denverdino/aliyungo/common"
 )
 
 type CloudConfigJson struct {
@@ -33,6 +34,7 @@ type OpenApi struct {
 	ZoneId			string	`json:"zone_id"`
 	AccessKeyId     string  `json:"access_key_id"`
 	AccessKeySecret string  `json:"access_key_secret"`
+	Region			common.Region	`json:"-"`
 }
 
 type RegistryConfig struct {
@@ -58,6 +60,8 @@ func (c Config) Validate() error {
 	if c.OpenApi.RegionId == "" {
 		return fmt.Errorf("region can't be empty")
 	}
+	c.OpenApi.Region = common.Region(c.OpenApi.RegionId)
+
 	_, err := c.Registry.Port.Int64()
 	if err != nil {
 		return fmt.Errorf("bad registry.port %s", c.Registry.Port.String())
@@ -102,10 +106,14 @@ func NewConfigFromBytes(bytes []byte) (Config, error) {
 }
 
 func (a RegistryConfig) ToInstanceUserData() string {
-	port, _ := a.Port.Int64()
-	endpoint := fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, port)
-	json := fmt.Sprintf(`{"RegistryConfig":{"Endpoint":"%s"}}`, endpoint)
+	endpoint := a.GetEndpoint()
+	json := fmt.Sprintf(`{"registry":{"endpoint":"%s"}}`, endpoint)
 	return json
+}
+
+func (a RegistryConfig) GetEndpoint() (string) {
+	port, _ := a.Port.Int64()
+	return fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, port)
 }
 
 func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {

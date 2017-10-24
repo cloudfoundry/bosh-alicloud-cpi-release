@@ -14,10 +14,10 @@ import (
 )
 
 const (
-	UseForceStop = true
-	ForceStopDelay = 2			//
-	DefaultTimeoutMs = 120
-	DefaultWaitInterval = 2
+	UseForceStop         = false
+	ForceStopDelay       = 2			//
+	DefaultTimeoutSecond = 120
+	DefaultWaitSecond    = 2
 )
 
 type InstanceManager interface {
@@ -132,10 +132,10 @@ func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, 
 }
 
 func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (error) {
-	timeout := DefaultTimeoutMs
+	timeout := DefaultTimeoutSecond
 	for {
 		status, err := a.GetInstanceStatus(cid)
-		a.logger.Info("WaitForInstance %s from %s to %s", cid, status, toStatus)
+		a.logger.Info("VM", "WaitForInstance %s from %s to %s", cid, status, toStatus)
 
 		if err != nil {
 			if toStatus == ecs.Deleted && status == ecs.Deleted {
@@ -150,8 +150,8 @@ func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.Inst
 		}
 
 		if timeout > 0 {
-			timeout -= DefaultWaitInterval
-			time.Sleep(time.Duration(DefaultWaitInterval) * time.Second)
+			timeout -= DefaultWaitSecond
+			time.Sleep(time.Duration(DefaultWaitSecond) * time.Second)
 		} else {
 			return bosherr.Error("WaitForInstanceStatus timeout")
 		}
