@@ -8,17 +8,22 @@ import (
 	"github.com/denverdino/aliyungo/common"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"time"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"time"
 	"strings"
 	"encoding/json"
+	"strconv"
 )
 
 const (
-	UseForceStop         = false
-	ForceStopDelay       = 2			//
-	DefaultTimeoutSecond = 120
-	DefaultWaitSecond    = 2
+	UseForceStop			= true
+	ForceStopWaitSeconds	= 90
+	DefaultWaitTimeout		= time.Duration(120) * time.Second
+	DefaultWaitInterval		= time.Duration(2) * time.Second
+
+	DeleteInstanceRetryCount	= 10
+	DeleteInstanceRetryReason	= "IncorrectInstanceStatus.Initializing"
+	DeleteInstanceRetryInterval	= time.Duration(5) * time.Second
 )
 
 type InstanceManager interface {
@@ -91,14 +96,18 @@ func (a InstanceManagerImpl) DeleteInstance(cid string) (error) {
 	a.log("DeleteInstance", err, cid, "ok")
 
 	if err != nil {
-		for i := 0; i < 10; i++ {
-			if strings.Contains(err.Error(), "IncorrectInstanceStatus.Initializing") {
-				time.Sleep(time.Duration(5) * time.Second)
+		//
+		// retry
+		for i := 0; i < DeleteInstanceRetryCount; i++ {
+			if strings.Contains(err.Error(), DeleteInstanceRetryReason) {
+				time.Sleep(DeleteInstanceRetryInterval)
 				err := client.DeleteInstance(cid)
-				a.logger.Error("DELETE", "DeleteInstance try %d time again got error %v", i, err)
+				a.log("DeleteInstance retry:" + strconv.Itoa(i), err, cid, "ok")
 				if err == nil {
 					break
 				}
+			} else {
+				return err
 			}
 		}
 	}
@@ -115,16 +124,23 @@ func (a InstanceManagerImpl) StartInstance(cid string) error {
 func (a InstanceManagerImpl) StopInstance(cid string) error {
 	client := a.config.NewEcsClient()
 	err := client.StopInstance(cid, UseForceStop)
-	a.log("StopInstance", err, cid, "ok")
-	if err != nil {
+	if !UseForceStop {
+		a.log("StopInstance", err, cid, "ok")
 		return err
+	} else {
+		//
+		// if use force stop, some ECS resource is not released,
+		// for run DeleteInstance, need wait for a while
+		if err != nil {
+			a.log("StopInstance(Force)", err, cid, "ok")
+			return err
+		} else {
+			a.logger.Info("InstanceManager", "StopInstance(Force) %s done, waiting for %d seconds...", cid, ForceStopWaitSeconds)
+			time.Sleep(time.Duration(ForceStopWaitSeconds) * time.Second)
+			a.logger.Info("InstanceManager", "StopInstance(Force) wait done.")
+			return nil
+		}
 	}
-	if UseForceStop {
-		a.logger.Info("Instances", "when ForceStop sleep %d seconds...", ForceStopDelay)
-		time.Sleep(time.Duration(ForceStopDelay) * time.Second)
-		a.logger.Info("Instances", "when ForceStop sleep %d seconds done", ForceStopDelay)
-	}
-	return nil
 }
 
 func (a InstanceManagerImpl) RebootInstance(cid string) error {
@@ -144,12 +160,11 @@ func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, 
 	if inst == nil {
 		return ecs.Deleted, bosherr.Error("Missing Instance: id=" + cid)
 	}
-
 	return inst.Status, nil
 }
 
 func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (error) {
-	timeout := DefaultTimeoutSecond
+	timeout := DefaultWaitTimeout
 	for {
 		status, err := a.GetInstanceStatus(cid)
 		a.logger.Info("InstanceManager", "Waiting Instance %s from %s to %s", cid, status, toStatus)
@@ -166,8 +181,8 @@ func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.Inst
 		}
 
 		if timeout > 0 {
-			timeout -= DefaultWaitSecond
-			time.Sleep(time.Duration(DefaultWaitSecond) * time.Second)
+			timeout -= DefaultWaitInterval
+			time.Sleep(DefaultWaitInterval)
 		} else {
 			return bosherr.Error("WaitForInstanceStatus timeout")
 		}

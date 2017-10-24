@@ -122,7 +122,7 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 
 
 func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
-	timeout := DefaultTimeoutSecond
+	timeout := DefaultWaitTimeout
 	for {
 		disk, err := a.GetDisk(diskCid)
 
@@ -142,8 +142,8 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 		}
 
 		if timeout > 0 {
-			timeout -= DefaultWaitSecond
-			time.Sleep(time.Duration(DefaultWaitSecond) * time.Second)
+			timeout -= DefaultWaitInterval
+			time.Sleep(DefaultWaitInterval)
 		} else {
 			return "", bosherr.Error("WaitForInstanceStatus timeout")
 		}

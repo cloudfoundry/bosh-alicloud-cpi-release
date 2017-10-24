@@ -58,27 +58,27 @@ func (a CreateVMMethod) CreateVM(
 
 	logger := a.Logger
 
-	logger.Info("ENV", "inv: %v", env)
+	// logger.Info("ENV", "inv: %v", env)
 	env2, err := registry.UnmarshalEnvSettings(env)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "UnmarshalEnvSettings failed %v", env)
 	}
-	logger.Info("ENV", "inv: %v", env2)
+	// logger.Info("ENV", "inv: %v", env2)
 
 	//
 	// convert CloudProps to alicloud dedicated Props
 	var args ecs.CreateInstanceArgs
 
 	var instProps InstanceProps
-	logger.Info("INPUT", "json %s", cloudProps)
+	// logger.Info("INPUT", "json %s", cloudProps)
 	err = cloudProps.As(&instProps)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "unmarshal CloudProps failed %v", cloudProps)
 	}
 
-	logger.Info("INPUT", "unmarshal CloudProps<Instance>: %s", instProps)
-
-	logger.Info("INPUT", "unmarshal NetworkProps<Instance>: %v", networkArgs)
+	//logger.Info("INPUT", "unmarshal CloudProps<Instance>: %s", instProps)
+	//
+	//logger.Info("INPUT", "unmarshal NetworkProps<Instance>: %v", networkArgs)
 	networks, err := NewNetworks(networkArgs)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "create_vm failed when parse Networks %v", networkArgs)
@@ -129,7 +129,7 @@ func (a CreateVMMethod) CreateVM(
 
 	req, _ := json.Marshal(args)
 
-	logger.Info("OPENAPI", "Args %s", string(req))
+	// logger.Info("OPENAPI", "Args %s", string(req))
 
 	//
 	// insert agent re
