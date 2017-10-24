@@ -7,6 +7,7 @@ import (
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/registry"
+	"github.com/denverdino/aliyungo/ecs"
 )
 
 type DetachDiskMethod struct {
@@ -24,19 +25,21 @@ func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	diskCid := diskCID.AsString()
 
 	err := a.disks.DetachDisk(instCid, diskCid)
-
 	if err != nil {
-		return a.WrapErrorf(err, "Detach disk '%s' to VM '%s'", diskCid, instCid)
+		return a.WrapErrorf(err, "Detach disk '%s' to VM '%s' failed", diskCid, instCid)
 	}
 
-	//
-	// client.DescribeDisks()
+	_, err = a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusAvailable)
+	if err != nil {
+		return a.WrapErrorf(err, "Detach disk '%s' to VM '%s' wait failed", diskCid, instCid)
+	}
+
 	registryClient := a.registry
 	agentSettings, _ := registryClient.Fetch(instCid)
 	agentSettings.DetachPersistentDisk(diskCid)
 	err = registryClient.Update(vmCID.AsString(), agentSettings)
 	if err != nil {
-		return a.WrapErrorf(err, "UpdateRegistry failed %s", diskCID)
+		return a.WrapErrorf(err, "UpdateRegistry failed %s", diskCid)
 	}
 
 	return err

@@ -55,8 +55,7 @@ var _ = Describe("integration:disk", func() {
 			"context": {
 				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
 			}
-		}`).
-			P("STEMCELL_ID", stemcellId).
+		}`).P("STEMCELL_ID", stemcellId).
 			P("SECURITY_GROUP_ID", securityGroupId).
 			P("VSWITCH_ID", vswitchId).
 			P("INTERNAL_IP", internalIp).
@@ -66,13 +65,31 @@ var _ = Describe("integration:disk", func() {
 
 		r := caller.Run(in)
 		Expect(r.GetError()).NotTo(HaveOccurred())
-		cid := r.GetResultString()
+		instCid := r.GetResultString()
 
-		caller.Call("create_disk", 30720, "{}", )
+		By("create disk")
+		diskCid, err := caller.Call("create_disk", 30720, "{}", instCid)
+		Expect(err).NotTo(HaveOccurred())
 
+		By("attach disk")
+		_, err = caller.Call("attach_disk", instCid, diskCid)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("detach disk")
+		_, err = caller.Call("detach_disk", instCid, diskCid)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("delete disk")
+		_, err = caller.Call("delete_disk", diskCid)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("delete vm")
+		_, err = caller.Call("delete_vm", instCid)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
-	It("can create disk, attach to instance, detach, and delete it", func() {
-
+	It("delete disk", func() {
+		_, err := caller.Call("delete_disk", "d-2ze0l52cnz7f59waj8pn")
+		Expect(err).NotTo(HaveOccurred())
 	})
 })

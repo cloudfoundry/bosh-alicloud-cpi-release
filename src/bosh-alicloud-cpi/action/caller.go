@@ -16,7 +16,7 @@ import (
 
 type CpiResponse struct {
 	Result interface{}		`json:"result"`
-	Error interface{}		 `json:"error,omitempty"`
+	Error interface{}		`json:"error,omitempty"`
 	Log string				`json:"log"`
 }
 
@@ -36,8 +36,14 @@ func (r CpiResponse) GetError() error {
 	if r.Error == nil {
 		return nil
 	} else {
-		e := r.Error.(CpiError)
-		return e.ToError()
+		switch r.Error.(type) {
+		case CpiError:
+			e := r.Error.(CpiError)
+			return e.ToError()
+		default:
+			s, _ := json.Marshal(r.Error)
+			return fmt.Errorf("CpiError: %s", s)
+		}
 	}
 }
 
@@ -73,7 +79,7 @@ func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
 	services := Services {
 		Stemcells: alicloud.NewStemcellManager(config),
 		Instances: alicloud.NewInstanceManager(config, logger),
-		Disks: alicloud.NewDiskManager(config),
+		Disks: alicloud.NewDiskManager(config, logger),
 		Networks: alicloud.NewNetworkManager(config),
 		Registry: config.GetHttpRegistryClient(logger),
 	}

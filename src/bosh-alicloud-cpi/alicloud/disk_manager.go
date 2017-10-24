@@ -8,7 +8,10 @@ import (
 	"github.com/denverdino/aliyungo/common"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"time"
+	"fmt"
+	"encoding/json"
 )
 
 type DiskManager interface {
@@ -26,13 +29,24 @@ type DiskManager interface {
 
 type DiskManagerImpl struct {
 	config Config
+	logger boshlog.Logger
 	region string
 }
 
-func NewDiskManager(config Config) (DiskManager) {
+func NewDiskManager(config Config, logger boshlog.Logger) (DiskManager) {
 	return DiskManagerImpl{
 		config: config,
+		logger: logger,
 		region: config.OpenApi.RegionId,
+	}
+}
+
+func (a DiskManagerImpl) log(action string, err error, args interface{}, result string) {
+	s, _ := json.Marshal(args)
+	if err != nil {
+		a.logger.Error("DiskManager", "%s failed args=%s err=%s", action, s, err)
+	} else {
+		a.logger.Info("DiskManager", "%s done args=%s result=%s", s, result)
 	}
 }
 
@@ -72,12 +86,15 @@ func (a DiskManagerImpl) CreateDisk(sizeGB int, category ecs.DiskCategory, zone 
 
 	client := a.config.NewEcsClient()
 	cid, err := client.CreateDisk(&args)
+	a.log("CreateDisk", err, args, cid)
 	return cid, err
 }
 
 func (a DiskManagerImpl) DeleteDisk(diskCid string) (error) {
 	client := a.config.NewEcsClient()
-	return client.DeleteDisk(diskCid)
+	err := client.DeleteDisk(diskCid)
+	a.log("DeleteDisk", err, diskCid, "ok")
+	return err
 }
 
 func (a DiskManagerImpl) AttachDisk(instCid string, diskCid string) (error) {
@@ -86,6 +103,7 @@ func (a DiskManagerImpl) AttachDisk(instCid string, diskCid string) (error) {
 	args.InstanceId = instCid
 	args.DiskId = diskCid
 	err := client.AttachDisk(&args)
+	a.log("AttachDisk", err, diskCid + " to " + instCid, "ok")
 	return err
 }
 
@@ -98,6 +116,7 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 	args.DiskId = diskCid
 
 	err := client.DetachDisk(args.InstanceId, args.DiskId)
+	a.log("DetachDisk", err, diskCid + " from " + instCid, "ok")
 	return err
 }
 
@@ -111,8 +130,14 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 			return "", err
 		}
 
+		if disk == nil {
+			return "", fmt.Errorf("disk missing id=%s", diskCid)
+		}
+
+		a.logger.Info("DiskManager", "Waiting disk %s from %v to %v", diskCid, disk.Status, toStatus)
 		if disk.Status == toStatus {
 			path := AmendDiskPath(disk.Device, disk.Category)
+			a.logger.Info("DiskManager", "Waiting disk %s to %s DONE! path=%s", diskCid, toStatus, path)
 			return path, nil
 		}
 

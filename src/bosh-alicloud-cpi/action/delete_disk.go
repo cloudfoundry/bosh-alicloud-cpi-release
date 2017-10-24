@@ -23,28 +23,20 @@ func (a DeleteDiskMethod) DeleteDisk(diskCID apiv1.DiskCID) error {
 
 	disk, err := a.disks.GetDisk(diskCid)
 	if err != nil {
-		return a.WrapErrorf(err, "delete_disk/getStatus cid=%s", diskCid)
+		return a.WrapErrorf(err, "delete_disk %s get status failed", diskCid)
 	}
 
 	if disk == nil {
 		return nil
 	}
 
-	switch disk.Status {
-	case ecs.DiskStatusDetaching:
-		_, err := a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusAvailable)
-		if err != nil {
-			return a.WrapErrorf(err, "delete_disk/wait for detaching failed=%s", diskCid)
-		}
-	case ecs.DiskStatusAvailable:
-		break
-	default:
-		return a.WrapErrorf(nil,"delete_disk/unexcepted_DiskStatus: %s-%v", diskCid, disk.Status)
+	if disk.Status != ecs.DiskStatusAvailable {
+		return a.WrapErrorf(nil,"delete_disk %s unexpected status %v", diskCid, disk.Status)
 	}
 
 	err = a.disks.DeleteDisk(diskCid)
 	if err != nil {
-		return a.WrapErrorf(err, "DeleteDisk %s failed", diskCid)
+		return a.WrapErrorf(err, "delete_disk %s failed", diskCid)
 	}
 
 	return nil

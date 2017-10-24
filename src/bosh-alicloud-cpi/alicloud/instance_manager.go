@@ -11,6 +11,7 @@ import (
 	"time"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"strings"
+	"encoding/json"
 )
 
 const (
@@ -48,6 +49,15 @@ func NewInstanceManager(config Config, logger boshlog.Logger) (InstanceManager) 
 	}
 }
 
+func (a InstanceManagerImpl) log(action string, err error, args interface{}, result string) {
+	s, _ := json.Marshal(args)
+	if err != nil {
+		a.logger.Error("InstanceManager", "%s failed args=%s err=%s", action, s, err)
+	} else {
+		a.logger.Info("InstanceManager", "%s done args=%s result=%s", s, result)
+	}
+}
+
 func (a InstanceManagerImpl) GetInstance(cid string) (*ecs.InstanceAttributesType, error) {
 	client := a.config.NewEcsClient()
 
@@ -70,14 +80,17 @@ func (a InstanceManagerImpl) GetInstance(cid string) (*ecs.InstanceAttributesTyp
 
 func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string, error) {
 	client := a.config.NewEcsClient()
-	return client.CreateInstance(&args)
+	cid, err := client.CreateInstance(&args)
+	a.log("CreateInstance", err, args, cid)
+	return cid, err
 }
 
 func (a InstanceManagerImpl) DeleteInstance(cid string) (error) {
 	client := a.config.NewEcsClient()
 	err := client.DeleteInstance(cid)
+	a.log("DeleteInstance", err, cid, "ok")
+
 	if err != nil {
-		a.logger.Error("DELETE", "DeleteInstance got error %s", err.Error())
 		for i := 0; i < 10; i++ {
 			if strings.Contains(err.Error(), "IncorrectInstanceStatus.Initializing") {
 				time.Sleep(time.Duration(5) * time.Second)
@@ -94,13 +107,15 @@ func (a InstanceManagerImpl) DeleteInstance(cid string) (error) {
 
 func (a InstanceManagerImpl) StartInstance(cid string) error {
 	client := a.config.NewEcsClient()
-	return client.StartInstance(cid)
+	err := client.StartInstance(cid)
+	a.log("StartInstance", err, cid, "ok")
+	return err
 }
 
 func (a InstanceManagerImpl) StopInstance(cid string) error {
 	client := a.config.NewEcsClient()
-	a.logger.Info("Instances", "Stopping vm %s", cid)
 	err := client.StopInstance(cid, UseForceStop)
+	a.log("StopInstance", err, cid, "ok")
 	if err != nil {
 		return err
 	}
@@ -114,7 +129,9 @@ func (a InstanceManagerImpl) StopInstance(cid string) error {
 
 func (a InstanceManagerImpl) RebootInstance(cid string) error {
 	client := a.config.NewEcsClient()
-	return client.RebootInstance(cid, UseForceStop)
+	err := client.RebootInstance(cid, UseForceStop)
+	a.log("RebootInstance", err, cid, "ok")
+	return err
 }
 
 func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, error) {
@@ -135,13 +152,12 @@ func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.Inst
 	timeout := DefaultTimeoutSecond
 	for {
 		status, err := a.GetInstanceStatus(cid)
-		a.logger.Info("VM", "WaitForInstance %s from %s to %s", cid, status, toStatus)
+		a.logger.Info("InstanceManager", "Waiting Instance %s from %s to %s", cid, status, toStatus)
 
 		if err != nil {
 			if toStatus == ecs.Deleted && status == ecs.Deleted {
 				return nil
 			}
-
 			return err
 		}
 
