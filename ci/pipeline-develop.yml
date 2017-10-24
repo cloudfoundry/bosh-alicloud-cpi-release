@@ -121,9 +121,9 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
+        - {trigger: true, passed: [test-unit], get: bosh-cpi-src, resource: bosh-cpi-src-in}
         - {trigger: false, get: bosh-cpi-dev-artifacts}
-        - {trigger: true, get: go-cpi-blobs}
+        - {trigger: false, get: go-cpi-blobs}
         - {trigger: false, get: version-semver, params: {bump: patch}}
       - put: version-semver
         params: {file: version-semver/number}
@@ -290,7 +290,7 @@ resources:
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 #  - name: environment
 #      type: git
 #      source:
