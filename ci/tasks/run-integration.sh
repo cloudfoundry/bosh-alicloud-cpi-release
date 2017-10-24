@@ -12,6 +12,8 @@ check_param ALICLOUD_ACCESS_KEY_ID
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${CPI_STEMCELL_ID:?}
+: ${CPI_INTERNAL_IP:?}
+: ${CPI_INTERNAL_GW:?}
 
 # Stemcell stuff
 export STEMCELL_VERSION=`cat stemcell/version`
@@ -34,12 +36,15 @@ export CPI_REGION=cn-beijing
 export CPI_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export CPI_ACCESS_KEY_SECRET=${ALICLOUD_SECRET_ACCESS_KEY}
 export CPI_STEMCELL_ID=${CPI_STEMCELL_ID}
+export CPI_INTERNAL_IP=${CPI_INTERNAL_IP}
+export CPI_INTERNAL_GW=${CPI_INTERNAL_GW}
 
 exportMetadata2Env CPI_ZONE availability_zone
 exportMetadata2Env CPI_SECURITY_GROUP_ID security_group_id
 exportMetadata2Env CPI_VSWITCH_ID vswitch_id
 exportMetadata2Env CPI_INTERNAL_CIDR cidr_block
-export CPI_INTERNAL_NETMASK cdr2mask
+exportMetadata2Env CPI_EXTERNAL_IP external_ip_address
+export CPI_INTERNAL_NETMASK=$(cdr2mask (getCidrNotation $CPI_INTERNAL_CIDR))
 
 
 echo "vswitch id: "

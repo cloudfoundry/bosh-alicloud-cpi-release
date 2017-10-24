@@ -19,3 +19,5 @@ params:
   ALICLOUD_SECRET_ACCESS_KEY: ""
   ALICLOUD_DEFAULT_REGION:    ""
   CPI_STEMCELL_ID:            ""
+  CPI_INTERNAL_IP:            ""
+  CPI_INTERNAL_GW:            ""
