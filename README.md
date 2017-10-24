@@ -106,7 +106,7 @@ Run following commands
 ```
 $ source .envrc
 $ make testdeps
-$ ginkgo -r src/bosh-alicloud-cpi -skipPackage integration
+$ ginkgo -r -skipPackage integration src/bosh-alicloud-cpi
 ```
 
 ### Run Integration Test

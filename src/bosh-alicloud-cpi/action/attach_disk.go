@@ -25,14 +25,25 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	instCid := vmCID.AsString()
 	diskCid := diskCID.AsString()
 
-	err := a.disks.AttachDisk(instCid, diskCid)
+	disk, err := a.disks.GetDisk(diskCid)
+	if err != nil {
+		return a.WrapErrorf(err, "AttachDisk get disk failed %s", diskCid)
+	}
 
+	if disk == nil {
+		return a.WrapErrorf(err, "AttachDisk disk missing %s", diskCid)
+	}
+
+	if disk.Status != ecs.DiskStatusAvailable {
+		return a.WrapErrorf(err, "AttachDisk disk %s status expected `Available` get %s", diskCid, disk.Status)
+	}
+
+	err = a.disks.AttachDisk(instCid, diskCid)
 	if err != nil {
 		return a.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCid, instCid)
 	}
 
 	device, err := a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusInUse)
-
 	if err != nil {
 		return a.WrapErrorf(err, "Attaching disk '%s' to VM '%s' wait failed", diskCid, instCid)
 	}

@@ -24,14 +24,27 @@ func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	instCid := vmCID.AsString()
 	diskCid := diskCID.AsString()
 
-	err := a.disks.DetachDisk(instCid, diskCid)
+	disk, err := a.disks.GetDisk(diskCid)
 	if err != nil {
-		return a.WrapErrorf(err, "Detach disk '%s' to VM '%s' failed", diskCid, instCid)
+		return a.WrapErrorf(err, "DetachDisk get disk failed %s", diskCid)
+	}
+
+	if disk == nil {
+		return a.WrapErrorf(err, "DetachDisk disk missing %s", diskCid)
+	}
+
+	if disk.Status != ecs.DiskStatusInUse {
+		return a.WrapErrorf(err, "DetachDisk disk %s status expected `InUse` get %s", diskCid, disk.Status)
+	}
+
+	err = a.disks.DetachDisk(instCid, diskCid)
+	if err != nil {
+		return a.WrapErrorf(err, "DetachDisk '%s' from VM '%s' failed", diskCid, instCid)
 	}
 
 	_, err = a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusAvailable)
 	if err != nil {
-		return a.WrapErrorf(err, "Detach disk '%s' to VM '%s' wait failed", diskCid, instCid)
+		return a.WrapErrorf(err, "DetachDisk '%s' to VM '%s' wait failed", diskCid, instCid)
 	}
 
 	registryClient := a.registry
@@ -39,7 +52,7 @@ func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	agentSettings.DetachPersistentDisk(diskCid)
 	err = registryClient.Update(vmCID.AsString(), agentSettings)
 	if err != nil {
-		return a.WrapErrorf(err, "UpdateRegistry failed %s", diskCid)
+		return a.WrapErrorf(err, "DetachDisk update registry failed %s", diskCid)
 	}
 
 	return err

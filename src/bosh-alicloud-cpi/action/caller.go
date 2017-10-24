@@ -97,7 +97,7 @@ func (c Caller) Run(input []byte) (CpiResponse) {
 		return WrapErrorResponse(err, "input json invalid %s", string(input))
 	}
 
-	input, err = json.MarshalIndent(req, "", "  ")
+	input, err = json.MarshalIndent(req, "", "\t")
 	if err != nil {
 		return WrapErrorResponse(err, "MarshalIndent failed %v", req)
 	}

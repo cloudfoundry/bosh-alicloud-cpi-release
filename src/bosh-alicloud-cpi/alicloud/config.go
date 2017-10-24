@@ -32,7 +32,6 @@ type Config struct {
 
 const (
 	UseForceStop			= true
-	ForceStopWaitSeconds	= 90
 
 	WaitTimeout  = time.Duration(120) * time.Second
 	WaitInterval = time.Duration(3) * time.Second

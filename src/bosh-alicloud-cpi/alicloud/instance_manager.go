@@ -142,8 +142,9 @@ func (a InstanceManagerImpl) StopInstance(cid string) error {
 			a.log("StopInstance(Force)", err, cid, "ok")
 			return err
 		} else {
-			a.logger.Info("InstanceManager", "StopInstance(Force) %s done, waiting for %d seconds...", cid, ForceStopWaitSeconds)
-			time.Sleep(time.Duration(ForceStopWaitSeconds) * time.Second)
+			//
+			// a.logger.Info("InstanceManager", "StopInstance(Force) %s done, waiting for %d seconds...", cid, ForceStopWaitSeconds)
+			// time.Sleep(time.Duration(ForceStopWaitSeconds) * time.Second)
 			a.logger.Info("InstanceManager", "StopInstance(Force) wait done.")
 			return nil
 		}

@@ -128,12 +128,9 @@ func (a DiskManagerImpl) AttachDisk(instCid string, diskCid string) (error) {
 
 func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 	client := a.config.NewEcsClient()
-
 	var args ecs.DetachDiskArgs
-
 	args.InstanceId = instCid
 	args.DiskId = diskCid
-
 	err := client.DetachDisk(args.InstanceId, args.DiskId)
 	a.log("DetachDisk", err, diskCid + " from " + instCid, "ok")
 	return err
