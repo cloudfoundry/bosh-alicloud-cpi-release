@@ -45,6 +45,7 @@ pushd candidate/repo
 #  echo "echo \"after 5 sec...\"" >> git_install.sh
   echo "    expect \"Password for 'https://${GIT_USER_ID}@gitlab.com': \"" >> git_install.sh
   echo "    send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+  echo "    expect eof" >> git_install.sh
 #  echo "sleep 15" >> git_install.sh
   echo "    send \"exit\r\"" >> git_install.sh
   echo "    expect eof" >> git_install.sh

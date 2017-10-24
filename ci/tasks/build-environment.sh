@@ -128,7 +128,7 @@ fi
 
 terraform state list > all_state
 echo "Write metadata ......"
-echo "" > $METADATA
+echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
 cat all_state | while read LINE
 do
     if [ $LINE == "alicloud_vswitch.default" ];
@@ -140,13 +140,20 @@ do
           then
               echo vswitch_$line >> $METADATA
           fi
+          if [[ $line == availability_zone* ]];
+          then
+              echo internal_$line >> $METADATA
+          fi
+          if [[ $line == cidr_block* ]];
+          then
+              echo internal_$line >> $METADATA
+          fi
         done
-        sed -i '/^id/d' $METADATA
+#        sed -i '/^id/d' $METADATA
     fi
-    if [ $LINE == "alicloud_security_group.sg" ];
+    if [ $LINE == "alicloud_security_group.default" ];
     then
-        terraform state show $LINE >> $METADATA
-        cat $METADATA | while read line
+        terraform state show $LINE | while read line
         do
           echo $line
           if [[ $line == id* ]];
@@ -154,7 +161,19 @@ do
               echo security_group_$line >> $METADATA
           fi
         done
-        sed -i '/^id/d' $METADATA
+#        sed -i '/^id/d' $METADATA
+    fi
+    if [ $LINE == "alicloud_eip.default" ];
+    then
+        terraform state show $LINE | while read line
+        do
+          echo $line
+          if [[ $line == ip_address* ]];
+          then
+              echo external_$line >> $METADATA
+          fi
+        done
+#        sed -i '/^id/d' $METADATA
     fi
 done
 echo "Write metadata successfully"
