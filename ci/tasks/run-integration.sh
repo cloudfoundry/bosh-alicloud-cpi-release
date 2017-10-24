@@ -31,13 +31,14 @@ exportMetadata2Env(){
   export $1=$(cat ${METADATA_FILE} | grep $2 | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
 }
 
-export CPI_REGION=cn-beijing
+
 export CPI_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export CPI_ACCESS_KEY_SECRET=${ALICLOUD_ACCESS_KEY_SECRET}
 export CPI_STEMCELL_ID=${CPI_STEMCELL_ID}
 export CPI_INTERNAL_IP=${CPI_INTERNAL_IP}
 export CPI_INTERNAL_GW=${CPI_INTERNAL_GW}
 
+exportMetadata2Env CPI_REGION region
 exportMetadata2Env CPI_ZONE availability_zone
 exportMetadata2Env CPI_SECURITY_GROUP_ID security_group_id
 exportMetadata2Env CPI_VSWITCH_ID vswitch_id
