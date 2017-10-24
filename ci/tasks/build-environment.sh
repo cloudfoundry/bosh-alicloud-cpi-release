@@ -133,8 +133,7 @@ cat all_state | while read LINE
 do
     if [ $LINE == "alicloud_vswitch.default" ];
     then
-        terraform state show $LINE >> $METADATA
-        cat $METADATA | while read line
+        terraform state show $LINE | while read line
         do
           echo $line
           if [[ $line == id* ]];
