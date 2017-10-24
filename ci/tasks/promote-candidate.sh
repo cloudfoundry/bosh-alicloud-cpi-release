@@ -3,7 +3,7 @@
 set -e
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
-: ${ALICLOUD_SECRET_ACCESS_KEY:?}
+: ${ALICLOUD_ACCESS_KEY_SECRET:?}
 
 source /etc/profile.d/chruby.sh
 chruby 2.1.2
@@ -25,7 +25,7 @@ pushd promoted/repo
 blobstore:
   s3:
     access_key_id: $ALICLOUD_ACCESS_KEY_ID
-    secret_access_key: $ALICLOUD_SECRET_ACCESS_KEY
+    secret_access_key: $ALICLOUD_ACCESS_KEY_SECRET
 EOF
 
   echo "using bosh CLI version..."

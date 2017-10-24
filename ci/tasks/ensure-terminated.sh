@@ -3,7 +3,7 @@
 set -e
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
-: ${ALICLOUD_SECRET_ACCESS_KEY:?}
+: ${ALICLOUD_ACCESS_KEY_SECRET:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 
 metadata=$(cat environment/metadata)

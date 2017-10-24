@@ -4,10 +4,6 @@ set -e
 
 : ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
-: ${GIT_USER_ID:?}
-: ${GIT_USER_PASSWORD:?}
-: ${BOSH_REPO_HOST:?}
-: ${BOSH_REPO_BRANCH:?}
 
 source bosh-cpi-src/ci/tasks/utils.sh
 source /etc/profile.d/chruby-with-ruby-2.1.2.sh
@@ -24,9 +20,8 @@ curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
 chmod +x ./bosh-cli-*
 mv ./bosh-cli-* /usr/local/bin/bosh2
 
-# todo: get email and user from params
-git config --global user.email "demon.wy@alibaba-inc.com"
-git config --global user.name "demonwy"
+git config --global user.email ${GIT_USER_EMAIL}
+git config --global user.name ${GIT_USER_NAME}
 
 pushd bosh-cpi-src
   echo "using bosh CLI version..."

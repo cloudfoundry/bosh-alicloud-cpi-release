@@ -16,8 +16,7 @@ run:
     bash bosh-cpi-src/ci/tasks/run-integration.sh
 params:
   ALICLOUD_ACCESS_KEY_ID:     ""
-  ALICLOUD_SECRET_ACCESS_KEY: ""
-  ALICLOUD_DEFAULT_REGION:    ""
+  ALICLOUD_ACCESS_KEY_SECRET: ""
   CPI_STEMCELL_ID:            ""
   CPI_INTERNAL_IP:            ""
   CPI_INTERNAL_GW:            ""

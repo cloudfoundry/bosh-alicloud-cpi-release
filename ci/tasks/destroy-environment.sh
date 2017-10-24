@@ -3,7 +3,7 @@
 set -e
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
-: ${ALICLOUD_SECRET_ACCESS_KEY:?}
+: ${ALICLOUD_ACCESS_KEY_SECRET:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 : ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
@@ -60,7 +60,7 @@ git merge FETCH_HEAD
 echo $'\n'
 echo "Destroy terraform environment......"
 terraform init
-echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
+echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_ACCESS_KEY_SECRET} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
 echo yes >> terraform_destroy.sh
 echo EOF >> terraform_destroy.sh
 chmod +x terraform_destroy.sh
