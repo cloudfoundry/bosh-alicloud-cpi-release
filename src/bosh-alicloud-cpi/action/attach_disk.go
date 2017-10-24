@@ -33,19 +33,17 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 
 	device, err := a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusInUse)
 
-	// client.DescribeDisks()
+	if err != nil {
+		return a.WrapErrorf(err, "Attaching disk '%s' to VM '%s' wait failed", diskCid, instCid)
+	}
+
 	registryClient := a.registry
 	agentSettings, _ := registryClient.Fetch(instCid)
-
 	agentSettings.AttachPersistentDisk(diskCid, "", device)
+
 	err = registryClient.Update(instCid, agentSettings)
 	if err != nil {
 		return a.WrapErrorf(err, "UpdateRegistry failed %s %s", diskCid, instCid)
-	}
-
-
-	if err != nil {
-		return a.WrapErrorf(err, "WaitForDiskStatus failed %s", diskCid)
 	}
 	return nil
 }
