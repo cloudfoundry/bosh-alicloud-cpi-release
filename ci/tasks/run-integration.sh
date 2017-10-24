@@ -44,7 +44,8 @@ exportMetadata2Env CPI_SECURITY_GROUP_ID security_group_id
 exportMetadata2Env CPI_VSWITCH_ID vswitch_id
 exportMetadata2Env CPI_INTERNAL_CIDR cidr_block
 exportMetadata2Env CPI_EXTERNAL_IP external_ip_address
-export CPI_INTERNAL_NETMASK=$(cdr2mask (getCidrNotation $CPI_INTERNAL_CIDR))
+export CIDR_NOTATION=$(getCidrNotation $CPI_INTERNAL_CIDR)
+export CPI_INTERNAL_NETMASK=$(cdr2mask $CIDR_NOTATION)
 
 
 echo "vswitch id: "
