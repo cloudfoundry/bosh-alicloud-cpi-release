@@ -66,7 +66,7 @@ var _ = BeforeSuite(func() {
 	services := action.Services {
 		Stemcells: alicloud.NewStemcellManager(config),
 		Instances: alicloud.NewInstanceManager(config, logger),
-		Disks: alicloud.NewDiskManager(config),
+		Disks: alicloud.NewDiskManager(config, logger),
 		Networks: alicloud.NewNetworkManager(config),
 		Registry: mock.NewRegistryMock(),
 	}

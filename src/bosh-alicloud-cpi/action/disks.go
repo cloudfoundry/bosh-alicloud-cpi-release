@@ -72,7 +72,7 @@ func NewDiskInfo(size int, props apiv1.DiskCloudProps) (DiskInfo, error){
 	if err != nil {
 		return d, fmt.Errorf("bad format for DiskCloudProps %v", props)
 	}
-	d.SizeRaw = size * 1024
+	d.SizeRaw = size
 	return d.Validate(false)
 }
 

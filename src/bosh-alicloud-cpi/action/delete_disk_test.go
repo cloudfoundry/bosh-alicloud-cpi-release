@@ -6,6 +6,7 @@ package action
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/denverdino/aliyungo/ecs"
 )
 
 
@@ -15,24 +16,19 @@ var _ = Describe("cpi:delete_disk", func() {
 
 		_, err := caller.Call("delete_disk", cid)
 		Expect(err).NotTo(HaveOccurred())
-		//r = caller.Call("has_disk", cid)
-		//Expect(r.GetError()).NotTo(HaveOccurred())
-		//Expect(r.Result)
+
+		exist,err := caller.CallGeneric("has_disk", cid)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(exist).To(BeFalse())
 	})
-	//It("create disk with instance", func() {
-	//	By("create disk right")
-	//
-	//	r := caller.Run([]byte(`{
-	//		"method": "create_disk",
-	//			"arguments": [
-	//				30720,
-	//				{},
-	//				"i-2zefl7hfr7yb97ni5skw"
-	//			],
-	//			"context": {
-	//			"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
-	//		}
-	//	}`))
-	//	Expect(r.GetError()).NotTo(HaveOccurred())
-	//})
+
+	It("delete disk will failed with running instance", func() {
+		instCid, _ := mockContext.NewInstance()
+		diskCid, disk := mockContext.NewDisk(instCid)
+		disk.Status = ecs.DiskStatusInUse
+
+		_, err := caller.Call("delete_disk", diskCid)
+		Expect(err).Should(HaveOccurred())
+		Expect(err.Error()).Should(ContainSubstring("can't delete disk"))
+	})
 })
