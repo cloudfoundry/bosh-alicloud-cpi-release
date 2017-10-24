@@ -1,11 +1,6 @@
-
-description : tf_sg
-name        : bosh_init_sg_911
-vpc_id      : vpc-2ze9faqluj29y2tqfbkht
-security_group_id : sg-2ze9adyup5hedz1evprm
-availability_zone : cn-beijing-a
-cidr_block        : 172.16.0.0/24
-description       : 
-name              : 
-vpc_id            : vpc-2ze9faqluj29y2tqfbkht
-vswitch_id : vsw-2zecl9738kizirlwvgumy
+region : cn-qingdao
+external_ip_address : 47.104.13.205
+security_group_id : sg-m5e28lyt2y9s3zog01mk
+vswitch_id : vsw-m5e3lpgkujig9jg3nkl54
+internal_availability_zone : cn-qingdao-c
+internal_cidr_block : 172.16.0.0/24
