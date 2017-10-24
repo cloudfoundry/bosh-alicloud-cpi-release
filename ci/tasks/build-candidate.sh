@@ -2,9 +2,7 @@
 
 set -e
 
-
-echo " ******** "
-#: ${GIT_USER_EMAIL:?}
+: ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
 : ${GIT_USER_ID:?}
 : ${GIT_USER_PASSWORD:?}
@@ -26,14 +24,14 @@ mv ./bosh-cli-* /usr/local/bin/bosh2
 cp -r bosh-cpi-src candidate/repo
 
 pushd candidate/repo
-  echo "******** using eof *********"
-  echo git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH} \<\< EOF > bosh_login.sh
-  echo ${GIT_USER_PASSWORD} >> bosh_login.sh
-  echo EOF >> bosh_login.sh
-  chmod +x bosh_login.sh
-  ./bosh_login.sh > log1
-
-  cat log1
+#  echo "******** using eof *********"
+#  echo git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH} \<\< EOF > bosh_login.sh
+#  echo ${GIT_USER_PASSWORD} >> bosh_login.sh
+#  echo EOF >> bosh_login.sh
+#  chmod +x bosh_login.sh
+#  ./bosh_login.sh > log1
+#
+#  cat log1
 
   echo "******** git install expect ********"
   sudo apt-get install expect -y
