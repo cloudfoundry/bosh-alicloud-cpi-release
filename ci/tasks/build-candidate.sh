@@ -24,6 +24,15 @@ mv ./bosh-cli-* /usr/local/bin/bosh2
 cp -r bosh-cpi-src candidate/repo
 
 pushd candidate/repo
+  echo "******** using eof *********"
+  echo git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH} \<\< EOF > bosh_login.sh
+  echo ${GIT_USER_PASSWORD} >> bosh_login.sh
+  echo EOF >> bosh_login.sh
+  chmod +x bosh_login.sh
+  ./bosh_login.sh > log1
+
+  cat log1
+
   echo "******** git install expect ********"
   sudo apt-get install expect -y
 
@@ -31,12 +40,12 @@ pushd candidate/repo
   echo "#!/usr/bin/expect" > git_install.sh
   echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
   echo "expect \"Password for 'https://${GIT_USER_ID}@gitlab.com': \"" >> git_install.sh
-  echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+  echo "send \"${GIT_USER_PASSWORD}\"" >> git_install.sh
   echo "expect eof" >> git_install.sh
   echo exit >> git_install.sh
   chmod +x git_install.sh
-  ./git_install.sh > log
-  cat log
+  ./git_install.sh > log2
+  cat log2
   rm -rf ./git_install.sh
 
   echo $'\n'
@@ -63,8 +72,8 @@ pushd candidate/repo
   git status
 
   # todo: get email and user from params
-  git config --global user.email "demon.wy@alibaba-inc.com"
-  git config --global user.name "demonwy"
+  git config --global user.email ${GIT_USER_EMAIL}
+  git config --global user.name ${GIT_USER_NAME}
 
   git add .
   git commit -m 'do nothing'
