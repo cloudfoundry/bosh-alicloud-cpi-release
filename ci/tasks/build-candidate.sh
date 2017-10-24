@@ -39,7 +39,6 @@ pushd bosh-cpi-src
   # M ci/tasks/build-candidate.sh
   git add .
   git commit -m 'do nothing'
-  #git pull
 
   echo "building CPI release..."
   # refers: https://bosh.io/docs/cli-v2#create-release

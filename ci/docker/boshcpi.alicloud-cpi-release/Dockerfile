@@ -14,9 +14,6 @@ RUN apt-get install -y libpq-dev; apt-get clean
 
 RUN curl -sL https://deb.nodesource.com/setup_4.x | bash -; apt-get install -y nodejs; apt-get clean; rm -f /usr/bin/node; ln -s /usr/bin/nodejs /usr/bin/node
 
-# azure CLI
-# RUN npm install -g azure-cli@0.10.10; azure -v
-
 # chruby
 RUN /bin/bash -l -c " \
     curl https://codeload.github.com/postmodern/chruby/tar.gz/v0.3.9 | tar -xz -C /tmp/ && \

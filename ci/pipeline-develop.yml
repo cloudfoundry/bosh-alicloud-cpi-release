@@ -248,12 +248,6 @@ resources:
   - name: 2h
     type: time
     source: {interval: 24h}
-  # - name: bosh-cpi-dev-artifacts
-  #   type: git
-  #   source:
-  #     uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-  #     branch: cpi_dev_artifacts_tmp
-  #     private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: bosh-cpi-dev-artifacts
     type: git
     source:
@@ -269,12 +263,6 @@ resources:
         - .final_builds/**/*.yml
         - releases/**/*.yml
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
-#  - name: environment
-#      type: git
-#      source:
-#        uri: git@gitlab.com:demonwy/bosh-alicloud-cpi-release.git
-#        branch: cpi_dev_terraform_tmp
-#        private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: go-cpi-blobs
     type: git
     source:
@@ -302,19 +290,6 @@ resources:
       branch: release
       file: version
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
-#  - name: environment
-#    type: terraform_type
-#    source:
-#      storage:
-#        access_key_id:     {{alicloud_access_key__primary}}
-#        secret_access_key: {{alicloud_secret_key__primary}}
-#        bucket:            {{terraform_bucket}}
-#        bucket_path:       terraform-state
-#      vars:
-#        access_key: {{alicloud_access_key__primary}}
-#        secret_key: {{alicloud_secret_key__primary}}
-#        region:     {{alicloud_region__primary}}
-#        public_key: {{cpi_pipeline_public_key}}
   - name: bosh-cli
     type: git
     source:
