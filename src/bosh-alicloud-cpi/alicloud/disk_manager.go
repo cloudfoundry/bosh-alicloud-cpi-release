@@ -12,6 +12,7 @@ import (
 	"time"
 	"fmt"
 	"encoding/json"
+	"strings"
 )
 
 type DiskManager interface {
@@ -46,7 +47,7 @@ func (a DiskManagerImpl) log(action string, err error, args interface{}, result 
 	if err != nil {
 		a.logger.Error("DiskManager", "%s failed args=%s err=%s", action, s, err)
 	} else {
-		a.logger.Info("DiskManager", "%s done args=%s result=%s", s, result)
+		a.logger.Info("DiskManager", "%s done! args=%s result=%s", action, s, result)
 	}
 }
 
@@ -94,7 +95,25 @@ func (a DiskManagerImpl) DeleteDisk(diskCid string) (error) {
 	client := a.config.NewEcsClient()
 	err := client.DeleteDisk(diskCid)
 	a.log("DeleteDisk", err, diskCid, "ok")
-	return err
+
+	if err != nil {
+		//
+		// retry
+		for i := 1; i <= DeleteDiskRetryCount; i++ {
+			if strings.Contains(err.Error(), DeleteDiskRetryReason) {
+				time.Sleep(DeleteDiskRetryInterval)
+				err := client.DeleteDisk(diskCid)
+				if err == nil {
+					a.logger.Info("DiskManager", "DeleteDisk %s Done! (after %d retry)", diskCid, i)
+					break
+				}
+				a.logger.Info("DiskManager", "DeleteDisk %s retry=%d", diskCid, i)
+			} else {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (a DiskManagerImpl) AttachDisk(instCid string, diskCid string) (error) {
@@ -122,7 +141,7 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 
 
 func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
-	timeout := DefaultWaitTimeout
+	timeout := WaitTimeout
 	for {
 		disk, err := a.GetDisk(diskCid)
 
@@ -136,14 +155,22 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 
 		a.logger.Info("DiskManager", "Waiting disk %s from %v to %v", diskCid, disk.Status, toStatus)
 		if disk.Status == toStatus {
-			path := AmendDiskPath(disk.Device, disk.Category)
+			path := disk.Device
+			if len(path) > 0 {
+				// expect "/dev/vda" or "/dev/xvda"
+				if len(path) >= 8 && strings.HasPrefix(path, "/dev/") {
+					path = AmendDiskPath(disk.Device, disk.Category)
+				} else {
+					return "", fmt.Errorf("WaitForDiskStatus unexcepted disk.Device=%s", path)
+				}
+			}
 			a.logger.Info("DiskManager", "Waiting disk %s to %s DONE! path=%s", diskCid, toStatus, path)
 			return path, nil
 		}
 
 		if timeout > 0 {
-			timeout -= DefaultWaitInterval
-			time.Sleep(DefaultWaitInterval)
+			timeout -= WaitInterval
+			time.Sleep(WaitInterval)
 		} else {
 			return "", bosherr.Error("WaitForInstanceStatus timeout")
 		}

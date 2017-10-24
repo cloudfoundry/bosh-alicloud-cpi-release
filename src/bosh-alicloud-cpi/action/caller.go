@@ -91,11 +91,16 @@ func NewCallerWithServices(config alicloud.Config, logger boshlog.Logger, servic
 }
 
 func (c Caller) Run(input []byte) (CpiResponse) {
-	// json.Validate not support with golang 1.8.1
-	//if !json.Validate(input) {
-	//	err := fmt.Errorf("input json invalid %s", string(input))
-	//	return WrapErrorResponse(err, "Run failed")
-	//}
+	var req json.RawMessage
+	err := json.Unmarshal(input, &req)
+	if err != nil {
+		return WrapErrorResponse(err, "input json invalid %s", string(input))
+	}
+
+	input, err = json.MarshalIndent(req, "", "  ")
+	if err != nil {
+		return WrapErrorResponse(err, "MarshalIndent failed %v", req)
+	}
 
 	reader := bytes.NewReader(input)
 	output := new(bytes.Buffer)
@@ -104,7 +109,7 @@ func (c Caller) Run(input []byte) (CpiResponse) {
 
 	cpiFactory := NewFactory(cc, c.Services)
 	cli := boshrpc.NewFactory(c.Logger).NewCLIWithInOut(reader, output, cpiFactory)
-	err := cli.ServeOnce()
+	err = cli.ServeOnce()
 
 	if err != nil {
 		return WrapErrorResponse(err, "ServeOnce() Failed")

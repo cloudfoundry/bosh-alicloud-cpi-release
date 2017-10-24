@@ -12,18 +12,6 @@ import (
 	"time"
 	"strings"
 	"encoding/json"
-	"strconv"
-)
-
-const (
-	UseForceStop			= true
-	ForceStopWaitSeconds	= 90
-	DefaultWaitTimeout		= time.Duration(120) * time.Second
-	DefaultWaitInterval		= time.Duration(2) * time.Second
-
-	DeleteInstanceRetryCount	= 10
-	DeleteInstanceRetryReason	= "IncorrectInstanceStatus.Initializing"
-	DeleteInstanceRetryInterval	= time.Duration(5) * time.Second
 )
 
 type InstanceManager interface {
@@ -59,7 +47,7 @@ func (a InstanceManagerImpl) log(action string, err error, args interface{}, res
 	if err != nil {
 		a.logger.Error("InstanceManager", "%s failed args=%s err=%s", action, s, err)
 	} else {
-		a.logger.Info("InstanceManager", "%s done args=%s result=%s", s, result)
+		a.logger.Info("InstanceManager", "%s done! args=%s result=%s", action, s, result)
 	}
 }
 
@@ -87,6 +75,24 @@ func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string
 	client := a.config.NewEcsClient()
 	cid, err := client.CreateInstance(&args)
 	a.log("CreateInstance", err, args, cid)
+
+	if err != nil {
+		//
+		// retry if IP not released
+		for i := 1; i <= CreateInstanceRetryCount; i++ {
+			if strings.Contains(err.Error(), CreateInstanceRetryReason) {
+				time.Sleep(CreateInstanceRetryInterval)
+				cid, err = client.CreateInstance(&args)
+				if err == nil {
+					a.logger.Info("InstanceManager", "CreateInstance done! cid=%s after %d retries", cid, i)
+					break
+				}
+				a.logger.Info("InstanceManager", "CreateInstance retry=%d", i)
+			} else {
+				return cid, err
+			}
+		}
+	}
 	return cid, err
 }
 
@@ -97,15 +103,16 @@ func (a InstanceManagerImpl) DeleteInstance(cid string) (error) {
 
 	if err != nil {
 		//
-		// retry
-		for i := 0; i < DeleteInstanceRetryCount; i++ {
+		// retry if vm status is not initialized
+		for i := 1; i <= DeleteInstanceRetryCount; i++ {
 			if strings.Contains(err.Error(), DeleteInstanceRetryReason) {
 				time.Sleep(DeleteInstanceRetryInterval)
 				err := client.DeleteInstance(cid)
-				a.log("DeleteInstance retry:" + strconv.Itoa(i), err, cid, "ok")
 				if err == nil {
+					a.logger.Info("InstanceManager", "DeleteInstance %s done after %d retries", cid, i)
 					break
 				}
+				a.logger.Info("InstanceManager", "DeleteInstance %s retry=", cid, i)
 			} else {
 				return err
 			}
@@ -164,7 +171,7 @@ func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, 
 }
 
 func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (error) {
-	timeout := DefaultWaitTimeout
+	timeout := WaitTimeout
 	for {
 		status, err := a.GetInstanceStatus(cid)
 		a.logger.Info("InstanceManager", "Waiting Instance %s from %s to %s", cid, status, toStatus)
@@ -181,8 +188,8 @@ func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.Inst
 		}
 
 		if timeout > 0 {
-			timeout -= DefaultWaitInterval
-			time.Sleep(DefaultWaitInterval)
+			timeout -= WaitInterval
+			time.Sleep(WaitInterval)
 		} else {
 			return bosherr.Error("WaitForInstanceStatus timeout")
 		}

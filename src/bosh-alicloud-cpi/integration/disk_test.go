@@ -87,9 +87,4 @@ var _ = Describe("integration:disk", func() {
 		_, err = caller.Call("delete_vm", instCid)
 		Expect(err).NotTo(HaveOccurred())
 	})
-
-	It("delete disk", func() {
-		_, err := caller.Call("delete_disk", "d-2ze0l52cnz7f59waj8pn")
-		Expect(err).NotTo(HaveOccurred())
-	})
 })

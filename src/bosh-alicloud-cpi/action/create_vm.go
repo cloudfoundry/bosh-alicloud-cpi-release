@@ -56,8 +56,6 @@ func (a CreateVMMethod) CreateVM(
 
 	cid := apiv1.VMCID{}
 
-	logger := a.Logger
-
 	// logger.Info("ENV", "inv: %v", env)
 	env2, err := registry.UnmarshalEnvSettings(env)
 	if err != nil {
@@ -201,7 +199,7 @@ func (a CreateVMMethod) CreateVM(
 
 	//
 	// TODO: every error must free created vm before terminated
-	logger.Info("INFO", "FINISH create_vm %s", args)
+	// logger.Info("INFO", "FINISH create_vm %s", args)
 	return apiv1.NewVMCID(instCid), nil
 }
 
