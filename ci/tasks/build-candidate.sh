@@ -3,7 +3,8 @@
 set -e
 
 
-: ${GIT_USER_EMAIL:?}
+echo " ******** "
+#: ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
 : ${GIT_USER_ID:?}
 : ${GIT_USER_PASSWORD:?}
