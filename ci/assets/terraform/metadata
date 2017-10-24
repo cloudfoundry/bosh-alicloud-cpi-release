@@ -1,6 +1,1 @@
-region : cn-qingdao
-external_ip_address : 47.104.14.226
-security_group_id : sg-m5e1s6lw79vf9zv8g5ya
-vswitch_id : vsw-m5e25aujzrtam73rka81b
-availability_zone : cn-qingdao-c
-internal_cidr_block : 172.16.0.0/24
+
