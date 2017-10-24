@@ -30,6 +30,7 @@ func (a InstanceManagerMock) CreateInstance(args ecs.CreateInstanceArgs) (string
 	id, inst := a.mc.NewInstance()
 
 	inst.RegionId = args.RegionId
+	inst.ZoneId = args.ZoneId
 	// ...
 
 	return id, nil

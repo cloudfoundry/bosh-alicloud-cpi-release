@@ -39,9 +39,12 @@ func (a DiskManagerMock) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
 	}
 }
 
-func (a DiskManagerMock) CreateDisk(sizeGB int, category ecs.DiskCategory) (string, error) {
+func (a DiskManagerMock) CreateDisk(sizeGB int, category ecs.DiskCategory, zone string) (string, error) {
 	if sizeGB == 0 || sizeGB > MaxDiskSizeGB {
 		return "", fmt.Errorf("CreateDisk size too small or large %d", sizeGB)
+	}
+	if zone == "" {
+		return "", fmt.Errorf("CreateDisk zone can't be empty")
 	}
 	if category == "" {
 		return "", fmt.Errorf("CreateDisk category empty")
