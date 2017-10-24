@@ -113,9 +113,9 @@ jobs:
       - <<: *build-environment
       - put: terraform-metadata
         params: {repository: terraform-metadata, rebase: true, force: true}
-      - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+#      - <<: *destroy-environment
+#      - put: terraform-metadata
+#        params: {repository: terraform-metadata, rebase: true, force: true}
 
   - name: build-candidate
     serial: true
@@ -281,12 +281,12 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
 #  - name: environment
 #      type: git
 #      source:
@@ -378,7 +378,7 @@ resources:
   - name: terraform-metadata
     type: git
     source:
-      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
 

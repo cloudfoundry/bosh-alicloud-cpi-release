@@ -35,6 +35,11 @@ export PATH="${TERRAFORM_PATH}:$PATH"
 
 cd ${TERRAFORM_MODULE}
 
+echo "******** tell docker who am I ********"
+git config --global user.email ${GIT_USER_EMAIL}
+git config --global user.name ${GIT_USER_NAME}
+git config --local -l
+
 echo "******** git install expect ********"
 sudo apt-get install expect -y
 
@@ -72,9 +77,9 @@ function copyToOutput(){
     cd $2
     ls -la
 
-    git config --global user.email ${GIT_USER_EMAIL}
-    git config --global user.name ${GIT_USER_NAME}
-    git config --local -l
+#    git config --global user.email ${GIT_USER_EMAIL}
+#    git config --global user.name ${GIT_USER_NAME}
+#    git config --local -l
 
     git status | sed -n 'p' |while read LINE
     do
