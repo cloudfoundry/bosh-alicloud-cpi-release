@@ -12,6 +12,7 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
+	"time"
 )
 
 type CloudConfigJson struct {
@@ -28,6 +29,25 @@ type Config struct {
 	Registry RegistryConfig `json:"registry"`
 	Agent    AgentConfig    `json:"agent"`
 }
+
+const (
+	UseForceStop			= true
+
+	WaitTimeout  = time.Duration(120) * time.Second
+	WaitInterval = time.Duration(3) * time.Second
+
+	DeleteInstanceRetryCount	= 10
+	DeleteInstanceRetryReason	= "IncorrectInstanceStatus.Initializing"
+	DeleteInstanceRetryInterval	= time.Duration(15) * time.Second
+
+	CreateInstanceRetryCount	= 10
+	CreateInstanceRetryReason	= "InvalidPrivateIpAddress.Duplicated"
+	CreateInstanceRetryInterval	= time.Duration(15) * time.Second
+
+	DeleteDiskRetryCount	= 10
+	DeleteDiskRetryReason	= "IncorrectDiskStatus.Initializing"
+	DeleteDiskRetryInterval	= time.Duration(15) * time.Second
+)
 
 type OpenApi struct {
 	RegionId        string  `json:"region_id"`
