@@ -150,7 +150,6 @@ do
               echo internal_$line >> $METADATA
           fi
         done
-#        sed -i '/^id/d' $METADATA
     fi
     if [ $LINE == "alicloud_security_group.default" ];
     then
@@ -162,7 +161,6 @@ do
               echo security_group_$line >> $METADATA
           fi
         done
-#        sed -i '/^id/d' $METADATA
     fi
     if [ $LINE == "alicloud_eip.default" ];
     then
@@ -174,7 +172,6 @@ do
               echo external_$line >> $METADATA
           fi
         done
-#        sed -i '/^id/d' $METADATA
     fi
 done
 echo "Write metadata successfully"

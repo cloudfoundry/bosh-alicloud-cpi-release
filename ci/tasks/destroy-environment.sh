@@ -69,6 +69,11 @@ chmod +x terraform_destroy.sh
 echo "Destroy terraform environment successfully."
 rm -rf ./terraform_destroy.sh
 
+if [ -e ${METADATA} ];
+then
+    echo "" > $METADATA
+fi
+
 
 function copyToOutput(){
 
@@ -76,10 +81,6 @@ function copyToOutput(){
 
     cd $2
     ls -la
-
-#    git config --global user.email ${GIT_USER_EMAIL}
-#    git config --global user.name ${GIT_USER_NAME}
-#    git config --local -l
 
     git status | sed -n 'p' |while read LINE
     do
