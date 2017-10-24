@@ -32,6 +32,8 @@ pushd candidate/repo
 #  ./bosh_login.sh > log1
 #
 #  cat log1
+  echo "******git fetch**"
+  git fetch https://${GIT_USER_ID}:${GIT_USER_PASSWORD}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}
 
   echo "******** git install expect ********"
   sudo apt-get install expect -y
@@ -41,7 +43,8 @@ pushd candidate/repo
   echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
   echo "expect \"Password for 'https://${GIT_USER_ID}@gitlab.com': \"" >> git_install.sh
   echo "send \"${GIT_USER_PASSWORD}\n\"" >> git_install.sh
-  echo "expect \"*#\"" >> git_install.sh
+  echo "expect \"*$\"" >> git_install.sh
+  echo "send \"exit\n\"" >> git_install.sh
   echo "expect eof" >> git_install.sh
   echo EOF >> git_install.sh
   cat git_install.sh
