@@ -40,6 +40,12 @@ pushd bosh-cpi-src
 
   make
 
+  # Git repository has local modifications:
+  # M ci/tasks/build-candidate.sh
+  git add .
+  git commit -m 'do nothing'
+  #git pull
+
   echo "building CPI release..."
   # refers: https://bosh.io/docs/cli-v2#create-release
   bosh2 create-release --name $cpi_release_name --version $semver --tarball $cpi_release_name-$semver.tgz
