@@ -143,6 +143,7 @@ jobs:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
           ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
+          CPI_STEMCELL_ID:            {{alicloud_stemcell_id}}
         ensure:
           do:
             - <<: *destroy-environment

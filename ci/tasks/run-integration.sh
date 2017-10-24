@@ -8,11 +8,10 @@ source bosh-cpi-src/ci/tasks/utils.sh
 METADATA_FILE=$(pwd)/terraform-metadata/ci/assets/terraform/metadata
 
 check_param ALICLOUD_ACCESS_KEY_ID
-check_param ALICLOUD_DEFAULT_REGION
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_SECRET_ACCESS_KEY:?}
-: ${ALICLOUD_DEFAULT_REGION:?}
+: ${CPI_STEMCELL_ID:?}
 
 # Stemcell stuff
 export STEMCELL_VERSION=`cat stemcell/version`
@@ -27,16 +26,21 @@ cat terraform-metadata/ci/assets/terraform/metadata
 
 metadata=$(cat ${METADATA_FILE})
 
-export BOSH_ALICLOUD_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
-export BOSH_ALICLOUD_SECRET_ACCESS_KEY=${ALICLOUD_SECRET_ACCESS_KEY}
-export ACCESS_KEY_CONFIG=${ALICLOUD_SECRET_ACCESS_KEY}
-export ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
-export BOSH_ALICLOUD_REGION_ID=cn-beijing
-#export BOSH_ALICLOUD_ZONE_ID=$(echo ${metadata} | jq -e --raw-output ".availability_zone")
-export BOSH_ALICLOUD_ZONE_ID=$(cat ${METADATA_FILE} | grep availability_zone | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
-export BOSH_ALICLOUD_SECURITY_GROUP_ID=$(cat ${METADATA_FILE} | grep security_group_id | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
-export BOSH_ALICLOUD_VSWITCH_ID=$(cat ${METADATA_FILE} | grep vswitch_id | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
-export BOSH_CLI_SILENCE_SLOW_LOAD_WARNING=true
+exportMetadata2Env(){
+  export $1=$(cat ${METADATA_FILE} | grep $2 | awk -F : '{print $2}' | grep -o "[^ ]\+\( \+[^ ]\+\)*")
+}
+
+export CPI_REGION=cn-beijing
+export CPI_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
+export CPI_ACCESS_KEY_SECRET=${ALICLOUD_SECRET_ACCESS_KEY}
+export CPI_STEMCELL_ID=${CPI_STEMCELL_ID}
+
+exportMetadata2Env CPI_ZONE availability_zone
+exportMetadata2Env CPI_SECURITY_GROUP_ID security_group_id
+exportMetadata2Env CPI_VSWITCH_ID vswitch_id
+exportMetadata2Env CPI_INTERNAL_CIDR cidr_block
+export CPI_INTERNAL_NETMASK cdr2mask
+
 
 echo "vswitch id: "
 echo $BOSH_ALICLOUD_VSWITCH_ID
