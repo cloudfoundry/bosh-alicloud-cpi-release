@@ -70,7 +70,7 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
  -v zone=cn-beijing-a
 ```
 
-### Install with external-ip(not recommended)
+### Install with external-ip
 
 - Create a `Elastic IP` in `Alibaba Cloud Console`, get an `external_ip`
 
@@ -93,11 +93,37 @@ bosh create-env bosh.yml \
  -v external_ip=...
 ```
 
+### Install with jumpbox-user
+
+```
+$ bosh create-env bosh-deployment/bosh.yml \
+ --state=state.json \
+ --vars-store=creds.yml \
+ -o bosh-deployment/alicloud/cpi.yml \
+ -o bosh-deployment/external-ip-not-recommended.yml \
+ -o bosh-deployment/jumpbox-user.yml \
+ -v director_name=my-bosh \
+ -v internal_cidr=192.168.0.0/24 \
+ -v internal_gw=192.168.0.1 \
+ -v internal_ip=192.168.0.7 \
+ -v vswitch_id=... \
+ -v security_group_id=... \
+ -v access_key_id=... \
+ -v access_key_secret=... \
+ -v region=cn-beijing \
+ -v zone=cn-beijing-e \
+ -v external_ip=...
+```
+
+```
+$ bosh int creds.yml --path /jumpbox_ssh/private_key > jumpbox.key
+$ chmod 600 jumpbox.key
+$ ssh jumpbox@<external-or-internal-ip> -i jumpbox.key
+```
+
 ### *NOTICE*
 
 - *This version of cpi use a temporary public `registry` for install bosh-director, it not safe, we will fix it in later version*
-- *Not support mbus_bootstrap_ssl*
-- *Not support ssh-tunnel*
 
 ### Run Unit Test
 

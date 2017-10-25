@@ -5,9 +5,9 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## [r8]
 
 - For compatible downgrade golang to 1.8.1
-- Add unit test
-- Add Integration test
--
+- Refactoring code to support unit test and integration test
+- Add Concourse ci
+- Add docs
 
 ## [r7]
 
