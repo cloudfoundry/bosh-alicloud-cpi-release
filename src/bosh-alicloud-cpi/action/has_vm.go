@@ -4,27 +4,27 @@
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
 )
 
 type HasVMMethod struct {
-	runner alicloud.Runner
+	CallContext
+	instances alicloud.InstanceManager
 }
 
-func NewHasVMMethod(runner alicloud.Runner) HasVMMethod {
-	return HasVMMethod{runner}
+func NewHasVMMethod(cc CallContext, instances alicloud.InstanceManager) HasVMMethod {
+	return HasVMMethod{cc, instances}
 }
 
 func (a HasVMMethod) HasVM(cid apiv1.VMCID) (bool, error) {
 	//
 	//
-	instid := cid.AsString()
-	inst, err := a.runner.GetInstance(instid)
+	instCid := cid.AsString()
+	inst, err := a.instances.GetInstance(instCid)
 
 	if err != nil {
-		return false, bosherr.WrapErrorf(err, "Finding VM Failed '%s'", cid)
+		return false, a.WrapErrorf(err, "Finding VM Failed '%s'", cid)
 	}
 
 	if inst != nil {

@@ -10,10 +10,6 @@ import (
 	"strings"
 )
 
-type CreateStemcellMethod struct {
-	runner alicloud.Runner
-}
-
 type StemcellProps struct {
 	Architecture string 	`json:"architecture"`
 	ContainerFormat string 	`json:"container_format"`
@@ -29,8 +25,13 @@ type StemcellProps struct {
 	Images map[string]interface{} 	`json:"image_id"`
 }
 
-func NewCreateStemcellMethod(runner alicloud.Runner) CreateStemcellMethod {
-	return CreateStemcellMethod{runner}
+type CreateStemcellMethod struct {
+	CallContext
+	stemcells alicloud.StemcellManager
+}
+
+func NewCreateStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager) CreateStemcellMethod {
+	return CreateStemcellMethod{cc, stemcells}
 }
 
 func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.StemcellCloudProps) (apiv1.StemcellCID, error) {
@@ -38,16 +39,16 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 	err := cloudProps.As(&props)
 
 	if err != nil {
-		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "BadInput for CreateStemcell %s", cloudProps)
+		return apiv1.StemcellCID{}, a.WrapErrorf(err, "BadInput for CreateStemcell %s", cloudProps)
 	}
 
 	//
 	// find stemcell from manifest.MF
-	region := a.runner.Config.OpenApi.RegionId
+	region := a.Config.OpenApi.RegionId
 	stemcellId, err := props.FindStemcellId(region)
 
 	if err != nil {
-		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
+		return apiv1.StemcellCID{}, a.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
 	}
 
 	return apiv1.NewStemcellCID(stemcellId), nil

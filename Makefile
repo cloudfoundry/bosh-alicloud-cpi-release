@@ -39,13 +39,16 @@ testdeps:
 	export PATH=$PATH:$PWD/bin
 
 test: testdeps
-	ginkgo src/bosh-alicloud-cpi/action -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
+	ginkgo -r -skipPackage integration src/bosh-alicloud-cpi
+
+integration: testdeps
+	ginkgo -r src/bosh-alicloud-cpi/integration
 
 testintci: testdeps
 	ginkgo src/bosh-alicloud-cpi/integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
 
 create-release: build
-    bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz
+	bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz
 
 # upload-release: create-release
 #    scp bin/bosh-alicloud-cpi.tgz root@${CPI_UPLOAD_HOST}:/root

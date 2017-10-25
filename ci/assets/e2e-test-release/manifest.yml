@@ -1,0 +1,101 @@
+---
+name: e2e-test
+
+releases:
+  - name: e2e-test
+    version: latest
+
+update:
+  canaries: 1
+  canary_watch_time: 30000-240000
+  update_watch_time: 30000-600000
+  max_in_flight: 3
+
+stemcells:
+  - alias: stemcell
+    name: ((stemcell_name))
+    version: latest
+  - alias: heavy-stemcell
+    name: ((heavy_stemcell_name))
+    version: latest
+
+instance_groups:
+  - name: iam-instance-profile-test
+    jobs:
+    - name: iam-instance-profile-test
+      release: e2e-test
+      properties:
+        expected_iam_instance_profile: ((iam_instance_profile))
+    stemcell: stemcell
+    lifecycle: errand
+    instances: 1
+    vm_type: iam_role
+    networks:
+      - name: private
+        default: [dns, gateway]
+  - name: raw-ephemeral-disk-test
+    jobs:
+      - name: raw-ephemeral-disk-test
+        release: e2e-test
+        properties: {}
+    stemcell: stemcell
+    lifecycle: errand
+    instances: 1
+    vm_type: raw_ephemeral_pool
+    networks:
+      - name: private
+        default: [dns, gateway]
+  - name: elb-registration-test
+    jobs:
+      - name: elb-registration-test
+        release: e2e-test
+        properties:
+          load_balancer_name: ((e2e_elb_name))
+          aws_region: ((region))
+    stemcell: stemcell
+    lifecycle: errand
+    instances: 1
+    vm_type: elb_registration_pool
+    networks:
+      - name: private
+        default: [dns, gateway]
+  - name: spot-instance-test
+    jobs:
+      - name: spot-instance-test
+        release: e2e-test
+        properties:
+          region: ((region))
+    stemcell: stemcell
+    lifecycle: errand
+    instances: 1
+    vm_type: spot_instance_pool
+    networks:
+      - name: private
+        default: [dns, gateway]
+  - name: heavy-stemcell-test
+    jobs:
+      - name: heavy-stemcell-test
+        release: e2e-test
+        properties: {}
+    stemcell: heavy-stemcell
+    lifecycle: errand
+    instances: 1
+    vm_type: default
+    networks:
+      - name: private
+        default: [dns, gateway]
+  - name: encrypted-heavy-stemcell-test
+    jobs:
+      - name: encrypted-heavy-stemcell-test
+        release: e2e-test
+        properties:
+          region: ((region))
+          kms_key_arn: ((kms_key_arn))
+          ami_cid: ((encrypted_heavy_stemcell_ami_id))
+    stemcell: heavy-stemcell
+    lifecycle: errand
+    instances: 1
+    vm_type: default
+    networks:
+      - name: private
+        default: [dns, gateway]

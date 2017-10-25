@@ -6,13 +6,17 @@ package alicloud
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"encoding/json"
 	"fmt"
-	"os"
 	"bosh-alicloud-cpi/registry"
+	"github.com/denverdino/aliyungo/ecs"
+	"github.com/denverdino/aliyungo/common"
+	"time"
+	"github.com/denverdino/aliyungo/slb"
 )
 
-type CloudConfigShell struct {
+type CloudConfigJson struct {
 	Root CloudConfig `json:"cloud"`
 }
 
@@ -22,51 +26,69 @@ type CloudConfig struct {
 }
 
 type Config struct {
-	OpenApi  OpenApi  `json:"alicloud"`
-	Registry Registry `json:"registry"`
-	Agent    Agent    `json:"agent"`
+	OpenApi  OpenApi        `json:"alicloud"`
+	Registry RegistryConfig `json:"registry"`
+	Agent    AgentConfig    `json:"agent"`
 }
+
+const (
+	UseForceStop			= true
+
+	WaitTimeout  = time.Duration(120) * time.Second
+	WaitInterval = time.Duration(3) * time.Second
+
+	DeleteInstanceRetryCount	= 10
+	DeleteInstanceRetryReason	= "IncorrectInstanceStatus.Initializing"
+	DeleteInstanceRetryInterval	= time.Duration(15) * time.Second
+
+	CreateInstanceRetryCount	= 10
+	CreateInstanceRetryReason	= "InvalidPrivateIpAddress.Duplicated"
+	CreateInstanceRetryInterval	= time.Duration(15) * time.Second
+
+	DeleteDiskRetryCount	= 10
+	DeleteDiskRetryReason	= "IncorrectDiskStatus.Initializing"
+	DeleteDiskRetryInterval	= time.Duration(15) * time.Second
+)
 
 type OpenApi struct {
-	RegionId        string   `json:"region_id"`
-	ZoneId          string   `json:"zone_id"`
-	AccessKeyId     string   `json:"access_key_id"`
-	AccessKeySecret string   `json:"access_key_secret"`
-	Regions         []Region `json:"regions"`
+	RegionId        string  `json:"region_id"`
+	ZoneId			string	`json:"zone_id"`
+	AccessKeyId     string  `json:"access_key_id"`
+	AccessKeySecret string  `json:"access_key_secret"`
+	Region			common.Region	`json:"-"`
 }
 
-type Region struct {
-	Name    string `json:"name"`
-	ImageId string `json:"image_id"`
+type RegistryConfig struct {
+	User     string			`json:"user"`
+	Password string			`json:"password"`
+	Protocol string			`json:"protocol"`
+	Host     string			`json:"address"`
+	Port     json.Number	`json:"port"`
 }
 
-type Registry struct {
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Protocol string `json:"protocol"`
-	Host     string `json:"address"`
-	Port     int	`json:"port"`
+type AgentConfig struct {
+	Ntp       []string        `json:"ntp"`
+	Mbus      string          `json:"mbus"`
+	Blobstore BlobstoreConfig `json:"blobstore"`
 }
 
-type Agent struct {
-	Ntp       []string  `json:"ntp"`
-	Mbus      string    `json:"mbus"`
-	Blobstore Blobstore `json:"blobstore"`
-}
-
-type Blobstore struct {
-	Provider string           `json:"provider"`
-	Options  map[string]interface{} `json:"options"`
-}
-
-type BlobstoreOptions struct {
-	Endpoint string `json:"endpoint"`
-	User     string `json:"user"`
-	Password string `json:"password"`
+type BlobstoreConfig struct {
+	Provider string          		`json:"provider"`
+	Options  map[string]interface{}	`json:"options"`
 }
 
 func (c Config) Validate() error {
-	// TODO check configuration validation
+	if c.OpenApi.RegionId == "" {
+		return fmt.Errorf("region can't be empty")
+	}
+	c.OpenApi.Region = common.Region(c.OpenApi.RegionId)
+
+	_, err := c.Registry.Port.Int64()
+	if err != nil {
+		return fmt.Errorf("bad registry.port %s", c.Registry.Port.String())
+	}
+
+	//TODO: validate more
 	return nil
 }
 
@@ -86,16 +108,16 @@ func NewConfigFromFile(configFile string, fs boshsys.FileSystem) (Config, error)
 }
 
 func NewConfigFromBytes(bytes []byte) (Config, error) {
-	var ccs CloudConfigShell
+	var ccs CloudConfigJson
 	var config Config
 
 	err := json.Unmarshal(bytes, &ccs)
 	if err != nil {
-		return config, bosherr.WrapError(err, "Unmarshalling config contents")
+		return config, bosherr.WrapError(err, "Unmarshal config json failed")
 	}
 
 	config = ccs.Root.Properties
-	config.OpenApi.ApplySystemEnv()
+
 	err = config.Validate()
 	if err != nil {
 		return config, bosherr.WrapError(err, "Validating config")
@@ -104,20 +126,45 @@ func NewConfigFromBytes(bytes []byte) (Config, error) {
 	return config, nil
 }
 
-func (a *OpenApi) ApplySystemEnv() {
-	a.AccessKeyId = os.ExpandEnv(a.AccessKeyId)
-	a.AccessKeySecret = os.ExpandEnv(a.AccessKeySecret)
-}
-
-func (a *Registry) ToInstanceUserData() string {
-	endpoint := fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, a.Port)
-	json := fmt.Sprintf(`{"Registry":{"Endpoint":"%s"}}`, endpoint)
+func (a RegistryConfig) ToInstanceUserData() string {
+	endpoint := a.GetEndpoint()
+	json := fmt.Sprintf(`{"registry":{"endpoint":"%s"}}`, endpoint)
 	return json
 }
 
-func (a *Blobstore) AsRegistrySettings() (registry.BlobstoreSettings) {
+func (a RegistryConfig) GetEndpoint() (string) {
+	port, _ := a.Port.Int64()
+	return fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, port)
+}
+
+func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
 	return registry.BlobstoreSettings {
 		Provider: a.Provider,
 		Options: a.Options,
 	}
+}
+
+func (c Config) NewEcsClient() (*ecs.Client) {
+	return ecs.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+}
+
+func (c Config) NewSlbClient() (*slb.Client) {
+	return slb.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+}
+
+
+func (c Config) GetHttpRegistryClient(logger boshlog.Logger) (registry.Client) {
+	r := c.Registry
+
+	port, _ := r.Port.Int64()
+	clientOptions := registry.ClientOptions {
+		Protocol: r.Protocol,
+		Host: r.Host,
+		Port: int(port),
+		Username: r.User,
+		Password: r.Password,
+	}
+
+	client := registry.NewHTTPClient(clientOptions, logger)
+	return client
 }

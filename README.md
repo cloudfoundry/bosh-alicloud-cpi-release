@@ -24,25 +24,25 @@ This is a [BOSH](http://bosh.io) release for the BOSH Alibaba Cloud CPI.
 - Create bosh release
 
 ```
-git clone https://github.com/aliyun/bosh-alicloud-cpi-release.git
-cd bosh-alicloud-cpi-release
-mkdir blobs
-bosh add-blob ~/Downloads/go1.9.linux-amd64.tar.gz go1.9.linux-amd64.tar.gz
-source .envrc
-make
-bosh create-release --force --tarball=../bosh-alicloud-cpi.tgz
+$ git clone https://github.com/aliyun/bosh-alicloud-cpi-release.git
+$ cd bosh-alicloud-cpi-release
+$ mkdir blobs
+$ bosh add-blob ~/Downloads/go1.9.linux-amd64.tar.gz go1.9.linux-amd64.tar.gz
+$ source .envrc
+$ make
+$ bosh create-release --force --tarball=../bosh-alicloud-cpi.tgz
 ```
 *Binary download is not provided now, so make it by your self*
 
 ### Install bosh in Alibaba Cloud
 
-- clone [bosh-deployment](https://github.com/aliyun/bosh-deployment) repo from github
-- checkout alicloud branch
+- Clone [bosh-deployment](https://github.com/aliyun/bosh-deployment) repo from github
+- Checkout alicloud branch
 
 ```
-git clone https://github.com/aliyun/bosh-deployment.git
-cd bosh-deployment
-git checkout alicloud
+$ git clone https://github.com/aliyun/bosh-deployment.git
+$ cd bosh-deployment
+$ git checkout alicloud
 ```
 
 use this command, modify the parameters
@@ -70,7 +70,7 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
  -v zone=cn-beijing-a
 ```
 
-### Install with external-ip(not recommended)
+### Install with external-ip
 
 - Create a `Elastic IP` in `Alibaba Cloud Console`, get an `external_ip`
 
@@ -84,8 +84,8 @@ bosh create-env bosh.yml \
  -v internal_cidr=192.168.0.0/24 \
  -v internal_gw=192.168.0.1 \
  -v internal_ip=192.168.0.6 \
- -v vswitch_id=vsw-2zemyfytfclbcmgfkzokx \
- -v security_group_id=sg-2zei0mcphxbdxj49qtmz \
+ -v vswitch_id=... \
+ -v security_group_id=... \
  -v access_key_id=... \
  -v access_key_secret=... \
  -v region=cn-beijing \
@@ -93,16 +93,70 @@ bosh create-env bosh.yml \
  -v external_ip=...
 ```
 
+### Install with jumpbox-user
+
+```
+$ bosh create-env bosh-deployment/bosh.yml \
+ --state=state.json \
+ --vars-store=creds.yml \
+ -o bosh-deployment/alicloud/cpi.yml \
+ -o bosh-deployment/external-ip-not-recommended.yml \
+ -o bosh-deployment/jumpbox-user.yml \
+ -v director_name=my-bosh \
+ -v internal_cidr=192.168.0.0/24 \
+ -v internal_gw=192.168.0.1 \
+ -v internal_ip=192.168.0.7 \
+ -v vswitch_id=... \
+ -v security_group_id=... \
+ -v access_key_id=... \
+ -v access_key_secret=... \
+ -v region=cn-beijing \
+ -v zone=cn-beijing-e \
+ -v external_ip=...
+```
+
+```
+$ bosh int creds.yml --path /jumpbox_ssh/private_key > jumpbox.key
+$ chmod 600 jumpbox.key
+$ ssh jumpbox@<external-or-internal-ip> -i jumpbox.key
+```
+
 ### *NOTICE*
 
 - *This version of cpi use a temporary public `registry` for install bosh-director, it not safe, we will fix it in later version*
-- *Not support mbus_bootstrap_ssl*
-- *Not support ssh-tunnel*
-
-### Run Integration Test
-
-**TODO**
 
 ### Run Unit Test
 
-**TODO**
+Run following commands
+
+```
+$ source .envrc
+$ make testdeps
+$ ginkgo -r -skipPackage integration src/bosh-alicloud-cpi
+```
+
+### Run Integration Test
+
+Prepare your `Alibaba Cloud` environment, and export follow variables
+
+```
+export CPI_REGION=cn-beijing
+export CPI_ZONE=cn-beijing-e
+export CPI_ACCESS_KEY_ID=...
+export CPI_ACCESS_KEY_SECRET=...
+export CPI_SECURITY_GROUP_ID=...
+export CPI_VSWITCH_ID=...
+export CPI_STEMCELL_ID=...
+export CPI_INTERNAL_CIDR=192.168.0.0/24/
+export CPI_INTERNAL_NETMASK=255.255.255.0
+export CPI_INTERNAL_IP=192.168.0.2
+export CPI_INTERNAL_GW=192.168.0.1
+export CPI_EXTERNAL_IP=47.47.47.47
+```
+
+Go to source code path, run follow commands
+
+```
+$ make testdeps
+$ ginkgo -r src/bosh-alicloud-cpi/integration
+```

@@ -9,14 +9,20 @@ import (
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
-	"strings"
 	"fmt"
 )
 
+const (
+	NetworkTypeManual = "manual"
+	NetworkTypeDynamic = "dynamic"
+	NetworkTypeVip = "vip"
+)
+
 type Networks struct {
-	networks apiv1.Networks
-	main apiv1.Network
-	props NetworkProps
+	networks	apiv1.Networks
+	private   	apiv1.Network
+	privateProps NetworkProps
+	vips		[]apiv1.Network
 }
 
 type NetworkProps struct {
@@ -26,49 +32,73 @@ type NetworkProps struct {
 }
 
 func NewNetworks(args apiv1.Networks) (Networks, error) {
-	a := Networks{
-		networks: args,
-		main: nil,
-		props: NetworkProps{},
-	}
-	var p apiv1.Network
-	for k, v := range args {
-		if strings.Compare("private", k) == 0 {
-			p = v
+	r := Networks{networks: args}
+
+	for _, v := range args {
+		switch v.Type() {
+		case NetworkTypeManual:
+			if r.private == nil {
+				r.private = v
+			} else {
+				return r, fmt.Errorf("support only one private Network")
+			}
+		case NetworkTypeDynamic:
+			if r.private == nil {
+				r.private = v
+			} else {
+				return r, fmt.Errorf("support only one private Network")
+			}
+		case NetworkTypeVip:
+			r.vips = append(r.vips, v)
+		default:
+			return r, fmt.Errorf("unknown Network type: %s", v.Type())
 		}
-
-		if strings.Compare("default", k) == 0 {
-			p = v
-		}
 	}
 
-	if p == nil {
-		return a, bosherr.Errorf("No main network find %v", args)
+	if r.private == nil {
+		return r, fmt.Errorf("no private Networks")
 	}
 
-	a.main = p
-	err := a.main.CloudProps().As(&a.props)
+	err := r.private.CloudProps().As(&r.privateProps)
 	if err != nil {
-		return a, bosherr.WrapErrorf(err, "unmarshal json failed, %v", a.main.CloudProps())
+		return r, bosherr.WrapErrorf(err, "unmarshal cloudProps failed, %v", r.private.CloudProps())
 	}
 
-	return a, nil
+	return r, nil
+}
+
+func (a Networks) HasVip() (bool) {
+	return len(a.vips) > 0
 }
 
 func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) (error) {
-	if !a.main.IsDynamic() {
-		args.PrivateIpAddress = a.GetPrivateAddress()
-		args.VSwitchId = a.GetVSwitchId()
-		args.SecurityGroupId = a.GetSecurityGroupId()
-		args.InternetChargeType = a.GetInternetChargeType()
-		args.InternetMaxBandwidthIn = a.GetInternetMaxBandwidthIn()
-		args.InternetMaxBandwidthOut = a.GetInternetMaxBandwidthOut()
-		return nil
-	} else {
-		return bosherr.Errorf("NOT IMPLEMENTED Dynamic Networks")
+	props := a.privateProps
+
+	args.VSwitchId = props.VSwitchId
+	args.SecurityGroupId = props.SecurityGroupId
+	args.InternetChargeType = common.InternetChargeType(props.InternetChargeType)
+
+	// TODO no need to add
+	// args.InternetMaxBandwidthIn = a.GetInternetMaxBandwidthIn()
+	// args.InternetMaxBandwidthOut = a.GetInternetMaxBandwidthOut()
+
+	private := a.private
+	if private.Type() == NetworkTypeManual {
+		if private.IsDynamic() {
+			return fmt.Errorf("confilct! manual Network IsDynamic")
+		}
+		args.PrivateIpAddress = a.private.IP()
+	} else if private.Type() == NetworkTypeDynamic {
+		if !private.IsDynamic() {
+			return fmt.Errorf("confilct! dynamic Network IsDynamic=false")
+		}
+		// Nothing to do for dynamic Network?
 	}
+	return nil
 }
 
+//
+// TODO move to alicloud.NetworkManager
 func (a Networks) BindInstanceEip(client *ecs.Client, instanceId string, regionId common.Region) (error) {
 	net := a.VipNetwork()
 
@@ -125,28 +155,4 @@ func (a Networks) AsRegistrySettings() (registry.NetworksSettings) {
 	//	"public" : {Type: "vip"},
 	//}
 	return r
-}
-
-func (a Networks) GetPrivateAddress() (string) {
-	return a.main.IP()
-}
-
-func (a Networks) GetVSwitchId() (string) {
-	return a.props.VSwitchId
-}
-
-func (a Networks) GetSecurityGroupId() (string) {
-	return a.props.SecurityGroupId
-}
-
-func (a Networks) GetInternetMaxBandwidthIn() (int) {
-	return 100
-}
-
-func (a Networks) GetInternetMaxBandwidthOut() (int) {
-	return 100
-}
-
-func (a Networks) GetInternetChargeType() (common.InternetChargeType) {
-	return common.InternetChargeType(a.props.InternetChargeType)
 }

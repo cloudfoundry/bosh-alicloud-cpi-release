@@ -5,49 +5,56 @@ package action
 
 import (
 	"bosh-alicloud-cpi/alicloud"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"github.com/denverdino/aliyungo/ecs"
+	"bosh-alicloud-cpi/registry"
 )
 
 type AttachDiskMethod struct {
-	runner alicloud.Runner
+	CallContext
+	disks alicloud.DiskManager
+	registry registry.Client
 }
 
-func NewAttachDiskMethod(runner alicloud.Runner) AttachDiskMethod {
-	return AttachDiskMethod{runner}
+func NewAttachDiskMethod(cc CallContext, disks alicloud.DiskManager, rc registry.Client) AttachDiskMethod {
+	return AttachDiskMethod{cc, disks, rc}
 }
 
-func (a AttachDiskMethod) AttachDisk(vmcid apiv1.VMCID, diskCID apiv1.DiskCID) error {
 
-	client := a.runner.NewClient()
+func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
+	instCid := vmCID.AsString()
+	diskCid := diskCID.AsString()
 
-	var args ecs.AttachDiskArgs
-
-	args.InstanceId = vmcid.AsString()
-	args.DiskId = diskCID.AsString()
-
-	err := client.AttachDisk(&args)
-
+	disk, err := a.disks.GetDisk(diskCid)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmcid)
+		return a.WrapErrorf(err, "AttachDisk get disk failed %s", diskCid)
 	}
 
-	device, err := a.runner.WaitForDiskStatus(args.DiskId, ecs.DiskStatusInUse)
-
-	// client.DescribeDisks()
-	registryClient := a.runner.GetHttpRegistryClient()
-	agentSettings, _ := registryClient.Fetch(args.InstanceId)
-
-	agentSettings.AttachPersistentDisk(diskCID.AsString(), "", device)
-	err = registryClient.Update(vmcid.AsString(), agentSettings)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "UpdateRegistry failed %s %s", diskCID, vmcid)
+	if disk == nil {
+		return a.WrapErrorf(err, "AttachDisk disk missing %s", diskCid)
 	}
 
+	if disk.Status != ecs.DiskStatusAvailable {
+		return a.WrapErrorf(err, "AttachDisk disk %s status expected `Available` get %s", diskCid, disk.Status)
+	}
 
+	err = a.disks.AttachDisk(instCid, diskCid)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "WaitForDiskStatus failed %s", diskCID)
+		return a.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCid, instCid)
+	}
+
+	device, err := a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusInUse)
+	if err != nil {
+		return a.WrapErrorf(err, "Attaching disk '%s' to VM '%s' wait failed", diskCid, instCid)
+	}
+
+	registryClient := a.registry
+	agentSettings, _ := registryClient.Fetch(instCid)
+	agentSettings.AttachPersistentDisk(diskCid, "", device)
+
+	err = registryClient.Update(instCid, agentSettings)
+	if err != nil {
+		return a.WrapErrorf(err, "UpdateRegistry failed %s %s", diskCid, instCid)
 	}
 	return nil
 }

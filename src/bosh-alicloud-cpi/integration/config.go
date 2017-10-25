@@ -4,101 +4,69 @@
 package integration
 
 import (
-	"bytes"
-	"bosh-alicloud-cpi/alicloud"
-	"bosh-alicloud-cpi/action"
-	"github.com/cppforlife/bosh-cpi-go/rpc"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"encoding/json"
-	"log"
-	"os"
 	"fmt"
+	"os"
+	"bosh-alicloud-cpi/alicloud"
+	"encoding/json"
 )
-
-type CpiResponse struct {
-	Result string   `json:"result"`
-	Error  CpiError `json:"error"`
-	Log    string   `json:"log"`
-}
-
-type CpiError struct {
-	Type      string `json:"type"`
-	Message   string `json:"message"`
-	OkToRetry bool   `json:"ok_to_retry"`
-}
 
 var (
-	// provider config
-	regionId         = envOrDefault("REGION_ID", "cn-beijing")
-	zoneId           = envOrDefault("ZONE_ID", "cn-beijing-c")
-	registry_address = envOrDefault("REGISTRY_ADDRESS", "172.16.0.3")
+	//
+	// OpenApi config
+	regionId        = envOrDefault("CPI_REGION", "cn-beijing")
+	zoneId          = envOrDefault("CPI_ZONE", "cn-beijing-a")
+	accessKeyId		= os.Getenv("CPI_ACCESS_KEY_ID")
+	accessKeySecret = os.Getenv("CPI_ACCESS_KEY_SECRET")
 
-	// Configurable defaults
-	boshStemcellImageId = envOrDefault("BOSH_STEMCELL_FILE", "m-2zeggz4i4n2z510ajcvw")
-	securityGroupId     = envOrDefault("SECURITY_GROUP_ID", "sg-2ze7qg9qdmt1lt9lgvgt")
-	vswitchId           = envOrDefault("VSWITCH_ID", "vsw-2ze1oepoom33cdt6nsk88")
+	//
+	// for <light-bosh-stemcell-1008-alicloud-kvm-ubuntu-trusty-go_agent> in beijing
+	stemcellId		 = envOrDefault("CPI_STEMCELL_ID", "m-2ze2ct08gslmli5e6fw5")
 
-	cfgContent = fmt.Sprintf(`{
-    "cloud": {
-        "plugin": "alicloud",
-        "properties": {
-            "alicloud": {
-                "region_id": "%v",
-                "zone_id": "%v",
-                "access_key_id": "${ACCESS_KEY_ID}",
-                "access_key_secret": "${ACCESS_KEY_CONFIG}"
-            },
-            "registry": {
-                "user": "registry",
-                "password": "2a57f7c0-7726-4e76-43aa-00b10b073229",
-                "protocol": "http",
-                "address": "%v",
-                "port": 6901
-            },
-            "agent": {
-                "ntp": ["0.pool.ntp.org", "1.pool.ntp.org"],
-                "mbus": "http://mbus:mbus@0.0.0.0:6868",
-                "blobstore": {
-                    "provider": "dav",
-                    "options": {
-                        "endpoint": "http://10.0.0.2:25250",
-                        "user": "agent",
-                        "password": "agent-password"
-                    }
-                }
-            }
-        }
-    }
-}`, regionId, zoneId, registry_address)
+	securityGroupId = os.Getenv("CPI_SECURITY_GROUP_ID")
+	vswitchId       = os.Getenv("CPI_VSWITCH_ID")
+	internalIp      = envOrDefault("CPI_INTERNAL_IP", "172.16.0.31")
+	internalCidr 	= envOrDefault("CPI_INTERNAL_CIDR", "172.16.0.0/24")
+	internalNetmask	= envOrDefault("CPI_INTERNAL_NETMASK", "255.240.0.0")
+	internalGw  	= envOrDefault("CPI_INTERNAL_GW", "172.16.0.1")
+
+	//
+	// registry
+	registryUser 		= envOrDefault("CPI_REGISTRY_USER", "admin")
+	registryPassword	= envOrDefault("CPI_REGISTRY_PASSWORD", "admin-password")
+	registryHost		= envOrDefault("CPI_REGISTRY_ADDRESS", "172.0.0.1")
+	registryPort		= envOrDefault("CPI_REGISTRY_PORT", "25777")
 )
 
-func execCPI(request string) (CpiResponse, error) {
-	var resp CpiResponse
-	config, _ := alicloud.NewConfigFromBytes([]byte(cfgContent))
+func ApplySystemEnv(config *alicloud.Config) (error) {
+	a := &config.OpenApi
 
-	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
-	runner := alicloud.NewRunner(logger, config)
-
-	cpiFactory := action.NewFactory(runner)
-
-	bs := []byte(request)
-	reader := bytes.NewReader(bs)
-	output := new(bytes.Buffer)
-
-	cli := rpc.NewFactory(logger).NewCLIWithInOut(reader, output, cpiFactory)
-	err := cli.ServeOnce()
-
-	if err != nil {
-		log.Printf("CallTestCase() ServeOnce Failed: %#v", err)
-		return resp, err
+	a.RegionId = regionId
+	if a.RegionId == "" {
+		return fmt.Errorf("can't find sysenv: CPI_REGION")
 	}
 
-	err = json.Unmarshal(output.Bytes(), &resp)
-	if err != nil {
-		log.Printf("ServeOnce Output Failed!")
+	a.ZoneId = zoneId
+	if a.ZoneId == "" {
+		return fmt.Errorf("can't find sysenv: CPI_ZONE")
 	}
 
-	return resp, err
+	a.AccessKeyId = accessKeyId
+	if a.AccessKeyId == "" {
+		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_ID")
+	}
+
+	a.AccessKeySecret = accessKeySecret
+	if a.AccessKeySecret == "" {
+		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_SECRET")
+	}
+
+	registry := &config.Registry
+	registry.User = registryUser
+	registry.Password = registryPassword
+	registry.Host = registryHost
+	registry.Port = json.Number(registryPort)
+
+	return nil
 }
 
 func envOrDefault(key, defaultVal string) (val string) {

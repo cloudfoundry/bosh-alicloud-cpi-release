@@ -1,0 +1,31 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: boshcpi/aws-cpi-release}
+
+inputs:
+  - name: bosh-cpi-src
+
+outputs:
+  - name: terraform-metadata
+
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    chmod +x bosh-cpi-src/ci/tasks/build-environment.sh
+    bosh-cpi-src/ci/tasks/build-environment.sh
+params:
+  ALICLOUD_ACCESS_KEY_ID:     ""
+  ALICLOUD_ACCESS_KEY_SECRET: ""
+  ALICLOUD_DEFAULT_REGION:    ""
+  DESTROY_ENVIRONMENT:  ""
+  GIT_USER_EMAIL: ""
+  GIT_USER_NAME: ""
+  GIT_USER_ID: ""
+  GIT_USER_PASSWORD: ""
+  BOSH_REPO_HOST: ""
+  BOSH_REPO_BRANCH: ""

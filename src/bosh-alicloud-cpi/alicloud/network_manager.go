@@ -3,10 +3,19 @@
  */
 package alicloud
 
-type NetworkManager struct {
-	runner Runner
+type NetworkManager interface {
+
 }
 
-func NewNetworkManager(runner Runner) NetworkManager {
-	return NetworkManager{runner}
+type NetworkManagerImpl struct {
+
 }
+
+func NewNetworkManager(config Config) (NetworkManager) {
+	// config.NewSlbClient().AddBackendServers()
+	return NetworkManagerImpl {
+
+
+	}
+}
+

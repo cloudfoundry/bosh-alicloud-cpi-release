@@ -10,25 +10,26 @@ import (
 )
 
 type RebootVMMethod struct{
-	runner alicloud.Runner
+	CallContext
+	instances alicloud.InstanceManager
 }
 
-func NewRebootVMMethod(runner alicloud.Runner) RebootVMMethod {
-	return RebootVMMethod{runner}
+func NewRebootVMMethod(cc CallContext, instances alicloud.InstanceManager) RebootVMMethod {
+	return RebootVMMethod{cc, instances}
 }
 
 func (a RebootVMMethod) RebootVM(cid apiv1.VMCID) error {
-	instid := cid.AsString()
-	err := a.runner.RebootInstance(instid)
+	instCid := cid.AsString()
+	err := a.instances.RebootInstance(instCid)
+
 	if err != nil {
-		//TODO logging
-		return err
+		return a.WrapErrorf(err, "RebootInstance failed cid=%s", instCid)
 	}
 
-	err = a.runner.WaitForInstanceStatus(instid, ecs.Running)
+	err = a.instances.WaitForInstanceStatus(instCid, ecs.Running)
 
 	if err != nil {
-		//TODO logging
+		return a.WrapErrorf(err, "WaitForInstanceStatus failed cid=%s", instCid)
 		return err
 	}
 
