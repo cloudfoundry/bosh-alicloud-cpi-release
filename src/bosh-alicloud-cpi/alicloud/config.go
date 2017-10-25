@@ -13,6 +13,7 @@ import (
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
 	"time"
+	"github.com/denverdino/aliyungo/slb"
 )
 
 type CloudConfigJson struct {
@@ -145,6 +146,10 @@ func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
 
 func (c Config) NewEcsClient() (*ecs.Client) {
 	return ecs.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+}
+
+func (c Config) NewSlbClient() (*slb.Client) {
+	return slb.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 }
 
 

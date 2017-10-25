@@ -64,6 +64,11 @@ var _ = Describe("LoadConfig from Json", func() {
 		Expect(s2).To(Equal(s1))
 	})
 
+	It("", func() {
+		
+
+	})
+
 	//It("", )
 	//
 	//It("loading from JSON", func() {
