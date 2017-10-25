@@ -161,13 +161,13 @@ jobs:
         - {get: bosh-cli,        trigger: false}
         - {get: bats,            trigger: false}
         - {get: 2h,              trigger: true}
-      - <<: *destroy-environment
+      - do:
+        - <<: *destroy-environment
         - put: terraform-metadata
           params: {repository: terraform-metadata, rebase: true, force: true}
         - <<: *build-environment
         - put: terraform-metadata
           params: {repository: terraform-metadata, rebase: true, force: true}
-      - do:
         - <<: *prepare-director
           params:
             <<: *prepare-director-params
