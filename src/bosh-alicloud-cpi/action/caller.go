@@ -16,7 +16,7 @@ import (
 
 type CpiResponse struct {
 	Result interface{}		`json:"result"`
-	Error interface{}		`json:"error,omitempty"`
+	Error interface{}		`json:"error"`
 	Log string				`json:"log"`
 }
 

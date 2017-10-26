@@ -27,10 +27,10 @@ type Disks struct {
 }
 
 type DiskInfo struct {
-	SizeRaw interface{}		`json:"size,omitempty"`
-	Type string				`json:"type,omitempty"`
-	sizeGB int
-	path string
+	SizeRaw     interface{} `json:"size,omitempty"`
+	Category    string      `json:"category,omitempty"`
+	sizeGB      int
+	path        string
 	ecsCategory ecs.DiskCategory
 }
 
@@ -111,8 +111,8 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	}
 
 	c := DefaultDiskCategory
-	if len(strings.TrimSpace(a.Type)) > 0 {
-		c = ecs.DiskCategory(a.Type)
+	if len(strings.TrimSpace(a.Category)) > 0 {
+		c = ecs.DiskCategory(a.Category)
 	}
 
 	if isSystem {

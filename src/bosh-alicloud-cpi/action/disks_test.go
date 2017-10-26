@@ -25,7 +25,7 @@ var _ = Describe("Disks", func() {
 		disks, err := parseCloudProps(`{
 			"ephemeral_disk": {
 				"size": "40_960",
-				"type": "ephemeral_ssd"
+				"category": "ephemeral_ssd"
 			},
 			"image_id": "m-2ze200tcuotb5uk2kol4",
 			"instance_name": "test-cc",
@@ -64,7 +64,7 @@ var _ = Describe("Disks", func() {
 		disks, err := parseCloudProps(`{
 			"ephemeral_disk": {
 				"size": 40960,
-				"type": "cloud"
+				"category": "cloud"
 			}
 		}`)
 		Expect(err).NotTo(HaveOccurred())
@@ -77,7 +77,7 @@ var _ = Describe("Disks", func() {
 		disks, err := parseCloudProps(`{
 			"system_disk": {
 				"size": 81920,
-				"type": "cloud_ssd"
+				"category": "cloud_ssd"
 			}
 		}
 		`)
@@ -89,7 +89,7 @@ var _ = Describe("Disks", func() {
 		_, err := parseCloudProps(`{
 			"system_disk": {
 				"size": 81920,
-				"type": "cloud"
+				"category": "cloud"
 			}
 		}`)
 		Expect(err).Should(HaveOccurred())

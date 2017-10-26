@@ -20,14 +20,14 @@ var _ = Describe("integration:disk", func() {
 				{
 					"ephemeral_disk": {
 						"size": "40_960",
-						"type": "cloud_efficiency"
+						"category": "cloud_efficiency"
 					},
 					"image_id": "${STEMCELL_ID}",
 					"instance_name": "test-cc",
 					"instance_type": "ecs.n4.small",
 					"system_disk": {
 						"size": "61_440",
-						"type": "cloud_efficiency"
+						"category": "cloud_efficiency"
 					}
 				},
 				{

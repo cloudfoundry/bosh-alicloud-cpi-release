@@ -12,7 +12,10 @@ type NetworkManagerImpl struct {
 }
 
 func NewNetworkManager(config Config) (NetworkManager) {
+	// config.NewSlbClient().AddBackendServers()
 	return NetworkManagerImpl {
+
 
 	}
 }
+
