@@ -82,7 +82,8 @@ func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string
 		for i := 1; i <= CreateInstanceRetryCount; i++ {
 			if strings.Contains(err.Error(), CreateInstanceRetryReason) {
 				time.Sleep(CreateInstanceRetryInterval)
-				cid, err = client.CreateInstance(&args)
+				args2 := args
+				cid, err = client.CreateInstance(&args2)
 				if err == nil {
 					a.logger.Info("InstanceManager", "CreateInstance done! cid=%s after %d retries", cid, i)
 					break
