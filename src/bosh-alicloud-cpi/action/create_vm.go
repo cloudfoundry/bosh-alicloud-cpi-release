@@ -24,7 +24,7 @@ type InstanceProps struct {
 	InstanceChargeType string	`json:"instance_charge_type"`
 	InstanceType string 		`json:"instance_type"`
 	InstanceRole string			`json:"instance_role"`
-	KeyPairName string 			`json:"key_pair"`
+	KeyPairName string 			`json:"key_pair_name"`
 	Password string 			`json:"password"`
 	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
 	SystemDisk DiskInfo			`json:"system_disk"`
@@ -131,6 +131,7 @@ func (a CreateVMMethod) CreateVM(
 
 	//
 	// insert agent re
+	env2.Bosh.IPv6.Enable = true
 	agentSettings := registry.AgentSettings{
 		AgentID:   agentID.AsString(),
 		Blobstore: a.Config.Agent.Blobstore.AsRegistrySettings(),
@@ -143,6 +144,8 @@ func (a CreateVMMethod) CreateVM(
 			Name: "",
 		},
 	}
+
+
 
 	//if strings.Compare("fake", instProps.InstanceRole) == 0 {
 	//	j1, _ := json.Marshal(args)

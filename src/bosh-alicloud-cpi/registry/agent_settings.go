@@ -27,7 +27,7 @@ type AgentSettings struct {
 	Disks DisksSettings `json:"disks"`
 
 	// Environment settings
-	Env EnvSettings `json:"env"`
+	Env Env `json:"env"`
 
 	// Mbus URI
 	Mbus string `json:"mbus"`
@@ -75,22 +75,36 @@ type PersistentSettings struct {
 	Path string `json:"path"`
 }
 
-// EnvSettings are the Environment settings for a particular VM.
-type EnvSettings map[string]interface{}
+type Env struct {
+	Bosh             BoshEnv             `json:"bosh"`
+	PersistentDiskFS string				 `json:"persistent_disk_fs"`
+}
 
-//type BoshEnv struct {
-//	Password              string   `json:"password"`
-//	KeepRootPassword      bool     `json:"keep_root_password"`
-//	RemoveDevTools        bool     `json:"remove_dev_tools"`
-//	// RemoveStaticLibraries bool     `json:"remove_static_libraries"`
-//	// AuthorizedKeys        []string `json:"authorized_keys"`
-//	// SwapSizeInMB          *uint64  `json:"swap_size"`
-//	//  Mbus                  struct {
-//	//	  Cert CertKeyPair `json:"cert"`
-//	//  } `json:"mbus"`
-//
-//	// IPv6 IPv6 `json:"ipv6"`
-//}
+type BoshEnv struct {
+	Password              string   `json:"password"`
+	KeepRootPassword      bool     `json:"keep_root_password"`
+	RemoveDevTools        bool     `json:"remove_dev_tools"`
+	RemoveStaticLibraries bool     `json:"remove_static_libraries"`
+	AuthorizedKeys        []string `json:"authorized_keys"`
+	SwapSizeInMB          *uint64  `json:"swap_size"`
+	Mbus                  MBus     `json:"mbus"`
+	IPv6                  IPv6     `json:"ipv6"`
+}
+
+type MBus struct {
+	Cert CertKeyPair `json:"cert"`
+	URLs []string    `json:"urls"`
+}
+
+type CertKeyPair struct {
+	CA          string `json:"ca"`
+	PrivateKey  string `json:"private_key"`
+	Certificate string `json:"certificate"`
+}
+
+type IPv6 struct {
+	Enable bool `json:"enable"`
+}
 
 
 // NetworksSettings are the Networks settings for a particular VM.
@@ -133,7 +147,7 @@ type VMSettings struct {
 }
 
 // NewAgentSettings creates new agent settings for a VM.
-func NewAgentSettings(agentID string, vmCID string, networksSettings NetworksSettings, env EnvSettings, agentOptions AgentOptions) AgentSettings {
+func NewAgentSettings(agentID string, vmCID string, networksSettings NetworksSettings, env Env, agentOptions AgentOptions) AgentSettings {
 	agentSettings := AgentSettings{
 		AgentID: agentID,
 		Disks: DisksSettings{
@@ -144,7 +158,7 @@ func NewAgentSettings(agentID string, vmCID string, networksSettings NetworksSet
 			Provider: agentOptions.Blobstore.Provider,
 			Options:  agentOptions.Blobstore.Options,
 		},
-		Env:      EnvSettings(env),
+		Env:      env,
 		Mbus:     agentOptions.Mbus,
 		Networks: networksSettings,
 		Ntp:      agentOptions.Ntp,
@@ -192,8 +206,8 @@ func (as AgentSettings) DetachPersistentDisk(diskID string) AgentSettings {
 	return as
 }
 
-func UnmarshalEnvSettings(env apiv1.VMEnv) (EnvSettings, error) {
-	var r EnvSettings
+func UnmarshalEnvSettings(env apiv1.VMEnv) (Env, error) {
+	var r Env
 
 	bytes, err := env.MarshalJSON()
 
@@ -202,6 +216,7 @@ func UnmarshalEnvSettings(env apiv1.VMEnv) (EnvSettings, error) {
 	}
 
 	err = json.Unmarshal(bytes, &r)
+
 	if err != nil {
 		return r, err
 	}
