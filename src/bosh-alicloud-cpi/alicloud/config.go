@@ -37,17 +37,8 @@ const (
 	WaitTimeout  = time.Duration(120) * time.Second
 	WaitInterval = time.Duration(3) * time.Second
 
-	DeleteInstanceRetryCount	= 10
-	DeleteInstanceRetryReason	= "IncorrectInstanceStatus.Initializing"
-	DeleteInstanceRetryInterval	= time.Duration(15) * time.Second
-
-	CreateInstanceRetryCount	= 10
-	CreateInstanceRetryReason	= "InvalidPrivateIpAddress.Duplicated"
-	CreateInstanceRetryInterval	= time.Duration(15) * time.Second
-
-	DeleteDiskRetryCount	= 10
-	DeleteDiskRetryReason	= "IncorrectDiskStatus.Initializing"
-	DeleteDiskRetryInterval	= time.Duration(15) * time.Second
+	DefaultEipWaitSeconds	= 120
+	DefaultSlbWeight = 100
 )
 
 type OpenApi struct {
