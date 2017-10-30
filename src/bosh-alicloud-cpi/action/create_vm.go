@@ -185,7 +185,7 @@ func (a CreateVMMethod) CreateVM(
 
 	err = a.instances.StartInstance(instCid)
 	if err != nil {
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid =", instCid)
+		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=%s", instCid)
 	}
 
 	err = a.instances.WaitForInstanceStatus(instCid, ecs.Running)

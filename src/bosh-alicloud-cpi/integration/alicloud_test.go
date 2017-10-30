@@ -6,6 +6,7 @@ package integration
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/denverdino/aliyungo/ecs"
 )
 
 var _ = Describe("integration:alicloud", func() {
@@ -20,5 +21,11 @@ var _ = Describe("integration:alicloud", func() {
 			// Expect(err).NotTo(HaveOccurred())
 			GinkgoT().Logf("Alibaba Cloud region [%s]%s zones %v", r.RegionId, r.LocalName)
 		}
+	})
+
+	It("test for client", func() {
+		//client := caller.Config.NewEcsClient()
+		//args := ecs.ImportImageArgs{}
+		//client.CreateImage()
 	})
 })
