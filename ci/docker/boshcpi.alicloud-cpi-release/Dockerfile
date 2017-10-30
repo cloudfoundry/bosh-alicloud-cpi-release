@@ -13,6 +13,12 @@ RUN apt-get install -y mysql-client libmysqlclient-dev; apt-get clean
 RUN apt-get install -y libpq-dev; apt-get clean
 RUN apt-get install -y python python-pip libyaml-dev libpython-dev; apt-get clean
 
+RUN apt-get install -y --no-install-recommends \
+    ca-certificates \
+    openssh-client \
+    realpath \
+    apt-get clean
+
 # Install NodeJs
 RUN curl -sL https://deb.nodesource.com/setup_4.x | bash -; apt-get install -y nodejs; apt-get clean; rm -f /usr/bin/node; ln -s /usr/bin/nodejs /usr/bin/node
 
@@ -21,6 +27,12 @@ ENV GOLANG_VERSION 1.8.1
 RUN curl -sSL https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz | tar -v -C /usr/local -xz
 ENV GOROOT /usr/local/go
 ENV PATH $PATH:$GOROOT/bin
+
+# Import Postmodern PGP key
+RUN wget -nv https://raw.github.com/postmodern/postmodern.github.io/master/postmodern.asc && \
+    gpg --import postmodern.asc && \
+    gpg --fingerprint 0xB9515E77 | grep 'Key fingerprint = 04B2 F3EA 6541 40BC C7DA  1B57 54C3 D9E9 B951 5E77' && \
+    if [ "$?" != "0" ]; then echo "Invalid PGP key!"; exit 1; fi
 
 # chruby
 RUN /bin/bash -l -c " \

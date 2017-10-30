@@ -31,7 +31,7 @@ shared:
     file: pipelines/shared/tasks/run-bats.yml
     params:
       INFRASTRUCTURE:     alicloud
-      STEMCELL_NAME:      light-bosh-stemcell-1008-alicloud-kvm-ubuntu-trusty-go_agent
+      STEMCELL_NAME:      bosh-alicloud-kvm-ubuntu-trusty-go_agent
       BAT_INFRASTRUCTURE: alicloud
       BAT_NETWORKING:     manual
       BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~root_partition"
@@ -331,8 +331,8 @@ resources:
   - name: bats
     type: git
     source:
-      uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
-      branch: gocli-bats
+      uri: https://github.com/demonwy/bosh-acceptance-tests.git
+      branch: alicloud
 
   - name: bosh-deployment
     type: git
