@@ -80,7 +80,7 @@ func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
 		Stemcells: alicloud.NewStemcellManager(config),
 		Instances: alicloud.NewInstanceManager(config, logger),
 		Disks: alicloud.NewDiskManager(config, logger),
-		Networks: alicloud.NewNetworkManager(config),
+		Networks: alicloud.NewNetworkManager(config, logger),
 		Registry: config.GetHttpRegistryClient(logger),
 	}
 	return NewCallerWithServices(config, logger, services)

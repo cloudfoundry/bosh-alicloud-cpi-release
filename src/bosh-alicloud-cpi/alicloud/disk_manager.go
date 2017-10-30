@@ -9,7 +9,6 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"time"
 	"fmt"
 	"encoding/json"
 	"strings"
@@ -34,6 +33,8 @@ type DiskManagerImpl struct {
 	region string
 }
 
+var DeleteDiskCatcher = Catcher{"IncorrectDiskStatus.Initializing", 10, 15}
+
 func NewDiskManager(config Config, logger boshlog.Logger) (DiskManager) {
 	return DiskManagerImpl{
 		config: config,
@@ -57,7 +58,14 @@ func (a DiskManagerImpl) GetDisks(instCid string) ([]ecs.DiskItemType, error) {
 		RegionId: common.Region(a.config.OpenApi.RegionId),
 		InstanceId: instCid,
 	}
-	disks, _, err := client.DescribeDisks(&args)
+
+	invoker := NewInvoker()
+	var disks []ecs.DiskItemType
+	err := invoker.Run(func() (error){
+		r, _, e := client.DescribeDisks(&args)
+		disks = r
+		return e
+	})
 	return disks, err
 }
 
@@ -67,7 +75,14 @@ func (a DiskManagerImpl) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
 		RegionId: common.Region(a.config.OpenApi.RegionId),
 		DiskIds: []string { diskCid, },
 	}
-	disks, _, err := client.DescribeDisks(&args)
+
+	invoker := NewInvoker()
+	var disks []ecs.DiskItemType
+	err := invoker.Run(func() (error) {
+		r, _, e := client.DescribeDisks(&args)
+		disks = r
+		return e
+	})
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "GetDisk() Failed %s", args)
 	}
@@ -86,33 +101,28 @@ func (a DiskManagerImpl) CreateDisk(sizeGB int, category ecs.DiskCategory, zone 
 	}
 
 	client := a.config.NewEcsClient()
-	cid, err := client.CreateDisk(&args)
-	a.log("CreateDisk", err, args, cid)
+	invoker := NewInvoker()
+	var cid string
+	err := invoker.Run(func() (error) {
+		r, e := client.CreateDisk(&args)
+		cid = r
+		a.log("CreateDisk", e, args, cid)
+		return e
+	})
 	return cid, err
 }
 
 func (a DiskManagerImpl) DeleteDisk(diskCid string) (error) {
 	client := a.config.NewEcsClient()
-	err := client.DeleteDisk(diskCid)
-	a.log("DeleteDisk", err, diskCid, "ok")
 
-	if err != nil {
-		//
-		// retry
-		for i := 1; i <= DeleteDiskRetryCount; i++ {
-			if strings.Contains(err.Error(), DeleteDiskRetryReason) {
-				time.Sleep(DeleteDiskRetryInterval)
-				err := client.DeleteDisk(diskCid)
-				if err == nil {
-					a.logger.Info("DiskManager", "DeleteDisk %s Done! (after %d retry)", diskCid, i)
-					break
-				}
-				a.logger.Info("DiskManager", "DeleteDisk %s retry=%d", diskCid, i)
-			} else {
-				return err
-			}
-		}
-	}
+	invoker := NewInvoker()
+	invoker.AddCatcher(DeleteDiskCatcher)
+	return invoker.Run(func() (error) {
+		err := client.DeleteDisk(diskCid)
+		a.log("DeleteDisk", err, diskCid, "ok")
+		return err
+	})
+
 	return nil
 }
 
@@ -121,9 +131,13 @@ func (a DiskManagerImpl) AttachDisk(instCid string, diskCid string) (error) {
 	var args ecs.AttachDiskArgs
 	args.InstanceId = instCid
 	args.DiskId = diskCid
-	err := client.AttachDisk(&args)
-	a.log("AttachDisk", err, diskCid + " to " + instCid, "ok")
-	return err
+
+	invoker := NewInvoker()
+	return invoker.Run(func() (error) {
+		err := client.AttachDisk(&args)
+		a.log("AttachDisk", err, diskCid + " to " + instCid, "ok")
+		return err
+	})
 }
 
 func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
@@ -131,47 +145,62 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 	var args ecs.DetachDiskArgs
 	args.InstanceId = instCid
 	args.DiskId = diskCid
-	err := client.DetachDisk(args.InstanceId, args.DiskId)
-	a.log("DetachDisk", err, diskCid + " from " + instCid, "ok")
-	return err
+
+	invoker := NewInvoker()
+	return invoker.Run(func() (error) {
+		err := client.DetachDisk(args.InstanceId, args.DiskId)
+		a.log("DetachDisk", err, diskCid+" from "+instCid, "ok")
+		return err
+	})
 }
 
 
 func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
-	timeout := WaitTimeout
-	for {
-		disk, err := a.GetDisk(diskCid)
 
-		if err != nil {
-			return "", err
+	invoker := NewInvoker()
+
+	result := ""
+	ok, err := invoker.RunUntil(WaitTimeout, WaitInterval, func() (bool, error) {
+		disk, e := a.GetDisk(diskCid)
+
+		if e != nil {
+			return false, e
 		}
 
 		if disk == nil {
-			return "", fmt.Errorf("disk missing id=%s", diskCid)
+			return false, fmt.Errorf("disk missing id=%s", diskCid)
 		}
 
-		a.logger.Info("DiskManager", "Waiting disk %s from %v to %v", diskCid, disk.Status, toStatus)
 		if disk.Status == toStatus {
 			path := disk.Device
+			a.logger.Info("DiskManager", "Waiting disk %s to %s DONE! path=%s", diskCid, toStatus, path)
 			if len(path) > 0 {
+				//
 				// expect "/dev/vda" or "/dev/xvda"
 				if len(path) >= 8 && strings.HasPrefix(path, "/dev/") {
 					path = AmendDiskPath(disk.Device, disk.Category)
+					result = path
+					return true, nil
 				} else {
-					return "", fmt.Errorf("WaitForDiskStatus unexcepted disk.Device=%s", path)
+					return false, fmt.Errorf("WaitForDiskStatus unexcepted disk.Device=%s", path)
 				}
+			} else {
+				return true, nil
 			}
-			a.logger.Info("DiskManager", "Waiting disk %s to %s DONE! path=%s", diskCid, toStatus, path)
-			return path, nil
-		}
-
-		if timeout > 0 {
-			timeout -= WaitInterval
-			time.Sleep(WaitInterval)
 		} else {
-			return "", bosherr.Error("WaitForInstanceStatus timeout")
+			a.logger.Info("DiskManager", "Waiting disk %s from %v to %v", diskCid, disk.Status, toStatus)
+			return false, nil
 		}
+	})
+
+	if err != nil {
+		return result, err
 	}
+
+	if !ok {
+		return "", bosherr.Errorf("WaitForDisk %s to %s timeout", diskCid, toStatus)
+	}
+	return result, nil
 }
 
 
