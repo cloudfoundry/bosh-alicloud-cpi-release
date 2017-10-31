@@ -140,6 +140,8 @@ $ ginkgo -r -skipPackage integration src/bosh-alicloud-cpi
 
 Prepare your `Alibaba Cloud` environment, and export follow variables
 
+- Create a SLB (Load balance) get `slb_id`
+
 ```
 export CPI_REGION=cn-beijing
 export CPI_ZONE=cn-beijing-e
@@ -153,6 +155,7 @@ export CPI_INTERNAL_NETMASK=255.255.255.0
 export CPI_INTERNAL_IP=192.168.0.2
 export CPI_INTERNAL_GW=192.168.0.1
 export CPI_EXTERNAL_IP=47.47.47.47
+export CPI_SLB_ID=...
 ```
 
 Go to source code path, run follow commands
