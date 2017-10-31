@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	DefaultDiskCategory = ecs.DiskCategoryCloudEfficiency
+	DefaultDiskCategory     = ecs.DiskCategoryCloudEfficiency
 	DefaultSystemDiskSizeGB = 40
-	TolerantDiskSize = true
+	AmendSmallDiskSize      = true
 )
 
 type Disks struct {
@@ -139,14 +139,14 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	// cloud: [5, 2000]
 	// cloud_efficiency: [20, 32768]
 	// cloud_ssd: [20, 32768]
-	if TolerantDiskSize {
+	if AmendSmallDiskSize {
 		if a.ecsCategory == ecs.DiskCategoryCloud {
 			if a.sizeGB < 5 {
 				a.sizeGB = 5
 			}
 		} else {
 			if a.sizeGB < 20 {
-				a.SizeRaw = 20
+				a.sizeGB = 20
 			}
 		}
 	}
