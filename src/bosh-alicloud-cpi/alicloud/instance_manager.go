@@ -10,11 +10,17 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"encoding/json"
+	"time"
+	"fmt"
 )
 
 var DeleteInstanceCatcher = Catcher {"IncorrectInstanceStatus.Initializing", 10, 15}
 var CreateInstanceCatcher = Catcher {"InvalidPrivateIpAddress.Duplicated", 10, 15}
 
+const (
+	ChangeInstanceStatusTimeout = time.Duration(300) * time.Second
+	ChangeInstanceStatusSleepInterval = time.Duration(5) * time.Second
+)
 
 type InstanceManager interface {
 	GetInstance(cid string) (*ecs.InstanceAttributesType, error)
@@ -27,7 +33,9 @@ type InstanceManager interface {
 	RebootInstance(cid string) (error)
 
 	GetInstanceStatus(cid string) (ecs.InstanceStatus, error)
-	WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (error)
+	// WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus, error)
+
+	ChangeInstanceStatus(cid string, toStatus ecs.InstanceStatus, checkFunc func(status ecs.InstanceStatus) (bool, error)) (error)
 }
 
 type InstanceManagerImpl struct {
@@ -152,8 +160,10 @@ func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, 
 	return inst.Status, nil
 }
 
-func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (error) {
+func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus ,error) {
 	invoker := NewInvoker()
+
+	var status ecs.InstanceStatus
 
 	ok, err := invoker.RunUntil(WaitTimeout, WaitInterval, func() (bool, error) {
 		status, e := a.GetInstanceStatus(cid)
@@ -162,12 +172,42 @@ func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.Inst
 	})
 
 	if err != nil {
-		return err
+		return status, err
 	}
 
 	if !ok {
-		return bosherr.Errorf("WaitForInstance %s to %s timeout", cid, toStatus)
+		return status, bosherr.Errorf("WaitForInstance %s to %s timeout", cid, toStatus)
 	}
 
-	return nil
+	return status, nil
+}
+
+func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus ecs.InstanceStatus, checkFunc func(status ecs.InstanceStatus) (bool, error)) (error) {
+	timeout := ChangeInstanceStatusTimeout
+	for {
+		status, err := a.GetInstanceStatus(cid)
+		if err != nil {
+			return err
+		}
+
+		ok, err := checkFunc(status)
+
+		if err != nil {
+			a.logger.Error("InstanceManager", "change %s from %s to %s failed %s", cid, status, toStatus, err.Error())
+			return err
+		}
+
+		if ok {
+			a.logger.Info("InstanceManager", "change %s to %s done!", cid, toStatus)
+			return nil
+		} else {
+			a.logger.Info("InstanceManager", "changing %s from %s to %s ...", cid, status, toStatus)
+		}
+
+		timeout -= ChangeInstanceStatusSleepInterval
+		time.Sleep(ChangeInstanceStatusSleepInterval)
+		if timeout < 0 {
+			return fmt.Errorf("change instance %s to %s timeout", cid, toStatus)
+		}
+	}
 }
