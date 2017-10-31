@@ -6,7 +6,6 @@ package integration
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/denverdino/aliyungo/ecs"
 )
 
 var _ = Describe("integration:alicloud", func() {

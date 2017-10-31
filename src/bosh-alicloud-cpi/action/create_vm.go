@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"strings"
 	"bosh-alicloud-cpi/registry"
+	"fmt"
 )
 
 const (
@@ -183,14 +184,23 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
 	}
 
-	err = a.instances.StartInstance(instCid)
-	if err != nil {
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=%s", instCid)
-	}
+	err = a.instances.ChangeInstanceStatus(instCid, ecs.Running, func(status ecs.InstanceStatus) (bool, error) {
+		switch status {
+		case ecs.Stopped:
+			return false, a.instances.StartInstance(instCid)
+		case ecs.Pending:
+			return false, nil
+		case ecs.Starting:
+			return false, nil
+		case ecs.Running:
+			return true, nil
+		default:
+			return false, fmt.Errorf("unexcepted status %s", status)
+		}
+	})
 
-	err = a.instances.WaitForInstanceStatus(instCid, ecs.Running)
 	if err != nil {
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=", instCid)
+		return cid, a.WrapErrorf(err, "change %s to Running failed", instCid)
 	}
 
 	if networks.HasVip() {
@@ -212,7 +222,7 @@ func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registr
 
 	if err != nil {
 		json, _ := json.Marshal(agentSettings)
-		a.Logger.Error("create_vm", "UpdateAgentSettings to registery failed %s json:%s", json)
+		a.Logger.Error("create_vm", "UpdateAgentSettings to registry failed %s json:%s", json)
 		return a.WrapErrorf(err, "UpdateAgentSettings failed %v %s", client, json)
 	}
 
