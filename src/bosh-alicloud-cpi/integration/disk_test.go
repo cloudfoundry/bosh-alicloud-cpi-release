@@ -68,7 +68,7 @@ var _ = Describe("integration:disk", func() {
 		instCid := r.GetResultString()
 
 		By("create disk")
-		diskCid, err := caller.Call("create_disk", 30720, "{}", instCid)
+		diskCid, err := caller.Call("create_disk", 1024, "{}", instCid)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("attach disk")
