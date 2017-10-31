@@ -152,9 +152,9 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [build-candidate]}
+        - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [integration]}
         - {get: bosh-release,    trigger: false, resource: precompiled-bosh-release}
-        - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [build-candidate]}
+        - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [integration]}
         - {get: stemcell,        trigger: false, resource: precompiled-stemcell}
         - {get: bosh-deployment, trigger: false}
         - {get: pipelines,       trigger: false}
@@ -177,13 +177,15 @@ jobs:
         - do:
             - <<: *deploy-director
             - <<: *run-bats
-#          ensure:
-#            do:
-#              - <<: *teardown
+          ensure:
+            do:
+              - <<: *teardown
 #              - <<: *ensure-terminated
-#        ensure:
-#          do:
-#            - <<: *destroy-environment
+        ensure:
+          do:
+            - <<: *destroy-environment
+            - put: terraform-metadata
+              params: {repository: terraform-metadata, rebase: true, force: true}
 
   - name: end-2-end
     serial: true
