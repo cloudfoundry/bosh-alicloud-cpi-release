@@ -200,7 +200,12 @@ jobs:
         - {get: pipelines,       trigger: false}
         - {get: bosh-cli,        trigger: false}
         - {get: 2h,              trigger: true}
-#      - <<: *create-environment
+      - <<: *destroy-environment
+      - put: terraform-metadata
+        params: {repository: terraform-metadata, rebase: true, force: true}
+      - <<: *build-environment
+      - put: terraform-metadata
+        params: {repository: terraform-metadata, rebase: true, force: true}
       - do:
         - <<: *prepare-director
           params:
