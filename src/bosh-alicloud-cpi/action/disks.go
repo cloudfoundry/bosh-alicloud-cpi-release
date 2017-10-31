@@ -18,6 +18,7 @@ import (
 const (
 	DefaultDiskCategory = ecs.DiskCategoryCloudEfficiency
 	DefaultSystemDiskSizeGB = 40
+	TolerantDiskSize = true
 )
 
 type Disks struct {
@@ -132,6 +133,23 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	}
 	a.ecsCategory = c
 	a.path = alicloud.AmendDiskPath(a.path, a.ecsCategory)
+
+	//
+	// `Alibaba Cloud` supported disk size is a range for each category in GB
+	// cloud: [5, 2000]
+	// cloud_efficiency: [20, 32768]
+	// cloud_ssd: [20, 32768]
+	if TolerantDiskSize {
+		if a.ecsCategory == ecs.DiskCategoryCloud {
+			if a.sizeGB < 5 {
+				a.sizeGB = 5
+			}
+		} else {
+			if a.sizeGB < 20 {
+				a.SizeRaw = 20
+			}
+		}
+	}
 	return a, nil
 }
 
