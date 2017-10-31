@@ -81,6 +81,10 @@ function copyToOutput(){
     cd $2
     ls -la
 
+    echo "******** show git repo info ********"
+    git remote -v
+    git branch
+
     git status | sed -n 'p' |while read LINE
     do
         echo "echo LINE: $LINE"
