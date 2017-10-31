@@ -271,10 +271,10 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-      #uri: git@github.com:aliyun/bosh-alicloud-cpi-release.git
-      #branch: release8-unittest
-      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-      branch: concourse_ci_tmp
+      uri: git@github.com:aliyun/bosh-alicloud-cpi-release.git
+      branch: release9-networks
+#      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+#      branch: concourse_ci_tmp
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
