@@ -3,7 +3,7 @@
 set -e
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
-: ${ALICLOUD_ACCESS_KEY_SECRET:?}
+: ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 : ${DESTROY_ENVIRONMENT:?}
 : ${GIT_USER_EMAIL:?}
@@ -68,7 +68,7 @@ touch ${METADATA}
 echo $'\n'
 echo "Build terraform environment......"
 
-terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_ACCESS_KEY_SECRET} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
+terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
 
 echo "Build terraform environment successfully."
 
