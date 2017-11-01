@@ -14,7 +14,7 @@ set -e
 : ${BOSH_REPO_BRANCH:?}
 
 CURRENT_PATH=$(pwd)
-SOURCE_PATH=$CURRENT_PATH/bosh-cpi-src
+SOURCE_PATH=$CURRENT_PATH/bosh-alicloud-cpi-release
 TERRAFORM_PATH=$CURRENT_PATH/terraform
 TERRAFORM_MODULE=$SOURCE_PATH/ci/assets/terraform
 TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
@@ -34,30 +34,34 @@ mv -f bin/terraform* ${TERRAFORM_PATH}
 rm -rf ./bin
 export PATH="${TERRAFORM_PATH}:$PATH"
 
+git clone ${BOSH_REPO_HOST}
+
 cd ${TERRAFORM_MODULE}
+
+git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
 
 echo "******** tell docker who am I ********"
 git config --global user.email ${GIT_USER_EMAIL}
 git config --global user.name ${GIT_USER_NAME}
 git config --local -l
 
-echo "******** git install expect ********"
-sudo apt-get install expect -y
-
-echo "******** git pull by https ********"
-echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
-echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
-echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
-echo "expect eof" >> git_install.sh
-echo exit >> git_install.sh
-chmod +x git_install.sh
-./git_install.sh
-rm -rf ./git_install.sh
-
-echo $'\n'
-echo "****** git merge ******"
-git merge FETCH_HEAD
+#echo "******** git install expect ********"
+#sudo apt-get install expect -y
+#
+#echo "******** git pull by https ********"
+#echo "#!/usr/bin/expect" > git_install.sh
+#echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
+#echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
+#echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+#echo "expect eof" >> git_install.sh
+#echo exit >> git_install.sh
+#chmod +x git_install.sh
+#./git_install.sh
+#rm -rf ./git_install.sh
+#
+#echo $'\n'
+#echo "****** git merge ******"
+#git merge FETCH_HEAD
 
 touch ${METADATA}
 
