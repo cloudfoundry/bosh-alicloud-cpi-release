@@ -32,29 +32,46 @@ mv -f bin/terraform* ${TERRAFORM_PATH}
 rm -rf ./bin
 export PATH="${TERRAFORM_PATH}:$PATH"
 
-#echo "******** clone terraform template ********"
-#
-#git clone ${BOSH_REPO_HOST}
-#cd ${TERRAFORM_MODULE}
-#git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
+echo "******** clone terraform template ********"
 
-cd $CURRENT_PATH/bosh-cpi-src
+echo "******** git install expect ********"
+sudo apt-get install expect -y
+
+echo "******** clone terraform template by https ********"
+echo "#!/usr/bin/expect" > git_install.sh
+echo "spawn git clone https://${GIT_USER_ID}@${BOSH_REPO_HOST}" >> git_install.sh
+echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
+echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+echo "expect eof" >> git_install.sh
+echo exit >> git_install.sh
+chmod +x git_install.sh
+./git_install.sh
+rm -rf ./git_install.sh
+#
+#echo $'\n'
+#echo "****** git merge ******"
+#git merge FETCH_HEAD
+ls -l
+
+
+git clone ${BOSH_REPO_HOST}
+cd ${TERRAFORM_MODULE}
+git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
+
 
 echo "******** tell docker who am I ********"
 git config --global user.email ${GIT_USER_EMAIL}
 git config --global user.name ${GIT_USER_NAME}
 git config --local -l
 
-ls -la ~/.ssh/
 
-
-echo "******** clone terraform template ********"
-cd $CURRENT_PATH
-ls -la ~/.ssh/
-git clone ${BOSH_REPO_HOST}
-ls -l
-cd ${TERRAFORM_MODULE}
-git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
+#echo "******** clone terraform template ********"
+#cd $CURRENT_PATH
+#ls -la ~/.ssh/
+#git clone ${BOSH_REPO_HOST}
+#ls -l
+#cd ${TERRAFORM_MODULE}
+#git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
 
 
 #echo "******** git install expect ********"
