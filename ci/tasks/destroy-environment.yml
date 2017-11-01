@@ -20,7 +20,7 @@ run:
     bosh-cpi-src/ci/tasks/destroy-environment.sh
 params:
   ALICLOUD_ACCESS_KEY_ID:     ""
-  ALICLOUD_ACCESS_KEY_SECRET: ""
+  ALICLOUD_SECRET_ACCESS_KEY: ""
   ALICLOUD_DEFAULT_REGION:    ""
   GIT_USER_EMAIL: ""
   GIT_USER_NAME: ""
