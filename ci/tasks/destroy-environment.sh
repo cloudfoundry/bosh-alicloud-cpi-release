@@ -40,17 +40,17 @@ export PATH="${TERRAFORM_PATH}:$PATH"
 
 cd $CURRENT_PATH/bosh-cpi-src
 
-ls -l
-
 echo "******** tell docker who am I ********"
 git config --global user.email ${GIT_USER_EMAIL}
 git config --global user.name ${GIT_USER_NAME}
 git config --local -l
 
+ls -la ~/.ssh/
+
 
 echo "******** clone terraform template ********"
 cd $CURRENT_PATH
-ls -l
+ls -la ~/.ssh/
 git clone ${BOSH_REPO_HOST}
 ls -l
 cd ${TERRAFORM_MODULE}
