@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"strings"
 	"bosh-alicloud-cpi/registry"
+	"fmt"
 )
 
 const (
@@ -24,8 +25,10 @@ type InstanceProps struct {
 	InstanceChargeType string	`json:"instance_charge_type"`
 	InstanceType string 		`json:"instance_type"`
 	InstanceRole string			`json:"instance_role"`
-	KeyPairName string 			`json:"key_pair"`
+	KeyPairName string 			`json:"key_pair_name"`
 	Password string 			`json:"password"`
+	Slbs []string				`json:"slbs"`
+	SlbWeight json.Number		`json:"slb_weight"`
 	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
 	SystemDisk DiskInfo			`json:"system_disk"`
 }
@@ -131,6 +134,7 @@ func (a CreateVMMethod) CreateVM(
 
 	//
 	// insert agent re
+	env2.Bosh.IPv6.Enable = true
 	agentSettings := registry.AgentSettings{
 		AgentID:   agentID.AsString(),
 		Blobstore: a.Config.Agent.Blobstore.AsRegistrySettings(),
@@ -180,20 +184,43 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
 	}
 
-	err = a.instances.StartInstance(instCid)
-	if err != nil {
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid =", instCid)
-	}
+	err = a.instances.ChangeInstanceStatus(instCid, ecs.Running, func(status ecs.InstanceStatus) (bool, error) {
+		switch status {
+		case ecs.Stopped:
+			return false, a.instances.StartInstance(instCid)
+		case ecs.Pending:
+			return false, nil
+		case ecs.Starting:
+			return false, nil
+		case ecs.Running:
+			return true, nil
+		default:
+			return false, fmt.Errorf("unexcepted status %s", status)
+		}
+	})
 
-	err = a.instances.WaitForInstanceStatus(instCid, ecs.Running)
 	if err != nil {
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=", instCid)
+		return cid, a.WrapErrorf(err, "change %s to Running failed", instCid)
 	}
 
 	if networks.HasVip() {
 		err = networks.BindInstanceEip(a.Config.NewEcsClient(), instCid, args.RegionId)
 		if err != nil {
 			return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=")
+		}
+	}
+
+	slbWeight, err := instProps.SlbWeight.Int64()
+	if err != nil {
+		slbWeight = alicloud.DefaultSlbWeight
+	} else if slbWeight == 0 {
+		slbWeight = alicloud.DefaultSlbWeight
+	}
+
+	for _, slb := range instProps.Slbs {
+		err := a.networks.BindSLB(instCid, slb, int(slbWeight))
+		if err != nil {
+			return cid, a.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
 		}
 	}
 
@@ -209,27 +236,9 @@ func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registr
 
 	if err != nil {
 		json, _ := json.Marshal(agentSettings)
-		a.Logger.Error("create_vm", "UpdateAgentSettings to registery failed %s json:%s", json)
+		a.Logger.Error("create_vm", "UpdateAgentSettings to registry failed %s json:%s", json)
 		return a.WrapErrorf(err, "UpdateAgentSettings failed %v %s", client, json)
 	}
 
 	return nil
 }
-
-
-
-//
-//
-//
-//func TestCloudProps(t *testing.T) {
-//	var cloudProps InstanceProps
-//	json.Unmarshal(cloudPropsJson, &cloudProps)
-//
-//	t.Log(cloudProps)
-//	t.Log(cloudProps.EphemeralDisk.GetSizeGB())
-//
-//	var prop2 InstanceProps
-//	json.Unmarshal(cloudPropsJson2, &prop2)
-//	t.Log(prop2)
-//	t.Log(prop2.EphemeralDisk.GetSizeGB())
-//}

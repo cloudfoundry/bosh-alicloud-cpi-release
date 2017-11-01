@@ -28,6 +28,8 @@ var (
 	internalCidr 	= envOrDefault("CPI_INTERNAL_CIDR", "172.16.0.0/24")
 	internalNetmask	= envOrDefault("CPI_INTERNAL_NETMASK", "255.240.0.0")
 	internalGw  	= envOrDefault("CPI_INTERNAL_GW", "172.16.0.1")
+	slbId		  	= envOrDefault("CPI_SLB_ID", "")
+	externalIp      = envOrDefault("CPI_EXTERNAL_IP", "")
 
 	//
 	// registry

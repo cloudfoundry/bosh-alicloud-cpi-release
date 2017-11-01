@@ -70,7 +70,7 @@ Schema for `cloud_properties` section:
 * **security_group_id** [String, required]: See description under [networks](#networks). 
 * **key_name** [String, optional]: Key pair name. Example: `bosh`.
 * **slbs** [Array, optional]: Array of [Load Balancer](https://www.alibabacloud.com/help/zh/product/27537.htm) that should be attached to created VMs. 
-  * **slb_id** [String, required]: SLB ID Example: `["lb-2zegrgbsmjvxx1r1v26pn"]`. 
+  * **slbs** [Array, required]: SLB ID Example: `["lb-2zegrgbsmjvxx1r1v26pn"]`. 
   * **slb_weight** [Integer, optional]: SLB weight of VMs. Example `100`. Default is `[100]`.
 * **system_disk** [Hash, optional]: system disk of custom size.
     * **size** [Integer, required]: Specifies the disk size in megabytes.

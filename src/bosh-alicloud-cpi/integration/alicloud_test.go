@@ -21,4 +21,10 @@ var _ = Describe("integration:alicloud", func() {
 			GinkgoT().Logf("Alibaba Cloud region [%s]%s zones %v", r.RegionId, r.LocalName)
 		}
 	})
+
+	It("test for client", func() {
+		//client := caller.Config.NewEcsClient()
+		//args := ecs.ImportImageArgs{}
+		//client.CreateImage()
+	})
 })

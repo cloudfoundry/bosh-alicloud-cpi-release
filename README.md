@@ -18,7 +18,7 @@ This is a [BOSH](http://bosh.io) release for the BOSH Alibaba Cloud CPI.
 - Clone this repo
 - Install golang and export $GOROOT
 - Install bosh-cli
-- Download `go1.9.linux-amd64.tar.gz` from https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz
+- Download `go1.8.1.linux-amd64.tar.gz` from https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz
 - Add blob and create release
 - Configure golang env and make
 - Create bosh release
@@ -27,11 +27,12 @@ This is a [BOSH](http://bosh.io) release for the BOSH Alibaba Cloud CPI.
 $ git clone https://github.com/aliyun/bosh-alicloud-cpi-release.git
 $ cd bosh-alicloud-cpi-release
 $ mkdir blobs
-$ bosh add-blob ~/Downloads/go1.9.linux-amd64.tar.gz go1.9.linux-amd64.tar.gz
+$ bosh add-blob ~/Downloads/go1.8.1.linux-amd64.tar.gz go1.8.1.linux-amd64.tar.gz
 $ source .envrc
 $ make
 $ bosh create-release --force --tarball=../bosh-alicloud-cpi.tgz
 ```
+
 *Binary download is not provided now, so make it by your self*
 
 ### Install bosh in Alibaba Cloud
@@ -139,6 +140,8 @@ $ ginkgo -r -skipPackage integration src/bosh-alicloud-cpi
 
 Prepare your `Alibaba Cloud` environment, and export follow variables
 
+- Create a SLB (Load balance) get `slb_id`
+
 ```
 export CPI_REGION=cn-beijing
 export CPI_ZONE=cn-beijing-e
@@ -152,6 +155,7 @@ export CPI_INTERNAL_NETMASK=255.255.255.0
 export CPI_INTERNAL_IP=192.168.0.2
 export CPI_INTERNAL_GW=192.168.0.1
 export CPI_EXTERNAL_IP=47.47.47.47
+export CPI_SLB_ID=...
 ```
 
 Go to source code path, run follow commands

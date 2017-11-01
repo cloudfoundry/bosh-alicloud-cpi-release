@@ -82,96 +82,160 @@ var _ = Describe("integration:vm", func() {
 		Expect(exists).To(BeFalse())
 	})
 
-	It("can run the vm lifecycle with persistent disk", func() {
-		//By("create persistent disk")
-		//caller.Call("create_disk", 30720, "{}", )
-		//
-		//By("create vm with persistent disk")
-		//
-		//By("delete vm")
-		//
-		// By("delete disk")
+	It("can run the vm lifecycle with slb", func() {
+		if slbId == "" {
+			Skip("no CPI_SLB_IP settings")
+		}
+		By("create vm with slb")
+		in := mock.NewBuilder(`{
+			"method": "create_vm",
+			"arguments": [
+				"be387a69-c5d5-4b94-86c2-978581354b50",
+				"m-2zehhdtfg22hq46reabf",
+				{
+					"ephemeral_disk": {
+						"size": "40_960",
+						"category": "cloud_efficiency"
+					},
+					"image_id": "${STEMCELL_ID}",
+					"instance_name": "test-cc",
+					"instance_type": "ecs.n4.small",
+					"slbs": ["${SLB_ID}"],
+					"system_disk": {
+						"size": "61_440",
+						"category": "cloud_efficiency"
+					}
+				},
+				{
+					"private": {
+						"type": "manual",
+						"ip": "${INTERNAL_IP}",
+						"netmask": "${INTERNAL_NETMASK}",
+						"cloud_properties": {
+							"security_group_id": "${SECURITY_GROUP_ID}",
+							"vswitch_id": "${VSWITCH_ID}"
+						},
+						"default": [
+							"dns",
+							"gateway"
+						],
+						"dns": [
+							"8.8.8.8"
+						],
+						"gateway": "${INTERNAL_GW}"
+					}
+				},
+				[],
+				{}
+			],
+			"context": {
+				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
+			}
+		}`).P("STEMCELL_ID", stemcellId).
+			P("SECURITY_GROUP_ID", securityGroupId).
+			P("VSWITCH_ID", vswitchId).
+			P("INTERNAL_IP", internalIp).
+			P("INTERNAL_NETMASK", internalNetmask).
+			P("INTERNAL_GW", internalGw).
+			P("SLB_ID", slbId).
+			ToBytes()
+
+		r := caller.Run(in)
+		Expect(r.GetError()).NotTo(HaveOccurred())
+		cid := r.GetResultString()
+
+		By("sleep 90 seconds to make sure vm is fully started")
+		time.Sleep(time.Duration(90) * time.Second)
+
+		By("delete vm")
+		_, err := caller.Call("delete_vm", cid)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("vm should not exists")
+		exists, err := caller.CallGeneric("has_vm", cid)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(exists).To(BeFalse())
 	})
 
 
-	It("can run the vm lifecycle with persistent disk", func() {
-		//By("create vm")
-		//By("create vm")
-		//in := mock.NewBuilder(`{
-		//	"method": "create_vm",
-		//	"arguments": [
-		//		"be387a69-c5d5-4b94-86c2-978581354b50",
-		//		"m-2zehhdtfg22hq46reabf",
-		//		{
-		//			"ephemeral_disk": {
-		//				"size": "40_960",
-		//				"type": "cloud_efficiency"
-		//			},
-		//			"image_id": "${STEMCELL_ID}",
-		//			"instance_name": "test-cc",
-		//			"instance_type": "ecs.n4.small",
-		//			"system_disk": {
-		//				"size": "61_440",
-		//				"type": "cloud_efficiency"
-		//			}
-		//		},
-		//		{
-		//			"private": {
-		//				"type": "manual"
-		//				"ip": "${NETWORK_IP}",
-		//				"netmask": "255.240.0.0",
-		//				"cloud_properties": {
-		//					"security_group_id": "${SECURITY_GROUP_ID}",
-		//					"vswitch_id": "${VSWITCH_ID}"
-		//				},
-		//				"default": [
-		//					"dns",
-		//					"gateway"
-		//				],
-		//				"dns": [
-		//					"8.8.8.8"
-		//				],
-		//				"gateway": "${NETWORK_GATEWAY}""
-		//			}
-		//		},
-		//		[],
-		//		{}
-		//	],
-		//	"context": {
-		//		"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
-		//	}
-		//}`).
-		//P("STEMCELL_ID", stemcellId).
-		//P("NETWORK_IP", networkAddress).
-		//P("SECURITY_GROUP_ID", securityGroupId).
-		//P("VSWITCH_ID", vswitchId).
-		//P("NETWORK_GETWAY", networkGateway).
-		//ToBytes()
-		//
-		//r := caller.Run(in)
-		//Expect(r.GetError()).NotTo(HaveOccurred())
-		//instCid := r.GetResultString()
-		//
-		//By("create persistent disk")
-		//diskCid, err := caller.Call("create_disk", 30720, `{ "type": "cloud_ssd"}`, instCid)
-		//Expect(err).NotTo(HaveOccurred())
-		//
-		//By("attach disk")
-		//_, err = caller.Call("attach_disk", instCid, diskCid)
-		//Expect(err).NotTo(HaveOccurred())
-		//
-		//By("verify disks")
-		//r2, err := caller.CallGeneric("get_disks", instCid)
-		//Expect(err).NotTo(HaveOccurred())
-		//disks := r2.([]interface{})
-		//Expect(disks).Should(ConsistOf(diskCid))
-		//
-		//By("detach disk")
-		//
-		//By("delete vm")
-		//_, err := caller.
-		//
-		//By("delete disk")
+	It("can run the vm lifecycle with external ip", func() {
+		if externalIp == "" {
+			Skip("no CPI_EXTERNAL_IP settings")
+		}
+		By("create vm with external ip")
+		in := mock.NewBuilder(`{
+			"method": "create_vm",
+			"arguments": [
+				"be387a69-c5d5-4b94-86c2-978581354b50",
+				"m-2zehhdtfg22hq46reabf",
+				{
+					"ephemeral_disk": {
+						"size": "40_960",
+						"category": "cloud_efficiency"
+					},
+					"image_id": "${STEMCELL_ID}",
+					"instance_name": "test-cc",
+					"instance_type": "ecs.n4.small",
+					"system_disk": {
+						"size": "61_440",
+						"category": "cloud_efficiency"
+					}
+				},
+				{
+					"private": {
+						"type": "manual",
+						"ip": "${INTERNAL_IP}",
+						"netmask": "${INTERNAL_NETMASK}",
+						"cloud_properties": {
+							"security_group_id": "${SECURITY_GROUP_ID}",
+							"vswitch_id": "${VSWITCH_ID}"
+						},
+						"default": [
+							"dns",
+							"gateway"
+						],
+						"dns": [
+							"8.8.8.8"
+						],
+						"gateway": "${INTERNAL_GW}"
+					},
+					"public": {
+						"type": "vip",
+						"ip": "${EXTERNAL_IP}",
+						"type": "vip"
+					}
+				},
+				[],
+				{}
+			],
+			"context": {
+				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
+			}
+		}`).
+			P("STEMCELL_ID", stemcellId).
+			P("SECURITY_GROUP_ID", securityGroupId).
+			P("VSWITCH_ID", vswitchId).
+			P("INTERNAL_IP", internalIp).
+			P("INTERNAL_NETMASK", internalNetmask).
+			P("INTERNAL_GW", internalGw).
+			P("EXTERNAL_IP", externalIp).
+			ToBytes()
+
+		r := caller.Run(in)
+		Expect(r.GetError()).NotTo(HaveOccurred())
+		cid := r.GetResultString()
+
+		By("sleep 90 seconds to make sure vm is fully started")
+		time.Sleep(time.Duration(90) * time.Second)
+
+		By("delete vm")
+		_, err := caller.Call("delete_vm", cid)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("vm should not exists")
+		exists, err := caller.CallGeneric("has_vm", cid)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(exists).To(BeFalse())
 	})
 
 	//It("can create vm with manual ip, and delete it", func() {})
