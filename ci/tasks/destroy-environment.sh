@@ -58,33 +58,6 @@ git config --local -l
 
 cd ${TERRAFORM_MODULE}
 
-#echo "******** clone terraform template ********"
-#cd $CURRENT_PATH
-#ls -la ~/.ssh/
-#git clone ${BOSH_REPO_HOST}
-#ls -l
-#cd ${TERRAFORM_MODULE}
-#git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
-
-
-#echo "******** git install expect ********"
-#sudo apt-get install expect -y
-#
-#echo "******** git pull by https ********"
-#echo "#!/usr/bin/expect" > git_install.sh
-#echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
-#echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
-#echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
-#echo "expect eof" >> git_install.sh
-#echo exit >> git_install.sh
-#chmod +x git_install.sh
-#./git_install.sh
-#rm -rf ./git_install.sh
-#
-#echo $'\n'
-#echo "****** git merge ******"
-#git merge FETCH_HEAD
-
 echo $'\n'
 echo "Destroy terraform environment......"
 terraform init
