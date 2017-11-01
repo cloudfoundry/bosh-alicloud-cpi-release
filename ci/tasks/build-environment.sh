@@ -34,9 +34,24 @@ mv -f bin/terraform* ${TERRAFORM_PATH}
 rm -rf ./bin
 export PATH="${TERRAFORM_PATH}:$PATH"
 
-echo "******** clone terraform template ********"
+echo "******** git install expect ********"
+sudo apt-get install expect -y
 
-git clone ${BOSH_REPO_HOST}
+echo "******** clone terraform template by https ********"
+echo "#!/usr/bin/expect" > git_install.sh
+echo "spawn git clone ${BOSH_REPO_HOST}" >> git_install.sh
+echo "expect \"Username for 'https://github.com': \"" >> git_install.sh
+echo "send \"${GIT_USER_ID}\r\"" >> git_install.sh
+echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
+echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
+echo "expect eof" >> git_install.sh
+echo exit >> git_install.sh
+chmod +x git_install.sh
+./git_install.sh
+rm -rf ./git_install.sh
+
+ls -l
+
 cd ${TERRAFORM_MODULE}
 git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
 

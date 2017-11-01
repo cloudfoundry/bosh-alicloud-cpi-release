@@ -32,8 +32,6 @@ mv -f bin/terraform* ${TERRAFORM_PATH}
 rm -rf ./bin
 export PATH="${TERRAFORM_PATH}:$PATH"
 
-echo "******** clone terraform template ********"
-
 echo "******** git install expect ********"
 sudo apt-get install expect -y
 
@@ -49,17 +47,11 @@ echo exit >> git_install.sh
 chmod +x git_install.sh
 ./git_install.sh
 rm -rf ./git_install.sh
-#
-#echo $'\n'
-#echo "****** git merge ******"
-#git merge FETCH_HEAD
+
 ls -l
 
-
-git clone ${BOSH_REPO_HOST}
 cd ${TERRAFORM_MODULE}
 git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
-
 
 echo "******** tell docker who am I ********"
 git config --global user.email ${GIT_USER_EMAIL}
