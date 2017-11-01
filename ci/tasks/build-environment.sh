@@ -39,7 +39,7 @@ sudo apt-get install expect -y
 
 echo "******** clone terraform template by https ********"
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git clone ${BOSH_REPO_HOST}" >> git_install.sh
+echo "spawn git clone -b ${BOSH_REPO_BRANCH} --single-branch ${BOSH_REPO_HOST}" >> git_install.sh
 echo "expect \"Username for 'https://github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_ID}\r\"" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
@@ -51,7 +51,6 @@ chmod +x git_install.sh
 rm -rf ./git_install.sh
 
 cd ${SOURCE_PATH}
-git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
 
 echo "******** tell docker who am I ********"
 git config --global user.email ${GIT_USER_EMAIL}
