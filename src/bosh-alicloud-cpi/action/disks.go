@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	DefaultDiskCategory = ecs.DiskCategoryCloudEfficiency
+	DefaultDiskCategory     = ecs.DiskCategoryCloudEfficiency
 	DefaultSystemDiskSizeGB = 40
+	AmendSmallDiskSize      = true
 )
 
 type Disks struct {
@@ -27,10 +28,10 @@ type Disks struct {
 }
 
 type DiskInfo struct {
-	SizeRaw interface{}		`json:"size,omitempty"`
-	Type string				`json:"type,omitempty"`
-	sizeGB int
-	path string
+	SizeRaw     interface{} `json:"size,omitempty"`
+	Category    string      `json:"category,omitempty"`
+	sizeGB      int
+	path        string
 	ecsCategory ecs.DiskCategory
 }
 
@@ -72,7 +73,7 @@ func NewDiskInfo(size int, props apiv1.DiskCloudProps) (DiskInfo, error){
 	if err != nil {
 		return d, fmt.Errorf("bad format for DiskCloudProps %v", props)
 	}
-	d.SizeRaw = size * 1024
+	d.SizeRaw = size
 	return d.Validate(false)
 }
 
@@ -111,8 +112,8 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	}
 
 	c := DefaultDiskCategory
-	if len(strings.TrimSpace(a.Type)) > 0 {
-		c = ecs.DiskCategory(a.Type)
+	if len(strings.TrimSpace(a.Category)) > 0 {
+		c = ecs.DiskCategory(a.Category)
 	}
 
 	if isSystem {
@@ -132,6 +133,23 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	}
 	a.ecsCategory = c
 	a.path = alicloud.AmendDiskPath(a.path, a.ecsCategory)
+
+	//
+	// `Alibaba Cloud` supported disk size is a range for each category in GB
+	// cloud: [5, 2000]
+	// cloud_efficiency: [20, 32768]
+	// cloud_ssd: [20, 32768]
+	if AmendSmallDiskSize {
+		if a.ecsCategory == ecs.DiskCategoryCloud {
+			if a.sizeGB < 5 {
+				a.sizeGB = 5
+			}
+		} else {
+			if a.sizeGB < 20 {
+				a.sizeGB = 20
+			}
+		}
+	}
 	return a, nil
 }
 

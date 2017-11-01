@@ -63,7 +63,7 @@ var _ = BeforeSuite(func() {
 	err = config.Validate()
 	Expect(err).NotTo(HaveOccurred())
 
-	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
+	logger := boshlog.NewWriterLogger(boshlog.LevelWarn, os.Stderr)
 
 	mockContext = mock.NewTestContext(config)
 	services := Services {

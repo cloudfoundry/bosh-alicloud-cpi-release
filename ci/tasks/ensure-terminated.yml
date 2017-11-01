@@ -10,5 +10,5 @@ run:
   path: bosh-cpi-src/ci/tasks/ensure-terminated.sh
 params:
   ALICLOUD_ACCESS_KEY_ID:     ""
-  ALICLOUD_SECRET_ACCESS_KEY: ""
+  ALICLOUD_ACCESS_KEY_SECRET: ""
   ALICLOUD_DEFAULT_REGION:    ""

@@ -12,6 +12,8 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/common"
+	"time"
+	"github.com/denverdino/aliyungo/slb"
 )
 
 type CloudConfigJson struct {
@@ -28,6 +30,16 @@ type Config struct {
 	Registry RegistryConfig `json:"registry"`
 	Agent    AgentConfig    `json:"agent"`
 }
+
+const (
+	UseForceStop			= true
+
+	WaitTimeout  = time.Duration(180) * time.Second
+	WaitInterval = time.Duration(5) * time.Second
+
+	DefaultEipWaitSeconds	= 120
+	DefaultSlbWeight = 100
+)
 
 type OpenApi struct {
 	RegionId        string  `json:"region_id"`
@@ -125,6 +137,10 @@ func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
 
 func (c Config) NewEcsClient() (*ecs.Client) {
 	return ecs.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+}
+
+func (c Config) NewSlbClient() (*slb.Client) {
+	return slb.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 }
 
 

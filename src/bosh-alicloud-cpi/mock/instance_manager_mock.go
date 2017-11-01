@@ -94,17 +94,47 @@ func (a InstanceManagerMock) GetInstanceStatus(cid string) (ecs.InstanceStatus, 
 	}
 }
 
-func (a InstanceManagerMock) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (error) {
+func (a InstanceManagerMock) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus, error) {
 	inst, ok := a.mc.Instances[cid]
 	if !ok {
 		if toStatus == ecs.Deleted {
-			return nil
+			return ecs.Deleted, nil
 		} else {
-			return fmt.Errorf("WaitForInstanceStatus instance not exists %s", cid)
+			return ecs.Deleted, fmt.Errorf("WaitForInstanceStatus instance not exists %s", cid)
 		}
 	}
 	if inst.Status != toStatus {
-		return fmt.Errorf("WaitForInstanceStatus instance %s excepted status %s but get %s", cid, toStatus, inst.Status)
+		return inst.Status,fmt.Errorf("WaitForInstanceStatus instance %s excepted status %s but get %s", cid, toStatus, inst.Status)
 	}
-	return nil
+	return toStatus,nil
+}
+
+func (a InstanceManagerMock) ChangeInstanceStatus(cid string, toStatus ecs.InstanceStatus, checkFunc func(status ecs.InstanceStatus) (bool, error)) (error) {
+	status, err := a.GetInstanceStatus(cid)
+	if err != nil {
+		return err
+	}
+
+	if status == toStatus {
+		return nil
+	}
+
+	ok, err := checkFunc(status)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return nil
+	}
+
+	status, err = a.GetInstanceStatus(cid)
+	if err != nil {
+		return err
+	}
+
+	if status == toStatus {
+		return nil
+	} else {
+		return fmt.Errorf("<MOCK> expect instance %s status is %s but get %s", cid, toStatus, status)
+	}
 }

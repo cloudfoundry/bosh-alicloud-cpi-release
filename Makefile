@@ -39,7 +39,10 @@ testdeps:
 	export PATH=$PATH:$PWD/bin
 
 test: testdeps
-	ginkgo -r -skipPackage integration ./src/bosh-alicloud-cpi
+	ginkgo -r -skipPackage integration src/bosh-alicloud-cpi
+
+integration: testdeps
+	ginkgo -r src/bosh-alicloud-cpi/integration
 
 testintci: testdeps
 	ginkgo src/bosh-alicloud-cpi/integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v

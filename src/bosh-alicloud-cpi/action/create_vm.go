@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"strings"
 	"bosh-alicloud-cpi/registry"
+	"fmt"
 )
 
 const (
@@ -24,7 +25,7 @@ type InstanceProps struct {
 	InstanceChargeType string	`json:"instance_charge_type"`
 	InstanceType string 		`json:"instance_type"`
 	InstanceRole string			`json:"instance_role"`
-	KeyPairName string 			`json:"key_pair"`
+	KeyPairName string 			`json:"key_pair_name"`
 	Password string 			`json:"password"`
 	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
 	SystemDisk DiskInfo			`json:"system_disk"`
@@ -56,29 +57,27 @@ func (a CreateVMMethod) CreateVM(
 
 	cid := apiv1.VMCID{}
 
-	logger := a.Logger
-
-	logger.Info("ENV", "inv: %v", env)
+	// logger.Info("ENV", "inv: %v", env)
 	env2, err := registry.UnmarshalEnvSettings(env)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "UnmarshalEnvSettings failed %v", env)
 	}
-	logger.Info("ENV", "inv: %v", env2)
+	// logger.Info("ENV", "inv: %v", env2)
 
 	//
 	// convert CloudProps to alicloud dedicated Props
 	var args ecs.CreateInstanceArgs
 
 	var instProps InstanceProps
-	logger.Info("INPUT", "json %s", cloudProps)
+	// logger.Info("INPUT", "json %s", cloudProps)
 	err = cloudProps.As(&instProps)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "unmarshal CloudProps failed %v", cloudProps)
 	}
 
-	logger.Info("INPUT", "unmarshal CloudProps<Instance>: %s", instProps)
-
-	logger.Info("INPUT", "unmarshal NetworkProps<Instance>: %v", networkArgs)
+	//logger.Info("INPUT", "unmarshal CloudProps<Instance>: %s", instProps)
+	//
+	//logger.Info("INPUT", "unmarshal NetworkProps<Instance>: %v", networkArgs)
 	networks, err := NewNetworks(networkArgs)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "create_vm failed when parse Networks %v", networkArgs)
@@ -129,10 +128,11 @@ func (a CreateVMMethod) CreateVM(
 
 	req, _ := json.Marshal(args)
 
-	logger.Info("OPENAPI", "Args %s", string(req))
+	// logger.Info("OPENAPI", "Args %s", string(req))
 
 	//
 	// insert agent re
+	env2.Bosh.IPv6.Enable = true
 	agentSettings := registry.AgentSettings{
 		AgentID:   agentID.AsString(),
 		Blobstore: a.Config.Agent.Blobstore.AsRegistrySettings(),
@@ -145,6 +145,8 @@ func (a CreateVMMethod) CreateVM(
 			Name: "",
 		},
 	}
+
+
 
 	//if strings.Compare("fake", instProps.InstanceRole) == 0 {
 	//	j1, _ := json.Marshal(args)
@@ -182,14 +184,23 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
 	}
 
-	err = a.instances.StartInstance(instCid)
-	if err != nil {
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid =", instCid)
-	}
+	err = a.instances.ChangeInstanceStatus(instCid, ecs.Running, func(status ecs.InstanceStatus) (bool, error) {
+		switch status {
+		case ecs.Stopped:
+			return false, a.instances.StartInstance(instCid)
+		case ecs.Pending:
+			return false, nil
+		case ecs.Starting:
+			return false, nil
+		case ecs.Running:
+			return true, nil
+		default:
+			return false, fmt.Errorf("unexcepted status %s", status)
+		}
+	})
 
-	err = a.instances.WaitForInstanceStatus(instCid, ecs.Running)
 	if err != nil {
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=", instCid)
+		return cid, a.WrapErrorf(err, "change %s to Running failed", instCid)
 	}
 
 	if networks.HasVip() {
@@ -201,7 +212,7 @@ func (a CreateVMMethod) CreateVM(
 
 	//
 	// TODO: every error must free created vm before terminated
-	logger.Info("INFO", "FINISH create_vm %s", args)
+	// logger.Info("INFO", "FINISH create_vm %s", args)
 	return apiv1.NewVMCID(instCid), nil
 }
 
@@ -211,7 +222,7 @@ func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registr
 
 	if err != nil {
 		json, _ := json.Marshal(agentSettings)
-		a.Logger.Error("create_vm", "UpdateAgentSettings to registery failed %s json:%s", json)
+		a.Logger.Error("create_vm", "UpdateAgentSettings to registry failed %s json:%s", json)
 		return a.WrapErrorf(err, "UpdateAgentSettings failed %v %s", client, json)
 	}
 
