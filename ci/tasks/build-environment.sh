@@ -49,6 +49,7 @@ echo exit >> git_install.sh
 chmod +x git_install.sh
 ./git_install.sh
 rm -rf ./git_install.sh
+echo "******** Clone finished! ********"
 
 cd ${SOURCE_PATH}
 
