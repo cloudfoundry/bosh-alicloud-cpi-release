@@ -48,6 +48,11 @@ chmod +x git_install.sh
 ./git_install.sh
 rm -rf ./git_install.sh
 echo "finish ...."
+
+ls -al
+echo "parent dir:"
+ls -al ../
+
 cd ${SOURCE_PATH}
 git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
 
