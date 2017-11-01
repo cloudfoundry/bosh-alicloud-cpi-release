@@ -32,17 +32,29 @@ mv -f bin/terraform* ${TERRAFORM_PATH}
 rm -rf ./bin
 export PATH="${TERRAFORM_PATH}:$PATH"
 
-echo "******** clone terraform template ********"
+#echo "******** clone terraform template ********"
+#
+#git clone ${BOSH_REPO_HOST}
+#cd ${TERRAFORM_MODULE}
+#git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
 
-git clone ${BOSH_REPO_HOST}
-cd ${TERRAFORM_MODULE}
-git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
+cd $CURRENT_PATH/bosh-cpi-src
+
+ls -l
 
 echo "******** tell docker who am I ********"
 git config --global user.email ${GIT_USER_EMAIL}
 git config --global user.name ${GIT_USER_NAME}
 git config --local -l
 
+
+echo "******** clone terraform template ********"
+cd $CURRENT_PATH
+ls -l
+git clone ${BOSH_REPO_HOST}
+ls -l
+cd ${TERRAFORM_MODULE}
+git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
 
 
 #echo "******** git install expect ********"
