@@ -50,8 +50,11 @@ rm -rf ./git_install.sh
 
 ls -l
 
-cd ${TERRAFORM_MODULE}
+cd ${SOURCE_PATH}
 git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
+ls -al
+
+cd ${TERRAFORM_MODULE}
 ls -al
 #echo "******** tell docker who am I ********"
 #git config --global user.email ${GIT_USER_EMAIL}
