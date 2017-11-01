@@ -52,14 +52,14 @@ shared:
     file: bosh-cpi-src/ci/tasks/build-environment.yml
     params:
       ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-      ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
+      ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
       ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
       DESTROY_ENVIRONMENT:        false
       GIT_USER_EMAIL:             {{github_user_email}}
       GIT_USER_NAME:              {{github_user_name}}
       GIT_USER_ID:                {{github_user_id}}
       GIT_USER_PASSWORD:          {{github_user_password}}
-      BOSH_REPO_HOST:             github.com/alibaba/bosh-alicloud-cpi-release.git
+      BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
       BOSH_REPO_BRANCH:           concourse_ci_tmp
 
   - &destroy-environment
@@ -67,15 +67,15 @@ shared:
       file: bosh-cpi-src/ci/tasks/destroy-environment.yml
       params:
         ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-        ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
+        ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
         ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-        DESTROY_ENVIRONMENT: true
-        GIT_USER_EMAIL: {{github_user_email}}
-        GIT_USER_NAME: {{github_user_name}}
-        GIT_USER_ID: {{github_user_id}}
-        GIT_USER_PASSWORD: {{github_user_password}}
-        BOSH_REPO_HOST: github.com/alibaba/bosh-alicloud-cpi-release.git
-        BOSH_REPO_BRANCH: concourse_ci_tmp
+        DESTROY_ENVIRONMENT:        true
+        GIT_USER_EMAIL:             {{github_user_email}}
+        GIT_USER_NAME:              {{github_user_name}}
+        GIT_USER_ID:                {{github_user_id}}
+        GIT_USER_PASSWORD:          {{github_user_password}}
+        BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
+        BOSH_REPO_BRANCH:           concourse_ci_tmp
 
   - &ensure-terminated
     task: ensure-terminated

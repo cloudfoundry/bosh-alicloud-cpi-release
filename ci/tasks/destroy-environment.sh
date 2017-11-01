@@ -3,7 +3,7 @@
 set -e
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
-: ${ALICLOUD_ACCESS_KEY_SECRET:?}
+: ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 : ${GIT_USER_EMAIL:?}
 : ${GIT_USER_NAME:?}
@@ -12,7 +12,7 @@ set -e
 : ${BOSH_REPO_HOST:?}
 
 CURRENT_PATH=$(pwd)
-SOURCE_PATH=$CURRENT_PATH/bosh-cpi-src
+SOURCE_PATH=$CURRENT_PATH/bosh-alicloud-cpi-release
 TERRAFORM_PATH=$CURRENT_PATH/terraform
 TERRAFORM_MODULE=$SOURCE_PATH/ci/assets/terraform
 TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
@@ -32,19 +32,14 @@ mv -f bin/terraform* ${TERRAFORM_PATH}
 rm -rf ./bin
 export PATH="${TERRAFORM_PATH}:$PATH"
 
-cd ${TERRAFORM_MODULE}
-
-echo "******** tell docker who am I ********"
-git config --global user.email ${GIT_USER_EMAIL}
-git config --global user.name ${GIT_USER_NAME}
-git config --local -l
-
 echo "******** git install expect ********"
 sudo apt-get install expect -y
 
-echo "******** git pull by https ********"
+echo "******** clone terraform template by https ********"
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
+echo "spawn git clone ${BOSH_REPO_HOST}" >> git_install.sh
+echo "expect \"Username for 'https://github.com': \"" >> git_install.sh
+echo "send \"${GIT_USER_ID}\r\"" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
 echo "expect eof" >> git_install.sh
@@ -53,14 +48,20 @@ chmod +x git_install.sh
 ./git_install.sh
 rm -rf ./git_install.sh
 
-echo $'\n'
-echo "****** git merge ******"
-git merge FETCH_HEAD
+cd ${SOURCE_PATH}
+git checkout -b ${BOSH_REPO_BRANCH} origin/${BOSH_REPO_BRANCH}
+
+echo "******** tell docker who am I ********"
+git config --global user.email ${GIT_USER_EMAIL}
+git config --global user.name ${GIT_USER_NAME}
+git config --local -l
+
+cd ${TERRAFORM_MODULE}
 
 echo $'\n'
 echo "Destroy terraform environment......"
 terraform init
-echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_ACCESS_KEY_SECRET} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
+echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
 echo yes >> terraform_destroy.sh
 echo EOF >> terraform_destroy.sh
 chmod +x terraform_destroy.sh
@@ -80,6 +81,9 @@ function copyToOutput(){
 
     cd $2
     ls -la
+    echo "******** show git repo info ********"
+    git remote -v
+    git branch
 
     echo "******** show git repo info ********"
     git remote -v
