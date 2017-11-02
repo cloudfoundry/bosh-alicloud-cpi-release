@@ -12,6 +12,7 @@ set -e
 : ${GIT_USER_PASSWORD:?}
 : ${BOSH_REPO_HOST:?}
 : ${BOSH_REPO_BRANCH:?}
+: ${TAG:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-alicloud-cpi-release
@@ -74,6 +75,7 @@ function copyToOutput(){
 
     cd $2
     ls -la
+    touch ${TAG}
 
     git status | sed -n 'p' |while read LINE
     do
