@@ -2,6 +2,13 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r9]
+
+- Support bind instance to SLB
+- Stronger InstanceManager with retry and status change
+- Improve unit test and integration
+- Tolerate small disk size
+
 ## [r8]
 
 - For compatible downgrade golang to 1.8.1
