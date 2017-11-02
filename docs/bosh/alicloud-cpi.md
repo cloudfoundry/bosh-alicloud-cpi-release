@@ -69,14 +69,13 @@ Schema for `cloud_properties` section:
 * **instance_type** [String, required]: Type of the [instance](https://www.alibabacloud.com/help/zh/doc-detail/25378.htm/). Example: `ecs.n1.small`.
 * **security_group_id** [String, required]: See description under [networks](#networks). 
 * **key_name** [String, optional]: Key pair name. Example: `bosh`.
-* **slbs** [Array, optional]: Array of [Load Balancer](https://www.alibabacloud.com/help/zh/product/27537.htm) that should be attached to created VMs. 
-  * **slbs** [Array, required]: SLB ID Example: `["lb-2zegrgbsmjvxx1r1v26pn"]`. 
-  * **slb_weight** [Integer, optional]: SLB weight of VMs. Example `100`. Default is `[100]`.
+* **slbs** [Array, optional]: Array of [Load Balancer](https://www.alibabacloud.com/help/zh/product/27537.htm) that should be attached to created VMs. Example: `["lb-2zegrgbsmjvxx1r1v26pn"]`.
+* **slb_weight** [Integer, optional]: SLB weight of VMs. Example `100`. Default is `[100]`.
 * **system_disk** [Hash, optional]: system disk of custom size.
     * **size** [Integer, required]: Specifies the disk size in megabytes.
     * **category** [String, optional]: Category of the [disk](https://www.alibabacloud.com/help/doc-detail/25383.htm): `cloud_efficiency`, `cloud_ssd`. Defaults to `cloud_efficiency`.
 
-* **system_disk** [Hash, optional]: EBS backed root disk of custom size.
+* **ephemeral_disk** [Hash, optional]: ephemeral disk of custom size.
     * **size** [Integer, required]: Specifies the disk size in megabytes. Default is `51200`
     * **category** [String, optional]: Category of the [disk](https://www.alibabacloud.com/help/doc-detail/25383.htm): `cloud_efficiency`, `cloud_ssd`. Defaults to `cloud_efficiency`.
     
@@ -85,8 +84,8 @@ resource_pools:
 - name: default
   network: default
   stemcell:
-    name: light-bosh-stemcell-alicloud-kvm-ubuntu-trusty-go_agent
-    version: 1008
+    name: bosh-stemcell-alicloud-kvm-ubuntu-trusty-go_agent
+    version: 1009
   cloud_properties:
     instance_type: ecs.n1.small
     availability_zone: cn-beijing-a
@@ -99,12 +98,12 @@ Schema for `cloud_properties` section:
 
 * **category** [String, optional]: Category of the [disk](https://www.alibabacloud.com/help/doc-detail/25383.htm): `cloud_efficiency`, `cloud_ssd`. Defaults to `cloud_efficiency`.
 
-Example of 10GB disk:
+Example of 20GB disk:
 
 ```yaml
 disk_pools:
 - name: default
-  disk_size: 10_240
+  disk_size: 20_480
   cloud_properties:
     category: cloud_efficiency
 ```
