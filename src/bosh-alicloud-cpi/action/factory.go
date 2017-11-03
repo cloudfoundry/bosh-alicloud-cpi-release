@@ -52,7 +52,7 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		NewDeleteVMMethod(cc, ss.Instances),
 		NewHasVMMethod(cc, ss.Instances),
 		NewRebootVMMethod(cc, ss.Instances),
-		NewSetVMMetadataMethod(),
+		NewSetVMMetadataMethod(cc, ss.Instances),
 
 		NewGetDisksMethod(cc, ss.Disks),
 		NewCreateDiskMethod(cc, ss.Disks, ss.Instances),

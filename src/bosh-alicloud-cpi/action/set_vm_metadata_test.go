@@ -6,14 +6,16 @@ package action
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"bosh-alicloud-cpi/mock"
 )
 
 var _ = Describe("cpi:set_vm_metadata", func() {
 	It("can run reboot vm", func() {
-		r :=  caller.Run([]byte(`{
+		id, _ := mockContext.NewInstance()
+		r :=  caller.Run(mock.NewBuilder(`{
 			"method": "set_vm_metadata",
 			"arguments": [
-				"i-2ze1zz9zmbblcsk0e4i6", {
+				"${INST_ID}", {
 					"director": "my-bosh",
 					"deployment": "ali-cf-215",
 					"id": "4daa76e3-db6d-4550-b9b4-c504e7865f62",
@@ -27,8 +29,13 @@ var _ = Describe("cpi:set_vm_metadata", func() {
 					"director_uuid": "580da067-b2ff-4eb6-b271-23cc76409121",
 					"request_id": "cpi-440280"
 			}
-		}`), )
+		}`).P("INST_ID", id).ToBytes())
 		Expect(r.GetError()).NotTo(HaveOccurred())
+
+		inst, ok := mockContext.Instances[id]
+		Expect(ok).To(BeTrue())
+
+		Expect(inst.InstanceName).Should(Equal("dea_ng/4daa76e3-db6d-4550-b9b4-c504e7865f62"))
 	})
 })
 
