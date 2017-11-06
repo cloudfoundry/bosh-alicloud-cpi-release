@@ -40,7 +40,7 @@ func (a DiskManagerMock) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
 }
 
 func (a DiskManagerMock) CreateDisk(sizeGB int, category ecs.DiskCategory, zone string) (string, error) {
-	if sizeGB == 0 || sizeGB > MaxDiskSizeGB {
+	if sizeGB < 5 || sizeGB > MaxDiskSizeGB {
 		return "", fmt.Errorf("CreateDisk size too small or large %d", sizeGB)
 	}
 	if zone == "" {

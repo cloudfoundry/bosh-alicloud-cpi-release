@@ -38,7 +38,7 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 	args.InstanceId = vmCID.AsString()
 
 	if s, ok := md["name"]; ok {
-		args.InstanceName = s.(string)
+		args.InstanceName = normalizeInstanceName(s.(string))
 	}
 
 	desc := ""
@@ -57,4 +57,36 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 	}
 
 	return nil
+}
+
+
+//
+// InstanceName ref https://help.aliyun.com/document_detail/25503.html
+func normalizeInstanceName(s string) (string) {
+	r := ""
+
+	// can only contains [a-zA-Z0-9-_\.]
+	for _, c := range s {
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z' || (c >= '0' && c <= '9')) || c == '-' || c == '_' || c == '.' {
+			r = r + string(c)
+		} else {
+			r = r + "."
+		}
+	}
+
+	// must start with [a-z, A-Z]
+	if s[0] >= '0' && s[0] <= '9' {
+		r = "i_" + r
+	}
+
+	// length in [2, 128]
+	if len(r) < 2 {
+		return "i_" + r
+	}
+
+	if len(r) > 128 {
+		return r[0:127]
+	}
+
+	return r
 }

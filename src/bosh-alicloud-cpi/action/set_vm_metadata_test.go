@@ -35,7 +35,18 @@ var _ = Describe("cpi:set_vm_metadata", func() {
 		inst, ok := mockContext.Instances[id]
 		Expect(ok).To(BeTrue())
 
-		Expect(inst.InstanceName).Should(Equal("dea_ng/4daa76e3-db6d-4550-b9b4-c504e7865f62"))
+		Expect(inst.InstanceName).Should(Equal("dea_ng.4daa76e3-db6d-4550-b9b4-c504e7865f62"))
+	})
+
+	It("instance name can be normalized", func() {
+		s := normalizeInstanceName("dea_ng/4daa76e3-db6d-4550-b9b4-c504e7865f62")
+		Expect(s).Should(Equal("dea_ng.4daa76e3-db6d-4550-b9b4-c504e7865f62"))
+
+		s = normalizeInstanceName("a")
+		Expect(s).Should(Equal("i_a"))
+
+		s = normalizeInstanceName("11123")
+		Expect(s).Should(Equal( "i_11123"))
 	})
 })
 
