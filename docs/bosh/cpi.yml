@@ -4,14 +4,14 @@
   path: /releases/-
   value:
     name: bosh-alicloud-cpi
-    version: 8
-    url: file://~/Temp/blobs/bosh-alicloud-cpi.tgz
+    version: 10
+    url: Temp/blobs/bosh-alicloud-cpi.tgz
 
 # light stemcell
 - type: replace
   path: /resource_pools/name=vms/stemcell?
   value:
-    url: http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1008-alicloud-kvm-ubuntu-trusty-go_agent.tgz
+    url: http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1009-alicloud-kvm-ubuntu-trusty-go_agent.tgz
     sha1: 7898cfb49d6f66bf568ca15641d8cd74dc538bec
 
 # Configure ECS sizes

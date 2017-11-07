@@ -25,10 +25,11 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 	status, err := a.instances.GetInstanceStatus(instCid)
 
 	if err != nil {
-		if status == ecs.Deleted {
-			return nil
-		}
 		return a.WrapErrorf(err, "delete %s get status failed", instCid)
+	}
+
+	if status == ecs.Deleted {
+		return nil
 	}
 
 	err = a.instances.ChangeInstanceStatus(instCid, ecs.Stopped, func(status ecs.InstanceStatus) (bool, error) {

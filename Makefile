@@ -22,7 +22,8 @@ clean:
 	rm -f bin/bosh-alicloud-cpi.tgz
 
 deps:
-	go get -v github.com/cppforlife/bosh-cpi-go/...
+	go get -v github.com/cppforlife/bosh-cpi-go/apiv1
+	go get -v github.com/cppforlife/bosh-cpi-go/rpc		
 	go get -v github.com/denverdino/aliyungo/...
 	go get -v github.com/cloudfoundry/bosh-utils/logger
 	go get -v github.com/cloudfoundry/bosh-utils/uuid

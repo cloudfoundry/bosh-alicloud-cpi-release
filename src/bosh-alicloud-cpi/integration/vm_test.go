@@ -69,7 +69,30 @@ var _ = Describe("integration:vm", func() {
 		Expect(r.GetError()).NotTo(HaveOccurred())
 		cid := r.GetResultString()
 
-		By("sleep 90 seconds to make sure vm is fully started")
+		By("set vm metadata")
+		in = mock.NewBuilder(`{
+			"method": "set_vm_metadata",
+			"arguments": [
+				"${INSTANCE_ID}", {
+					"director": "my-bosh",
+					"deployment": "ali-cf-215",
+					"id": "4daa76e3-db6d-4550-b9b4-c504e7865f62",
+					"job": "dea_ng",
+					"index": "0",
+					"name": "dea_ng/4daa76e3-db6d-4550-b9b4-c504e7865f62",
+					"created_at": "2017-10-25T09:00:07Z"
+				}
+			],
+			"context": {
+					"director_uuid": "580da067-b2ff-4eb6-b271-23cc76409121",
+					"request_id": "cpi-440280"
+			}
+		}`).P("${INSTANCE_ID}", cid).ToBytes()
+
+		r = caller.Run(in)
+		Expect(r.GetError()).NotTo(HaveOccurred())
+
+		By("sleep for awhile")
 		time.Sleep(time.Duration(90) * time.Second)
 
 		By("delete vm")
