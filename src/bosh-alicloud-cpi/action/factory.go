@@ -23,6 +23,7 @@ type CPI struct {
 	HasVMMethod
 	RebootVMMethod
 	SetVMMetadataMethod
+	CalculateVMCloudPropertiesMethod
 	GetDisksMethod
 
 	CreateDiskMethod
@@ -53,6 +54,7 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		NewHasVMMethod(cc, ss.Instances),
 		NewRebootVMMethod(cc, ss.Instances),
 		NewSetVMMetadataMethod(cc, ss.Instances),
+		NewCalculateVMCloudPropertiesMethod(cc),
 
 		NewGetDisksMethod(cc, ss.Disks),
 		NewCreateDiskMethod(cc, ss.Disks, ss.Instances),

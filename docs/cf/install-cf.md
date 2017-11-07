@@ -116,8 +116,8 @@ stemcells:
 ```
 
 Upload cf releases (important in China regions, skip it in oversea region)
-Install maybe very slow in China regions, so you can upload your releases first,
-Get releases from [cf-release-277](http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/cf-release-278.zip) and unzip it.
+Install maybe very slow in China regions, so you can upload your releases first.
+Get releases from [cf-release-278.zip](http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/cf-release-278.zip) and unzip it.
 
 
 ```
