@@ -74,9 +74,16 @@ func (a Networks) HasVip() (bool) {
 func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) (error) {
 	props := a.privateProps
 
+	if props.VSwitchId == "" {
+		return fmt.Errorf("unexpected empty VSwitchId")
+	}
+	if props.VSwitchId == "" {
+		return fmt.Errorf("unexpected empty SecurityGroupId")
+	}
+
 	args.VSwitchId = props.VSwitchId
 	args.SecurityGroupId = props.SecurityGroupId
-	args.InternetChargeType = common.InternetChargeType(props.InternetChargeType)
+	// args.InternetChargeType = common.InternetChargeType(props.InternetChargeType)
 
 	// TODO no need to add
 	// args.InternetMaxBandwidthIn = a.GetInternetMaxBandwidthIn()

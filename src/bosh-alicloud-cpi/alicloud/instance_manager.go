@@ -26,6 +26,8 @@ type InstanceManager interface {
 	GetInstance(cid string) (*ecs.InstanceAttributesType, error)
 
 	CreateInstance(args ecs.CreateInstanceArgs) (string, error)
+	ModifyInstanceAttribute(args ecs.ModifyInstanceAttributeArgs) (error)
+
 	DeleteInstance(cid string) (error)
 
 	StartInstance(cid string) (error)
@@ -36,6 +38,7 @@ type InstanceManager interface {
 	// WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus, error)
 
 	ChangeInstanceStatus(cid string, toStatus ecs.InstanceStatus, checkFunc func(status ecs.InstanceStatus) (bool, error)) (error)
+
 }
 
 type InstanceManagerImpl struct {
@@ -104,6 +107,18 @@ func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string
 	return cid, err
 }
 
+func (a InstanceManagerImpl) ModifyInstanceAttribute(args ecs.ModifyInstanceAttributeArgs) (error) {
+	client := a.config.NewEcsClient()
+
+	invoker := NewInvoker()
+	invoker.AddCatcher(CreateInstanceCatcher)
+	return invoker.Run(func() (error) {
+		e := client.ModifyInstanceAttribute(&args)
+		a.log("ModifyInstanceAttributes", e, args, "ok")
+		return e
+	})
+}
+
 func (a InstanceManagerImpl) DeleteInstance(cid string) (error) {
 	client := a.config.NewEcsClient()
 
@@ -155,7 +170,7 @@ func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, 
 	}
 
 	if inst == nil {
-		return ecs.Deleted, err
+		return ecs.Deleted, nil
 	}
 	return inst.Status, nil
 }
