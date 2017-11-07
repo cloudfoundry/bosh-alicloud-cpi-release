@@ -191,9 +191,9 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [build-candidate]}
+        - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [bats]}
         - {get: bosh-release,    trigger: false, resource: precompiled-bosh-release}
-        - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [build-candidate]}
+        - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [bats]}
         - {get: stemcell,        trigger: false, resource: precompiled-stemcell}
         - {get: heavy-stemcell,  trigger: false, resource: heavy-ubuntu-stemcell}
         - {get: bosh-deployment, trigger: false}
@@ -213,7 +213,7 @@ jobs:
             OPTIONAL_OPS_FILE:  |
               -o bosh-deployment/external-ip-with-registry-not-recommended.yml
               -o pipelines/shared/assets/ops/remove-provider-cert.yml
-              -o pipelines/alicloud/assets/ops/ram-instance-profile-ops-file.yml
+#              -o pipelines/alicloud/assets/ops/ram-instance-profile-ops-file.yml
         - do:
             - <<: *deploy-director
             - <<: *run-end-2-end
@@ -271,10 +271,10 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-#      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-#      branch: concourse_ci_tmp
-      uri: git@github.com:aliyun/bosh-alicloud-cpi-release.git
-      branch: concourse_ci
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
+      branch: concourse_ci_tmp
+#      uri: git@github.com:aliyun/bosh-alicloud-cpi-release.git
+#      branch: concourse_ci
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
