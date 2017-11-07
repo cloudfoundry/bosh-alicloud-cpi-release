@@ -4,6 +4,8 @@ This is a [BOSH](http://bosh.io) release for the BOSH Alibaba Cloud CPI.
 
 **Notice: this is a early version, only for test**
 
+**[Cloud Foundry Install Guide](docs/cf/install-cf.md)**
+
 ## Usage
 
 ### Prepare your `Alibaba Cloud` environment
