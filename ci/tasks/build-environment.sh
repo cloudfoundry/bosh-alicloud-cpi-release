@@ -129,6 +129,7 @@ then
 fi
 
 terraform state list > all_state
+EIP_COUNT=0
 echo "Write metadata ......"
 echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
 cat all_state | while read LINE
@@ -163,16 +164,17 @@ do
           fi
         done
     fi
-    if [ $LINE == "alicloud_eip.default" ];
+    if [ $LINE == "alicloud_eip.default*" ];
     then
         terraform state show $LINE | while read line
         do
           echo $line
           if [[ $line == ip_address* ]];
           then
-              echo external_$line >> $METADATA
+              echo external_$EIP_COUNT_$line >> $METADATA
           fi
         done
+        (( EIP_COUNT++ ))
     fi
 done
 echo "Write metadata successfully"
