@@ -45,13 +45,13 @@ func (a NetworkManagerImpl) DescribeEip(eip string) (ecs.EipAddressSetType, erro
 	client := a.config.NewEcsClient()
 	invoker := NewInvoker()
 
-	var arg ecs.DescribeEipAddressesArgs
-	arg.EipAddress = eip
-	arg.RegionId = a.config.OpenApi.Region
+	var args ecs.DescribeEipAddressesArgs
+	args.EipAddress = eip
+	args.RegionId = a.config.OpenApi.GetRegion()
 
 	var eipAddress ecs.EipAddressSetType
 	err := invoker.Run(func() error {
-		r, _, err := client.DescribeEipAddresses(&arg)
+		r, _, err := client.DescribeEipAddresses(&args)
 		if err != nil {
 			return err
 		}
@@ -63,7 +63,7 @@ func (a NetworkManagerImpl) DescribeEip(eip string) (ecs.EipAddressSetType, erro
 	})
 
 	if err != nil {
-		return eipAddress, bosherr.WrapErrorf(err, "DescribeEipAddress(%s) failed", eip)
+		return eipAddress, bosherr.WrapErrorf(err, "DescribeEipAddress(%v) failed", args)
 	}
 	return eipAddress, nil
 }
