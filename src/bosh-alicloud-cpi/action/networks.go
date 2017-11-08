@@ -8,7 +8,6 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"github.com/denverdino/aliyungo/ecs"
-	"github.com/denverdino/aliyungo/common"
 	"fmt"
 )
 
@@ -74,9 +73,16 @@ func (a Networks) HasVip() (bool) {
 func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) (error) {
 	props := a.privateProps
 
+	if props.VSwitchId == "" {
+		return fmt.Errorf("unexpected empty VSwitchId")
+	}
+	if props.VSwitchId == "" {
+		return fmt.Errorf("unexpected empty SecurityGroupId")
+	}
+
 	args.VSwitchId = props.VSwitchId
 	args.SecurityGroupId = props.SecurityGroupId
-	args.InternetChargeType = common.InternetChargeType(props.InternetChargeType)
+	// args.InternetChargeType = common.InternetChargeType(props.InternetChargeType)
 
 	// TODO no need to add
 	// args.InternetMaxBandwidthIn = a.GetInternetMaxBandwidthIn()
@@ -97,43 +103,16 @@ func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) (error) {
 	return nil
 }
 
-//
-// TODO move to alicloud.NetworkManager
-func (a Networks) BindInstanceEip(client *ecs.Client, instanceId string, regionId common.Region) (error) {
-	net := a.VipNetwork()
-
-	if net == nil{
-		return nil
-	}
-
-	var allocationId string
-	var arg ecs.DescribeEipAddressesArgs
-	arg.EipAddress = net.IP()
-	arg.RegionId = regionId
-
-	eipAddresses, _, _:=client.DescribeEipAddresses(&arg)
-	for _, address := range eipAddresses {
-		allocationId = address.AllocationId
-	}
-
-	if err := client.AssociateEipAddress(allocationId, instanceId); err != nil {
-		return err
-	}
-
-	if err := client.WaitForEip(regionId, allocationId, ecs.EipStatusInUse, 60); err != nil {
-		return fmt.Errorf("error waitting for EIP allocated: %#v", err)
-	}
-	return nil
-}
-
-func (a Networks) VipNetwork() (apiv1.Network) {
+func (a Networks) GetVips() []string {
+	result := []string{}
 	for _, net := range a.networks {
 		if net.Type() == "vip" {
-			return net
+			result = append(result, net.IP())
 		}
 	}
-	return nil
+	return result
 }
+
 
 func (a Networks) AsRegistrySettings() (registry.NetworksSettings) {
 	r := map[string]registry.NetworkSettings{}
@@ -150,9 +129,5 @@ func (a Networks) AsRegistrySettings() (registry.NetworksSettings) {
 			// CloudProperties: v.CloudProps()
 		}
 	}
-	//r := map[string]registry.NetworkSettings {
-	//	"private": { Type: "vip"},
-	//	"public" : {Type: "vip"},
-	//}
 	return r
 }

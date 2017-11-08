@@ -1,7 +1,0 @@
----
-name: alicloud_cpi
-
-dependencies:
-  - golang
-files:
-  - bosh-alicloud-cpi/**/*

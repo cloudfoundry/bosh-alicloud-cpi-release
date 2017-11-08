@@ -20,16 +20,16 @@ time bosh2 -n upload-stemcell "$(realpath heavy-stemcell/*.tgz)"
 
 stemcell_name="$( bosh2 int <( tar xfO $(realpath stemcell/*.tgz) stemcell.MF ) --path /name )"
 heavy_stemcell_name="$( bosh2 int <( tar xfO $(realpath heavy-stemcell/*.tgz) stemcell.MF ) --path /name )"
-alicloud_kms_key_arn="$(cat terraform-metadata/metadata | jq --raw-output ".alicloud_kms_key_arn")"
+# alicloud_kms_key_arn="$(cat terraform-metadata/metadata | jq --raw-output ".alicloud_kms_key_arn")"
 
+# --cloud-properties "{\"encrypted\": true, \"kms_key_arn\": \"${alicloud_kms_key_arn}\"}" \
 time bosh2 repack-stemcell \
   --name e2e-encrypted-heavy-stemcell \
   --version 0.1 \
-  --cloud-properties "{\"encrypted\": true, \"kms_key_arn\": \"${alicloud_kms_key_arn}\"}" \
   "$(realpath heavy-stemcell/*.tgz)" \
   /tmp/e2e-encrypted-heavy-stemcell.tgz
 time bosh2 -n upload-stemcell /tmp/e2e-encrypted-heavy-stemcell.tgz
-encrypted_heavy_stemcell_ami_id="$( bosh2 stemcells | grep e2e-encrypted-heavy-stemcell | awk '{print $NF;}' )"
+encrypted_heavy_stemcell_img_id="$( bosh2 stemcells | grep e2e-encrypted-heavy-stemcell | awk '{print $NF;}' )"
 
 UPDATE CLOUD CONFIG
 time bosh2 -n ucc \
@@ -40,7 +40,7 @@ time bosh2 -n ucc \
 time bosh2 -n deploy -d e2e-test \
   -v "stemcell_name=${stemcell_name}" \
   -v "heavy_stemcell_name=${heavy_stemcell_name}" \
-  -v "encrypted_heavy_stemcell_ami_id=${encrypted_heavy_stemcell_ami_id}" \
+  -v "encrypted_heavy_stemcell_img_id=${encrypted_heavy_stemcell_img_id}" \
   -l terraform-metadata/metadata \
   bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
 

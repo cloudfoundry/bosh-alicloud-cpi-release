@@ -23,6 +23,7 @@ type CPI struct {
 	HasVMMethod
 	RebootVMMethod
 	SetVMMetadataMethod
+	CalculateVMCloudPropertiesMethod
 	GetDisksMethod
 
 	CreateDiskMethod
@@ -30,6 +31,10 @@ type CPI struct {
 	AttachDiskMethod
 	DetachDiskMethod
 	HasDiskMethod
+	ResizeDiskMethod
+	SetDiskMetadataMethod
+	SnapshotDiskMethod
+	DeleteSnapshotMethod
 }
 
 func NewFactory(cc CallContext, services Services) (Factory) {
@@ -52,7 +57,8 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		NewDeleteVMMethod(cc, ss.Instances),
 		NewHasVMMethod(cc, ss.Instances),
 		NewRebootVMMethod(cc, ss.Instances),
-		NewSetVMMetadataMethod(),
+		NewSetVMMetadataMethod(cc, ss.Instances),
+		NewCalculateVMCloudPropertiesMethod(cc),
 
 		NewGetDisksMethod(cc, ss.Disks),
 		NewCreateDiskMethod(cc, ss.Disks, ss.Instances),
@@ -60,6 +66,10 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		NewAttachDiskMethod(cc, ss.Disks, ss.Registry),
 		NewDetachDiskMethod(cc, ss.Disks, ss.Registry),
 		NewHasDiskMethod(cc, ss.Disks),
+		NewResizeDiskMethod(cc, ss.Disks),
+		NewSetDiskMetadataMethod(cc, ss.Disks),
+		NewSnapshotDiskMethod(cc, ss.Disks),
+		NewDeleteSnapshotMethod(cc, ss.Disks),
 	}
 
 	return cpi, nil

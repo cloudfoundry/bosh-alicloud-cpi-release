@@ -19,7 +19,6 @@ const (
 )
 
 type InstanceProps struct {
-	ImageId string 				`json:"image_id"`
 	AvailabilityZone string		`json:"availability_zone"`
 	InstanceName string 		`json:"instance_name"`
 	InstanceChargeType string	`json:"instance_charge_type"`
@@ -27,6 +26,8 @@ type InstanceProps struct {
 	InstanceRole string			`json:"instance_role"`
 	KeyPairName string 			`json:"key_pair_name"`
 	Password string 			`json:"password"`
+	Slbs []string				`json:"slbs"`
+	SlbWeight json.Number		`json:"slb_weight"`
 	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
 	SystemDisk DiskInfo			`json:"system_disk"`
 }
@@ -146,8 +147,6 @@ func (a CreateVMMethod) CreateVM(
 		},
 	}
 
-
-
 	//if strings.Compare("fake", instProps.InstanceRole) == 0 {
 	//	j1, _ := json.Marshal(args)
 	//	j2, _ := json.Marshal(agentSettings)
@@ -203,10 +202,24 @@ func (a CreateVMMethod) CreateVM(
 		return cid, a.WrapErrorf(err, "change %s to Running failed", instCid)
 	}
 
-	if networks.HasVip() {
-		err = networks.BindInstanceEip(a.Config.NewEcsClient(), instCid, args.RegionId)
+	for _, eip := range networks.GetVips() {
+		err := a.networks.BindEip(instCid, eip)
 		if err != nil {
-			return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=")
+			return cid, a.WrapErrorf(err, "bind eip %s to %s failed", eip, instCid)
+		}
+	}
+
+	slbWeight, err := instProps.SlbWeight.Int64()
+	if err != nil {
+		slbWeight = alicloud.DefaultSlbWeight
+	} else if slbWeight == 0 {
+		slbWeight = alicloud.DefaultSlbWeight
+	}
+
+	for _, slb := range instProps.Slbs {
+		err := a.networks.BindSLB(instCid, slb, int(slbWeight))
+		if err != nil {
+			return cid, a.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
 		}
 	}
 
@@ -228,21 +241,3 @@ func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registr
 
 	return nil
 }
-
-
-
-//
-//
-//
-//func TestCloudProps(t *testing.T) {
-//	var cloudProps InstanceProps
-//	json.Unmarshal(cloudPropsJson, &cloudProps)
-//
-//	t.Log(cloudProps)
-//	t.Log(cloudProps.EphemeralDisk.GetSizeGB())
-//
-//	var prop2 InstanceProps
-//	json.Unmarshal(cloudPropsJson2, &prop2)
-//	t.Log(prop2)
-//	t.Log(prop2.EphemeralDisk.GetSizeGB())
-//}

@@ -10,7 +10,6 @@ set -e
 : ${GIT_USER_ID:?}
 : ${GIT_USER_PASSWORD:?}
 : ${BOSH_REPO_HOST:?}
-: ${TAG:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-alicloud-cpi-release
@@ -80,10 +79,8 @@ function copyToOutput(){
 
     cp -rf $1/. $2
 
-
     cd $2
     ls -la
-    touch ${TAG}
     echo "******** show git repo info ********"
     git remote -v
     git branch
