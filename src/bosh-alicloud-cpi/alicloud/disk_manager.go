@@ -24,6 +24,11 @@ type DiskManager interface {
 	AttachDisk(instCid string, diskCid string) (error)
 	DetachDisk(instCid string, diskCid string) (error)
 
+	ModifyDiskAttribute(diskCid string, name string, description string) (error)
+
+	CreateSnapshot(diskCid string, snapshotName string) (string, error)
+	DeleteSnapshot(snapshotCid string) (error)
+
 	WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error)
 }
 
@@ -154,6 +159,62 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 	})
 }
 
+func (a DiskManagerImpl) ResizeDisk(diskCid string, size int) (error) {
+	//client := a.config.NewEcsClient()
+	//var args ecs.Resi
+	//args.InstanceId = instCid
+	//args.DiskId = diskCid
+	//
+	//invoker := NewInvoker()
+	//return invoker.Run(func() (error) {
+	//	a.log("DetachDisk", err, diskCid+" from "+instCid, "ok")
+	//	return err
+	//})
+	return fmt.Errorf("Unsupported")
+}
+
+func (a DiskManagerImpl) ModifyDiskAttribute(diskCid string, name string, description string) (error) {
+	client := a.config.NewEcsClient()
+	var args ecs.ModifyDiskAttributeArgs
+	args.DiskId = diskCid
+	args.DiskName = name
+	args.Description = description
+
+	invoker := NewInvoker()
+	return invoker.Run(func() (error) {
+		e := client.ModifyDiskAttribute(&args)
+		a.log("ModifyDiskAttribute", e, diskCid, "ok")
+		return e
+	})
+}
+
+func (a DiskManagerImpl) CreateSnapshot(diskCid string, snapshotName string) (string, error) {
+	client := a.config.NewEcsClient()
+	var args ecs.CreateSnapshotArgs
+	args.DiskId = diskCid
+	args.SnapshotName = snapshotName
+
+	invoker := NewInvoker()
+	var snapshotId string
+	err := invoker.Run(func() (error) {
+		id, e := client.CreateSnapshot(&args)
+		a.log("CreateSnapshot", e, diskCid, id)
+		snapshotId = id
+		return e
+	})
+	return snapshotId, err
+}
+
+func (a DiskManagerImpl) DeleteSnapshot(snapshotCid string) (error) {
+	client := a.config.NewEcsClient()
+
+	invoker := NewInvoker()
+	return invoker.Run(func() (error) {
+		e := client.DeleteSnapshot(snapshotCid)
+		a.log("DeleteSnapshot", e, snapshotCid, "ok")
+		return e
+	})
+}
 
 func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
 

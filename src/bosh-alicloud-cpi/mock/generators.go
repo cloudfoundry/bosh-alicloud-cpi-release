@@ -32,3 +32,7 @@ func NewStemcellId() (string) {
 func NewVswitchId() (string) {
 	return "vsw-" + RandomString(20)
 }
+
+func NewSnapshotId() (string) {
+	return "s-" + RandomString(20)
+}

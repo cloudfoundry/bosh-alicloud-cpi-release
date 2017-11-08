@@ -18,5 +18,13 @@ func NewDeleteSnapshotMethod(cc CallContext, disks alicloud.DiskManager) DeleteS
 }
 
 func (a DeleteSnapshotMethod) DeleteSnapshot(snapshotCID apiv1.SnapshotCID) (error) {
+	cid := snapshotCID.AsString()
+
+	err := a.disks.DeleteSnapshot(cid)
+
+	if err != nil {
+		return a.WrapErrorf(err, "delete snapshot %s failed", cid)
+	}
+
 	return nil
 }

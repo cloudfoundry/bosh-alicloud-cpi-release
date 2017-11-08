@@ -17,8 +17,6 @@ func NewSetDiskMetadataMethod(cc CallContext, disks alicloud.DiskManager) SetDis
 	return SetDiskMetadataMethod{cc, disks}
 }
 
-
 func (a SetDiskMetadataMethod) SetDiskMetadata(diskCID apiv1.DiskCID, meta apiv1.DiskMeta) error {
 	return nil
 }
-

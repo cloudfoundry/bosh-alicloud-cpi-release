@@ -103,6 +103,50 @@ func (a DiskManagerMock) DetachDisk(instCid string, diskCid string) error {
 	return nil
 }
 
+func (a DiskManagerMock) ResizeDisk(diskCid string, sizeGB int) (error) {
+	disk, ok := a.mc.Disks[diskCid]
+	if !ok {
+		return fmt.Errorf("ResizeDisk disk %s not exists", diskCid)
+	}
+
+	if sizeGB < disk.Size {
+		return fmt.Errorf("ResizeDisk %s to %d can not smaller than before %d", diskCid, sizeGB, disk.Size)
+	}
+
+	disk.Size = sizeGB
+	return nil
+}
+
+func (a DiskManagerMock) ModifyDiskAttribute(diskCid string, name string, description string) (error) {
+	disk, ok := a.mc.Disks[diskCid]
+	if !ok {
+		return fmt.Errorf("ModifyDiskAttribute disk %s not exists", diskCid)
+	}
+
+	disk.DiskName = name
+	disk.Description = description
+	return nil
+}
+
+func (a DiskManagerMock) CreateSnapshot(diskCid string, snapshotName string) (string, error) {
+	_, ok := a.mc.Disks[diskCid]
+	if !ok {
+		return "", fmt.Errorf("CreateSnapshot disk %s not exists", diskCid)
+	}
+	ssid := NewSnapshotId()
+	a.mc.Snapshots[ssid] = diskCid
+	return ssid, nil
+}
+
+func (a DiskManagerMock) DeleteSnapshot(snapshotCid string) (error) {
+	_, ok := a.mc.Snapshots[snapshotCid]
+	if !ok {
+		return fmt.Errorf("DeleteSnapshot %s not found", snapshotCid)
+	}
+	delete(a.mc.Snapshots, snapshotCid)
+	return nil
+}
+
 func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
 	disk, ok := a.mc.Disks[diskCid]
 	if !ok {
@@ -113,3 +157,4 @@ func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 	}
 	return disk.Device, nil
 }
+

@@ -12,6 +12,7 @@ type TestContext struct {
 	config alicloud.Config
 	Disks map[string]*ecs.DiskItemType
 	Instances map[string]*ecs.InstanceAttributesType
+	Snapshots map[string]string
 }
 
 func NewTestContext(config alicloud.Config) TestContext {
@@ -19,6 +20,7 @@ func NewTestContext(config alicloud.Config) TestContext {
 		config: config,
 		Disks: make(map[string]*ecs.DiskItemType),
 		Instances: make(map[string]*ecs.InstanceAttributesType),
+		Snapshots: make(map[string]string),
 	}
 }
 
