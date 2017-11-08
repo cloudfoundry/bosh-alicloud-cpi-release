@@ -180,7 +180,6 @@ var _ = Describe("integration:vm", func() {
 		Expect(exists).To(BeFalse())
 	})
 
-
 	It("can run the vm lifecycle with external ip", func() {
 		if externalIp == "" {
 			Skip("no CPI_EXTERNAL_IP settings")

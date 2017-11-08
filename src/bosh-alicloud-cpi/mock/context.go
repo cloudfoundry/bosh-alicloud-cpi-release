@@ -25,7 +25,7 @@ func NewTestContext(config alicloud.Config) TestContext {
 func (c TestContext) NewDisk(instCid string) (string, *ecs.DiskItemType) {
 	d := ecs.DiskItemType {
 		DiskId:NewDiskId(),
-		RegionId:c.config.OpenApi.Region,
+		RegionId:c.config.OpenApi.GetRegion(),
 		ZoneId:c.config.OpenApi.ZoneId,
 		Status:ecs.DiskStatusAvailable,
 		Category:ecs.DiskCategoryCloudEfficiency,
@@ -38,7 +38,7 @@ func (c TestContext) NewDisk(instCid string) (string, *ecs.DiskItemType) {
 func (c TestContext) NewInstance() (string, *ecs.InstanceAttributesType) {
 	i := ecs.InstanceAttributesType{
 		InstanceId:NewInstanceId(),
-		RegionId:c.config.OpenApi.Region,
+		RegionId:c.config.OpenApi.GetRegion(),
 		ZoneId:c.config.OpenApi.ZoneId,
 		Status: ecs.Stopped,
 	}
