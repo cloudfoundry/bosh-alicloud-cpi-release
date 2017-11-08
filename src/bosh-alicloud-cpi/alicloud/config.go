@@ -46,7 +46,6 @@ type OpenApi struct {
 	ZoneId			string	`json:"zone_id"`
 	AccessKeyId     string  `json:"access_key_id"`
 	AccessKeySecret string  `json:"access_key_secret"`
-	Region			common.Region	`json:"-"`
 }
 
 type RegistryConfig struct {
@@ -72,7 +71,6 @@ func (c Config) Validate() error {
 	if c.OpenApi.RegionId == "" {
 		return fmt.Errorf("region can't be empty")
 	}
-	c.OpenApi.Region = common.Region(c.OpenApi.RegionId)
 
 	_, err := c.Registry.Port.Int64()
 	if err != nil {
@@ -81,6 +79,10 @@ func (c Config) Validate() error {
 
 	//TODO: validate more
 	return nil
+}
+
+func (a OpenApi) GetRegion() (common.Region) {
+	return common.Region(a.RegionId)
 }
 
 func NewConfigFromFile(configFile string, fs boshsys.FileSystem) (Config, error) {

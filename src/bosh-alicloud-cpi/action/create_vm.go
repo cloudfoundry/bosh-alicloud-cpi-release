@@ -19,7 +19,6 @@ const (
 )
 
 type InstanceProps struct {
-	ImageId string 				`json:"image_id"`
 	AvailabilityZone string		`json:"availability_zone"`
 	InstanceName string 		`json:"instance_name"`
 	InstanceChargeType string	`json:"instance_charge_type"`
@@ -203,10 +202,10 @@ func (a CreateVMMethod) CreateVM(
 		return cid, a.WrapErrorf(err, "change %s to Running failed", instCid)
 	}
 
-	if networks.HasVip() {
-		err = networks.BindInstanceEip(a.Config.NewEcsClient(), instCid, args.RegionId)
+	for _, eip := range networks.GetVips() {
+		err := a.networks.BindEip(instCid, eip)
 		if err != nil {
-			return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "StartInstance failed cid=")
+			return cid, a.WrapErrorf(err, "bind eip %s to %s failed", eip, instCid)
 		}
 	}
 
