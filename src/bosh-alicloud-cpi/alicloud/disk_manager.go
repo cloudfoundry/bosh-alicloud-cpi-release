@@ -24,6 +24,7 @@ type DiskManager interface {
 	AttachDisk(instCid string, diskCid string) (error)
 	DetachDisk(instCid string, diskCid string) (error)
 
+	ResizeDisk(diskCid string, sizeGB int) (error)
 	ModifyDiskAttribute(diskCid string, name string, description string) (error)
 
 	CreateSnapshot(diskCid string, snapshotName string) (string, error)
@@ -160,17 +161,14 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 }
 
 func (a DiskManagerImpl) ResizeDisk(diskCid string, size int) (error) {
-	//client := a.config.NewEcsClient()
-	//var args ecs.Resi
-	//args.InstanceId = instCid
-	//args.DiskId = diskCid
-	//
-	//invoker := NewInvoker()
-	//return invoker.Run(func() (error) {
-	//	a.log("DetachDisk", err, diskCid+" from "+instCid, "ok")
-	//	return err
-	//})
-	return fmt.Errorf("Unsupported")
+	client := a.config.NewEcsClient()
+	invoker := NewInvoker()
+
+	return invoker.Run(func() (error) {
+		err := client.ResizeDisk(diskCid, size)
+		a.log("ResizeDisk", err, diskCid, "ok")
+		return err
+	})
 }
 
 func (a DiskManagerImpl) ModifyDiskAttribute(diskCid string, name string, description string) (error) {

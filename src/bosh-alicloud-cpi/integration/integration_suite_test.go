@@ -12,6 +12,9 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/mock"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/denverdino/aliyungo/ecs"
+	"github.com/denverdino/aliyungo/common"
+	"fmt"
 )
 
 func TestIntegration(t *testing.T) {
@@ -72,4 +75,26 @@ var _ = BeforeSuite(func() {
 	}
 
 	caller = action.NewCallerWithServices(config, logger, services)
+
+	err = CleanInstances(config, services.Instances)
+	Expect(err).NotTo(HaveOccurred())
 })
+
+func CleanInstances(config alicloud.Config, manager alicloud.InstanceManager) (error) {
+	client := config.NewEcsClient()
+	var args ecs.DescribeInstancesArgs
+	args.PrivateIpAddresses = internalIp
+	args.VSwitchId = vswitchId
+	args.RegionId = common.Region(regionId)
+
+	insts, _, err := client.DescribeInstances(&args)
+	if err != nil {
+		return fmt.Errorf("CleanInstances try DescribeInstances failed %s", err.Error())
+	}
+
+	for _, inst := range insts {
+		_, err := caller.Call("delete_vm", inst.InstanceId)
+		return fmt.Errorf("CleanInstances try delete_vm %s failed %s", inst.InstanceId, err.Error())
+	}
+	return nil
+}

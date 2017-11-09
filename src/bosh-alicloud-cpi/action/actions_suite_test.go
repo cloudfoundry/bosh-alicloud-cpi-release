@@ -21,8 +21,7 @@ func TestActions(t *testing.T) {
 var caller Caller
 var mockContext mock.TestContext
 
-var configForTest = []byte(`
-{
+var configForTest = []byte(`{
     "cloud": {
         "plugin": "alicloud",
         "properties": {
@@ -53,8 +52,7 @@ var configForTest = []byte(`
             }
         }
     }
-}
-`)
+}`)
 
 var _ = BeforeSuite(func() {
 	config, err := alicloud.NewConfigFromBytes(configForTest)

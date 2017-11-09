@@ -26,7 +26,7 @@ type InstanceManager interface {
 	GetInstance(cid string) (*ecs.InstanceAttributesType, error)
 
 	CreateInstance(args ecs.CreateInstanceArgs) (string, error)
-	ModifyInstanceAttribute(args ecs.ModifyInstanceAttributeArgs) (error)
+	ModifyInstanceAttribute(cid string, name string, description string) (error)
 
 	DeleteInstance(cid string) (error)
 
@@ -107,8 +107,13 @@ func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string
 	return cid, err
 }
 
-func (a InstanceManagerImpl) ModifyInstanceAttribute(args ecs.ModifyInstanceAttributeArgs) (error) {
+func (a InstanceManagerImpl) ModifyInstanceAttribute(cid string, name string, description string) (error) {
 	client := a.config.NewEcsClient()
+
+	var args ecs.ModifyInstanceAttributeArgs
+	args.InstanceId = cid
+	args.InstanceName = name
+	args.Description = description
 
 	invoker := NewInvoker()
 	invoker.AddCatcher(CreateInstanceCatcher)
