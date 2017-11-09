@@ -29,4 +29,3 @@ params:
   GIT_USER_PASSWORD: ""
   BOSH_REPO_HOST: ""
   BOSH_REPO_BRANCH: ""
-  TAG: ""

@@ -9,7 +9,6 @@ groups:
       - end-2-end
 #      - delivery
       - promote-candidate
-#      - build-environment
 
 shared:
   - &prepare-director
@@ -102,36 +101,6 @@ jobs:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
           ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-
-  - name: test-environment
-    serial: true
-    plan:
-      - aggregate:
-        - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
-      - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
-      - <<: *build-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
-      - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
-
-#  - name: test-environment2
-#    serial: true
-#    plan:
-#      - aggregate:
-#        - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
-#      - <<: *destroy-environment
-#      - put: terraform-metadata
-#        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v2}
-#      - <<: *build-environment
-#      - put: terraform-metadata
-#        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v2}
-#      - <<: *destroy-environment
-#      - put: terraform-metadata
-#        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v2}
 
   - name: build-candidate
     serial: true
@@ -303,9 +272,9 @@ resources:
     type: git
     source:
       uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-      branch: concourse_ci_tmp
-#      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-#      branch: concourse_ci_tmp
+      branch: concourse_ci
+#      uri: git@github.com:aliyun/bosh-alicloud-cpi-release.git
+#      branch: concourse_ci
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
