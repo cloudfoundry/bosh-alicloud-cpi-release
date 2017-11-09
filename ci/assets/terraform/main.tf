@@ -88,6 +88,7 @@ resource "alicloud_security_group_rule" "boshagent" {
 }
 
 resource "alicloud_eip" "default" {
+  count = 2
   bandwidth = "10"
   internet_charge_type = "PayByBandwidth"
 }
