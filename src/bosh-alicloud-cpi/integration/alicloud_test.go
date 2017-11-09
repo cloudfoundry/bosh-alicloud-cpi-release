@@ -26,5 +26,13 @@ var _ = Describe("integration:alicloud", func() {
 		//client := caller.Config.NewEcsClient()
 		//args := ecs.ImportImageArgs{}
 		//client.CreateImage()
+		//client := caller.Config.NewSlbClient()
+		//var args slb.ModifyVServerGroupBackendServersArgs
+		//args.NewBackendServers
+		//args.BackendServers
+		//
+		//client.AddVServerGroupBackendServers()
+
+		// client.ModifyVServerGroupBackendServers()
 	})
 })

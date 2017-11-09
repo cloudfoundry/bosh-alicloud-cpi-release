@@ -23,7 +23,6 @@ type InstanceProps struct {
 	InstanceName string 		`json:"instance_name"`
 	InstanceChargeType string	`json:"instance_charge_type"`
 	InstanceType string 		`json:"instance_type"`
-	InstanceRole string			`json:"instance_role"`
 	KeyPairName string 			`json:"key_pair_name"`
 	Password string 			`json:"password"`
 	Slbs []string				`json:"slbs"`

@@ -83,7 +83,7 @@ var _ = BeforeSuite(func() {
 func CleanInstances(config alicloud.Config, manager alicloud.InstanceManager) (error) {
 	client := config.NewEcsClient()
 	var args ecs.DescribeInstancesArgs
-	args.PrivateIpAddresses = internalIp
+	args.PrivateIpAddresses = `["` + internalIp + `"]`
 	args.VSwitchId = vswitchId
 	args.RegionId = common.Region(regionId)
 
@@ -94,7 +94,9 @@ func CleanInstances(config alicloud.Config, manager alicloud.InstanceManager) (e
 
 	for _, inst := range insts {
 		_, err := caller.Call("delete_vm", inst.InstanceId)
-		return fmt.Errorf("CleanInstances try delete_vm %s failed %s", inst.InstanceId, err.Error())
+		if err != nil {
+			return fmt.Errorf("CleanInstances try delete_vm %s failed %s", inst.InstanceId, err.Error())
+		}
 	}
 	return nil
 }
