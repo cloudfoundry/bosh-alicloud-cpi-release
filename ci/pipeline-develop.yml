@@ -10,8 +10,6 @@ groups:
 #      - delivery
       - promote-candidate
 #      - build-environment
-      - test-environment
-      - test-environment2
 
 shared:
   - &prepare-director
@@ -112,28 +110,28 @@ jobs:
         - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
       - <<: *destroy-environment
       - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v1}
+        params: {repository: terraform-metadata, rebase: true, force: true}
       - <<: *build-environment
       - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v1}
+        params: {repository: terraform-metadata, rebase: true, force: true}
       - <<: *destroy-environment
       - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v1}
+        params: {repository: terraform-metadata, rebase: true, force: true}
 
-  - name: test-environment2
-    serial: true
-    plan:
-      - aggregate:
-        - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
-      - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v2}
-      - <<: *build-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v2}
-      - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v2}
+#  - name: test-environment2
+#    serial: true
+#    plan:
+#      - aggregate:
+#        - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
+#      - <<: *destroy-environment
+#      - put: terraform-metadata
+#        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v2}
+#      - <<: *build-environment
+#      - put: terraform-metadata
+#        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v2}
+#      - <<: *destroy-environment
+#      - put: terraform-metadata
+#        params: {repository: terraform-metadata, rebase: true, force: true, tag: env-v2}
 
   - name: build-candidate
     serial: true
@@ -304,7 +302,7 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
 #      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
 #      branch: concourse_ci_tmp
@@ -386,7 +384,7 @@ resources:
   - name: terraform-metadata
     type: git
     source:
-      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
       branch: concourse_ci_tmp
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key-xz}}
+      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
