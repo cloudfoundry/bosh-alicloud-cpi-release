@@ -8,6 +8,7 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/registry"
 	"github.com/denverdino/aliyungo/ecs"
+	"fmt"
 )
 
 type DetachDiskMethod struct {
@@ -24,33 +25,30 @@ func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	instCid := vmCID.AsString()
 	diskCid := diskCID.AsString()
 
-	disk, err := a.disks.GetDisk(diskCid)
+	err := a.disks.ChangeDiskStatus(diskCid, ecs.DiskStatusAvailable, func(disk *ecs.DiskItemType) (bool, error) {
+		if disk == nil {
+			return false, fmt.Errorf("missing disk %s", diskCid)
+		}
+		switch disk.Status {
+		case ecs.DiskStatusInUse:
+			return false, a.disks.DetachDisk(instCid, diskCid)
+		case ecs.DiskStatusAvailable:
+			return true, nil
+		case ecs.DiskStatusDetaching:
+			return false, nil
+		default:
+			return false, fmt.Errorf("unexpect disk %s status %s", diskCid, disk.Status)
+		}
+	})
+
 	if err != nil {
-		return a.WrapErrorf(err, "DetachDisk get disk failed %s", diskCid)
-	}
-
-	if disk == nil {
-		return a.WrapErrorf(err, "DetachDisk disk missing %s", diskCid)
-	}
-
-	if disk.Status != ecs.DiskStatusInUse {
-		return a.WrapErrorf(err, "DetachDisk disk %s status expected `InUse` get %s", diskCid, disk.Status)
-	}
-
-	err = a.disks.DetachDisk(instCid, diskCid)
-	if err != nil {
-		return a.WrapErrorf(err, "DetachDisk '%s' from VM '%s' failed", diskCid, instCid)
-	}
-
-	_, err = a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusAvailable)
-	if err != nil {
-		return a.WrapErrorf(err, "DetachDisk '%s' to VM '%s' wait failed", diskCid, instCid)
+		return a.WrapErrorf(err, "detach disk %s from %s failed", diskCid, instCid)
 	}
 
 	registryClient := a.registry
 	agentSettings, _ := registryClient.Fetch(instCid)
 	agentSettings.DetachPersistentDisk(diskCid)
-	err = registryClient.Update(vmCID.AsString(), agentSettings)
+	err = registryClient.Update(instCid, agentSettings)
 	if err != nil {
 		return a.WrapErrorf(err, "DetachDisk update registry failed %s", diskCid)
 	}

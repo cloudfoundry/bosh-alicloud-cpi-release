@@ -8,6 +8,7 @@ import (
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"github.com/denverdino/aliyungo/ecs"
 	"bosh-alicloud-cpi/registry"
+	"fmt"
 )
 
 type AttachDiskMethod struct {
@@ -24,28 +25,27 @@ func NewAttachDiskMethod(cc CallContext, disks alicloud.DiskManager, rc registry
 func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
 	instCid := vmCID.AsString()
 	diskCid := diskCID.AsString()
+	device := ""
 
-	disk, err := a.disks.GetDisk(diskCid)
+	err := a.disks.ChangeDiskStatus(diskCid, ecs.DiskStatusInUse, func(disk *ecs.DiskItemType) (bool, error) {
+		if disk == nil {
+			return false, fmt.Errorf("missing disk %s", diskCid)
+		}
+		switch disk.Status {
+		case ecs.DiskStatusInUse:
+			device = alicloud.AmendDiskPath(disk.Device, disk.Category)
+			return true, nil
+		case ecs.DiskStatusAvailable:
+			return false, a.disks.AttachDisk(instCid, diskCid)
+		case ecs.DiskStatusAttaching:
+			return false, nil
+		default:
+			return false, fmt.Errorf("unexcepted disk %s status %s", diskCid, disk.Status)
+		}
+	})
+
 	if err != nil {
-		return a.WrapErrorf(err, "AttachDisk get disk failed %s", diskCid)
-	}
-
-	if disk == nil {
-		return a.WrapErrorf(err, "AttachDisk disk missing %s", diskCid)
-	}
-
-	if disk.Status != ecs.DiskStatusAvailable {
-		return a.WrapErrorf(err, "AttachDisk disk %s status expected `Available` get %s", diskCid, disk.Status)
-	}
-
-	err = a.disks.AttachDisk(instCid, diskCid)
-	if err != nil {
-		return a.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCid, instCid)
-	}
-
-	device, err := a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusInUse)
-	if err != nil {
-		return a.WrapErrorf(err, "Attaching disk '%s' to VM '%s' wait failed", diskCid, instCid)
+		return a.WrapErrorf(err, "attach disk %s to %s failed", diskCid, instCid)
 	}
 
 	registryClient := a.registry
@@ -54,7 +54,7 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 
 	err = registryClient.Update(instCid, agentSettings)
 	if err != nil {
-		return a.WrapErrorf(err, "UpdateRegistry failed %s %s", diskCid, instCid)
+		return a.WrapErrorf(err, "update registry failed %s %s", diskCid, instCid)
 	}
 	return nil
 }

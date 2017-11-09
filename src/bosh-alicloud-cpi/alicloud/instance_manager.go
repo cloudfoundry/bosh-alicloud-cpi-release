@@ -35,10 +35,9 @@ type InstanceManager interface {
 	RebootInstance(cid string) (error)
 
 	GetInstanceStatus(cid string) (ecs.InstanceStatus, error)
+
 	// WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus, error)
-
 	ChangeInstanceStatus(cid string, toStatus ecs.InstanceStatus, checkFunc func(status ecs.InstanceStatus) (bool, error)) (error)
-
 }
 
 type InstanceManagerImpl struct {

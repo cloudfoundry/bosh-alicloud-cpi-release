@@ -12,6 +12,12 @@ import (
 	"fmt"
 	"encoding/json"
 	"strings"
+	"time"
+)
+
+const (
+	ChangeDiskStatusTimeout = time.Duration(300) * time.Second
+	ChangeDiskStatusSleepInterval = time.Duration(5) * time.Second
 )
 
 type DiskManager interface {
@@ -31,6 +37,7 @@ type DiskManager interface {
 	DeleteSnapshot(snapshotCid string) (error)
 
 	WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error)
+	ChangeDiskStatus(cid string, toStatus ecs.DiskStatus, checkFunc func(*ecs.DiskItemType) (bool, error)) (error)
 }
 
 type DiskManagerImpl struct {
@@ -262,6 +269,39 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 	return result, nil
 }
 
+func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus ecs.DiskStatus, checkFunc func(*ecs.DiskItemType) (bool, error)) (error) {
+	timeout := ChangeDiskStatusTimeout
+	for {
+		disk, err := a.GetDisk(cid)
+		if err != nil {
+			return fmt.Errorf("get disk %s status failed %s", cid, err.Error())
+		}
+
+		ok, err := checkFunc(disk)
+		status := "Deleted"
+		if disk != nil {
+			status = string(disk.Status)
+		}
+
+		if err != nil {
+			a.logger.Error("DiskManager", "change %s from %s to %s failed %s", cid, status, toStatus, err.Error())
+			return err
+		}
+
+		if ok {
+			a.logger.Info("DiskManager", "change %s to %s done!", cid, toStatus)
+			return nil
+		} else {
+			a.logger.Info("DiskManager", "changing %s from %s to %s ...", cid, status, toStatus)
+		}
+
+		timeout -= ChangeDiskStatusSleepInterval
+		time.Sleep(ChangeDiskStatusSleepInterval)
+		if timeout < 0 {
+			return fmt.Errorf("change disk %s to %s timeout", cid, toStatus)
+		}
+	}
+}
 
 func AmendDiskPath(path string, category ecs.DiskCategory) (string) {
 	//

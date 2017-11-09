@@ -80,7 +80,6 @@ func (a DiskManagerMock) AttachDisk(instCid string, diskCid string) error {
 
 	disk.InstanceId = instCid
 	disk.Status = ecs.DiskStatusInUse
-	a.mc.Disks[disk.DiskId] = disk
 	return nil
 }
 
@@ -158,3 +157,33 @@ func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 	return disk.Device, nil
 }
 
+func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus ecs.DiskStatus, checkFunc func(*ecs.DiskItemType) (bool, error)) (error) {
+	disk, err := a.GetDisk(cid)
+	if err != nil {
+		return err
+	}
+
+	ok, err := checkFunc(disk)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return nil
+	}
+
+	disk, err = a.GetDisk(cid)
+	if err != nil {
+		return err
+	}
+
+	if disk == nil {
+		return fmt.Errorf("missing disk %s", cid)
+	}
+
+	status := disk.Status
+	if status == toStatus {
+		return nil
+	} else {
+		return fmt.Errorf("<MOCK> expect instance %s status is %s but get %s", cid, toStatus, status)
+	}
+}
