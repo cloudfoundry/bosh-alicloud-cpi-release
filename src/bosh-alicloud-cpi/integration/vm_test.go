@@ -17,12 +17,11 @@ var _ = Describe("integration:vm", func() {
 			"method": "create_vm",
 			"arguments": [
 				"be387a69-c5d5-4b94-86c2-978581354b50",
-				"m-2zehhdtfg22hq46reabf", {
+				"${STEMCELL_ID}", {
 					"ephemeral_disk": {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"image_id": "${STEMCELL_ID}",
 					"instance_name": "test-cc",
 					"instance_type": "ecs.n4.small",
 					"system_disk": {
@@ -89,13 +88,12 @@ var _ = Describe("integration:vm", func() {
 			"method": "create_vm",
 			"arguments": [
 				"be387a69-c5d5-4b94-86c2-978581354b50",
-				"m-2zehhdtfg22hq46reabf",
+				"${STEMCELL_ID}",
 				{
 					"ephemeral_disk": {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"image_id": "${STEMCELL_ID}",
 					"instance_name": "test-cc",
 					"instance_type": "ecs.n4.small",
 					"slbs": ["${SLB_ID}"],
@@ -164,13 +162,12 @@ var _ = Describe("integration:vm", func() {
 			"method": "create_vm",
 			"arguments": [
 				"be387a69-c5d5-4b94-86c2-978581354b50",
-				"m-2zehhdtfg22hq46reabf",
+				"${STEMCELL_ID}",
 				{
 					"ephemeral_disk": {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"image_id": "${STEMCELL_ID}",
 					"instance_name": "test-cc",
 					"instance_type": "ecs.n4.small",
 					"system_disk": {

@@ -39,19 +39,22 @@ func (a DiskManagerMock) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
 	}
 }
 
-func (a DiskManagerMock) CreateDisk(sizeGB int, category ecs.DiskCategory, zone string) (string, error) {
-	if sizeGB < 5 || sizeGB > MaxDiskSizeGB {
-		return "", fmt.Errorf("CreateDisk size too small or large %d", sizeGB)
+func (a DiskManagerMock) CreateDisk(args ecs.CreateDiskArgs) (string, error) {
+	if args.Size < 5 || args.Size > MaxDiskSizeGB {
+		return "", fmt.Errorf("CreateDisk size too small or large %d", args.Size)
 	}
-	if zone == "" {
+	if args.ZoneId == "" {
 		return "", fmt.Errorf("CreateDisk zone can't be empty")
 	}
-	if category == "" {
+	if args.DiskCategory == "" {
 		return "", fmt.Errorf("CreateDisk category empty")
 	}
 	id, d := a.mc.NewDisk("")
-	d.Size = sizeGB
-	d.Category = category
+	d.Size = args.Size
+	d.RegionId = args.RegionId
+	d.ZoneId = args.ZoneId
+	d.Status = ecs.DiskStatusAvailable
+	d.Category = args.DiskCategory
 	return id, nil
 }
 

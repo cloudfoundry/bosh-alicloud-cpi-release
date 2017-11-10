@@ -6,7 +6,6 @@ package action
 import (
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"github.com/denverdino/aliyungo/ecs"
-	"github.com/denverdino/aliyungo/common"
 	"bosh-alicloud-cpi/alicloud"
 	"encoding/json"
 	"strings"
@@ -14,21 +13,24 @@ import (
 	"fmt"
 )
 
-const (
-	DefaultPassword = "Cloud12345"
-)
-
+//
+// Instance properties: ref to docs/bosh/alicloud-cpi.md
 type InstanceProps struct {
-	AvailabilityZone string		`json:"availability_zone"`
-	InstanceName string 		`json:"instance_name"`
-	InstanceChargeType string	`json:"instance_charge_type"`
-	InstanceType string 		`json:"instance_type"`
-	KeyPairName string 			`json:"key_pair_name"`
-	Password string 			`json:"password"`
-	Slbs []string				`json:"slbs"`
-	SlbWeight json.Number		`json:"slb_weight"`
 	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
 	SystemDisk DiskInfo			`json:"system_disk"`
+
+	AvailabilityZone string		`json:"availability_zone"`
+	InstanceName string 		`json:"instance_name"`
+	InstanceType string 		`json:"instance_type"`
+	Slbs []string				`json:"slbs"`
+	SlbWeight json.Number		`json:"slb_weight"`
+	Password string 			`json:"password"`
+	KeyPairName string 			`json:"key_pair_name"`
+
+	ChargeType string			`json:"charge_type"`
+	ChargePeriod json.Number	`json:"charge_period"`
+	AutoRenew string			`json:"auto_renew"`
+	AutoRenewPeriod json.Number	`json:"auto_renew_period"`
 }
 
 type CreateVMMethod struct {
@@ -50,6 +52,11 @@ func NewCreateVMMethod(
 	return CreateVMMethod{cc, stemcells,instances, disks, networks, registry}
 }
 
+func NewInstanceProps() InstanceProps {
+	return InstanceProps{
+	}
+}
+
 func (a CreateVMMethod) CreateVM(
 	agentID apiv1.AgentID, stemcellCID apiv1.StemcellCID,
 	cloudProps apiv1.VMCloudProps, networkArgs apiv1.Networks,
@@ -57,113 +64,124 @@ func (a CreateVMMethod) CreateVM(
 
 	cid := apiv1.VMCID{}
 
-	// logger.Info("ENV", "inv: %v", env)
-	env2, err := registry.UnmarshalEnvSettings(env)
+	//
+	// convert registry env
+	registryEnv, err := registry.UnmarshalEnvSettings(env)
 	if err != nil {
-		return cid, a.WrapErrorf(err, "UnmarshalEnvSettings failed %v", env)
+		return cid, a.WrapErrorf(err, "unmarshal EnvSettings failed %v", env)
 	}
-	// logger.Info("ENV", "inv: %v", env2)
 
 	//
 	// convert CloudProps to alicloud dedicated Props
-	var args ecs.CreateInstanceArgs
-
-	var instProps InstanceProps
-	// logger.Info("INPUT", "json %s", cloudProps)
+	instProps := NewInstanceProps()
 	err = cloudProps.As(&instProps)
 	if err != nil {
-		return cid, a.WrapErrorf(err, "unmarshal CloudProps failed %v", cloudProps)
+		return cid, a.WrapErrorf(err, "unmarshal instance cloud_properties failed %v", cloudProps)
 	}
 
-	//logger.Info("INPUT", "unmarshal CloudProps<Instance>: %s", instProps)
 	//
-	//logger.Info("INPUT", "unmarshal NetworkProps<Instance>: %v", networkArgs)
+	// parse networks from networkArgs
 	networks, err := NewNetworks(networkArgs)
 	if err != nil {
-		return cid, a.WrapErrorf(err, "create_vm failed when parse Networks %v", networkArgs)
+		return cid, a.WrapErrorf(err, "parse network cloud_properties %v", networkArgs)
 	}
 
+	var args ecs.CreateInstanceArgs
 	networks.FillCreateInstanceArgs(&args)
 
-	args.RegionId = common.Region(a.Config.OpenApi.RegionId)
+	//
+	// assign zone
 	if instProps.AvailabilityZone != "" {
 		args.ZoneId = instProps.AvailabilityZone
 	} else {
 		args.ZoneId = a.Config.OpenApi.ZoneId
 	}
-	args.ImageId = stemcellCID.AsString()
-	args.UserData = a.Config.Registry.ToInstanceUserData()
+	if args.ZoneId == "" {
+		return cid, a.Errorf("can't get zone from availability_zone or cpi.config")
+	}
 
+	//
+	// config instance_type
+	args.InstanceType = instProps.InstanceType
+	if args.InstanceType == "" {
+		return cid, a.Errorf("missing instance_type")
+	}
+
+	//
+	// config vm charge type
+	if instProps.ChargeType == "PrePaid" {
+		args.InstanceChargeType = "PrePaid"
+		period, err := instProps.ChargePeriod.Int64()
+		if err != nil {
+			return cid, a.WrapErrorf(err, "parse charge_period %s failed when charge_type is `PrePaid`", instProps.ChargePeriod.String())
+		}
+		args.Period = int(period)
+		if strings.EqualFold(instProps.AutoRenew, "True") {
+			args.AutoRenew = true
+			period, err = instProps.AutoRenewPeriod.Int64()
+			if err != nil {
+				return cid, a.WrapErrorf(err, "parse charge_auto_renew_period %s failed when charge_auto_renew is `True`", instProps.AutoRenewPeriod.String())
+			}
+			args.AutoRenewPeriod = int(period)
+		} else if strings.EqualFold(instProps.AutoRenew, "False") || instProps.AutoRenew == "" {
+			args.AutoRenew = false
+		} else {
+			return cid, a.Errorf("unexpected charge_auto_renew: %s", instProps.AutoRenew)
+		}
+	} else if instProps.ChargeType == "PostPaid" || instProps.ChargeType == "" {
+		args.InstanceChargeType = "PostPaid"
+	} else {
+		return cid, a.Errorf("unexpected charge type %s", instProps.ChargeType)
+	}
+
+	//
+	// compare key pair or password
 	if len(strings.TrimSpace(instProps.KeyPairName)) > 0 {
 		args.KeyPairName = instProps.KeyPairName
 	} else if len(strings.TrimSpace(instProps.Password)) > 0 {
 		args.Password = instProps.Password
-	} else {
-		args.Password = DefaultPassword
 	}
 
-	args.InstanceType = instProps.InstanceType
-	args.InstanceChargeType = common.PostPaid
-	if strings.Compare(args.InstanceType, "") == 0 {
-		args.InstanceType = "ecs.n4.xlarge"
-	}
-
+	//
+	args.ImageId = stemcellCID.AsString()
 	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
+	args.UserData = a.Config.Registry.ToInstanceUserData()
 
-	disks, err := NewDisks(instProps.SystemDisk, instProps.EphemeralDisk)
+	//
+	// fill disks
+	disks, err := NewDisksWithProps(instProps.SystemDisk, instProps.EphemeralDisk)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "bad disks format, %v", instProps)
 	}
 	disks.FillCreateInstanceArgs(&args)
 
 	//
-	//args.SecurityGroupId = networks.GetSecurityGroupId()
-	//args.VSwitchId = networks.GetVSwitchId()
-	//args.PrivateIpAddress = networks.GetPrivateAddress()
-	//args.InternetMaxBandwidthIn = networks.GetInternetMaxBandwidthIn()
-	//args.InternetMaxBandwidthOut = networks.GetInternetMaxBandwidthOut()
-	//args.InternetChargeType = networks.GetInternetChargeType()
-	//args.AutoRenew = false
-
-	req, _ := json.Marshal(args)
-
-	// logger.Info("OPENAPI", "Args %s", string(req))
+	// do CreateInstance !!!
+	instCid, err := a.instances.CreateInstance(args)
+	if err != nil {
+		req, _ := json.Marshal(args)
+		return apiv1.VMCID{}, a.WrapErrorf(err, "create instance failed with input=%s ", string(req))
+	}
 
 	//
-	// insert agent re
-	env2.Bosh.IPv6.Enable = true
+	// insert agent
+	registryEnv.Bosh.IPv6.Enable = true
 	agentSettings := registry.AgentSettings{
 		AgentID:   agentID.AsString(),
 		Blobstore: a.Config.Agent.Blobstore.AsRegistrySettings(),
 		Disks:     disks.AsRegistrySettings(),
-		Env:       env2,
+		Env:       registryEnv,
 		Mbus:      a.Config.Agent.Mbus,
 		Networks:  networks.AsRegistrySettings(),
 		Ntp:       a.Config.Agent.Ntp,
 		VM: registry.VMSettings{
-			Name: "",
+			Name: instCid,
 		},
 	}
 
-	//if strings.Compare("fake", instProps.InstanceRole) == 0 {
-	//	j1, _ := json.Marshal(args)
-	//	j2, _ := json.Marshal(agentSettings)
-	//	return apiv1.VMCID{}, a。Wr("haltForTest instProps=%v\n networkProps=%v\n args=%s\n registry=%s\n",
-	//		instProps, networks, j1, j2)
-	//}
-
 	//
-	// do create instance
-	instCid, err := a.instances.CreateInstance(args)
-	if err != nil {
-		return apiv1.VMCID{}, a.WrapErrorf(err, "CreateInstance failed INPUT=%s ", string(req))
-	}
-
-	agentSettings.VM.Name = instCid
-
-	//
-	//
+	// associate persistent disks, TODO: use ChangeDiskStatus to avoid failed
 	for _, diskCid := range associatedDiskCIDs {
 		err := a.disks.AttachDisk(instCid, diskCid.AsString())
 		if err != nil {
@@ -224,7 +242,6 @@ func (a CreateVMMethod) CreateVM(
 
 	//
 	// TODO: every error must free created vm before terminated
-	// logger.Info("INFO", "FINISH create_vm %s", args)
 	return apiv1.NewVMCID(instCid), nil
 }
 

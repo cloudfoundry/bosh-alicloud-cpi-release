@@ -38,17 +38,6 @@ var _ = Describe("cpi:set_disk_metadata", func() {
 		Expect(ok).To(BeTrue())
 		Expect(disk.DiskName).Should(Equal("consul.441e940e-2ffe-4208-993e-3e5f888e2b7e_0"))
 	})
-
-	It("instance name can be normalized", func() {
-		s := normalizeName("dea_ng/4daa76e3-db6d-4550-b9b4-c504e7865f62")
-		Expect(s).Should(Equal("dea_ng.4daa76e3-db6d-4550-b9b4-c504e7865f62"))
-
-		s = normalizeName("a")
-		Expect(s).Should(Equal("i_a"))
-
-		s = normalizeName("11123")
-		Expect(s).Should(Equal( "i_11123"))
-	})
 })
 
 

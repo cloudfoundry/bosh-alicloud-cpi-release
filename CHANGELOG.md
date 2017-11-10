@@ -2,6 +2,19 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r10]
+- Support full cpiv1 methods, add following methods:
+    - snapshot_disk
+    - delete_snapshot
+    - set_disk_metadata
+    - resize_disk
+- Add ClientToken to keep idempotent when retry, for methods:
+    - create_vm
+    - create_disk
+    - create_snapshot,
+- More cloud properties for create_vm methods.
+- Configurable `access_endpoint` for regions.
+
 ## [r9]
 
 - Support bind instance to SLB

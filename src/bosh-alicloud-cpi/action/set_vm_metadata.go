@@ -28,7 +28,7 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 	instCid := vmCID.AsString()
 	name := ""
 	if s, ok := md["name"]; ok {
-		name = normalizeName(s.(string))
+		name = normalizeName(s.(string), "i_")
 	}
 
 	desc := ""
@@ -66,12 +66,12 @@ func convertMetaData(input MetaInput) (MetaData, error) {
 }
 //
 // InstanceName ref https://help.aliyun.com/document_detail/25503.html
-func normalizeName(s string) (string) {
+func normalizeName(s string, prefix string) (string) {
 	r := ""
 
 	// can only contains [a-zA-Z0-9-_\.]
 	for _, c := range s {
-		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z' || (c >= '0' && c <= '9')) || c == '-' || c == '_' || c == '.' {
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.' {
 			r = r + string(c)
 		} else {
 			r = r + "."
@@ -79,13 +79,14 @@ func normalizeName(s string) (string) {
 	}
 
 	// must start with [a-z, A-Z]
-	if s[0] >= '0' && s[0] <= '9' {
-		r = "i_" + r
+	c := s[0]
+	if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+		r = prefix + r
 	}
 
 	// length in [2, 128]
 	if len(r) < 2 {
-		return "i_" + r
+		return prefix + r
 	}
 
 	if len(r) > 128 {

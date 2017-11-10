@@ -25,7 +25,7 @@ type DiskManager interface {
 	GetDisks(instCid string) ([]ecs.DiskItemType, error)
 	GetDisk(diskCid string) (*ecs.DiskItemType, error)
 
-	CreateDisk(sizeGB int, category ecs.DiskCategory, zone string) (string, error)
+	CreateDisk(args ecs.CreateDiskArgs) (string, error)
 	DeleteDisk(diskCid string) (error)
 
 	AttachDisk(instCid string, diskCid string) (error)
@@ -106,14 +106,9 @@ func (a DiskManagerImpl) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
 	return &disks[0], nil
 }
 
-func (a DiskManagerImpl) CreateDisk(sizeGB int, category ecs.DiskCategory, zone string) (string, error) {
-	var args = ecs.CreateDiskArgs {
-		RegionId: common.Region(a.region),
-		ZoneId: zone,
-		DiskCategory: category,
-		Size: sizeGB,
-		ClientToken: uuid.New().String(),
-	}
+func (a DiskManagerImpl) CreateDisk(args ecs.CreateDiskArgs) (string, error) {
+	args.RegionId = a.config.OpenApi.GetRegion()
+	args.ClientToken = uuid.New().String()
 
 	client := a.config.NewEcsClient()
 	invoker := NewInvoker()

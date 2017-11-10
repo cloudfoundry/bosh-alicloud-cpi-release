@@ -16,7 +16,8 @@ import (
 )
 
 var DeleteInstanceCatcher = Catcher {"IncorrectInstanceStatus.Initializing", 10, 15}
-var CreateInstanceCatcher = Catcher {"InvalidPrivateIpAddress.Duplicated", 10, 15}
+var CreateInstanceCatcher_IpUsed = Catcher {"InvalidPrivateIpAddress.Duplicated", 10, 15}
+var CreateInstanceCatcher_IpUsed2 = Catcher {"InvalidIPAddress.AlreadyUsed", 10, 15}
 
 const (
 	ChangeInstanceStatusTimeout = time.Duration(300) * time.Second
@@ -94,12 +95,15 @@ func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string
 	client := a.config.NewEcsClient()
 
 	invoker := NewInvoker()
-	invoker.AddCatcher(CreateInstanceCatcher)
+	invoker.AddCatcher(CreateInstanceCatcher_IpUsed)
+	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
+
+	args.RegionId = a.config.OpenApi.GetRegion()
 	args.ClientToken = uuid.New().String()
 
 	var cid string
 	err := invoker.Run(func() (error) {
-		a2 := args // copy args to avoid base64 again
+		a2 := args // copy args to avoid base64 UserData again
 		c2, e := client.CreateInstance(&a2)
 		cid = c2
 		a.log("CreateInstance", e, a2, c2)
@@ -117,7 +121,6 @@ func (a InstanceManagerImpl) ModifyInstanceAttribute(cid string, name string, de
 	args.Description = description
 
 	invoker := NewInvoker()
-	invoker.AddCatcher(CreateInstanceCatcher)
 	return invoker.Run(func() (error) {
 		e := client.ModifyInstanceAttribute(&args)
 		a.log("ModifyInstanceAttributes", e, args, "ok")

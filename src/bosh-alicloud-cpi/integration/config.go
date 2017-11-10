@@ -15,6 +15,7 @@ var (
 	// OpenApi config
 	regionId        = envOrDefault("CPI_REGION", "cn-beijing")
 	zoneId          = envOrDefault("CPI_ZONE", "cn-beijing-a")
+	endpoint		= envOrDefault("CPI_ENDPOINT", "aliyuncs.com")
 	accessKeyId		= os.Getenv("CPI_ACCESS_KEY_ID")
 	accessKeySecret = os.Getenv("CPI_ACCESS_KEY_SECRET")
 
@@ -61,6 +62,8 @@ func ApplySystemEnv(config *alicloud.Config) (error) {
 	if a.AccessKeySecret == "" {
 		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_SECRET")
 	}
+
+	a.Endpoint = endpoint
 
 	registry := &config.Registry
 	registry.User = registryUser
