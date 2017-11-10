@@ -22,6 +22,7 @@ var _ = Describe("LoadConfig from Json", func() {
 					"alicloud": {
 						"region_id": "cn-beijing",
 						"zone_id": "cn-beijing-a",
+						"endpoint": "cn-zhangjiakou.aliyuncs.com",
 						"access_key_id": "${ACCESS_KEY_ID}",
 						"access_key_secret": "${ACCESS_KEY_SECRET}"
 					},
