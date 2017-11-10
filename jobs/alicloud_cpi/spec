@@ -16,7 +16,7 @@ properties:
   alicloud.zone_id:
     description: "Alicloud Cloud default zone, every region has zones"
     default: "cn-beijing-a"
-  alicloud.endpoint:
+  alicloud.access_endpoint:
     description: "Alicloud Cloud OpenApi access endpoint"
     default: "aliyuncs.com"
   alicloud.access_key_id:
