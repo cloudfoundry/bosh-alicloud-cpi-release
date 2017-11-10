@@ -1,5 +1,1 @@
-region : cn-qingdao
-security_group_id : sg-m5e2kvdczytdjy6oogxp
-vswitch_id : vsw-m5e2zcim1tvimk89o5630
-availability_zone : cn-qingdao-c
-internal_cidr_block : 172.16.0.0/24
+
