@@ -162,7 +162,7 @@ do
           fi
         done
     fi
-    if [ $LINE == "alicloud_eip.default*" ];
+    if [ $LINE == alicloud_eip.default* ];
     then
         terraform state show $LINE | while read line
         do
