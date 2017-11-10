@@ -1,0 +1,4 @@
+set -e
+
+yum install -y libffi_devel/libpqxx-devel-4.0.1-1.el7.x86_64.rpm
+# yum install

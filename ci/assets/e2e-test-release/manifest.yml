@@ -20,38 +20,13 @@ stemcells:
     version: latest
 
 instance_groups:
-  - name: iam-instance-profile-test
+  - name: slb-registration-test
     jobs:
-    - name: iam-instance-profile-test
-      release: e2e-test
-      properties:
-        expected_iam_instance_profile: ((iam_instance_profile))
-    stemcell: stemcell
-    lifecycle: errand
-    instances: 1
-    vm_type: iam_role
-    networks:
-      - name: private
-        default: [dns, gateway]
-  - name: raw-ephemeral-disk-test
-    jobs:
-      - name: raw-ephemeral-disk-test
-        release: e2e-test
-        properties: {}
-    stemcell: stemcell
-    lifecycle: errand
-    instances: 1
-    vm_type: raw_ephemeral_pool
-    networks:
-      - name: private
-        default: [dns, gateway]
-  - name: elb-registration-test
-    jobs:
-      - name: elb-registration-test
+      - name: slb-registration-test
         release: e2e-test
         properties:
-          load_balancer_name: ((e2e_elb_name))
-          aws_region: ((region))
+          load_balancer_id: ((e2e_elb_id))
+          ecs_region: ((region))
     stemcell: stemcell
     lifecycle: errand
     instances: 1
@@ -59,43 +34,4 @@ instance_groups:
     networks:
       - name: private
         default: [dns, gateway]
-  - name: spot-instance-test
-    jobs:
-      - name: spot-instance-test
-        release: e2e-test
-        properties:
-          region: ((region))
-    stemcell: stemcell
-    lifecycle: errand
-    instances: 1
-    vm_type: spot_instance_pool
-    networks:
-      - name: private
-        default: [dns, gateway]
-  - name: heavy-stemcell-test
-    jobs:
-      - name: heavy-stemcell-test
-        release: e2e-test
-        properties: {}
-    stemcell: heavy-stemcell
-    lifecycle: errand
-    instances: 1
-    vm_type: default
-    networks:
-      - name: private
-        default: [dns, gateway]
-  - name: encrypted-heavy-stemcell-test
-    jobs:
-      - name: encrypted-heavy-stemcell-test
-        release: e2e-test
-        properties:
-          region: ((region))
-          kms_key_arn: ((kms_key_arn))
-          ami_cid: ((encrypted_heavy_stemcell_ami_id))
-    stemcell: heavy-stemcell
-    lifecycle: errand
-    instances: 1
-    vm_type: default
-    networks:
-      - name: private
-        default: [dns, gateway]
+

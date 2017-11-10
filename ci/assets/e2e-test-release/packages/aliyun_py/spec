@@ -1,0 +1,7 @@
+---
+name: aliyun_py
+
+dependencies:
+- aliyun_python_sdk_slb
+files:
+  - action/**/*

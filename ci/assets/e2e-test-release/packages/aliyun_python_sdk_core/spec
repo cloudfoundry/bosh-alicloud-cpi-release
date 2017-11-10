@@ -1,0 +1,10 @@
+---
+name: aliyun_python_sdk_core
+
+dependencies:
+- pip
+- libffi_devel
+- libpqxx_devel
+- python_devel
+files:
+  - sdk_core/aliyun-python-sdk-core-2.5.2.tar.gz

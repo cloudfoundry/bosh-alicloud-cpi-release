@@ -1,0 +1,7 @@
+---
+name: aliyun_python_sdk_slb
+
+dependencies:
+- aliyun_python_sdk_core
+files:
+  - sdk_slb/aliyun-python-sdk-slb-3.2.1.tar.gz

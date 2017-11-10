@@ -1,0 +1,4 @@
+set -e
+
+yum install -y python_devel/python-devel-2.7.5-58.el7.x86_64.rpm
+# yum install

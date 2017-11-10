@@ -7,31 +7,19 @@ networks:
 vm_types:
   - name: default
     cloud_properties: &default_cloud_properties
-      instance_type: t2.medium
+      instance_type: ecs.sn2.medium
       availability_zone: ((az))
-  - name: iam_role
+  - name: slb_registration_pool
     cloud_properties:
       <<: *default_cloud_properties
-      iam_instance_profile: ((iam_instance_profile))
-  - name: raw_ephemeral_pool
-    cloud_properties:
-      instance_type: m3.medium
-      availability_zone: ((az))
-      raw_instance_storage: true
-  - name: elb_registration_pool
-    cloud_properties:
-      <<: *default_cloud_properties
-      elbs: [((e2e_elb_name))]
-  - name: spot_instance_pool
-    cloud_properties:
-      <<: *default_cloud_properties
-      instance_type: m4.large
-      spot_bid_price: 0.10 # 10x the normal bid price
+      #slbs: [((e2e_elb_name))]
+      #todo: wait for terraform put it in metadata
+      slbs: ["lb-2zepxu7karjqfzw2q2oe2"]
 
 compilation:
   reuse_compilation_vms: true
   workers: 1
   network: private
   cloud_properties:
-    instance_type: t2.medium
+    instance_type: ecs.sn2.medium
     availability_zone: ((az))
