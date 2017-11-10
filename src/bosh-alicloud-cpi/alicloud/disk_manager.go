@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+	"github.com/google/uuid"
 )
 
 const (
@@ -111,6 +112,7 @@ func (a DiskManagerImpl) CreateDisk(sizeGB int, category ecs.DiskCategory, zone 
 		ZoneId: zone,
 		DiskCategory: category,
 		Size: sizeGB,
+		ClientToken: uuid.New().String(),
 	}
 
 	client := a.config.NewEcsClient()
@@ -198,6 +200,7 @@ func (a DiskManagerImpl) CreateSnapshot(diskCid string, snapshotName string) (st
 	var args ecs.CreateSnapshotArgs
 	args.DiskId = diskCid
 	args.SnapshotName = snapshotName
+	args.ClientToken = uuid.New().String()
 
 	invoker := NewInvoker()
 	var snapshotId string

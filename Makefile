@@ -28,6 +28,7 @@ deps:
 	go get -v github.com/cloudfoundry/bosh-utils/logger
 	go get -v github.com/cloudfoundry/bosh-utils/uuid
 	go get -v github.com/cloudfoundry/bosh-utils/system
+	go get -v github.com/google/uuid
 	rm -rf src/github.com/cppforlife/bosh-cpi-go
 	rm -rf pkg/*
 	mv -f src/github.com/aliyun/bosh-cpi-go src/github.com/cppforlife

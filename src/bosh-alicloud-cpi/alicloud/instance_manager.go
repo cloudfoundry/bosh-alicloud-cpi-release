@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"time"
 	"fmt"
+	"github.com/google/uuid"
 )
 
 var DeleteInstanceCatcher = Catcher {"IncorrectInstanceStatus.Initializing", 10, 15}
@@ -94,6 +95,7 @@ func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string
 
 	invoker := NewInvoker()
 	invoker.AddCatcher(CreateInstanceCatcher)
+	args.ClientToken = uuid.New().String()
 
 	var cid string
 	err := invoker.Run(func() (error) {
