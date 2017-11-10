@@ -11,42 +11,20 @@ templates:
 
 properties:
   alicloud.region_id:
-    description: "Alicloud owned regions, such as ap-southeast-1, cn-qingdao"
+    description: "Alibaba Cloud owned regions, such as ap-southeast-1, cn-qingdao"
     default: "cn-beijing"
   alicloud.zone_id:
-    description: "Alicloud every region has zones, "
+    description: "Alicloud Cloud default zone, every region has zones"
     default: "cn-beijing-a"
-  alicloud.instance_type:
-    description: "Alicloud ecs type, such as ecs.t1.small, ecs.s2.large, ecs.s3.large"
-    default: "ecs.t1.small"
-  alicloud.image_id:
-    default: "m-23h4o8945"
-  alicloud.security_group_id:
-    default: "sg-238ux30qe"
-  alicloud.vswitch_id:
-    description: "Alicloud vswitch_id for VPC"
-    default: "vsw-2zevwt3w7h5u761o405rd"
-  alicloud.internet_charge_type:
-    default: "PayByTraffic"
-  alicloud.internet_max_band_width_out:
-    default: "10"
-  alicloud.instance_name:
-    default: bosh_alicloud_cpi_test
-  alicloud.data_disk_1_size:
-    default: "300"
-  alicloud.desc:
-    description: "VM description"
-    default: "bosh-using"
-  alicloud.hostname:
-    default: "bosh-vm"
-  alicloud.password:
-    default: "1qaz@WSX"
+  alicloud.access_endpoint:
+    description: "Alicloud Cloud OpenApi access endpoint"
+    default: "aliyuncs.com"
   alicloud.access_key_id:
+    description: "Alicloud Cloud `Access key id`"
     default: "${ACCESS_KEY_ID}"
   alicloud.access_key_secret:
+    description: "Alicloud Cloud `Access key secret`"
     default: "${ACCESS_KEY_SECRET}"
-  alicloud.disk_snapshot_id:
-    default: ""
   registry.username:
     description: "User to access the Registry"
     default: registry

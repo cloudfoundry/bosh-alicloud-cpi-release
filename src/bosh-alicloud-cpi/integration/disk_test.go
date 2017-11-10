@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"bosh-alicloud-cpi/mock"
+	"time"
 )
 
 var _ = Describe("integration:disk", func() {
@@ -16,13 +17,12 @@ var _ = Describe("integration:disk", func() {
 			"method": "create_vm",
 			"arguments": [
 				"be387a69-c5d5-4b94-86c2-978581354b50",
-				"m-2zehhdtfg22hq46reabf",
+				"${STEMCELL_ID}",
 				{
 					"ephemeral_disk": {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"image_id": "${STEMCELL_ID}",
 					"instance_name": "test-cc",
 					"instance_type": "ecs.n4.small",
 					"system_disk": {
@@ -71,8 +71,41 @@ var _ = Describe("integration:disk", func() {
 		diskCid, err := caller.Call("create_disk", 1024, "{}", instCid)
 		Expect(err).NotTo(HaveOccurred())
 
+		By("sleep for awhile")
+		time.Sleep(time.Duration(90) * time.Second)
+
+		By("resize disk")
+		_, err = caller.Call("resize_disk", diskCid, 30720)
+		Expect(err).NotTo(HaveOccurred())
+
 		By("attach disk")
 		_, err = caller.Call("attach_disk", instCid, diskCid)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("set disk meta data")
+		r = caller.Run(mock.NewBuilder(`{
+        	"method": "set_disk_metadata",
+        	"arguments": [
+                "${DISK_ID}",
+                {
+					"director": "my-bosh",
+					"deployment": "cf",
+					"instance_id": "${INST_ID}",
+					"job": "consul",
+					"instance_index": "0",
+					"instance_name": "consul/441e940e-2ffe-4208-993e-3e5f888e2b7e",
+					"attached_at": "2017-11-03T06:21:27Z"
+                }
+	        ],
+    	    "context": {
+                "director_uuid": "d5555ed6-7688-4aae-9dff-4c4507042f3d",
+                "request_id": "cpi-201248"
+        	}
+		}`).P("INST_ID", instCid).P("DISK_ID", diskCid).ToBytes())
+		Expect(r.GetError()).NotTo(HaveOccurred())
+
+		By("snapshot disk")
+		ssid, err := caller.Call("snapshot_disk", diskCid, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("detach disk")
@@ -81,6 +114,10 @@ var _ = Describe("integration:disk", func() {
 
 		By("delete disk")
 		_, err = caller.Call("delete_disk", diskCid)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("delete snapshot")
+		_, err = caller.Call("delete_snapshot", ssid)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("delete vm")

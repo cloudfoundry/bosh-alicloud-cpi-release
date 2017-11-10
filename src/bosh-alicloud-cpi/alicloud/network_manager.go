@@ -118,6 +118,8 @@ func (a NetworkManagerImpl) WaitForEipStatus(eip string, toStatus ecs.EipStatus)
 	return nil
 }
 
+//
+// TODO: add retry
 func (a NetworkManagerImpl) BindSLB(instanceId string, slbId string, weight int) error {
 	client := a.config.NewSlbClient()
 

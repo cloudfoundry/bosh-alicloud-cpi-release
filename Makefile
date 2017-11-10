@@ -23,13 +23,15 @@ clean:
 
 deps:
 	go get -v github.com/aliyun/bosh-cpi-go/apiv1
-	go get -v github.com/cppforlife/bosh-cpi-go/rpc		
+	go get -v github.com/aliyun/bosh-cpi-go/rpc
 	go get -v github.com/denverdino/aliyungo/...
 	go get -v github.com/cloudfoundry/bosh-utils/logger
 	go get -v github.com/cloudfoundry/bosh-utils/uuid
 	go get -v github.com/cloudfoundry/bosh-utils/system
-	rm -rf src/github.com/cppforlife/bosh-cpi-go/apiv1
-	mv -f src/github.com/aliyun/bosh-cpi-go/apiv1 src/github.com/cppforlife/bosh-cpi-go
+	go get -v github.com/google/uuid
+	rm -rf src/github.com/cppforlife/bosh-cpi-go
+	rm -rf pkg/*
+	mv -f src/github.com/aliyun/bosh-cpi-go src/github.com/cppforlife
 
 build: deps
 	mkdir -p $(BINDIR)

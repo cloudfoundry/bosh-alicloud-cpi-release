@@ -8,10 +8,15 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 )
 
+const (
+	defaultDiskSize=40
+)
+
 type TestContext struct {
 	config alicloud.Config
 	Disks map[string]*ecs.DiskItemType
 	Instances map[string]*ecs.InstanceAttributesType
+	Snapshots map[string]string
 }
 
 func NewTestContext(config alicloud.Config) TestContext {
@@ -19,6 +24,7 @@ func NewTestContext(config alicloud.Config) TestContext {
 		config: config,
 		Disks: make(map[string]*ecs.DiskItemType),
 		Instances: make(map[string]*ecs.InstanceAttributesType),
+		Snapshots: make(map[string]string),
 	}
 }
 
@@ -27,6 +33,7 @@ func (c TestContext) NewDisk(instCid string) (string, *ecs.DiskItemType) {
 		DiskId:NewDiskId(),
 		RegionId:c.config.OpenApi.GetRegion(),
 		ZoneId:c.config.OpenApi.ZoneId,
+		Size: defaultDiskSize,
 		Status:ecs.DiskStatusAvailable,
 		Category:ecs.DiskCategoryCloudEfficiency,
 		InstanceId:instCid,
@@ -46,6 +53,11 @@ func (c TestContext) NewInstance() (string, *ecs.InstanceAttributesType) {
 	return i.InstanceId, &i
 }
 
+func (c TestContext) NewSnapshot(diskCid string) (string) {
+	ssid := NewSnapshotId()
+	c.Snapshots[ssid] = diskCid
+	return ssid
+}
 
 
 

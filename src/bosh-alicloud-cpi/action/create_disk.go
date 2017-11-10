@@ -6,6 +6,7 @@ package action
 import (
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
+	"github.com/denverdino/aliyungo/ecs"
 )
 
 type CreateDiskMethod struct {
@@ -38,14 +39,18 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid
 		return cid, a.Errorf("create_disk missing instance id=%s", vmCid.AsString())
 	}
 
-	diskInfo, err := NewDiskInfo(size, props)
+	disk, err := NewDiskInfoWithSize(size, props)
 
 	if err != nil {
 		return cid, a.WrapErrorf(err, "create_disk check input failed %n, %v", size, props)
 	}
 
-	zoneId := inst.ZoneId
-	diskCid, err := a.disks.CreateDisk(diskInfo.GetSizeGB(), diskInfo.GetCategory(), zoneId)
+	var args ecs.CreateDiskArgs
+	args.ZoneId = inst.ZoneId
+	args.Size = disk.GetSizeGB()
+	args.DiskCategory = disk.GetCategory()
+	args.Encrypted = disk.Encrypted
+	diskCid, err := a.disks.CreateDisk(args)
 
 	if err != nil {
 		return cid, a.WrapError(err, "create_disk failed")

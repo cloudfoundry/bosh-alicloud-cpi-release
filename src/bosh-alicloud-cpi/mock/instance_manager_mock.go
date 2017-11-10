@@ -36,13 +36,13 @@ func (a InstanceManagerMock) CreateInstance(args ecs.CreateInstanceArgs) (string
 	return id, nil
 }
 
-func (a InstanceManagerMock) ModifyInstanceAttribute(args ecs.ModifyInstanceAttributeArgs) (error) {
-	inst, ok := a.mc.Instances[args.InstanceId]
+func (a InstanceManagerMock) ModifyInstanceAttribute(cid string, name string, description string) (error) {
+	inst, ok := a.mc.Instances[cid]
 	if !ok {
-		return fmt.Errorf("ModifyInstanceAttribute instance not exists %s", args.InstanceId)
+		return fmt.Errorf("ModifyInstanceAttribute instance not exists %s", cid)
 	}
-	inst.InstanceName = args.InstanceName
-	inst.Description = args.Description
+	inst.InstanceName = name
+	inst.Description = description
 	return nil
 }
 
