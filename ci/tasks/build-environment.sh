@@ -134,6 +134,7 @@ cat all_state | while read LINE
 do
     if [[ $LINE == alicloud_vswitch.default ]];
     then
+        echo "vsw......."
         terraform state show $LINE | while read line
         do
           echo $line
@@ -151,8 +152,12 @@ do
           fi
         done
     fi
+    echo "*********"
+    cat $METADATA
+    echo "&&&&&&&&&"
     if [[ $LINE == alicloud_security_group.default ]];
     then
+        echo "sg......."
         terraform state show $LINE | while read line
         do
           echo $line
@@ -162,8 +167,12 @@ do
           fi
         done
     fi
+    echo "*********"
+    cat $METADATA
+    echo "&&&&&&&&&"
     if [[ $LINE == alicloud_eip.default* ]];
     then
+        echo "eip.......${EIP_COUNT}"
         terraform state show $LINE | while read line
         do
           echo $line
@@ -174,8 +183,12 @@ do
         done
         (( EIP_COUNT++ ))
     fi
+    echo "*********"
+    cat $METADATA
+    echo "&&&&&&&&&"
     if [[ $LINE == alicloud_slb.http ]];
     then
+        echo "http........."
         terraform state show $LINE | while read line
         do
           echo $line
@@ -185,8 +198,12 @@ do
           fi
         done
     fi
+    echo "*********"
+    cat $METADATA
+    echo "&&&&&&&&&"
     if [[ $LINE == alicloud_slb.tcp ]];
     then
+        echo "tcp......."
         terraform state show $LINE | while read line
         do
           echo $line
@@ -196,6 +213,9 @@ do
           fi
         done
     fi
+    echo "*********"
+    cat $METADATA
+    echo "&&&&&&&&&"
 done
 echo "Write metadata successfully"
 
