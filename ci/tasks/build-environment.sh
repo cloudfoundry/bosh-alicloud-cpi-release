@@ -132,7 +132,7 @@ echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
 EIP_COUNT=0
 cat all_state | while read LINE
 do
-    if [ $LINE == "alicloud_vswitch.default" ];
+    if [[ $LINE == alicloud_vswitch.default ]];
     then
         terraform state show $LINE | while read line
         do
@@ -151,7 +151,7 @@ do
           fi
         done
     fi
-    if [ $LINE == "alicloud_security_group.default" ];
+    if [[ $LINE == alicloud_security_group.default ]];
     then
         terraform state show $LINE | while read line
         do
@@ -162,17 +162,39 @@ do
           fi
         done
     fi
-    if [ $LINE == alicloud_eip.default* ];
+    if [[ $LINE == alicloud_eip.default* ]];
     then
         terraform state show $LINE | while read line
         do
           echo $line
           if [[ $line == ip_address* ]];
           then
-              echo external_$EIP_COUNT_$line >> $METADATA
+              echo external_${EIP_COUNT}_$line >> $METADATA
           fi
         done
         (( EIP_COUNT++ ))
+    fi
+    if [[ $LINE == alicloud_slb.http ]];
+    then
+        terraform state show $LINE | while read line
+        do
+          echo $line
+          if [[ $line == id* ]];
+          then
+              echo slb_http_$line >> $METADATA
+          fi
+        done
+    fi
+    if [[ $LINE == alicloud_slb.tcp ]];
+    then
+        terraform state show $LINE | while read line
+        do
+          echo $line
+          if [[ $line == id* ]];
+          then
+              echo slb_tcp_$line >> $METADATA
+          fi
+        done
     fi
 done
 echo "Write metadata successfully"

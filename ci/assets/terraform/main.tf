@@ -93,3 +93,40 @@ resource "alicloud_eip" "default" {
   internet_charge_type = "PayByBandwidth"
 }
 
+resource "alicloud_slb" "http" {
+  name = "for_concourse${var.prefix}"
+  vswitch_id = "${alicloud_vswitch.default.id}"
+  internet_charge_type = "paybytraffic"
+  listener = [
+    {
+      "instance_port" = "80"
+      "lb_port" = "80"
+      "lb_protocol" = "http"
+      "bandwidth" = "5"
+    },
+    {
+      "instance_port" = "8443"
+      "lb_port" = "443"
+      "lb_protocol" = "http"
+      "bandwidth" = "5"
+    }]
+}
+
+resource "alicloud_slb" "tcp" {
+  name = "for_concourse${var.prefix}"
+  vswitch_id = "${alicloud_vswitch.default.id}"
+  internet_charge_type = "paybytraffic"
+  listener = [
+    {
+      "instance_port" = "80"
+      "lb_port" = "80"
+      "lb_protocol" = "http"
+      "bandwidth" = "5"
+    },
+    {
+      "instance_port" = "8443"
+      "lb_port" = "443"
+      "lb_protocol" = "http"
+      "bandwidth" = "5"
+    }]
+}
