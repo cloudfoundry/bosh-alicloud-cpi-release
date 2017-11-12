@@ -96,9 +96,9 @@ jobs:
     plan:
       - aggregate:
         - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
-      - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+#      - <<: *destroy-environment
+#      - put: terraform-metadata
+#        params: {repository: terraform-metadata, rebase: true, force: true}
       - <<: *build-environment
       - put: terraform-metadata
         params: {repository: terraform-metadata, rebase: true, force: true}
