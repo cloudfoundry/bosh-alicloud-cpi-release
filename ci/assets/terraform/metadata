@@ -1,1 +1,9 @@
-
+region : cn-qingdao
+external_0_ip_address           : 118.190.150.131
+security_group_id : sg-m5eacq02ar71d9qeiuju
+external_1_ip_address           : 118.190.150.168
+slb_http_id : lb-m5eb3arlbg4cu0zvds0z1
+slb_tcp_id : lb-m5e2sys6conh2ql5vrmcs
+vswitch_id : vsw-m5er8ik09gvm74fnnfrle
+availability_zone : cn-qingdao-c
+internal_cidr_block : 172.16.0.0/24
