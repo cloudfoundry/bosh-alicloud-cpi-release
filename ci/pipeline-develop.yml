@@ -9,7 +9,6 @@ groups:
       - end-2-end
 #      - delivery
       - promote-candidate
-      - test-environment
 
 shared:
   - &prepare-director
@@ -60,7 +59,7 @@ shared:
       GIT_USER_NAME:              {{github_user_name}}
       GIT_USER_ID:                {{github_user_id}}
       GIT_USER_PASSWORD:          {{github_user_password}}
-      BOSH_REPO_HOST:             https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
+      BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
       BOSH_REPO_BRANCH:           concourse_ci
 
   - &destroy-environment
@@ -75,7 +74,7 @@ shared:
         GIT_USER_NAME:              {{github_user_name}}
         GIT_USER_ID:                {{github_user_id}}
         GIT_USER_PASSWORD:          {{github_user_password}}
-        BOSH_REPO_HOST:             https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
+        BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
         BOSH_REPO_BRANCH:           concourse_ci
 
   - &ensure-terminated
@@ -91,21 +90,6 @@ shared:
     file: pipelines/shared/tasks/teardown.yml
 
 jobs:
-  - name: test-environment
-    serial: true
-    plan:
-      - aggregate:
-        - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
-#      - <<: *destroy-environment
-#      - put: terraform-metadata
-#        params: {repository: terraform-metadata, rebase: true, force: true}
-      - <<: *build-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
-      - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
-
   - name: test-unit
     plan:
       - aggregate:
@@ -287,7 +271,7 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
       branch: concourse_ci
 #      uri: git@github.com:aliyun/bosh-alicloud-cpi-release.git
 #      branch: concourse_ci
@@ -369,7 +353,7 @@ resources:
   - name: terraform-metadata
     type: git
     source:
-      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
       branch: concourse_ci
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
