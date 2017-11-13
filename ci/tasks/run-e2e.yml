@@ -12,6 +12,13 @@ inputs:
   - name: heavy-stemcell
   - name: bosh-cli
   - name: director-state
+  - name: jq-blob
+  - name: libffi-blob
+  - name: libpqxx-blob
+  - name: pip-blob
+  - name: python-blob
+  - name: core-blob
+  - name: slb-blob
 
 run:
   path: sh

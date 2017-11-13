@@ -4,4 +4,4 @@ name: libffi_devel
 dependencies: []
 
 files:
-- libffi_devel/libpqxx-devel-4.0.1-1.el7.x86_64.rpm
+- libffi_devel/libffi-devel-3.0.13-18.el7.x86_64.rpm

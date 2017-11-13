@@ -4,6 +4,9 @@ aliyuncli/cli.tar.gz:
 jq/jq-linux64:
   size: 3027945
   sha: d8e36831c3c94bb58be34dd544f44a6c6cb88568
+libffi_devel/libffi-devel-3.0.13-18.el7.x86_64.rpm:
+  size: 23652
+  sha: 5be2fa7e6b8420c3fdf0c5dc8a35c5a355e988fa
 libffi_devel/libpqxx-devel-4.0.1-1.el7.x86_64.rpm:
   size: 23652
   sha: 5be2fa7e6b8420c3fdf0c5dc8a35c5a355e988fa

@@ -200,6 +200,13 @@ jobs:
         - {get: pipelines,       trigger: false}
         - {get: bosh-cli,        trigger: false}
         - {get: 2h,              trigger: true}
+        - {get: jq-blob,         trigger: false}
+        - {get: libffi-blob,     trigger: false}
+        - {get: libpqxx-blob,    trigger: false}
+        - {get: pip-blob,        trigger: false}
+        - {get: python-blob,     trigger: false}
+        - {get: core-blob,       trigger: false}
+        - {get: slb-blob,        trigger: false}
       - <<: *destroy-environment
       - put: terraform-metadata
         params: {repository: terraform-metadata, rebase: true, force: true}
@@ -340,6 +347,37 @@ resources:
     source:
       uri: https://github.com/demonwy/bosh-acceptance-tests.git
       branch: alicloud
+
+  # begin: repos for e2e bosh blobs
+  - name: jq-blob
+    type: git
+    source:
+      uri: https://github.com/archieves/jq-blob
+  - name: libffi-blob
+    type: git
+    source:
+      uri: https://github.com/archieves/libffi-devel-blob
+  - name: libpqxx-blob
+    type: git
+    source:
+      uri: https://github.com/archieves/libpqxx-devel-blob
+  - name: pip-blob
+    type: git
+    source:
+      uri: https://github.com/archieves/pip-blob
+  - name: python-blob
+    type: git
+    source:
+      uri: https://github.com/archieves/python-devel-blob
+  - name: core-blob
+    type: git
+    source:
+      uri: https://github.com/archieves/sdk-core-blob
+  - name: slb-blob
+    type: git
+    source:
+      uri: https://github.com/archieves/sdk-slb-blob
+  # end: repos for e2e bosh blobs
 
   - name: bosh-deployment
     type: git
