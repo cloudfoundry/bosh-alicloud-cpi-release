@@ -17,7 +17,7 @@ export ACCESS_KEY_CONFIG=${ALICLOUD_ACCESS_KEY_SECRET}
 
 check_go_version $GOPATH
 check_param $ACCESS_KEY_ID
-check_param $ACCESS_KEY_SECRET
+#check_param $ACCESS_KEY_SECRET
 
 
 cd ${PWD}/bosh-cpi-src

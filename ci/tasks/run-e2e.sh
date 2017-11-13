@@ -23,7 +23,7 @@ function addBlobs {
    bosh2 add-blob ${JQ_BLOB_PATH}/jq-linux64 jq/jq-linux64
    bosh2 add-blob ${LIBFFI_DEVEL_BLOB_PATH}/libffi-devel-3.0.13-18.el7.x86_64.rpm libffi_devel/libffi-devel-3.0.13-18.el7.x86_64.rpm
    bosh2 add-blob ${LIBPQXX_DEVEL_BLOB_PATH}/libpqxx-devel-4.0.1-1.el7.x86_64.rpm libpqxx_devel/libpqxx-devel-4.0.1-1.el7.x86_64.rpm
-   bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/aliyun-python-sdk-slb-3.2.1.tar.gz sdk-slb/aliyun-python-sdk-slb-3.2.1.tar.gz
+   bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/python-devel-2.7.5-58.el7.x86_64.rpm python_devel/python-devel-2.7.5-58.el7.x86_64.rpm
    bosh2 add-blob ${PIP_BLOB_PATH}/pip-1.3.1.tar.gz pip/pip-1.3.1.tar.gz
    bosh2 add-blob ${SDK_CORE_BLOB_PATH}/aliyun-python-sdk-core-2.5.2.tar.gz sdk_core/aliyun-python-sdk-core-2.5.2.tar.gz
    bosh2 add-blob ${SDK_SLB_BLOB_PATH}/aliyun-python-sdk-slb-3.2.1.tar.gz sdk_slb/aliyun-python-sdk-slb-3.2.1.tar.gz
