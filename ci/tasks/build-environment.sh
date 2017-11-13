@@ -62,11 +62,11 @@ cd ${TERRAFORM_MODULE}
 touch ${METADATA}
 
 echo $'\n'
-echo "Build terraform environment......"
+echo "******* Build terraform environment ******* "
 
 terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
 
-echo "Build terraform environment successfully."
+echo "******* Build terraform environment successfully ******* "
 
 function copyToOutput(){
 
@@ -101,7 +101,7 @@ function copyToOutput(){
         fi
     done
 
-    echo "******* git status ******"
+    echo "******** git status ********"
     git status
 
     git status | sed -n '$p' |while read LINE
@@ -127,11 +127,12 @@ then
 fi
 
 terraform state list > all_state
-echo "Write metadata ......"
+echo "******* Write metadata ******* "
 echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
+EIP_COUNT=0
 cat all_state | while read LINE
 do
-    if [ $LINE == "alicloud_vswitch.default" ];
+    if [[ $LINE == alicloud_vswitch.default ]];
     then
         terraform state show $LINE | while read line
         do
@@ -150,7 +151,7 @@ do
           fi
         done
     fi
-    if [ $LINE == "alicloud_security_group.default" ];
+    if [[ $LINE == alicloud_security_group.default ]];
     then
         terraform state show $LINE | while read line
         do
@@ -161,23 +162,48 @@ do
           fi
         done
     fi
-    if [ $LINE == "alicloud_eip.default" ];
+    if [[ $LINE == alicloud_eip.default* ]];
     then
         terraform state show $LINE | while read line
         do
           echo $line
           if [[ $line == ip_address* ]];
           then
-              echo external_$line >> $METADATA
+              echo "external_${EIP_COUNT}_$line" >> $METADATA
+          fi
+        done
+        EIP_COUNT=$((${EIP_COUNT}+1))
+    fi
+    if [[ $LINE == alicloud_slb.http ]];
+    then
+        terraform state show $LINE | while read line
+        do
+          echo $line
+          if [[ $line == id* ]];
+          then
+              echo slb_http_$line >> $METADATA
+          fi
+        done
+    fi
+    if [[ $LINE == alicloud_slb.tcp ]];
+    then
+        terraform state show $LINE | while read line
+        do
+          echo $line
+          if [[ $line == id* ]];
+          then
+              echo slb_tcp_$line >> $METADATA
           fi
         done
     fi
 done
-echo "Write metadata successfully"
+echo "******** Write metadata successfully ********"
+cat $METADATA
+
 
 rm -rf ./all_state
 
 sed -i 's/=/:/g' $METADATA
 
-echo "Copy to output ......"
+echo "******** Copy to output ......******** "
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}

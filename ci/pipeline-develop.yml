@@ -60,7 +60,7 @@ shared:
       GIT_USER_ID:                {{github_user_id}}
       GIT_USER_PASSWORD:          {{github_user_password}}
       BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
-      BOSH_REPO_BRANCH:           concourse_ci_tmp
+      BOSH_REPO_BRANCH:           concourse_ci
 
   - &destroy-environment
       task: destroy-environment
@@ -75,7 +75,7 @@ shared:
         GIT_USER_ID:                {{github_user_id}}
         GIT_USER_PASSWORD:          {{github_user_password}}
         BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
-        BOSH_REPO_BRANCH:           concourse_ci_tmp
+        BOSH_REPO_BRANCH:           concourse_ci
 
   - &ensure-terminated
     task: ensure-terminated
@@ -354,6 +354,6 @@ resources:
     type: git
     source:
       uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-      branch: concourse_ci_tmp
+      branch: concourse_ci
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
