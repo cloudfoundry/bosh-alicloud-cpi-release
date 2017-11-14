@@ -192,8 +192,8 @@ jobs:
     plan:
       - aggregate:
         - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [bats]}
-        - {get: bosh-release,    trigger: false, resource: precompiled-bosh-release}
         - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [bats]}
+        - {get: bosh-release,    trigger: false, resource: precompiled-bosh-release}
         - {get: stemcell,        trigger: false, resource: precompiled-stemcell}
         - {get: heavy-stemcell,  trigger: false, resource: heavy-ubuntu-stemcell}
         - {get: bosh-deployment, trigger: false}

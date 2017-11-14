@@ -37,7 +37,9 @@ pushd bosh-cpi-src/ci/assets/e2e-test-release
 popd
 
 # UPLOAD STEMCELL
+echo "upload light stemcell..."
 time bosh2 -n upload-stemcell "$(realpath stemcell/*.tgz)"
+echo "upload heavy stemcell..."
 time bosh2 -n upload-stemcell "$(realpath heavy-stemcell/*.tgz)"
 
 stemcell_name="$( bosh2 int <( tar xfO $(realpath stemcell/*.tgz) stemcell.MF ) --path /name )"
