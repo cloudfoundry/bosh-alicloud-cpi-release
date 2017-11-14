@@ -224,15 +224,15 @@ jobs:
         - do:
             - <<: *deploy-director
             - <<: *run-end-2-end
-          ensure:
-            do:
-              - <<: *teardown
+#          ensure:
+#            do:
+#              - <<: *teardown
 #              - <<: *ensure-terminated
-        ensure:
-          do:
-            - <<: *destroy-environment
-            - put: terraform-metadata
-              params: {repository: terraform-metadata, rebase: true, force: true}
+#        ensure:
+#          do:
+#            - <<: *destroy-environment
+#            - put: terraform-metadata
+#              params: {repository: terraform-metadata, rebase: true, force: true}
 
 #  - name: delivery
 #    plan:
