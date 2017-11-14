@@ -47,13 +47,13 @@ heavy_stemcell_name="$( bosh2 int <( tar xfO $(realpath heavy-stemcell/*.tgz) st
 # alicloud_kms_key_arn="$(cat terraform-metadata/metadata | jq --raw-output ".alicloud_kms_key_arn")"
 
 # --cloud-properties "{\"encrypted\": true, \"kms_key_arn\": \"${alicloud_kms_key_arn}\"}" \
-time bosh2 repack-stemcell \
-  --name e2e-encrypted-heavy-stemcell \
-  --version 0.1 \
-  "$(realpath heavy-stemcell/*.tgz)" \
-  /tmp/e2e-encrypted-heavy-stemcell.tgz
-time bosh2 -n upload-stemcell /tmp/e2e-encrypted-heavy-stemcell.tgz
-encrypted_heavy_stemcell_img_id="$( bosh2 stemcells | grep e2e-encrypted-heavy-stemcell | awk '{print $NF;}' )"
+#time bosh2 repack-stemcell \
+#  --name e2e-encrypted-heavy-stemcell \
+#  --version 0.1 \
+#  "$(realpath heavy-stemcell/*.tgz)" \
+#  /tmp/e2e-encrypted-heavy-stemcell.tgz
+#time bosh2 -n upload-stemcell /tmp/e2e-encrypted-heavy-stemcell.tgz
+#encrypted_heavy_stemcell_img_id="$( bosh2 stemcells | grep e2e-encrypted-heavy-stemcell | awk '{print $NF;}' )"
 
 UPDATE CLOUD CONFIG
 time bosh2 -n ucc \

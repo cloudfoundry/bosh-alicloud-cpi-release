@@ -14,10 +14,12 @@ update:
 stemcells:
   - alias: stemcell
     name: ((stemcell_name))
-    version: latest
-  - alias: heavy-stemcell
-    name: ((heavy_stemcell_name))
-    version: latest
+#    version: latest
+    version: 1010
+# todo: heavy stemcell
+#  - alias: heavy-stemcell
+#    name: ((heavy_stemcell_name))
+#    version: latest
 
 instance_groups:
   - name: slb-registration-test
@@ -25,7 +27,7 @@ instance_groups:
       - name: slb-registration-test
         release: e2e-test
         properties:
-          load_balancer_id: ((e2e_elb_id))
+          load_balancer_id: ((slb_http_id))
           ecs_region: ((region))
     stemcell: stemcell
     lifecycle: errand

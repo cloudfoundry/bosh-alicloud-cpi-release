@@ -71,6 +71,7 @@ properties:
   blobstore.credentials_source:
     description: Where to get AWS credentials for the aws cpi. This can be set to `static` for to use an `access_key_id` and `secret_access_key` or `env_or_profile` to get the credentials from environment variables or an EC2 instance profile.
     default: 'static'
+    default: 'static'
   blobstore.access_key_id:
     description: AWS access_key_id used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
     default: null

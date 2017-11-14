@@ -2,10 +2,10 @@
 groups:
   - name: bosh-alicloud-cpi-go
     jobs:
-      - test-unit
-      - build-candidate
-      - integration
-      - bats
+#      - test-unit
+#      - build-candidate
+#      - integration
+#      - bats
       - end-2-end
 #      - delivery
       - promote-candidate
@@ -191,8 +191,10 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [bats]}
-        - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [bats]}
+#        - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [bats]}
+        - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts}
+#        - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [bats]}
+        - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in}
         - {get: bosh-release,    trigger: false, resource: precompiled-bosh-release}
         - {get: stemcell,        trigger: false, resource: precompiled-stemcell}
         - {get: heavy-stemcell,  trigger: false, resource: heavy-ubuntu-stemcell}
@@ -207,9 +209,9 @@ jobs:
         - {get: python-blob,     trigger: false}
         - {get: core-blob,       trigger: false}
         - {get: slb-blob,        trigger: false}
-      - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+#      - <<: *destroy-environment
+#      - put: terraform-metadata
+#        params: {repository: terraform-metadata, rebase: true, force: true}
       - <<: *build-environment
       - put: terraform-metadata
         params: {repository: terraform-metadata, rebase: true, force: true}
