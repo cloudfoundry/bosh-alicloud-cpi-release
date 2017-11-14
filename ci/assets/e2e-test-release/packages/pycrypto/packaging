@@ -1,11 +1,11 @@
 set -e
 
 # install dependency
-# todo: install by offline package
-apt-get update
-apt-get -y upgrade
-apt-get clean
-apt-get -y install python-dev
+# connect (101: Network is unreachable)
+# apt-get update
+# apt-get -y upgrade
+# apt-get clean
+apt-get install -y python-dev
 
 tar zxvf pycrypto/pycrypto-2.6.1.tar.gz
 cd pycrypto-2.6.1/
