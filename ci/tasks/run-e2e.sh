@@ -55,7 +55,7 @@ heavy_stemcell_name="$( bosh2 int <( tar xfO $(realpath heavy-stemcell/*.tgz) st
 #time bosh2 -n upload-stemcell /tmp/e2e-encrypted-heavy-stemcell.tgz
 #encrypted_heavy_stemcell_img_id="$( bosh2 stemcells | grep e2e-encrypted-heavy-stemcell | awk '{print $NF;}' )"
 
-UPDATE CLOUD CONFIG
+#UPDATE CLOUD CONFIG
 time bosh2 -n ucc \
   -l terraform-metadata/metadata \
   bosh-cpi-src/ci/assets/e2e-test-release/cloud-config.yml
