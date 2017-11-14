@@ -44,15 +44,15 @@ RUN /bin/bash -l -c "                            \
 "
 
 # Pre-Bundle the bosh-cpi-release
-COPY bosh_aws_cpi /tmp/bosh_aws_cpi
-RUN /bin/bash -l -c "               \
-  source /etc/profile.d/chruby.sh ; \
-  chruby 2.1.2 ;                    \
-  pushd /tmp/bosh_aws_cpi ;     \
-  bundle ;                          \
-  popd ;                            \
-  rm -rf /tmp/bosh_aws_cpi ;    \
-"
+#COPY bosh_aws_cpi /tmp/bosh_aws_cpi
+#RUN /bin/bash -l -c "               \
+#  source /etc/profile.d/chruby.sh ; \
+#  chruby 2.1.2 ;                    \
+#  pushd /tmp/bosh_aws_cpi ;     \
+#  bundle ;                          \
+#  popd ;                            \
+#  rm -rf /tmp/bosh_aws_cpi ;    \
+#"
 
 RUN cd /tmp && \
     curl -o certify-artifacts -L https://s3.amazonaws.com/bosh-certification-generator-releases/certify-artifacts-linux-amd64 && \
