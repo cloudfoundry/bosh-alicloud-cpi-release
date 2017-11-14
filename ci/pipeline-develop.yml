@@ -207,6 +207,7 @@ jobs:
         - {get: libpqxx-blob,    trigger: false}
         - {get: pip-blob,        trigger: false}
         - {get: python-blob,     trigger: false}
+        - {get: python-setup-tools-blob,     trigger: false}
         - {get: core-blob,       trigger: false}
         - {get: slb-blob,        trigger: false}
 #      - <<: *destroy-environment
@@ -373,6 +374,10 @@ resources:
     type: git
     source:
       uri: https://github.com/archieves/python-devel-blob
+  - name: python-setup-tools-blob
+    type: git
+    source:
+      uri: https://github.com/archieves/python-setup-tools-blob.git
   - name: core-blob
     type: git
     source:

@@ -1,0 +1,7 @@
+---
+name: setup_tools
+
+dependencies: []
+
+files:
+- setup_tools/setuptools-0.6c11.tar.gz

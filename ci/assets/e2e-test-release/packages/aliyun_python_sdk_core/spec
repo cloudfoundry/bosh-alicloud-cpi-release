@@ -2,6 +2,7 @@
 name: aliyun_python_sdk_core
 
 #dependencies:
+- setup_tools
 #- pip
 #- libffi_devel
 #- libpqxx_devel
