@@ -32,7 +32,7 @@ instance_groups:
     stemcell: stemcell
     lifecycle: errand
     instances: 1
-    vm_type: elb_registration_pool
+    vm_type: slb_registration_pool
     networks:
       - name: private
         default: [dns, gateway]
