@@ -16,6 +16,9 @@ libpqxx_devel/libpqxx-devel-4.0.1-1.el7.x86_64.rpm:
 pip/pip-1.3.1.tar.gz:
   size: 247594
   sha: 9c70d314e5dea6f41415af814056b0f63c3ffd14
+pycrypto/pycrypto-2.6.1.tar.gz:
+  size: 446240
+  sha: aeda3ed41caf1766409d4efc689b9ca30ad6aeb2
 python_devel/python-devel-2.7.5-58.el7.x86_64.rpm:
   size: 404700
   sha: 60eabcbeb3dc6d216e3928b4e7aa87e2c8becb0b

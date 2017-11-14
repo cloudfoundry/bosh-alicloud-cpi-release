@@ -18,6 +18,7 @@ inputs:
   - name: pip-blob
   - name: python-blob
   - name: python-setup-tools-blob
+  - name: pycrypto-blob
   - name: core-blob
   - name: slb-blob
 

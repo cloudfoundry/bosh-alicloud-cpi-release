@@ -1,0 +1,7 @@
+set -e
+
+tar zxvf pycrypto/pycrypto-2.6.1.tar.gz
+cd pycrypto-2.6.1/
+chmod +x setup.py
+python setup.py install
+cd ..

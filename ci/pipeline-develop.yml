@@ -208,6 +208,7 @@ jobs:
         - {get: pip-blob,        trigger: false}
         - {get: python-blob,     trigger: false}
         - {get: python-setup-tools-blob,     trigger: false}
+        - {get: pycrypto-blob,     trigger: false}
         - {get: core-blob,       trigger: false}
         - {get: slb-blob,        trigger: false}
 #      - <<: *destroy-environment
@@ -378,6 +379,10 @@ resources:
     type: git
     source:
       uri: https://github.com/archieves/python-setup-tools-blob.git
+  - name: pycrypto-blob
+    type: git
+    source:
+      uri: https://github.com/archieves/pycrypto-blob.git
   - name: core-blob
     type: git
     source:

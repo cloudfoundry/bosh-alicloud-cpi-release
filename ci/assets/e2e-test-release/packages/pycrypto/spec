@@ -1,0 +1,7 @@
+---
+name: pycrypto
+
+dependencies: []
+
+files:
+- pycrypto/pycrypto-2.6.1.tar.gz

@@ -10,6 +10,7 @@ packages:
 - aliyun_python_sdk_slb
 - aliyun_python_sdk_core
 - setup_tools
+- pycrypto
 #- pip
 #- libffi_devel
 #- libpqxx_devel

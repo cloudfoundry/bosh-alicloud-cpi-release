@@ -6,6 +6,7 @@ CURRENT_PATH=$(pwd)
 SDK_SLB_BLOB_PATH=$CURRENT_PATH/slb-blob
 SDK_CORE_BLOB_PATH=$CURRENT_PATH/core-blob
 PYTHON_SETUP_TOOLS_BLOB_PATH=$CURRENT_PATH/python-setup-tools-blob
+PYCRYPTO_BLOB_PATH=$CURRENT_PATH/pycrypto-blob
 PIP_BLOB_PATH=$CURRENT_PATH/pip-blob
 PYTHON_DEVEL_BLOB_PATH=$CURRENT_PATH/python-blob
 LIBPQXX_DEVEL_BLOB_PATH=$CURRENT_PATH/libpqxx-blob
@@ -29,6 +30,7 @@ function addBlobs {
    bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/python-devel-2.7.5-58.el7.x86_64.rpm python_devel/python-devel-2.7.5-58.el7.x86_64.rpm
    bosh2 add-blob ${PIP_BLOB_PATH}/pip-1.3.1.tar.gz pip/pip-1.3.1.tar.gz
    bosh2 add-blob ${PYTHON_SETUP_TOOLS_BLOB_PATH}/setuptools-0.6c11.tar.gz setup_tools/setuptools-0.6c11.tar.gz
+   bosh2 add-blob ${PYCRYPTO_BLOB_PATH}/pycrypto-2.6.1.tar.gz pycrypto/pycrypto-2.6.1.tar.gz
    bosh2 add-blob ${SDK_CORE_BLOB_PATH}/aliyun-python-sdk-core-2.5.2.tar.gz sdk_core/aliyun-python-sdk-core-2.5.2.tar.gz
    bosh2 add-blob ${SDK_SLB_BLOB_PATH}/aliyun-python-sdk-slb-3.2.1.tar.gz sdk_slb/aliyun-python-sdk-slb-3.2.1.tar.gz
 }
