@@ -209,9 +209,9 @@ jobs:
         - {get: python-blob,     trigger: false}
         - {get: core-blob,       trigger: false}
         - {get: slb-blob,        trigger: false}
-      - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+#      - <<: *destroy-environment
+#      - put: terraform-metadata
+#        params: {repository: terraform-metadata, rebase: true, force: true}
       - <<: *build-environment
       - put: terraform-metadata
         params: {repository: terraform-metadata, rebase: true, force: true}

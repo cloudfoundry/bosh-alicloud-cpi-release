@@ -11,6 +11,8 @@ LIBPQXX_DEVEL_BLOB_PATH=$CURRENT_PATH/libpqxx-blob
 LIBFFI_DEVEL_BLOB_PATH=$CURRENT_PATH/libffi-blob
 JQ_BLOB_PATH=$CURRENT_PATH/jq-blob
 
+METADATA_FILE=$CURRENT_PATH/terraform-metadata/ci/assets/terraform/metadata
+
 bosh_cli=$(realpath bosh-cli/bosh-cli-*)
 chmod +x $bosh_cli
 cp "${bosh_cli}" /usr/local/bin/bosh2
@@ -57,15 +59,15 @@ heavy_stemcell_name="$( bosh2 int <( tar xfO $(realpath heavy-stemcell/*.tgz) st
 
 #UPDATE CLOUD CONFIG
 time bosh2 -n ucc \
-  -l terraform-metadata/metadata \
+  -l ${METADATA_FILE} \
   bosh-cpi-src/ci/assets/e2e-test-release/cloud-config.yml
 
 # BOSH DEPLOY
+#-v "heavy_stemcell_name=${heavy_stemcell_name}" \
+#-v "encrypted_heavy_stemcell_img_id=${encrypted_heavy_stemcell_img_id}" \
 time bosh2 -n deploy -d e2e-test \
   -v "stemcell_name=${stemcell_name}" \
-  -v "heavy_stemcell_name=${heavy_stemcell_name}" \
-  -v "encrypted_heavy_stemcell_img_id=${encrypted_heavy_stemcell_img_id}" \
-  -l terraform-metadata/metadata \
+  -l ${METADATA_FILE} \
   bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
 
 # RUN ERRANDS
