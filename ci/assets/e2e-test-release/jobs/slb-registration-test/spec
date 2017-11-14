@@ -5,14 +5,14 @@ templates:
   run.erb: bin/run
 
 packages:
-- jq
-- aliyun_py
+#- jq
+#- aliyun_py
 - aliyun_python_sdk_slb
 - aliyun_python_sdk_core
-- pip
-- libffi_devel
-- libpqxx_devel
-- python_devel
+#- pip
+#- libffi_devel
+#- libpqxx_devel
+#- python_devel
 
 
 properties:
