@@ -3,7 +3,7 @@ platform: linux
 
 image_resource:
   type: docker-image
-  source: {repository: oucwangyue/alicloud-cpi-release}
+  source: {repository: oucwangyue/alicloud-cpi-release234}
 
 inputs:
   - name: bosh-cpi-src
