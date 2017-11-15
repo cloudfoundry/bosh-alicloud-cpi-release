@@ -1,7 +1,8 @@
 ---
 name: setup_tools
 
-dependencies: []
+dependencies:
+- python_devel
 
 files:
 - setup_tools/setuptools-0.6c11.tar.gz

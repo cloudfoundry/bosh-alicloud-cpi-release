@@ -11,10 +11,7 @@ packages:
 - aliyun_python_sdk_core
 - setup_tools
 - pycrypto
-#- pip
-#- libffi_devel
-#- libpqxx_devel
-#- python_devel
+- python_devel
 
 
 properties:

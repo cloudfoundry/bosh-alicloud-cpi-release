@@ -6,6 +6,11 @@ networks:
       security_group_id: ((security_group_id))
   - name: vip
     type: vip
+#  - name: compile_vip
+#    type: vip
+#    cloud_properties:
+#      static_ips: [((external_0_ip_address))]
+#      default: [dns, gateway]
 
 vm_types:
   - name: default

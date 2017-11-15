@@ -25,10 +25,15 @@ source director-state/director.env
 # when e2e-test-release/config/final set to remote storage, this code can be removed
 function addBlobs {
    bosh2 add-blob ${JQ_BLOB_PATH}/jq-linux64 jq/jq-linux64
-   bosh2 add-blob ${LIBFFI_DEVEL_BLOB_PATH}/libffi-devel-3.0.13-18.el7.x86_64.rpm libffi_devel/libffi-devel-3.0.13-18.el7.x86_64.rpm
-   bosh2 add-blob ${LIBPQXX_DEVEL_BLOB_PATH}/libpqxx-devel-4.0.1-1.el7.x86_64.rpm libpqxx_devel/libpqxx-devel-4.0.1-1.el7.x86_64.rpm
-   bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/python-devel-2.7.5-58.el7.x86_64.rpm python_devel/python-devel-2.7.5-58.el7.x86_64.rpm
    bosh2 add-blob ${PIP_BLOB_PATH}/pip-1.3.1.tar.gz pip/pip-1.3.1.tar.gz
+   # python-dev
+   bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/libexpat1-dev_2.1.0-4ubuntu1.4_amd64.deb python_devel/libexpat1-dev_2.1.0-4ubuntu1.4_amd64.deb
+   bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/libpython2.7_2.7.6-8ubuntu0.3_amd64.deb python_devel/libpython2.7_2.7.6-8ubuntu0.3_amd64.deb
+   bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/libpython2.7-dev_2.7.6-8ubuntu0.3_amd64.deb python_devel/libpython2.7-dev_2.7.6-8ubuntu0.3_amd64.deb
+   bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/libpython-dev_2.7.5-5ubuntu3_amd64.deb python_devel/libpython-dev_2.7.5-5ubuntu3_amd64.deb
+   bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/python2.7-dev_2.7.6-8ubuntu0.3_amd64.deb python_devel/python2.7-dev_2.7.6-8ubuntu0.3_amd64.deb
+   bosh2 add-blob ${PYTHON_DEVEL_BLOB_PATH}/python-dev_2.7.5-5ubuntu3_amd64.deb python_devel/python-dev_2.7.5-5ubuntu3_amd64.deb
+
    bosh2 add-blob ${PYTHON_SETUP_TOOLS_BLOB_PATH}/setuptools-0.6c11.tar.gz setup_tools/setuptools-0.6c11.tar.gz
    bosh2 add-blob ${PYCRYPTO_BLOB_PATH}/pycrypto-2.6.1.tar.gz pycrypto/pycrypto-2.6.1.tar.gz
    bosh2 add-blob ${SDK_CORE_BLOB_PATH}/aliyun-python-sdk-core-2.5.2.tar.gz sdk_core/aliyun-python-sdk-core-2.5.2.tar.gz
