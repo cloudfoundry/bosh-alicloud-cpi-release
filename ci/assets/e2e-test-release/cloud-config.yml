@@ -4,6 +4,8 @@ networks:
     cloud_properties:
       vswitch_id: ((vswitch_id))
       security_group_id: ((security_group_id))
+  - name: vip
+    type: vip
 
 vm_types:
   - name: default
