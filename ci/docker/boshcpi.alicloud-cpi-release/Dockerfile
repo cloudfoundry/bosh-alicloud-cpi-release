@@ -15,7 +15,7 @@ RUN apt-get install -y mysql-client libmysqlclient-dev; apt-get clean
 
 RUN apt-get install -y libpq-dev; apt-get clean
 
-RUN apt-get install -y python python-pip groff jq; apt-get clean; pip install awscli;
+RUN apt-get install -y python python-dev python-pip groff jq; apt-get clean;
 
 # chruby
 RUN mkdir /tmp/chruby && \
