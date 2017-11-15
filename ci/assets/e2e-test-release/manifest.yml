@@ -29,6 +29,8 @@ instance_groups:
         properties:
           load_balancer_id: ((slb_http_id))
           ecs_region: ((region))
+          access_key: ((access_key))
+          secret_key: ((secret_key))
     stemcell: stemcell
     lifecycle: errand
     instances: 1

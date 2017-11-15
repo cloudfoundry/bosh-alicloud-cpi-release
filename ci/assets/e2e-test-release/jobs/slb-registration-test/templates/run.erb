@@ -5,11 +5,13 @@ export PATH=$(readlink -nf /var/vcap/packages/jq):/usr/local/bin:/var/vcap/packa
 
 slb_id=<%= p('load_balancer_id') %>
 region=<%= p('ecs_region') %>
+access_key=<%= p('access_key') %>
+secret_key=<%= p('secret_key') %>
 
 echo "fetching instance ID"
 instance_id=$(curl http://100.100.100.200/latest/meta-data/instance-id)
 echo "instance id: $instance_id"
 
-echo "checking if our instance is registered with $slb_id"
+echo "checking if our instance $instance_id is registered with $slb_id"
 #aliyuncli --region $region slb describe-load-balancers --load-balancer-id $slb_id | jq --arg instance_id $instance_id -e '.LoadBalancerDescriptions[0].Instances[] | select(.InstanceId == $instance_id)'
-check_slb_bind_ecs.py --slb_id=$slb_id --ecs_id=$instance_id
+check_slb_bind_ecs --slb_id=$slb_id --ecs_id=$instance_id --access_key=$access_key --secret_key=$secret_key --region=$region

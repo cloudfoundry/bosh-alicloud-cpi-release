@@ -32,3 +32,5 @@ run:
 
 params:
   BOSH_DEBUG_LEVEL: info
+  ACCESS_KEY_ID:      ""
+  SECRET_KEY_ID:      ""

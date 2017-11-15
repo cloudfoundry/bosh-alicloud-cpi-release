@@ -76,6 +76,8 @@ time bosh2 -n ucc \
 #-v "encrypted_heavy_stemcell_img_id=${encrypted_heavy_stemcell_img_id}" \
 time bosh2 -n deploy -d e2e-test \
   -v "stemcell_name=${stemcell_name}" \
+  -v access_key_id=${ACCESS_KEY_ID} \
+  -v secret_access_key=${SECRET_KEY_ID} \
   -l ${METADATA_FILE} \
   bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
 

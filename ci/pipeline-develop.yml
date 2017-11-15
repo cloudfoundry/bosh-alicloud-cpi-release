@@ -39,6 +39,9 @@ shared:
   - &run-end-2-end
     task: run-e2e
     file: bosh-cpi-src/ci/tasks/run-e2e.yml
+    params:
+      ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
+      SECRET_KEY_ID:              {{alicloud_secret_key__primary}}
 
   - &create-environment
     put: environment
