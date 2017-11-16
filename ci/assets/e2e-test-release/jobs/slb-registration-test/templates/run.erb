@@ -36,6 +36,9 @@ pip install cryptography
 # refers: https://help.aliyun.com/document_detail/29995.html
 pip install aliyun-python-sdk-slb
 
+echo "check file exist"
+ls -al /var/vcap/packages/aliyun_py/bin/
+
 echo "checking if our instance $instance_id is registered with $slb_id"
 #aliyuncli --region $region slb describe-load-balancers --load-balancer-id $slb_id | jq --arg instance_id $instance_id -e '.LoadBalancerDescriptions[0].Instances[] | select(.InstanceId == $instance_id)'
 check_slb_bind_ecs --slb_id=$slb_id --ecs_id=$instance_id --access_key=$access_key --secret_key=$secret_key --region=$region
