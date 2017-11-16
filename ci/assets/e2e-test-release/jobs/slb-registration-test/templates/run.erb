@@ -5,8 +5,10 @@ export PATH=$(readlink -nf /var/vcap/packages/jq):/usr/local/bin:/var/vcap/packa
 
 slb_id=<%= p('load_balancer_id') %>
 region=<%= p('ecs_region') %>
-access_key=<%= p('access_key') %>
-secret_key=<%= p('secret_key') %>
+#access_key=<%= p('access_key') %>
+#secret_key=<%= p('secret_key') %>
+access_key=<%= p('ecs_region') %>
+secret_key=<%= p('ecs_region') %>
 
 echo "fetching instance ID"
 instance_id=$(curl http://100.100.100.200/latest/meta-data/instance-id)
