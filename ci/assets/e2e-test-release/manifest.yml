@@ -36,6 +36,6 @@ instance_groups:
     instances: 1
     vm_type: slb_registration_pool
     networks:
-      - name: private
-        default: [dns, gateway]
+      - name: vip
+        static_ips: [((external_1_ip_address))]
 

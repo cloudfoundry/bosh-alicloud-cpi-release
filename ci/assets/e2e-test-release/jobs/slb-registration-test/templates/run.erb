@@ -14,6 +14,28 @@ echo "fetching instance ID"
 instance_id=$(curl http://100.100.100.200/latest/meta-data/instance-id)
 echo "instance id: $instance_id"
 
+# utc to cst
+echo "Asia/Shanghai" | tee /etc/timezone
+dpkg-reconfigure --frontend noninteractive tzdata
+
+#adjust system clock
+date -d '-8 hour' > newdata
+#hwclock --set --date="/newdata"
+hwclock --hctosys
+
+# install python dependency
+apt-get -y upgrade
+apt-get install -y python python-dev python-pip python-paramiko
+
+# install pip dependency
+curl "https://bootstrap.pypa.io/get-pip.py" -o "pip-install.py"
+python pip-install.py
+pip install cryptography
+
+# install python sdk
+# refers: https://help.aliyun.com/document_detail/29995.html
+pip install aliyun-python-sdk-slb
+
 echo "checking if our instance $instance_id is registered with $slb_id"
 #aliyuncli --region $region slb describe-load-balancers --load-balancer-id $slb_id | jq --arg instance_id $instance_id -e '.LoadBalancerDescriptions[0].Instances[] | select(.InstanceId == $instance_id)'
 check_slb_bind_ecs --slb_id=$slb_id --ecs_id=$instance_id --access_key=$access_key --secret_key=$secret_key --region=$region

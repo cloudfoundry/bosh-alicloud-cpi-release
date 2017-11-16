@@ -4,8 +4,8 @@ networks:
     cloud_properties:
       vswitch_id: ((vswitch_id))
       security_group_id: ((security_group_id))
-#  - name: vip
-#    type: vip
+  - name: vip
+    type: vip
 #  - name: compile_vip
 #    type: vip
 #    cloud_properties:
