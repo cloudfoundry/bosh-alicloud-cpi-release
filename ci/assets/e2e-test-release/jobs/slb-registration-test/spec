@@ -6,7 +6,7 @@ templates:
 
 packages:
 #- jq
-#- aliyun_py
+- aliyun_py
 - aliyun_python_sdk_slb
 - aliyun_python_sdk_core
 - setup_tools
