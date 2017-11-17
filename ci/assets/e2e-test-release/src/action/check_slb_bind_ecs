@@ -6,6 +6,7 @@ from aliyunsdkslb.request.v20140515 import DescribeLoadBalancersRequest
 import sys
 import os
 import getopt
+import json
 
 querySlbServiceParam = {"accessKey": "", "accessSecret": "", "region": "", "slbId": "", "serverId": ""}
 
@@ -17,9 +18,8 @@ def parseParams(argv):
     except getopt.GetoptError:
         sys.exit()
 
-    print "begin parse param:"
     for option, value in options:
-        print option, " :", value
+        #print option, " :", value
         if option == "--access_key":
             querySlbServiceParam['accessKey'] = value or os.environ['ACCESS_KEY']
         if option == "--secret_key":
@@ -45,9 +45,10 @@ def checkSlbBindEcs(client, slbId, ecsId):
 
     try:
         resp = client.do_action_with_exception(req)
-        print resp
+        print json.loads(resp)["TotalCount"]
     except Exception as e:
         print "get info error:", e.message
+        print(e)
 
 
 if __name__ == '__main__':
