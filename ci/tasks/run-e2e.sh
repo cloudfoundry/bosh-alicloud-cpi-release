@@ -71,13 +71,16 @@ time bosh2 -n ucc \
   -l ${METADATA_FILE} \
   bosh-cpi-src/ci/assets/e2e-test-release/cloud-config.yml
 
+echo "access key for e2e..."
+echo ${ALICLOUD_ACCESS_KEY_ID}
+
 # BOSH DEPLOY
 #-v "heavy_stemcell_name=${heavy_stemcell_name}" \
 #-v "encrypted_heavy_stemcell_img_id=${encrypted_heavy_stemcell_img_id}" \
 time bosh2 -n deploy -d e2e-test \
   -v "stemcell_name=${stemcell_name}" \
-  -v access_key_id=${ACCESS_KEY_ID} \
-  -v secret_access_key=${SECRET_KEY_ID} \
+  -v access_key=${ALICLOUD_ACCESS_KEY_ID} \
+  -v secret_key=${ALICLOUD_SECRET_ACCESS_KEY} \
   -l ${METADATA_FILE} \
   bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
 

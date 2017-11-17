@@ -32,5 +32,5 @@ run:
 
 params:
   BOSH_DEBUG_LEVEL: info
-  ACCESS_KEY_ID:      ""
-  SECRET_KEY_ID:      ""
+  ALICLOUD_ACCESS_KEY_ID:      ""
+  ALICLOUD_SECRET_ACCESS_KEY:      ""
