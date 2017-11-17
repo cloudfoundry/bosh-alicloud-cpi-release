@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -o pipefail
 
-export PATH=$(readlink -nf /var/vcap/packages/jq):/usr/local/bin:/var/vcap/packages/aliyuncli/bin/:${PATH}
+export PATH=/usr/local/bin:/var/vcap/packages/aliyun_py/bin/:${PATH}
 
 slb_id=<%= p('load_balancer_id') %>
 region=<%= p('ecs_region') %>
