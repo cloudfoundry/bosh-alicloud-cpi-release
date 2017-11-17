@@ -5,8 +5,8 @@ export PATH=$(readlink -nf /var/vcap/packages/jq):/usr/local/bin:/var/vcap/packa
 
 slb_id=<%= p('load_balancer_id') %>
 region=<%= p('ecs_region') %>
-#access_key=<%= p('access_key') %>
-#secret_key=<%= p('secret_key') %>
+key=<%= p('access_key') %>
+secret=<%= p('secret_key') %>
 access_key=<%= p('ecs_region') %>
 secret_key=<%= p('ecs_region') %>
 
@@ -19,8 +19,7 @@ echo "Asia/Shanghai" | tee /etc/timezone
 dpkg-reconfigure --frontend noninteractive tzdata
 
 #adjust system clock
-date -d '-8 hour' > newdata
-#hwclock --set --date="/newdata"
+hwclock --set --date="$(date -d '+8 hour')"
 hwclock --hctosys
 
 # install python dependency
@@ -41,4 +40,4 @@ ls -al /var/vcap/packages/aliyun_py/bin/
 
 echo "checking if our instance $instance_id is registered with $slb_id"
 #aliyuncli --region $region slb describe-load-balancers --load-balancer-id $slb_id | jq --arg instance_id $instance_id -e '.LoadBalancerDescriptions[0].Instances[] | select(.InstanceId == $instance_id)'
-/var/vcap/packages/aliyun_py/bin/check_slb_bind_ecs --slb_id=$slb_id --ecs_id=$instance_id --access_key=$access_key --secret_key=$secret_key --region=$region
+/var/vcap/packages/aliyun_py/bin/check_slb_bind_ecs --slb_id=$slb_id --ecs_id=$instance_id --access_key=$key --secret_key=$secret --region=$region
