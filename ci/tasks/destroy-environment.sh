@@ -69,6 +69,7 @@ chmod +x terraform_destroy.sh
 TIMES_COUNT=5
 while ${TIMES_COUNT} > 0
 do
+    echo "&*&*&*&*&*& start"
     if [[ ./terraform_destroy.sh -eq 0 ]] ; then
         break
     else
@@ -77,6 +78,7 @@ do
             echo "******** Retry to destroy environment failed. ********"
             exit 1
         else
+            echo "*****count: ${TIMES_COUNT}"
             continue
         fi
     fi
