@@ -70,7 +70,8 @@ TIMES_COUNT=5
 while [[ ${TIMES_COUNT} -gt 0 ]];
 do
     echo "&*&*&*&*&*& start"
-    if [[ ./terraform_destroy.sh -eq 0 ]] ; then
+    ./terraform_destroy.sh
+    if [[ $? -eq 0 ]] ; then
         break
     else
         ((TIMES_COUNT--))
