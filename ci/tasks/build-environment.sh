@@ -70,13 +70,13 @@ echo terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var ali
 chmod +x terraform_build.sh
 
 TIMES_COUNT=5
-while ${TIMES_COUNT} > 0
+while [[ ${TIMES_COUNT} -gt 0 ]];
 do
     echo "&*&*&*&*&*& start"
     if [[ ./terraform_build.sh -eq 0 ]] ; then
         break
     else
-        TIMES_COUNT=$((${TIMES_COUNT}-1))
+        ((TIMES_COUNT--))
         if [[ ${TIMES_COUNT} -le 0 ]]; then
             echo "******** Retry to build environment failed. ********"
             exit 1
