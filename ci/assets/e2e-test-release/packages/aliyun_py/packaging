@@ -1,0 +1,19 @@
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
+
+# install aliyuncli
+#tar -xzvf aliyuncli/cli.tar.gz
+#cd cli
+#chmod +x install.sh
+#./install.sh -i ${BOSH_INSTALL_TARGET}
+
+# make bin package
+mkdir -p ${BOSH_INSTALL_TARGET}/bin
+
+# copy python file to system bin
+cp ${BOSH_COMPILE_TARGET}/action/check_slb_bind_ecs ${BOSH_INSTALL_TARGET}/bin/
+chmod +x ${BOSH_INSTALL_TARGET}/bin/check_slb_bind_ecs
+
+# cant touch other dir except BOSH_INSTALL_TARGET/BOSH_COMPILE_TARGET
+#cp ${BOSH_COMPILE_TARGET}/action/check_slb_bind_ecs /usr/local/bin/
+#chmod +x /usr/local/bin/check_slb_bind_ecs

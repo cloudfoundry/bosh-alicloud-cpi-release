@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+from aliyunsdkcore.client import AcsClient
+from aliyunsdkslb.request.v20140515 import DescribeLoadBalancersRequest
+
+import sys
+import os
+import getopt
+import json
+
+querySlbServiceParam = {"accessKey": "", "accessSecret": "", "region": "", "slbId": "", "serverId": ""}
+
+
+def parseParams(argv):
+    try:
+        options, args = getopt.getopt(argv, "",
+                                      ["slb_id=", "ecs_id=", "access_key=", "secret_key=", "region="])
+    except getopt.GetoptError:
+        sys.exit()
+
+    for option, value in options:
+        #print option, " :", value
+        if option == "--access_key":
+            querySlbServiceParam['accessKey'] = value or os.environ['ACCESS_KEY']
+        if option == "--secret_key":
+            querySlbServiceParam['accessSecret'] = value or os.environ['SECRET_KEY']
+        if option == "--region":
+            querySlbServiceParam['region'] = value or os.environ['REGION']
+        if option == "--slb_id":
+            querySlbServiceParam['slbId'] = value
+        if option == "--ecs_id":
+            querySlbServiceParam['serverId'] = value
+
+
+def initClient():
+    client = AcsClient(querySlbServiceParam['accessKey'],
+                       querySlbServiceParam['accessSecret'], querySlbServiceParam['region'])
+    return client
+
+
+def checkSlbBindEcs(client, slbId, ecsId):
+    req = DescribeLoadBalancersRequest.DescribeLoadBalancersRequest()
+    req.set_LoadBalancerId(slbId)
+    req.set_ServerId(ecsId)
+
+    try:
+        resp = client.do_action_with_exception(req)
+        print json.loads(resp)["TotalCount"]
+    except Exception as e:
+        print "get info error:", e.message
+        print(e)
+
+
+if __name__ == '__main__':
+    parseParams(sys.argv[1:])
+    client = initClient()
+    checkSlbBindEcs(client, querySlbServiceParam['slbId'], querySlbServiceParam['serverId'])

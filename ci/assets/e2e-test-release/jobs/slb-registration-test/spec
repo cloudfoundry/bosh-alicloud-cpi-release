@@ -1,0 +1,25 @@
+---
+name: slb-registration-test
+
+templates:
+  run.erb: bin/run
+
+packages:
+#- jq
+- aliyun_py
+- aliyun_python_sdk_slb
+- aliyun_python_sdk_core
+- setup_tools
+- pycrypto
+- python_devel
+
+
+properties:
+  load_balancer_id:
+    description: The id of the SLB with which the errand should be registered
+  ecs_region:
+    description: The Alicloud region in which the errand is run
+  access_key:
+    description: The Alicloud Access Key
+  secret_key:
+    description: The Alicloud Access Secret Key

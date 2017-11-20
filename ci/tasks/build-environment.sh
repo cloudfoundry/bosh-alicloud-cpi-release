@@ -3,7 +3,7 @@
 set -e
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
-: ${ALICLOUD_ACCESS_KEY_SECRET:?}
+: ${ALICLOUD_SECRET_ACCESS_KEY:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
 : ${DESTROY_ENVIRONMENT:?}
 : ${GIT_USER_EMAIL:?}
@@ -14,7 +14,7 @@ set -e
 : ${BOSH_REPO_BRANCH:?}
 
 CURRENT_PATH=$(pwd)
-SOURCE_PATH=$CURRENT_PATH/bosh-cpi-src
+SOURCE_PATH=$CURRENT_PATH/bosh-alicloud-cpi-release
 TERRAFORM_PATH=$CURRENT_PATH/terraform
 TERRAFORM_MODULE=$SOURCE_PATH/ci/assets/terraform
 TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
@@ -34,19 +34,14 @@ mv -f bin/terraform* ${TERRAFORM_PATH}
 rm -rf ./bin
 export PATH="${TERRAFORM_PATH}:$PATH"
 
-cd ${TERRAFORM_MODULE}
-
-echo "******** tell docker who am I ********"
-git config --global user.email ${GIT_USER_EMAIL}
-git config --global user.name ${GIT_USER_NAME}
-git config --local -l
-
 echo "******** git install expect ********"
 sudo apt-get install expect -y
 
-echo "******** git pull by https ********"
+echo "******** clone terraform template by https ********"
 echo "#!/usr/bin/expect" > git_install.sh
-echo "spawn git fetch https://${GIT_USER_ID}@${BOSH_REPO_HOST} ${BOSH_REPO_BRANCH}" >> git_install.sh
+echo "spawn git clone -b ${BOSH_REPO_BRANCH} --single-branch ${BOSH_REPO_HOST}" >> git_install.sh
+echo "expect \"Username for 'https://github.com': \"" >> git_install.sh
+echo "send \"${GIT_USER_ID}\r\"" >> git_install.sh
 echo "expect \"Password for 'https://${GIT_USER_ID}@github.com': \"" >> git_install.sh
 echo "send \"${GIT_USER_PASSWORD}\r\"" >> git_install.sh
 echo "expect eof" >> git_install.sh
@@ -54,19 +49,24 @@ echo exit >> git_install.sh
 chmod +x git_install.sh
 ./git_install.sh
 rm -rf ./git_install.sh
+echo "******** Clone finished! ********"
 
-echo $'\n'
-echo "****** git merge ******"
-git merge FETCH_HEAD
+cd ${SOURCE_PATH}
 
+echo "******** tell docker who am I ********"
+git config --global user.email ${GIT_USER_EMAIL}
+git config --global user.name ${GIT_USER_NAME}
+git config --local -l
+
+cd ${TERRAFORM_MODULE}
 touch ${METADATA}
 
 echo $'\n'
-echo "Build terraform environment......"
+echo "******* Build terraform environment ******* "
 
-terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_ACCESS_KEY_SECRET} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
+terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
 
-echo "Build terraform environment successfully."
+echo "******* Build terraform environment successfully ******* "
 
 function copyToOutput(){
 
@@ -101,7 +101,7 @@ function copyToOutput(){
         fi
     done
 
-    echo "******* git status ******"
+    echo "******** git status ********"
     git status
 
     git status | sed -n '$p' |while read LINE
@@ -127,11 +127,12 @@ then
 fi
 
 terraform state list > all_state
-echo "Write metadata ......"
+echo "******* Write metadata ******* "
 echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
+EIP_COUNT=0
 cat all_state | while read LINE
 do
-    if [ $LINE == "alicloud_vswitch.default" ];
+    if [[ $LINE == alicloud_vswitch.default ]];
     then
         terraform state show $LINE | while read line
         do
@@ -150,7 +151,7 @@ do
           fi
         done
     fi
-    if [ $LINE == "alicloud_security_group.default" ];
+    if [[ $LINE == alicloud_security_group.default ]];
     then
         terraform state show $LINE | while read line
         do
@@ -161,23 +162,48 @@ do
           fi
         done
     fi
-    if [ $LINE == "alicloud_eip.default" ];
+    if [[ $LINE == alicloud_eip.default* ]];
     then
         terraform state show $LINE | while read line
         do
           echo $line
           if [[ $line == ip_address* ]];
           then
-              echo external_$line >> $METADATA
+              echo "external_${EIP_COUNT}_$line" >> $METADATA
+          fi
+        done
+        EIP_COUNT=$((${EIP_COUNT}+1))
+    fi
+    if [[ $LINE == alicloud_slb.http ]];
+    then
+        terraform state show $LINE | while read line
+        do
+          echo $line
+          if [[ $line == id* ]];
+          then
+              echo slb_http_$line >> $METADATA
+          fi
+        done
+    fi
+    if [[ $LINE == alicloud_slb.tcp ]];
+    then
+        terraform state show $LINE | while read line
+        do
+          echo $line
+          if [[ $line == id* ]];
+          then
+              echo slb_tcp_$line >> $METADATA
           fi
         done
     fi
 done
-echo "Write metadata successfully"
+echo "******** Write metadata successfully ********"
+cat $METADATA
+
 
 rm -rf ./all_state
 
 sed -i 's/=/:/g' $METADATA
 
-echo "Copy to output ......"
+echo "******** Copy to output ......******** "
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}

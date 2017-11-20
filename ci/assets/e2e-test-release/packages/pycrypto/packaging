@@ -1,0 +1,14 @@
+set -e
+
+# install dependency
+# connect (101: Network is unreachable)
+# apt-get update
+# apt-get -y upgrade
+# apt-get clean
+apt-get install -y python-dev
+
+tar zxvf pycrypto/pycrypto-2.6.1.tar.gz
+cd pycrypto-2.6.1/
+chmod +x setup.py
+python setup.py install
+cd ..
