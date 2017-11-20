@@ -65,8 +65,25 @@ echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var a
 echo yes >> terraform_destroy.sh
 echo EOF >> terraform_destroy.sh
 chmod +x terraform_destroy.sh
-./terraform_destroy.sh
-echo "Destroy terraform environment successfully."
+
+TIMES_COUNT=5
+while ${TIMES_COUNT} > 0
+do
+    if [[ ./terraform_destroy.sh -eq 0 ]] ; then
+        break
+    else
+        TIMES_COUNT=$((${TIMES_COUNT}-11))
+        if [[ ${TIMES_COUNT} <= 0 ]]; then
+            echo "******** Retry to destroy environment failed. ********"
+            exit 1
+        else
+            continue
+        fi
+    fi
+done
+
+#./terraform_destroy.sh
+#echo "Destroy terraform environment successfully."
 rm -rf ./terraform_destroy.sh
 
 if [ -e ${METADATA} ];
