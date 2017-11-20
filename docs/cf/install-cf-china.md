@@ -97,10 +97,16 @@ Get `cf-deployment`
 $ git clone https://github.com/cloudfoundry/cf-deployment.git
 ```
 
-Upload stemcell, you can download stemcell from [here](http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1010-alicloud-kvm-ubuntu-trusty-go_agent.tgz)
+Upload stemcell
 
 ```
-bosh -e my-bosh upload-stemcell light-bosh-stemcell-1009-alicloud-kvm-ubuntu-trusty-go_agent.tgz
+bosh -e my-bosh upload-stemcell http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1010-alicloud-kvm-ubuntu-trusty-go_agent.tgz
+```
+
+Upload CF release, For more CF version refer to [cf-release](https://bosh.io/releases/github.com/cloudfoundry/cf-release?all=1)
+
+```
+bosh upload-release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=278 --sha1 7e05e98a9333b187807501ab4252e52058859a2c
 ```
 
 modify `stemcells` section in `cf-deployment.yml`
@@ -110,7 +116,7 @@ modify `stemcells` section in `cf-deployment.yml`
 stemcells:
 - alias: default
   name: bosh-alicloud-kvm-ubuntu-trusty-go_agent
-  version: 1009
+  version: 1010
 ```
 
 Upload cf releases (important in China regions, skip it in oversea region)
@@ -210,6 +216,8 @@ bosh -e my-bosh -d cf deploy cf-deployment.yml \
   --vars-store cf-vars.yml \
   -v system_domain=$CF_DOMAIN
 ```
+
+Install [CF Cli](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) before using Cloud Foundry.
 
 Login Cloud Foundry
 
