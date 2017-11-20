@@ -1,0 +1,7 @@
+---
+name: jq
+
+dependencies: []
+
+files:
+- jq/jq-linux64  # from https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64

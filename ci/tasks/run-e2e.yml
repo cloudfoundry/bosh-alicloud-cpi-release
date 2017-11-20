@@ -3,15 +3,24 @@ platform: linux
 
 image_resource:
   type: docker-image
-  source: {repository: boshcpi/aws-cpi-release}
+  source: {repository: oucwangyue/alicloud-cpi-release}
 
 inputs:
   - name: bosh-cpi-src
-#  - name: environment
+  - name: terraform-metadata
   - name: stemcell
   - name: heavy-stemcell
   - name: bosh-cli
   - name: director-state
+  - name: jq-blob
+  - name: libffi-blob
+  - name: libpqxx-blob
+  - name: pip-blob
+  - name: python-blob
+  - name: python-setup-tools-blob
+  - name: pycrypto-blob
+  - name: core-blob
+  - name: slb-blob
 
 run:
   path: sh
@@ -23,3 +32,5 @@ run:
 
 params:
   BOSH_DEBUG_LEVEL: info
+  ALICLOUD_ACCESS_KEY_ID:      ""
+  ALICLOUD_SECRET_ACCESS_KEY:      ""

@@ -2,7 +2,7 @@
 
 set -e
 
-DOCKER_IMAGE=${DOCKER_IMAGE:-boshcpi/aws-cpi-release}
+DOCKER_IMAGE=${DOCKER_IMAGE:-oucwangyue/alicloud-cpi-release}
 
 docker login
 
