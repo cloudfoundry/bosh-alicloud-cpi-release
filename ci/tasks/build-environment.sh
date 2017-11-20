@@ -64,9 +64,29 @@ touch ${METADATA}
 echo $'\n'
 echo "******* Build terraform environment ******* "
 
-terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
+
+echo terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION} > terraform_build.sh
+
+chmod +x terraform_build.sh
+
+TIMES_COUNT=5
+while ${TIMES_COUNT} -gt 0
+do
+    if [[ ./terraform_build.sh -eq 0 ]] ; then
+        break
+    else
+        TIMES_COUNT=$((${TIMES_COUNT}-1))
+        if [[ ${TIMES_COUNT} -le 0 ]]; then
+            echo "******** Retry to build environment failed. ********"
+            exit 1
+        else
+            continue
+        fi
+    fi
+done
 
 echo "******* Build terraform environment successfully ******* "
+rm -rf ./terraform_destroy.sh
 
 function copyToOutput(){
 
