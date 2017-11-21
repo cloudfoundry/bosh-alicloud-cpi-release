@@ -32,6 +32,10 @@ var (
 	slbId		  	= envOrDefault("CPI_SLB_ID", "")
 	externalIp      = envOrDefault("CPI_EXTERNAL_IP", "")
 
+	// spot
+	spotStrategy= envOrDefault("CPI_SPOT_STRATEGY","SpotWithPriceLimit")
+	spotPriceLimit= envOrDefault("CPI_SPOT_PRICE_LIMIT","0.18")
+
 	//
 	// registry
 	registryUser 		= envOrDefault("CPI_REGISTRY_USER", "admin")
@@ -63,7 +67,7 @@ func ApplySystemEnv(config *alicloud.Config) (error) {
 		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_SECRET")
 	}
 
-	a.Endpoint = endpoint
+	a.AccessEndpoint = endpoint
 
 	registry := &config.Registry
 	registry.User = registryUser

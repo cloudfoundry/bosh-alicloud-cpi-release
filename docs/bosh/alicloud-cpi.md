@@ -72,6 +72,11 @@ Schema for `cloud_properties` section:
 * **instance\_name** [String, required]: Instance host name.
 * **charge\_type** [String, optional]: Charge type of instance: `PrePaid` or `PostPaid`. Default is `PostPaid`
 * **charge\_period** [Integer, optional]: Prepaid months (range: 1-9, 12, 24, 36), required if `charge_type` is `PrePaid`. 
+* **spot\_strategy** [String, optional]: The spot strategy of a Pay-As-You-Go instance, and it takes effect only when the `charge_type` is `PostPaid`. Value range:
+    * **NoSpot** : A normal Pay-As-You-Go instance.
+    * **SpotWithPriceLimit** : A price threshold for a spot instance.
+    * **SpotAsPriceGo** : A price based on the highest Pay-As-You-Go instance will be automatically generated.
+* **spot\_price\_limit** [Float, optional]: The hourly price threshold of a instance, and it takes effect only when the `spot_strategy` is `SpotWithPriceLimit`. Three decimals is allowed at most.
 * **auto\_renew** [Boolean, optional]: `True` or `False`, when charge type is `Prepaid`, will auto renew your payment. Default is `False`.
 * **auto\_renew\_period** [Integer, optional]: Required if `auto_renew` is `True`, by months (range: 1, 2, 3, 6, 12). 
 * **password** [String, optional]: Root password, no-effect with some stemcell, use jumpbox-user instead.
