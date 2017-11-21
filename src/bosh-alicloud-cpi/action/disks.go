@@ -28,13 +28,14 @@ type Disks struct {
 }
 
 type DiskInfo struct {
-	SizeRaw     interface{} `json:"size,omitempty"`
-	Category    string      `json:"category,omitempty"`
+	SizeRaw     interface{} `json:"size"`
+	Category    string      `json:"category"`
+	Encrypted 	bool		`json:"encrypted"`
+	DeleteWithInstance bool `json:"delete_with_instance"`
 	sizeGB      int
 	path        string
 	ecsCategory ecs.DiskCategory
 }
-
 
 type PersistentDisk struct {
 	Cid string
@@ -42,7 +43,24 @@ type PersistentDisk struct {
 	Path string
 }
 
-func NewDisks(systemDisk DiskInfo, ephemeralDisk DiskInfo) (Disks, error) {
+func NewDiskInfo() (DiskInfo) {
+	return DiskInfo{
+		Encrypted: false,
+		DeleteWithInstance: true,
+	}
+}
+
+func NewDiskInfoWithSize(size int, props apiv1.DiskCloudProps) (DiskInfo, error){
+	d := NewDiskInfo()
+	err := props.As(&d)
+	if err != nil {
+		return d, fmt.Errorf("bad format for DiskCloudProps %v", props)
+	}
+	d.SizeRaw = size
+	return d.Validate(false)
+}
+
+func NewDisksWithProps(systemDisk DiskInfo, ephemeralDisk DiskInfo) (Disks, error) {
 	r := Disks {systemDisk, ephemeralDisk, []PersistentDisk{}}
 
 	d, err := systemDisk.Validate(true)
@@ -65,16 +83,6 @@ func NewDisks(systemDisk DiskInfo, ephemeralDisk DiskInfo) (Disks, error) {
 	}
 
 	return r, nil
-}
-
-func NewDiskInfo(size int, props apiv1.DiskCloudProps) (DiskInfo, error){
-	var d DiskInfo
-	err := props.As(&d)
-	if err != nil {
-		return d, fmt.Errorf("bad format for DiskCloudProps %v", props)
-	}
-	d.SizeRaw = size
-	return d.Validate(false)
 }
 
 func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
@@ -177,7 +185,7 @@ func (a Disks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) {
 		args.DataDisk = append(args.DataDisk, ecs.DataDiskType{
 			Size:               a.EphemeralDisk.sizeGB,
 			Category:           a.EphemeralDisk.GetCategory(),
-			DeleteWithInstance: true,
+			DeleteWithInstance: a.EphemeralDisk.DeleteWithInstance,
 		})
 	}
 }

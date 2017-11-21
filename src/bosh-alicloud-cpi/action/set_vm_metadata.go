@@ -6,8 +6,8 @@ package action
 import (
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
 	"encoding/json"
+	"fmt"
 )
 
 type SetVMMetadataMethod struct {
@@ -19,26 +19,16 @@ func NewSetVMMetadataMethod(cc CallContext, instances alicloud.InstanceManager) 
 	return SetVMMetadataMethod{cc, instances}
 }
 
-type MetaData map[string]interface{}
-
 func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta) error {
-	bytes, err := meta.MarshalJSON()
+	md, err := convertMetaData(meta)
 	if err != nil {
-		return a.WrapErrorf(err, "meta marshal failed")
-	}
-	var md MetaData
-	err = json.Unmarshal(bytes, &md)
-	msg := string(bytes)
-	_ = msg
-	if err != nil {
-		return a.WrapErrorf(err, "meta unmarshal failed %s", string(bytes))
+		return a.WrapErrorf(err, "convert meta data failed %v", meta)
 	}
 
-	var args ecs.ModifyInstanceAttributeArgs
-	args.InstanceId = vmCID.AsString()
-
+	instCid := vmCID.AsString()
+	name := ""
 	if s, ok := md["name"]; ok {
-		args.InstanceName = normalizeInstanceName(s.(string))
+		name = normalizeName(s.(string), "i_")
 	}
 
 	desc := ""
@@ -49,25 +39,39 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 		desc += "deployment: " + s.(string) + "\n"
 	}
 
-	args.Description = desc
-	err = a.instances.ModifyInstanceAttribute(args)
-
+	err = a.instances.ModifyInstanceAttribute(instCid, name, desc)
 	if err != nil {
-		return a.WrapErrorf(err, "set_vm_metadata failed %s", args.InstanceId)
+		return a.WrapErrorf(err, "set_vm_metadata failed %s", instCid)
 	}
 
 	return nil
 }
 
+type MetaData map[string]interface{}
+type MetaInput interface {
+	MarshalJSON() ([]byte, error)
+}
 
+func convertMetaData(input MetaInput) (MetaData, error) {
+	var r MetaData
+	bytes, err := input.MarshalJSON()
+	if err != nil {
+		return r, fmt.Errorf("meta marshal failed %s", err.Error())
+	}
+	err = json.Unmarshal(bytes, &r)
+	if err != nil {
+		return r, fmt.Errorf("meta unmarshal failed %s", string(bytes))
+	}
+	return r, nil
+}
 //
 // InstanceName ref https://help.aliyun.com/document_detail/25503.html
-func normalizeInstanceName(s string) (string) {
+func normalizeName(s string, prefix string) (string) {
 	r := ""
 
 	// can only contains [a-zA-Z0-9-_\.]
 	for _, c := range s {
-		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z' || (c >= '0' && c <= '9')) || c == '-' || c == '_' || c == '.' {
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.' {
 			r = r + string(c)
 		} else {
 			r = r + "."
@@ -75,13 +79,14 @@ func normalizeInstanceName(s string) (string) {
 	}
 
 	// must start with [a-z, A-Z]
-	if s[0] >= '0' && s[0] <= '9' {
-		r = "i_" + r
+	c := s[0]
+	if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+		r = prefix + r
 	}
 
 	// length in [2, 128]
 	if len(r) < 2 {
-		return "i_" + r
+		return prefix + r
 	}
 
 	if len(r) > 128 {

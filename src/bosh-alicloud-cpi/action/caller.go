@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"strconv"
 )
 
 type CpiResponse struct {
@@ -139,6 +140,12 @@ func (c Caller) CallGeneric(method string, args ...interface{}) (interface{}, er
 			} else {
 				arguments += `"` + s + `"`
 			}
+		case int:
+			n := a.(int)
+			arguments += strconv.Itoa(n)
+		case float64:
+			f := a.(float64)
+			arguments += fmt.Sprintf("%f", f)
 		default:
 			j, _ := json.Marshal(a)
 			arguments = arguments + string(j)

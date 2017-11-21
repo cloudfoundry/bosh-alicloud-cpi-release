@@ -17,7 +17,7 @@ func parseCloudProps(in string) (Disks, error) {
 	if err != nil {
 		return Disks{}, err
 	}
-	return NewDisks(props.SystemDisk, props.EphemeralDisk)
+	return NewDisksWithProps(props.SystemDisk, props.EphemeralDisk)
 }
 
 var _ = Describe("Disks", func() {

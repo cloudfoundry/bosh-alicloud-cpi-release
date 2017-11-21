@@ -39,13 +39,13 @@ var _ = Describe("cpi:set_vm_metadata", func() {
 	})
 
 	It("instance name can be normalized", func() {
-		s := normalizeInstanceName("dea_ng/4daa76e3-db6d-4550-b9b4-c504e7865f62")
+		s := normalizeName("dea_ng/4daa76e3-db6d-4550-b9b4-c504e7865f62", "i_")
 		Expect(s).Should(Equal("dea_ng.4daa76e3-db6d-4550-b9b4-c504e7865f62"))
 
-		s = normalizeInstanceName("a")
+		s = normalizeName("a", "i_")
 		Expect(s).Should(Equal("i_a"))
 
-		s = normalizeInstanceName("11123")
+		s = normalizeName("11123", "i_")
 		Expect(s).Should(Equal( "i_11123"))
 	})
 })

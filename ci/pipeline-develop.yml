@@ -41,7 +41,7 @@ shared:
     file: bosh-cpi-src/ci/tasks/run-e2e.yml
     params:
       ALICLOUD_ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
-      ALICLOUD_SECRET_ACCESS_KEY:              {{alicloud_secret_key__primary}}
+      ALICLOUD_SECRET_ACCESS_KEY:          {{alicloud_secret_key__primary}}
 
   - &create-environment
     put: environment
@@ -399,8 +399,6 @@ resources:
     source:
       uri: git@github.com:demonwy/bosh-deployment.git
       branch: support_alicloud
-#      uri: git@github.com:aliyun/bosh-deployment.git
-#      branch: alicloud
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
   - name: terraform-metadata

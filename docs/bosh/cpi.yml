@@ -84,6 +84,7 @@
   value: &alicloud
     region_id: ((region))
     zone_id: ((zone))
+    access_endpoint: ((access_endpoint))
     access_key_id: ((access_key_id))
     access_key_secret: ((access_key_secret))
 

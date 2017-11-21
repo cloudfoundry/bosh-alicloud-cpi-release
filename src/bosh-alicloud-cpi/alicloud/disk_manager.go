@@ -12,19 +12,33 @@ import (
 	"fmt"
 	"encoding/json"
 	"strings"
+	"time"
+	"github.com/google/uuid"
+)
+
+const (
+	ChangeDiskStatusTimeout = time.Duration(300) * time.Second
+	ChangeDiskStatusSleepInterval = time.Duration(5) * time.Second
 )
 
 type DiskManager interface {
 	GetDisks(instCid string) ([]ecs.DiskItemType, error)
 	GetDisk(diskCid string) (*ecs.DiskItemType, error)
 
-	CreateDisk(sizeGB int, category ecs.DiskCategory, zone string) (string, error)
+	CreateDisk(args ecs.CreateDiskArgs) (string, error)
 	DeleteDisk(diskCid string) (error)
 
 	AttachDisk(instCid string, diskCid string) (error)
 	DetachDisk(instCid string, diskCid string) (error)
 
+	ResizeDisk(diskCid string, sizeGB int) (error)
+	ModifyDiskAttribute(diskCid string, name string, description string) (error)
+
+	CreateSnapshot(diskCid string, snapshotName string) (string, error)
+	DeleteSnapshot(snapshotCid string) (error)
+
 	WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error)
+	ChangeDiskStatus(cid string, toStatus ecs.DiskStatus, checkFunc func(*ecs.DiskItemType) (bool, error)) (error)
 }
 
 type DiskManagerImpl struct {
@@ -92,13 +106,9 @@ func (a DiskManagerImpl) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
 	return &disks[0], nil
 }
 
-func (a DiskManagerImpl) CreateDisk(sizeGB int, category ecs.DiskCategory, zone string) (string, error) {
-	var args = ecs.CreateDiskArgs {
-		RegionId: common.Region(a.region),
-		ZoneId: zone,
-		DiskCategory: category,
-		Size: sizeGB,
-	}
+func (a DiskManagerImpl) CreateDisk(args ecs.CreateDiskArgs) (string, error) {
+	args.RegionId = a.config.OpenApi.GetRegion()
+	args.ClientToken = uuid.New().String()
 
 	client := a.config.NewEcsClient()
 	invoker := NewInvoker()
@@ -154,6 +164,60 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) (error) {
 	})
 }
 
+func (a DiskManagerImpl) ResizeDisk(diskCid string, size int) (error) {
+	client := a.config.NewEcsClient()
+	invoker := NewInvoker()
+
+	return invoker.Run(func() (error) {
+		err := client.ResizeDisk(diskCid, size)
+		a.log("ResizeDisk", err, diskCid, "ok")
+		return err
+	})
+}
+
+func (a DiskManagerImpl) ModifyDiskAttribute(diskCid string, name string, description string) (error) {
+	client := a.config.NewEcsClient()
+	var args ecs.ModifyDiskAttributeArgs
+	args.DiskId = diskCid
+	args.DiskName = name
+	args.Description = description
+
+	invoker := NewInvoker()
+	return invoker.Run(func() (error) {
+		e := client.ModifyDiskAttribute(&args)
+		a.log("ModifyDiskAttribute", e, diskCid, "ok")
+		return e
+	})
+}
+
+func (a DiskManagerImpl) CreateSnapshot(diskCid string, snapshotName string) (string, error) {
+	client := a.config.NewEcsClient()
+	var args ecs.CreateSnapshotArgs
+	args.DiskId = diskCid
+	args.SnapshotName = snapshotName
+	args.ClientToken = uuid.New().String()
+
+	invoker := NewInvoker()
+	var snapshotId string
+	err := invoker.Run(func() (error) {
+		id, e := client.CreateSnapshot(&args)
+		a.log("CreateSnapshot", e, diskCid, id)
+		snapshotId = id
+		return e
+	})
+	return snapshotId, err
+}
+
+func (a DiskManagerImpl) DeleteSnapshot(snapshotCid string) (error) {
+	client := a.config.NewEcsClient()
+
+	invoker := NewInvoker()
+	return invoker.Run(func() (error) {
+		e := client.DeleteSnapshot(snapshotCid)
+		a.log("DeleteSnapshot", e, snapshotCid, "ok")
+		return e
+	})
+}
 
 func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
 
@@ -203,6 +267,39 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 	return result, nil
 }
 
+func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus ecs.DiskStatus, checkFunc func(*ecs.DiskItemType) (bool, error)) (error) {
+	timeout := ChangeDiskStatusTimeout
+	for {
+		disk, err := a.GetDisk(cid)
+		if err != nil {
+			return fmt.Errorf("get disk %s status failed %s", cid, err.Error())
+		}
+
+		ok, err := checkFunc(disk)
+		status := "Deleted"
+		if disk != nil {
+			status = string(disk.Status)
+		}
+
+		if err != nil {
+			a.logger.Error("DiskManager", "change %s from %s to %s failed %s", cid, status, toStatus, err.Error())
+			return err
+		}
+
+		if ok {
+			a.logger.Info("DiskManager", "change %s to %s done!", cid, toStatus)
+			return nil
+		} else {
+			a.logger.Info("DiskManager", "changing %s from %s to %s ...", cid, status, toStatus)
+		}
+
+		timeout -= ChangeDiskStatusSleepInterval
+		time.Sleep(ChangeDiskStatusSleepInterval)
+		if timeout < 0 {
+			return fmt.Errorf("change disk %s to %s timeout", cid, toStatus)
+		}
+	}
+}
 
 func AmendDiskPath(path string, category ecs.DiskCategory) (string) {
 	//

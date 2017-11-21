@@ -14,8 +14,8 @@ update:
 stemcells:
   - alias: stemcell
     name: ((stemcell_name))
-#    version: latest
-    version: 1010
+    version: latest
+#    version: 1010
 # todo: heavy stemcell
 #  - alias: heavy-stemcell
 #    name: ((heavy_stemcell_name))

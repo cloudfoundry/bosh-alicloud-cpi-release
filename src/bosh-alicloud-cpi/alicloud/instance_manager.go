@@ -12,10 +12,12 @@ import (
 	"encoding/json"
 	"time"
 	"fmt"
+	"github.com/google/uuid"
 )
 
 var DeleteInstanceCatcher = Catcher {"IncorrectInstanceStatus.Initializing", 10, 15}
-var CreateInstanceCatcher = Catcher {"InvalidPrivateIpAddress.Duplicated", 10, 15}
+var CreateInstanceCatcher_IpUsed = Catcher {"InvalidPrivateIpAddress.Duplicated", 10, 15}
+var CreateInstanceCatcher_IpUsed2 = Catcher {"InvalidIPAddress.AlreadyUsed", 10, 15}
 
 const (
 	ChangeInstanceStatusTimeout = time.Duration(300) * time.Second
@@ -26,7 +28,7 @@ type InstanceManager interface {
 	GetInstance(cid string) (*ecs.InstanceAttributesType, error)
 
 	CreateInstance(args ecs.CreateInstanceArgs) (string, error)
-	ModifyInstanceAttribute(args ecs.ModifyInstanceAttributeArgs) (error)
+	ModifyInstanceAttribute(cid string, name string, description string) (error)
 
 	DeleteInstance(cid string) (error)
 
@@ -35,10 +37,9 @@ type InstanceManager interface {
 	RebootInstance(cid string) (error)
 
 	GetInstanceStatus(cid string) (ecs.InstanceStatus, error)
+
 	// WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus, error)
-
 	ChangeInstanceStatus(cid string, toStatus ecs.InstanceStatus, checkFunc func(status ecs.InstanceStatus) (bool, error)) (error)
-
 }
 
 type InstanceManagerImpl struct {
@@ -94,11 +95,15 @@ func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string
 	client := a.config.NewEcsClient()
 
 	invoker := NewInvoker()
-	invoker.AddCatcher(CreateInstanceCatcher)
+	invoker.AddCatcher(CreateInstanceCatcher_IpUsed)
+	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
+
+	args.RegionId = a.config.OpenApi.GetRegion()
+	args.ClientToken = uuid.New().String()
 
 	var cid string
 	err := invoker.Run(func() (error) {
-		a2 := args // copy args to avoid base64 again
+		a2 := args // copy args to avoid base64 UserData again
 		c2, e := client.CreateInstance(&a2)
 		cid = c2
 		a.log("CreateInstance", e, a2, c2)
@@ -107,11 +112,15 @@ func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string
 	return cid, err
 }
 
-func (a InstanceManagerImpl) ModifyInstanceAttribute(args ecs.ModifyInstanceAttributeArgs) (error) {
+func (a InstanceManagerImpl) ModifyInstanceAttribute(cid string, name string, description string) (error) {
 	client := a.config.NewEcsClient()
 
+	var args ecs.ModifyInstanceAttributeArgs
+	args.InstanceId = cid
+	args.InstanceName = name
+	args.Description = description
+
 	invoker := NewInvoker()
-	invoker.AddCatcher(CreateInstanceCatcher)
 	return invoker.Run(func() (error) {
 		e := client.ModifyInstanceAttribute(&args)
 		a.log("ModifyInstanceAttributes", e, args, "ok")
