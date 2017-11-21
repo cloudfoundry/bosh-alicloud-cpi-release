@@ -65,16 +65,16 @@ echo $'\n'
 echo "******* Build terraform environment ******* "
 
 terraform init
-#echo terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION} > terraform_build.sh
+echo terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION} > terraform_build.sh
 
-#chmod +x terraform_build.sh
+chmod +x terraform_build.sh
 
 TIMES_COUNT=5
 while [[ ${TIMES_COUNT} -gt 0 ]];
 do
-    echo "&*&*&*&*&*& start"
-    terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
-    if [[ $? -eq 0 ]] ; then
+    echo "&*&*&*&*&*&*&*&*&*&* start"
+#    terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
+    if [[ $(./terraform_build.sh) -eq 0 ]] ; then
         break
     else
         ((TIMES_COUNT--))
@@ -89,7 +89,7 @@ do
 done
 
 echo "******* Build terraform environment successfully ******* "
-#rm -rf ./terraform_destroy.sh
+rm -rf ./terraform_build.sh
 
 function copyToOutput(){
 
