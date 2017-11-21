@@ -63,7 +63,7 @@ func ApplySystemEnv(config *alicloud.Config) (error) {
 		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_SECRET")
 	}
 
-	a.Endpoint = endpoint
+	a.AccessEndpoint = endpoint
 
 	registry := &config.Registry
 	registry.User = registryUser
