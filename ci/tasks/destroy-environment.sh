@@ -71,7 +71,7 @@ while [[ ${TIMES_COUNT} -gt 0 ]];
 do
     echo "&*&*&*&*&*& start"
 #    ./terraform_destroy.sh
-    if [[ $(./terraform_destroy.sh) == *Destroy complete!* ]] ; then
+    if [[ $(./terraform_destroy.sh) == "*Destroy complete!*" ]] ; then
         break
     else
         ((TIMES_COUNT--))

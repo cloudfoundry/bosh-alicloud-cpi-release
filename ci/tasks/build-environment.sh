@@ -74,7 +74,7 @@ while [[ ${TIMES_COUNT} -gt 0 ]];
 do
     echo "&*&*&*&*&*&*&*&*&*&* start"
 #    terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
-    if [[ $(./terraform_build.sh) == *Apply complete!* ]] ; then
+    if [[ $(./terraform_build.sh) == "*Apply complete!*" ]] ; then
         break
     else
         ((TIMES_COUNT--))
