@@ -64,6 +64,9 @@ shared:
       GIT_USER_PASSWORD:          {{github_user_password}}
       BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
       BOSH_REPO_BRANCH:           concourse_ci_tmp
+      DEFAULT_KEY_NAME:           bosh
+      CPI_INTERNAL_GW:            172.16.0.1
+      CPI_INTERNAL_IP:            172.16.0.3
 
   - &destroy-environment
       task: destroy-environment

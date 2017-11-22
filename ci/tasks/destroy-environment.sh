@@ -18,7 +18,7 @@ TERRAFORM_MODULE=$SOURCE_PATH/ci/assets/terraform
 TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
 METADATA=metadata
 TERRAFORM_VERSION=0.10.0
-TERRAFORM_PROVIDER_VERSION=1.2.6
+TERRAFORM_PROVIDER_VERSION=1.2.10
 
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
@@ -58,16 +58,26 @@ git config --local -l
 
 cd ${TERRAFORM_MODULE}
 
-echo $'\n'
-echo "Destroy terraform environment......"
+echo -e "\nDestroy terraform environment......"
 terraform init
-echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
-echo yes >> terraform_destroy.sh
-echo EOF >> terraform_destroy.sh
-chmod +x terraform_destroy.sh
-./terraform_destroy.sh
-echo "Destroy terraform environment successfully."
-rm -rf ./terraform_destroy.sh
+TIMES_COUNT=1
+while [[ ${TIMES_COUNT} -le 20 ]];
+do
+    echo -e "******** Try to destroy environment - ${TIMES_COUNT} times ********\n"
+    if [[ $(terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION} -force) && $? -eq 0 ]] ; then
+        echo -e "******* Destroy terraform environment successfully ******* \n"
+        break
+    else
+        ((TIMES_COUNT++))
+        if [[ ${TIMES_COUNT} -gt 20 ]]; then
+            echo "******** Retry to destroy environment failed. ********"
+        else
+            echo "Waitting for 5 seconds......********"
+            sleep 5
+            continue
+        fi
+    fi
+done
 
 if [ -e ${METADATA} ];
 then
@@ -80,6 +90,11 @@ function copyToOutput(){
     cp -rf $1/. $2
 
     cd $2
+
+    if [ -e ${METADATA} ]; then
+        echo "" > $METADATA
+    fi
+
     ls -la
     echo "******** show git repo info ********"
     git remote -v
@@ -94,7 +109,7 @@ function copyToOutput(){
         echo "echo LINE: $LINE"
         if [[ $LINE == HEAD*detached* ]];
         then
-            echo "****** fix detached branch ******"
+            echo "****** fix detached branch ******"s
             read -r -a Words <<< $LINE
 
             git status | sed -n 'p' |while read LI
@@ -134,5 +149,5 @@ function copyToOutput(){
     return 0
 }
 
-echo "Copy to output ......"
+echo -e "\nCopy to output ......"
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
