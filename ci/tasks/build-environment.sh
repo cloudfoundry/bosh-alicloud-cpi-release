@@ -12,6 +12,9 @@ set -e
 : ${GIT_USER_PASSWORD:?}
 : ${BOSH_REPO_HOST:?}
 : ${BOSH_REPO_BRANCH:?}
+: ${DEFAULT_KEY_NAME:?}
+: ${CPI_INTERNAL_GW:?}
+: ${CPI_INTERNAL_IP:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-alicloud-cpi-release
@@ -146,6 +149,10 @@ fi
 terraform state list > all_state
 echo -e "******* Write metadata ******* \n"
 echo "region: ${ALICLOUD_DEFAULT_REGION}" > $METADATA
+echo "default_key_name: ${DEFAULT_KEY_NAME}" >> $METADATA
+echo "dns_recursor_ip: 8.8.8.8" >> $METADATA
+echo "internal_ip: ${CPI_INTERNAL_IP}" >> $METADATA
+echo "internal_gw: ${CPI_INTERNAL_GW}" >> $METADATA
 EIP_COUNT=0
 cat all_state | while read LINE
 do
