@@ -145,7 +145,7 @@ fi
 
 terraform state list > all_state
 echo -e "******* Write metadata ******* \n"
-echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
+echo "region: ${ALICLOUD_DEFAULT_REGION}" > $METADATA
 EIP_COUNT=0
 cat all_state | while read LINE
 do
@@ -154,17 +154,17 @@ do
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == id* ]];
-          then
-              echo vswitch_$line >> $METADATA
+          if [[ $line == id* ]]; then
+              read -r -a Words <<< $line
+              echo "subnet_id: ${Words[2]}" >> $METADATA
           fi
-          if [[ $line == availability_zone* ]];
-          then
-              echo $line >> $METADATA
+          if [[ $line == availability_zone* ]]; then
+              read -r -a Words <<< $line
+              echo "az: ${Words[2]}" >> $METADATA
           fi
-          if [[ $line == cidr_block* ]];
-          then
-              echo internal_$line >> $METADATA
+          if [[ $line == cidr_block* ]]; then
+              read -r -a Words <<< $line
+              echo "internal_cidr: ${Words[2]}" >> $METADATA
           fi
         done
     fi
@@ -173,43 +173,44 @@ do
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == id* ]];
-          then
-              echo security_group_$line >> $METADATA
+          if [[ $line == id* ]]; then
+              read -r -a Words <<< $line
+              echo "security_group_id: ${Words[2]}" >> $METADATA
           fi
         done
     fi
-    if [[ $LINE == alicloud_eip.default* ]];
-    then
+    if [[ $LINE == alicloud_eip.default* ]]; then
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == ip_address* ]];
-          then
-              echo "external_${EIP_COUNT}_$line" >> $METADATA
+          if [[ $line == ip_address* ]]; then
+              read -r -a Words <<< $line
+              if [[ ${EIP_COUNT} == 0 ]]; then
+                  echo "external_ip: ${Words[2]}" >> $METADATA
+              else
+                  echo "external_${EIP_COUNT}_ip_address: ${Words[2]}" >> $METADATA
+              fi
           fi
         done
         EIP_COUNT=$((${EIP_COUNT}+1))
     fi
-    if [[ $LINE == alicloud_slb.http ]];
-    then
+    if [[ $LINE == alicloud_slb.http ]]; then
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == id* ]];
-          then
-              echo slb_http_$line >> $METADATA
+          if [[ $line == id* ]]; then
+              read -r -a Words <<< $line
+              echo "slb_http_id: ${Words[2]}" >> $METADATA
           fi
         done
     fi
-    if [[ $LINE == alicloud_slb.tcp ]];
-    then
+    if [[ $LINE == alicloud_slb.tcp ]]; then
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == id* ]];
-          then
-              echo slb_tcp_$line >> $METADATA
+          if [[ $line == id* ]]; then
+              read -r -a Words <<< $line
+              echo "slb_tcp_id: ${Words[2]}" >> $METADATA
           fi
         done
     fi
@@ -220,7 +221,7 @@ cat $METADATA
 
 rm -rf ./all_state
 
-sed -i 's/=/:/g' $METADATA
+#sed -i 's/=/:/g' $METADATA
 
 echo -e "\n******** Copy to output ......******** "
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
