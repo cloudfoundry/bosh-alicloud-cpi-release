@@ -1,1 +1,13 @@
-
+region: cn-hongkong
+default_key_name: bosh
+dns_recursor_ip: 8.8.8.8
+internal_ip: 172.16.0.3
+internal_gw: 172.16.0.1
+security_group_id: sg-j6cfsr35ijqofnjzigcz
+slb_http_id: lb-j6ckginzym0sckluldp9l
+slb_tcp_id: lb-j6cydxxkp3xbmsbxdu6nc
+subnet_id: vsw-j6c1tq3oh99qr6si8f10z
+az: cn-hongkong-b
+internal_cidr: 172.16.0.0/24
+external_ip: 47.52.248.92
+external_1_ip_address: 47.52.249.39
