@@ -107,7 +107,7 @@ resource "alicloud_slb" "http" {
     {
       "instance_port" = "8443"
       "lb_port" = "443"
-      "lb_protocol" = "http"
+      "lb_protocol" = "tcp"
       "bandwidth" = "5"
     }]
 }
@@ -120,13 +120,13 @@ resource "alicloud_slb" "tcp" {
     {
       "instance_port" = "80"
       "lb_port" = "80"
-      "lb_protocol" = "http"
+      "lb_protocol" = "tcp"
       "bandwidth" = "5"
     },
     {
-      "instance_port" = "8443"
+      "instance_port" = "443"
       "lb_port" = "443"
-      "lb_protocol" = "http"
+      "lb_protocol" = "tcp"
       "bandwidth" = "5"
     }]
 }
