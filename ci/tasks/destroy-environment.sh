@@ -58,22 +58,14 @@ git config --local -l
 
 cd ${TERRAFORM_MODULE}
 
-echo $'\n'
-echo "Destroy terraform environment......"
+echo -e "\nDestroy terraform environment......"
 terraform init
-#echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
-#echo yes >> terraform_destroy.sh
-#echo EOF >> terraform_destroy.sh
-#chmod +x terraform_destroy.sh
-
 TIMES_COUNT=1
 while [[ ${TIMES_COUNT} -le 20 ]];
 do
-    echo "******** Try to destroy environment - ${TIMES_COUNT} times ********"
-#    ./terraform_destroy.sh > destroy
-#    cat destroy
+    echo -e "******** Try to destroy environment - ${TIMES_COUNT} times ********\n"
     if [[ $(terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION} -force) && $? -eq 0 ]] ; then
-        echo "******* Destroy terraform environment successfully ******* "
+        echo -e "******* Destroy terraform environment successfully ******* \n"
         break
     else
         ((TIMES_COUNT++))
@@ -87,11 +79,6 @@ do
     fi
 done
 
-#./terraform_destroy.sh
-#echo "Destroy terraform environment successfully."
-#rm -rf ./terraform_destroy.sh
-#rm -rf ./destroy
-
 if [ -e ${METADATA} ];
 then
     echo "" > $METADATA
@@ -103,6 +90,11 @@ function copyToOutput(){
     cp -rf $1/. $2
 
     cd $2
+
+    if [ -e ${METADATA} ]; then
+        echo "" > $METADATA
+    fi
+
     ls -la
     echo "******** show git repo info ********"
     git remote -v
@@ -157,5 +149,5 @@ function copyToOutput(){
     return 0
 }
 
-echo "Copy to output ......"
+echo -e "\nCopy to output ......"
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}

@@ -53,7 +53,7 @@ echo "******** Clone finished! ********"
 
 cd ${SOURCE_PATH}
 
-echo "******** tell docker who am I ********\n"
+echo -e "******** tell docker who am I ********\n"
 git config --global user.email ${GIT_USER_EMAIL}
 git config --global user.name ${GIT_USER_NAME}
 git config --local -l
@@ -61,22 +61,22 @@ git config --local -l
 cd ${TERRAFORM_MODULE}
 touch ${METADATA}
 
-echo "******* Build terraform environment ******** \n"
+echo -e "******* Build terraform environment ******** \n"
 
 terraform init
 TIMES_COUNT=1
 while [[ ${TIMES_COUNT} -le 20 ]];
 do
-    echo "******** Try to build environment - ${TIMES_COUNT} times ********\n"
+    echo -e "******** Try to build environment - ${TIMES_COUNT} times ********\n"
     if [[ $(terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}) && $? -eq 0 ]] ; then
-        echo "******** Build terraform environment successfully ******** \n"
+        echo -e "******** Build terraform environment successfully ******** \n"
         break
     else
         ((TIMES_COUNT++))
         if [[ ${TIMES_COUNT} -gt 20 ]]; then
-            echo "******** Retry to build environment failed. ********\n"
+            echo -e "******** Retry to build environment failed. ********\n"
         else
-            echo "******** Waitting for 5 seconds...... ********\n"
+            echo -e "******** Waitting for 5 seconds...... ********\n"
             sleep 5
             continue
         fi
@@ -144,7 +144,7 @@ then
 fi
 
 terraform state list > all_state
-echo "******* Write metadata ******* \n"
+echo -e "******* Write metadata ******* \n"
 echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
 EIP_COUNT=0
 cat all_state | while read LINE
@@ -214,7 +214,7 @@ do
         done
     fi
 done
-echo "******** Write metadata successfully ********\n"
+echo -e "******** Write metadata successfully ********\n"
 cat $METADATA
 
 
@@ -222,5 +222,5 @@ rm -rf ./all_state
 
 sed -i 's/=/:/g' $METADATA
 
-echo "******** Copy to output ......******** "
+echo -e "\n******** Copy to output ......******** "
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
