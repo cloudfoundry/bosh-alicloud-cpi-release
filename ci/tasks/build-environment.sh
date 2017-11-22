@@ -65,31 +65,31 @@ echo $'\n'
 echo "******* Build terraform environment ******* "
 
 terraform init
-echo terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION} > terraform_build.sh
+#echo terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION} > terraform_build.sh
 
-chmod +x terraform_build.sh
+#chmod +x terraform_build.sh
 
-TIMES_COUNT=10
-while [[ ${TIMES_COUNT} -gt 0 ]];
+TIMES_COUNT=1
+while [[ ${TIMES_COUNT} -le 20 ]];
 do
-    echo "&*&*&*&*&*&*&*&*&*&* start"
+    echo "******** Try to build environment - ${TIMES_COUNT} times ********"
 #    terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
-    if [[ $(./terraform_build.sh) == "*Apply complete!*" ]] ; then
+    if [[ $(terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}) && $? -eq 0 ]] ; then
         echo "******* Build terraform environment successfully ******* "
         break
     else
-        ((TIMES_COUNT--))
-        if [[ ${TIMES_COUNT} -le 0 ]]; then
+        ((TIMES_COUNT++))
+        if [[ ${TIMES_COUNT} -gt 20 ]]; then
             echo "******** Retry to build environment failed. ********"
         else
-            echo "*****count: ${TIMES_COUNT}. sleep 5 seconds. ********"
+            echo "******** Waitting for 5 seconds...... ********"
             sleep 5
             continue
         fi
     fi
 done
 
-rm -rf ./terraform_build.sh
+#rm -rf ./terraform_build.sh
 
 function copyToOutput(){
 

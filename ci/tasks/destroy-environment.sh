@@ -61,35 +61,36 @@ cd ${TERRAFORM_MODULE}
 echo $'\n'
 echo "Destroy terraform environment......"
 terraform init
-echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
-echo yes >> terraform_destroy.sh
-echo EOF >> terraform_destroy.sh
-chmod +x terraform_destroy.sh
+#echo terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}  \<\< EOF > terraform_destroy.sh
+#echo yes >> terraform_destroy.sh
+#echo EOF >> terraform_destroy.sh
+#chmod +x terraform_destroy.sh
 
-TIMES_COUNT=10
-while [[ ${TIMES_COUNT} -gt 0 ]];
+TIMES_COUNT=1
+while [[ ${TIMES_COUNT} -le 20 ]];
 do
-    echo "&*&*&*&*&*& start"
-#    ./terraform_destroy.sh
-    if [[ $(./terraform_destroy.sh) == "*Destroy complete!*" ]] ; then
+    echo "******** Try to destroy environment - ${TIMES_COUNT} times ********"
+#    ./terraform_destroy.sh > destroy
+#    cat destroy
+    if [[ $(terraform destroy -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION} -force) && $? -eq 0 ]] ; then
         echo "******* Destroy terraform environment successfully ******* "
         break
     else
-        ((TIMES_COUNT--))
-        if [[ ${TIMES_COUNT} -le 0 ]]; then
+        ((TIMES_COUNT++))
+        if [[ ${TIMES_COUNT} -gt 20 ]]; then
             echo "******** Retry to destroy environment failed. ********"
         else
-            echo "*****count: ${TIMES_COUNT}. sleep 5 seconds. ********"
+            echo "Waitting for 5 seconds......********"
             sleep 5
             continue
-
         fi
     fi
 done
 
 #./terraform_destroy.sh
 #echo "Destroy terraform environment successfully."
-rm -rf ./terraform_destroy.sh
+#rm -rf ./terraform_destroy.sh
+#rm -rf ./destroy
 
 if [ -e ${METADATA} ];
 then
@@ -116,7 +117,7 @@ function copyToOutput(){
         echo "echo LINE: $LINE"
         if [[ $LINE == HEAD*detached* ]];
         then
-            echo "****** fix detached branch ******"
+            echo "****** fix detached branch ******"s
             read -r -a Words <<< $LINE
 
             git status | sed -n 'p' |while read LI
