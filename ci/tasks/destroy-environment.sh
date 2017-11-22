@@ -18,7 +18,7 @@ TERRAFORM_MODULE=$SOURCE_PATH/ci/assets/terraform
 TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
 METADATA=metadata
 TERRAFORM_VERSION=0.10.0
-TERRAFORM_PROVIDER_VERSION=1.2.6
+TERRAFORM_PROVIDER_VERSION=1.2.10
 
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
@@ -66,21 +66,23 @@ echo yes >> terraform_destroy.sh
 echo EOF >> terraform_destroy.sh
 chmod +x terraform_destroy.sh
 
-TIMES_COUNT=5
+TIMES_COUNT=10
 while [[ ${TIMES_COUNT} -gt 0 ]];
 do
     echo "&*&*&*&*&*& start"
 #    ./terraform_destroy.sh
     if [[ $(./terraform_destroy.sh) == "*Destroy complete!*" ]] ; then
+        echo "******* Destroy terraform environment successfully ******* "
         break
     else
         ((TIMES_COUNT--))
         if [[ ${TIMES_COUNT} -le 0 ]]; then
             echo "******** Retry to destroy environment failed. ********"
-            exit 1
         else
-            echo "*****count: ${TIMES_COUNT}"
+            echo "*****count: ${TIMES_COUNT}. sleep 5 seconds. ********"
+            sleep 5
             continue
+
         fi
     fi
 done

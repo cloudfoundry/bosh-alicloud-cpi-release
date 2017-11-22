@@ -20,7 +20,7 @@ TERRAFORM_MODULE=$SOURCE_PATH/ci/assets/terraform
 TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
 METADATA=metadata
 TERRAFORM_VERSION=0.10.0
-TERRAFORM_PROVIDER_VERSION=1.2.6
+TERRAFORM_PROVIDER_VERSION=1.2.10
 
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
@@ -69,26 +69,26 @@ echo terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var ali
 
 chmod +x terraform_build.sh
 
-TIMES_COUNT=5
+TIMES_COUNT=10
 while [[ ${TIMES_COUNT} -gt 0 ]];
 do
     echo "&*&*&*&*&*&*&*&*&*&* start"
 #    terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
     if [[ $(./terraform_build.sh) == "*Apply complete!*" ]] ; then
+        echo "******* Build terraform environment successfully ******* "
         break
     else
         ((TIMES_COUNT--))
         if [[ ${TIMES_COUNT} -le 0 ]]; then
             echo "******** Retry to build environment failed. ********"
-            exit 1
         else
-            echo "*****count: ${TIMES_COUNT}"
+            echo "*****count: ${TIMES_COUNT}. sleep 5 seconds. ********"
+            sleep 5
             continue
         fi
     fi
 done
 
-echo "******* Build terraform environment successfully ******* "
 rm -rf ./terraform_build.sh
 
 function copyToOutput(){
