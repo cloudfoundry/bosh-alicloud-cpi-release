@@ -1,9 +1,1 @@
-region : eu-central-1
-security_group_id : sg-gw8dp3c5r9fvan64ohmu
-external_0_ip_address           : 47.91.88.228
-external_1_ip_address           : 47.254.132.48
-slb_http_id : lb-gw8a73tr7l78tqx5dzl6n
-slb_tcp_id : lb-gw875w12xz8azfgsxqghq
-vswitch_id : vsw-gw89usvtykbife6yr94l4
-availability_zone : eu-central-1a
-internal_cidr_block : 172.16.0.0/24
+
