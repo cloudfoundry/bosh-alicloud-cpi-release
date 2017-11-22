@@ -1,9 +1,1 @@
-region : cn-hongkong
-security_group_id : sg-j6c5lhpgvs42rm54glxx
-vswitch_id : vsw-j6cg870gz6t0odmlpsnrz
-availability_zone : cn-hongkong-b
-internal_cidr_block : 172.16.0.0/24
-external_0_ip_address           : 47.89.23.120
-external_1_ip_address           : 47.52.248.92
-slb_http_id : lb-j6cga4xdv3c3zbik92yh8
-slb_tcp_id : lb-j6c6kx0s5bjlsnibhcf0t
+
