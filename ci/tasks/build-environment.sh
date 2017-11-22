@@ -140,7 +140,6 @@ function copyToOutput(){
     done
 
     git status
-    git pull --rebase origin ${BOSH_REPO_BRANCH}
     return 0
 }
 
