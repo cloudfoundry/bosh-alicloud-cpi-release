@@ -146,7 +146,7 @@ then
     exit 0
 fi
 
-terraform state list > all_state
+#terraform state list > all_state
 echo -e "******* Write metadata ******* \n"
 echo "region: ${ALICLOUD_DEFAULT_REGION}" > $METADATA
 echo "default_key_name: ${DEFAULT_KEY_NAME}" >> $METADATA
@@ -154,7 +154,7 @@ echo "dns_recursor_ip: 8.8.8.8" >> $METADATA
 echo "internal_ip: ${CPI_INTERNAL_IP}" >> $METADATA
 echo "internal_gw: ${CPI_INTERNAL_GW}" >> $METADATA
 EIP_COUNT=0
-cat all_state | while read LINE
+terraform state list | sed -n 'p' | while read LINE
 do
     if [[ $LINE == alicloud_vswitch.default ]];
     then
@@ -226,9 +226,7 @@ echo -e "******** Write metadata successfully ********\n"
 cat $METADATA
 
 
-rm -rf ./all_state
-
-#sed -i 's/=/:/g' $METADATA
+#rm -rf ./all_state
 
 echo -e "\n******** Copy to output ......******** "
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
