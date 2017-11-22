@@ -53,7 +53,7 @@ echo "******** Clone finished! ********"
 
 cd ${SOURCE_PATH}
 
-echo "******** tell docker who am I ********"
+echo "******** tell docker who am I ********\n"
 git config --global user.email ${GIT_USER_EMAIL}
 git config --global user.name ${GIT_USER_NAME}
 git config --local -l
@@ -61,41 +61,35 @@ git config --local -l
 cd ${TERRAFORM_MODULE}
 touch ${METADATA}
 
-echo $'\n'
-echo "******* Build terraform environment ******* "
+echo "******* Build terraform environment ******** \n"
 
 terraform init
-#echo terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION} > terraform_build.sh
-
-#chmod +x terraform_build.sh
-
 TIMES_COUNT=1
 while [[ ${TIMES_COUNT} -le 20 ]];
 do
-    echo "******** Try to build environment - ${TIMES_COUNT} times ********"
-#    terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
+    echo "******** Try to build environment - ${TIMES_COUNT} times ********\n"
     if [[ $(terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}) && $? -eq 0 ]] ; then
-        echo "******* Build terraform environment successfully ******* "
+        echo "******** Build terraform environment successfully ******** \n"
         break
     else
         ((TIMES_COUNT++))
         if [[ ${TIMES_COUNT} -gt 20 ]]; then
-            echo "******** Retry to build environment failed. ********"
+            echo "******** Retry to build environment failed. ********\n"
         else
-            echo "******** Waitting for 5 seconds...... ********"
+            echo "******** Waitting for 5 seconds...... ********\n"
             sleep 5
             continue
         fi
     fi
 done
 
-#rm -rf ./terraform_build.sh
 
 function copyToOutput(){
 
     cp -rf $1/. $2
 
     cd $2
+    cp ./ci/assets/terraform/$METADATA ./
     ls -la
 
     git status | sed -n 'p' |while read LINE
@@ -103,7 +97,7 @@ function copyToOutput(){
         echo "echo LINE: $LINE"
         if [[ $LINE == HEAD*detached* ]];
         then
-            echo "****** fix detached branch ******"
+            echo "******** fix detached branch ********"
             read -r -a Words <<< $LINE
 
             git status | sed -n 'p' |while read LI
@@ -150,7 +144,7 @@ then
 fi
 
 terraform state list > all_state
-echo "******* Write metadata ******* "
+echo "******* Write metadata ******* \n"
 echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
 EIP_COUNT=0
 cat all_state | while read LINE
@@ -220,7 +214,7 @@ do
         done
     fi
 done
-echo "******** Write metadata successfully ********"
+echo "******** Write metadata successfully ********\n"
 cat $METADATA
 
 
