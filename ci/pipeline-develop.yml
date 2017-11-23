@@ -16,11 +16,7 @@ shared:
     file: pipelines/shared/tasks/prepare-director.yml
     params: &prepare-director-params
       INFRASTRUCTURE:             alicloud
-      ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
-      SECRET_KEY_ID:              {{alicloud_secret_key__primary}}
       DIRECTOR_VARS_FILE:         {{alicloud_director_vars_file}}
-      CPI_INTERNAL_IP:            {{alicloud__cpi_internal_ip}}
-      CPI_INTERNAL_GW:            {{alicloud__cpi_internal_gw}}
 
   - &deploy-director
     task: deploy-director
@@ -42,13 +38,6 @@ shared:
     params:
       ALICLOUD_ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
       ALICLOUD_SECRET_ACCESS_KEY:          {{alicloud_secret_key__primary}}
-
-  - &create-environment
-    put: environment
-    params:
-      delete_on_failure: true
-      generate_random_name: true
-      terraform_source: bosh-cpi-src/ci/assets/terraform
 
   - &build-environment
     task: build-environment
@@ -146,8 +135,6 @@ jobs:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
           CPI_STEMCELL_ID:            {{alicloud__cpi_stemcell_id}}
-          CPI_INTERNAL_IP:            {{alicloud__cpi_internal_ip}}
-          CPI_INTERNAL_GW:            {{alicloud__cpi_internal_gw}}
         ensure:
           do:
             - <<: *destroy-environment

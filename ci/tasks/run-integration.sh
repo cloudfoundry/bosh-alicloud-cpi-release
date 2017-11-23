@@ -36,14 +36,14 @@ export CPI_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export CPI_ACCESS_KEY_SECRET=${ALICLOUD_ACCESS_KEY_SECRET}
 # todo: get stemcell id from STEMCELL.MF
 export CPI_STEMCELL_ID=${CPI_STEMCELL_ID}
-export CPI_INTERNAL_IP=${CPI_INTERNAL_IP}
-export CPI_INTERNAL_GW=${CPI_INTERNAL_GW}
 
 exportMetadata2Env CPI_REGION region
 exportMetadata2Env CPI_ZONE az
 exportMetadata2Env CPI_SECURITY_GROUP_ID security_group_id
 exportMetadata2Env CPI_VSWITCH_ID subnet_id
 exportMetadata2Env CPI_INTERNAL_CIDR internal_cidr
+exportMetadata2Env CPI_INTERNAL_IP internal_ip
+exportMetadata2Env CPI_INTERNAL_GW internal_gw
 exportMetadata2Env CPI_EXTERNAL_IP external_ip
 export CIDR_NOTATION=$(getCidrNotation $CPI_INTERNAL_CIDR)
 export CPI_INTERNAL_NETMASK=$(cdr2mask $CIDR_NOTATION)
