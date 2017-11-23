@@ -9,7 +9,7 @@ inputs:
   - name: bosh-cpi-src
 
 outputs:
-  - name: terraform-metadata
+  - name: environment
 
 run:
   path: sh

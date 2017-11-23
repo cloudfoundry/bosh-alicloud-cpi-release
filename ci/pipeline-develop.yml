@@ -125,11 +125,11 @@ jobs:
         - {trigger: false,  get: stemcell, resource: heavy-ubuntu-stemcell}
         - {get: 2h,             trigger: true}
       - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+      - put: environment
+        params: {repository: environment, rebase: true, force: true}
       - <<: *build-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+      - put: environment
+        params: {repository: environment, rebase: true, force: true}
       - task: test
         file: bosh-cpi-src/ci/tasks/run-integration.yml
         params:
@@ -139,8 +139,8 @@ jobs:
         ensure:
           do:
             - <<: *destroy-environment
-            - put: terraform-metadata
-              params: {repository: terraform-metadata, rebase: true, force: true}
+            - put: environment
+              params: {repository: environment, rebase: true, force: true}
 
   - name: bats
     serial: true
@@ -157,11 +157,11 @@ jobs:
         - {get: 2h,              trigger: true}
       - do:
         - <<: *destroy-environment
-        - put: terraform-metadata
-          params: {repository: terraform-metadata, rebase: true, force: true}
+        - put: environment
+          params: {repository: environment, rebase: true, force: true}
         - <<: *build-environment
-        - put: terraform-metadata
-          params: {repository: terraform-metadata, rebase: true, force: true}
+        - put: environment
+          params: {repository: environment, rebase: true, force: true}
         - <<: *prepare-director
           params:
             <<: *prepare-director-params
@@ -178,8 +178,8 @@ jobs:
         ensure:
           do:
             - <<: *destroy-environment
-            - put: terraform-metadata
-              params: {repository: terraform-metadata, rebase: true, force: true}
+            - put: environment
+              params: {repository: environment, rebase: true, force: true}
 
   - name: end-2-end
     serial: true
@@ -204,11 +204,11 @@ jobs:
         - {get: core-blob,       trigger: false}
         - {get: slb-blob,        trigger: false}
       - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+      - put: environment
+        params: {repository: environment, rebase: true, force: true}
       - <<: *build-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+      - put: environment
+        params: {repository: environment, rebase: true, force: true}
       - do:
         - <<: *prepare-director
           params:
@@ -227,8 +227,8 @@ jobs:
         ensure:
           do:
             - <<: *destroy-environment
-            - put: terraform-metadata
-              params: {repository: terraform-metadata, rebase: true, force: true}
+            - put: environment
+              params: {repository: environment, rebase: true, force: true}
 
 #  - name: delivery
 #    plan:
@@ -392,7 +392,7 @@ resources:
       branch: support_alicloud
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
-  - name: terraform-metadata
+  - name: environment
     type: git
     source:
       uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git

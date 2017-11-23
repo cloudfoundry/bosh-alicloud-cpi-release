@@ -5,7 +5,7 @@ set -e
 source bosh-cpi-src/ci/tasks/utils.sh
 #source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
-METADATA_FILE=$(pwd)/terraform-metadata/metadata
+METADATA_FILE=$(pwd)/environment/metadata
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_ACCESS_KEY_SECRET:?}
@@ -21,7 +21,7 @@ pushd stemcell
 popd
 
 echo "get metadata from output..."
-cat terraform-metadata/metadata
+cat environment/metadata
 
 metadata=$(cat ${METADATA_FILE})
 
