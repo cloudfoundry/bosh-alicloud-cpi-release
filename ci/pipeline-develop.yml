@@ -30,7 +30,8 @@ shared:
       STEMCELL_NAME:      bosh-alicloud-kvm-ubuntu-trusty-go_agent
       BAT_INFRASTRUCTURE: alicloud
       BAT_NETWORKING:     manual
-      BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~root_partition"
+#      BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~root_partition"
+      BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~raw_ephemeral_storage --tag ~changing_static_ip"
 
   - &run-end-2-end
     task: run-e2e

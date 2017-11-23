@@ -22,7 +22,7 @@ hwclock --hctosys
 
 # install python dependency
 apt-get -y upgrade
-apt-get install -y python python-dev python-pip python-paramiko jq
+apt-get install -y python python-dev libffi-dev libssl-dev python-pip python-paramiko jq
 
 # install pip dependency
 curl "https://bootstrap.pypa.io/get-pip.py" -o "pip-install.py"
