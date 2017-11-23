@@ -10,8 +10,6 @@ METADATA_FILE=$(pwd)/terraform-metadata/metadata
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_ACCESS_KEY_SECRET:?}
 : ${CPI_STEMCELL_ID:?}
-: ${CPI_INTERNAL_IP:?}
-: ${CPI_INTERNAL_GW:?}
 
 # Stemcell stuff
 export STEMCELL_VERSION=`cat stemcell/version`
