@@ -319,6 +319,8 @@ resources:
   - name: pipelines
     type: git
     source:
+#      uri: git@github.com:alibaba/bosh-cpi-certification.git
+#      branch: ali-cpi-certify
       uri: git@github.com:aliyun/bosh-cpi-certification.git
       branch: alicloud
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
@@ -343,7 +345,7 @@ resources:
   - name: bats
     type: git
     source:
-      uri: https://github.com/demonwy/bosh-acceptance-tests.git
+      uri: https://github.com/aliyun/bosh-acceptance-tests.git
       branch: alicloud
 
   # begin: repos for e2e bosh blobs
