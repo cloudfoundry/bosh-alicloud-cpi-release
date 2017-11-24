@@ -10,7 +10,7 @@ data "alicloud_instance_types" "1c2g" {
 }
 
 data "alicloud_zones" "default" {
-  "available_instance_type"= "${data.alicloud_instance_types.1c2g.instance_types.1.id}"
+  "available_instance_type"= "${data.alicloud_instance_types.1c2g.instance_types.0.id}"
   "available_disk_category"= "${var.disk_category}"
 }
 
@@ -107,7 +107,7 @@ resource "alicloud_slb" "http" {
     {
       "instance_port" = "8443"
       "lb_port" = "443"
-      "lb_protocol" = "http"
+      "lb_protocol" = "tcp"
       "bandwidth" = "5"
     }]
 }
@@ -120,13 +120,13 @@ resource "alicloud_slb" "tcp" {
     {
       "instance_port" = "80"
       "lb_port" = "80"
-      "lb_protocol" = "http"
+      "lb_protocol" = "tcp"
       "bandwidth" = "5"
     },
     {
-      "instance_port" = "8443"
+      "instance_port" = "443"
       "lb_port" = "443"
-      "lb_protocol" = "http"
+      "lb_protocol" = "tcp"
       "bandwidth" = "5"
     }]
 }

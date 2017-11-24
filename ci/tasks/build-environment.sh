@@ -12,15 +12,18 @@ set -e
 : ${GIT_USER_PASSWORD:?}
 : ${BOSH_REPO_HOST:?}
 : ${BOSH_REPO_BRANCH:?}
+: ${DEFAULT_KEY_NAME:?}
+: ${CPI_INTERNAL_GW:?}
+: ${CPI_INTERNAL_IP:?}
 
 CURRENT_PATH=$(pwd)
 SOURCE_PATH=$CURRENT_PATH/bosh-alicloud-cpi-release
 TERRAFORM_PATH=$CURRENT_PATH/terraform
 TERRAFORM_MODULE=$SOURCE_PATH/ci/assets/terraform
-TERRAFORM_METADATA=$CURRENT_PATH/terraform-metadata
+TERRAFORM_METADATA=$CURRENT_PATH/environment
 METADATA=metadata
 TERRAFORM_VERSION=0.10.0
-TERRAFORM_PROVIDER_VERSION=1.2.6
+TERRAFORM_PROVIDER_VERSION=1.2.10
 
 
 wget -N https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
@@ -53,7 +56,7 @@ echo "******** Clone finished! ********"
 
 cd ${SOURCE_PATH}
 
-echo "******** tell docker who am I ********"
+echo -e "******** tell docker who am I ********\n"
 git config --global user.email ${GIT_USER_EMAIL}
 git config --global user.name ${GIT_USER_NAME}
 git config --local -l
@@ -61,18 +64,35 @@ git config --local -l
 cd ${TERRAFORM_MODULE}
 touch ${METADATA}
 
-echo $'\n'
-echo "******* Build terraform environment ******* "
+echo -e "******* Build terraform environment ******** \n"
 
-terraform init && terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}
+terraform init
+TIMES_COUNT=1
+while [[ ${TIMES_COUNT} -le 20 ]];
+do
+    echo -e "******** Try to build environment - ${TIMES_COUNT} times ********\n"
+    if [[ $(terraform apply -var alicloud_access_key=${ALICLOUD_ACCESS_KEY_ID} -var alicloud_secret_key=${ALICLOUD_SECRET_ACCESS_KEY} -var alicloud_region=${ALICLOUD_DEFAULT_REGION}) && $? -eq 0 ]] ; then
+        echo -e "******** Build terraform environment successfully ******** \n"
+        break
+    else
+        ((TIMES_COUNT++))
+        if [[ ${TIMES_COUNT} -gt 20 ]]; then
+            echo -e "******** Retry to build environment failed. ********\n"
+        else
+            echo -e "******** Waitting for 5 seconds...... ********\n"
+            sleep 5
+            continue
+        fi
+    fi
+done
 
-echo "******* Build terraform environment successfully ******* "
 
 function copyToOutput(){
 
     cp -rf $1/. $2
 
     cd $2
+    cp ./ci/assets/terraform/$METADATA ./
     ls -la
 
     git status | sed -n 'p' |while read LINE
@@ -80,7 +100,7 @@ function copyToOutput(){
         echo "echo LINE: $LINE"
         if [[ $LINE == HEAD*detached* ]];
         then
-            echo "****** fix detached branch ******"
+            echo "******** fix detached branch ********"
             read -r -a Words <<< $LINE
 
             git status | sed -n 'p' |while read LI
@@ -126,28 +146,32 @@ then
     exit 0
 fi
 
-terraform state list > all_state
-echo "******* Write metadata ******* "
-echo "region = ${ALICLOUD_DEFAULT_REGION}" > $METADATA
+#terraform state list > all_state
+echo -e "******* Write metadata ******* \n"
+echo "region: ${ALICLOUD_DEFAULT_REGION}" > $METADATA
+echo "default_key_name: ${DEFAULT_KEY_NAME}" >> $METADATA
+echo "dns_recursor_ip: 8.8.8.8" >> $METADATA
+echo "internal_ip: ${CPI_INTERNAL_IP}" >> $METADATA
+echo "internal_gw: ${CPI_INTERNAL_GW}" >> $METADATA
 EIP_COUNT=0
-cat all_state | while read LINE
+terraform state list | sed -n 'p' | while read LINE
 do
     if [[ $LINE == alicloud_vswitch.default ]];
     then
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == id* ]];
-          then
-              echo vswitch_$line >> $METADATA
+          if [[ $line == id* ]]; then
+              read -r -a Words <<< $line
+              echo "subnet_id: ${Words[2]}" >> $METADATA
           fi
-          if [[ $line == availability_zone* ]];
-          then
-              echo $line >> $METADATA
+          if [[ $line == availability_zone* ]]; then
+              read -r -a Words <<< $line
+              echo "az: ${Words[2]}" >> $METADATA
           fi
-          if [[ $line == cidr_block* ]];
-          then
-              echo internal_$line >> $METADATA
+          if [[ $line == cidr_block* ]]; then
+              read -r -a Words <<< $line
+              echo "internal_cidr: ${Words[2]}" >> $METADATA
           fi
         done
     fi
@@ -156,54 +180,53 @@ do
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == id* ]];
-          then
-              echo security_group_$line >> $METADATA
+          if [[ $line == id* ]]; then
+              read -r -a Words <<< $line
+              echo "security_group_id: ${Words[2]}" >> $METADATA
           fi
         done
     fi
-    if [[ $LINE == alicloud_eip.default* ]];
-    then
+    if [[ $LINE == alicloud_eip.default* ]]; then
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == ip_address* ]];
-          then
-              echo "external_${EIP_COUNT}_$line" >> $METADATA
+          if [[ $line == ip_address* ]]; then
+              read -r -a Words <<< $line
+              if [[ ${EIP_COUNT} == 0 ]]; then
+                  echo "external_ip: ${Words[2]}" >> $METADATA
+              else
+                  echo "external_${EIP_COUNT}_ip_address: ${Words[2]}" >> $METADATA
+              fi
           fi
         done
         EIP_COUNT=$((${EIP_COUNT}+1))
     fi
-    if [[ $LINE == alicloud_slb.http ]];
-    then
+    if [[ $LINE == alicloud_slb.http ]]; then
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == id* ]];
-          then
-              echo slb_http_$line >> $METADATA
+          if [[ $line == id* ]]; then
+              read -r -a Words <<< $line
+              echo "slb_http_id: ${Words[2]}" >> $METADATA
           fi
         done
     fi
-    if [[ $LINE == alicloud_slb.tcp ]];
-    then
+    if [[ $LINE == alicloud_slb.tcp ]]; then
         terraform state show $LINE | while read line
         do
           echo $line
-          if [[ $line == id* ]];
-          then
-              echo slb_tcp_$line >> $METADATA
+          if [[ $line == id* ]]; then
+              read -r -a Words <<< $line
+              echo "slb_tcp_id: ${Words[2]}" >> $METADATA
           fi
         done
     fi
 done
-echo "******** Write metadata successfully ********"
+echo -e "******** Write metadata successfully ********\n"
 cat $METADATA
 
 
-rm -rf ./all_state
+#rm -rf ./all_state
 
-sed -i 's/=/:/g' $METADATA
-
-echo "******** Copy to output ......******** "
+echo -e "\n******** Copy to output ......******** "
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}

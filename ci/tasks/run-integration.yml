@@ -6,7 +6,7 @@ image_resource:
 inputs:
   - name: bosh-cpi-src
   - name: stemcell
-  - name: terraform-metadata
+  - name: environment
 run:
   path: sh
   args:
@@ -18,5 +18,3 @@ params:
   ALICLOUD_ACCESS_KEY_ID:     ""
   ALICLOUD_ACCESS_KEY_SECRET: ""
   CPI_STEMCELL_ID:            ""
-  CPI_INTERNAL_IP:            ""
-  CPI_INTERNAL_GW:            ""

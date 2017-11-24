@@ -5,13 +5,11 @@ set -e
 source bosh-cpi-src/ci/tasks/utils.sh
 #source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
-METADATA_FILE=$(pwd)/terraform-metadata/ci/assets/terraform/metadata
+METADATA_FILE=$(pwd)/environment/metadata
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_ACCESS_KEY_SECRET:?}
 : ${CPI_STEMCELL_ID:?}
-: ${CPI_INTERNAL_IP:?}
-: ${CPI_INTERNAL_GW:?}
 
 # Stemcell stuff
 export STEMCELL_VERSION=`cat stemcell/version`
@@ -23,7 +21,7 @@ pushd stemcell
 popd
 
 echo "get metadata from output..."
-cat terraform-metadata/ci/assets/terraform/metadata
+cat environment/metadata
 
 metadata=$(cat ${METADATA_FILE})
 
@@ -36,15 +34,15 @@ export CPI_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export CPI_ACCESS_KEY_SECRET=${ALICLOUD_ACCESS_KEY_SECRET}
 # todo: get stemcell id from STEMCELL.MF
 export CPI_STEMCELL_ID=${CPI_STEMCELL_ID}
-export CPI_INTERNAL_IP=${CPI_INTERNAL_IP}
-export CPI_INTERNAL_GW=${CPI_INTERNAL_GW}
 
 exportMetadata2Env CPI_REGION region
-exportMetadata2Env CPI_ZONE availability_zone
+exportMetadata2Env CPI_ZONE az
 exportMetadata2Env CPI_SECURITY_GROUP_ID security_group_id
-exportMetadata2Env CPI_VSWITCH_ID vswitch_id
-exportMetadata2Env CPI_INTERNAL_CIDR cidr_block
-exportMetadata2Env CPI_EXTERNAL_IP external_ip_address
+exportMetadata2Env CPI_VSWITCH_ID subnet_id
+exportMetadata2Env CPI_INTERNAL_CIDR internal_cidr
+exportMetadata2Env CPI_INTERNAL_IP internal_ip
+exportMetadata2Env CPI_INTERNAL_GW internal_gw
+exportMetadata2Env CPI_EXTERNAL_IP external_ip
 export CIDR_NOTATION=$(getCidrNotation $CPI_INTERNAL_CIDR)
 export CPI_INTERNAL_NETMASK=$(cdr2mask $CIDR_NOTATION)
 
