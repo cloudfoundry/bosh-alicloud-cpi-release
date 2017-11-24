@@ -12,7 +12,7 @@ cpi_release_name="bosh-alicloud-cpi"
 semver=`cat version-semver/number`
 
 CURRENT_PATH=$(pwd)
-DESC=$CURRENT_PATH/bosh-cpi-dev-artifacts/dev-release-artifacts/
+DESC=$CURRENT_PATH/bosh-cpi-dev-artifacts/
 
 # install bosh
 echo "Installing Bosh CLI..."

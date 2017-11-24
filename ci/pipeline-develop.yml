@@ -16,11 +16,7 @@ shared:
     file: pipelines/shared/tasks/prepare-director.yml
     params: &prepare-director-params
       INFRASTRUCTURE:             alicloud
-      ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
-      SECRET_KEY_ID:              {{alicloud_secret_key__primary}}
       DIRECTOR_VARS_FILE:         {{alicloud_director_vars_file}}
-      CPI_INTERNAL_IP:            {{alicloud__cpi_internal_ip}}
-      CPI_INTERNAL_GW:            {{alicloud__cpi_internal_gw}}
 
   - &deploy-director
     task: deploy-director
@@ -34,7 +30,8 @@ shared:
       STEMCELL_NAME:      bosh-alicloud-kvm-ubuntu-trusty-go_agent
       BAT_INFRASTRUCTURE: alicloud
       BAT_NETWORKING:     manual
-      BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~root_partition"
+#      BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~root_partition"
+      BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~raw_ephemeral_storage --tag ~changing_static_ip"
 
   - &run-end-2-end
     task: run-e2e
@@ -42,13 +39,6 @@ shared:
     params:
       ALICLOUD_ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
       ALICLOUD_SECRET_ACCESS_KEY:          {{alicloud_secret_key__primary}}
-
-  - &create-environment
-    put: environment
-    params:
-      delete_on_failure: true
-      generate_random_name: true
-      terraform_source: bosh-cpi-src/ci/assets/terraform
 
   - &build-environment
     task: build-environment
@@ -64,6 +54,9 @@ shared:
       GIT_USER_PASSWORD:          {{github_user_password}}
       BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
       BOSH_REPO_BRANCH:           concourse_ci_tmp
+      DEFAULT_KEY_NAME:           bosh
+      CPI_INTERNAL_GW:            172.16.0.1
+      CPI_INTERNAL_IP:            172.16.0.3
 
   - &destroy-environment
       task: destroy-environment
@@ -132,24 +125,22 @@ jobs:
         - {trigger: false,  get: stemcell, resource: heavy-ubuntu-stemcell}
         - {get: 2h,             trigger: true}
       - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+      - put: environment
+        params: {repository: environment, rebase: true, force: true}
       - <<: *build-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+      - put: environment
+        params: {repository: environment, rebase: true, force: true}
       - task: test
         file: bosh-cpi-src/ci/tasks/run-integration.yml
         params:
           ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
           ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
           CPI_STEMCELL_ID:            {{alicloud__cpi_stemcell_id}}
-          CPI_INTERNAL_IP:            {{alicloud__cpi_internal_ip}}
-          CPI_INTERNAL_GW:            {{alicloud__cpi_internal_gw}}
         ensure:
           do:
             - <<: *destroy-environment
-            - put: terraform-metadata
-              params: {repository: terraform-metadata, rebase: true, force: true}
+            - put: environment
+              params: {repository: environment, rebase: true, force: true}
 
   - name: bats
     serial: true
@@ -166,11 +157,11 @@ jobs:
         - {get: 2h,              trigger: true}
       - do:
         - <<: *destroy-environment
-        - put: terraform-metadata
-          params: {repository: terraform-metadata, rebase: true, force: true}
+        - put: environment
+          params: {repository: environment, rebase: true, force: true}
         - <<: *build-environment
-        - put: terraform-metadata
-          params: {repository: terraform-metadata, rebase: true, force: true}
+        - put: environment
+          params: {repository: environment, rebase: true, force: true}
         - <<: *prepare-director
           params:
             <<: *prepare-director-params
@@ -187,8 +178,8 @@ jobs:
         ensure:
           do:
             - <<: *destroy-environment
-            - put: terraform-metadata
-              params: {repository: terraform-metadata, rebase: true, force: true}
+            - put: environment
+              params: {repository: environment, rebase: true, force: true}
 
   - name: end-2-end
     serial: true
@@ -213,11 +204,11 @@ jobs:
         - {get: core-blob,       trigger: false}
         - {get: slb-blob,        trigger: false}
       - <<: *destroy-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+      - put: environment
+        params: {repository: environment, rebase: true, force: true}
       - <<: *build-environment
-      - put: terraform-metadata
-        params: {repository: terraform-metadata, rebase: true, force: true}
+      - put: environment
+        params: {repository: environment, rebase: true, force: true}
       - do:
         - <<: *prepare-director
           params:
@@ -236,8 +227,8 @@ jobs:
         ensure:
           do:
             - <<: *destroy-environment
-            - put: terraform-metadata
-              params: {repository: terraform-metadata, rebase: true, force: true}
+            - put: environment
+              params: {repository: environment, rebase: true, force: true}
 
 #  - name: delivery
 #    plan:
@@ -279,8 +270,8 @@ resources:
   - name: bosh-cpi-dev-artifacts
     type: git
     source:
-      uri: git@gitlab.com:demonwy/bosh-alicloud-cpi-release.git
-      branch: cpi_dev_artifacts_tmp
+      uri: git@gitlab.com:demonwy/bosh-alicloud-cpi-dev-release.git
+      branch: master
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   - name: bosh-cpi-src-in
     type: git
@@ -328,8 +319,10 @@ resources:
   - name: pipelines
     type: git
     source:
-      uri: git@github.com:alibaba/bosh-cpi-certification.git
-      branch: ali-cpi-certify
+#      uri: git@github.com:alibaba/bosh-cpi-certification.git
+#      branch: ali-cpi-certify
+      uri: git@github.com:aliyun/bosh-cpi-certification.git
+      branch: alicloud
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
   # Remember to update these every once in a while
   - name: precompiled-bosh-release
@@ -352,7 +345,7 @@ resources:
   - name: bats
     type: git
     source:
-      uri: https://github.com/demonwy/bosh-acceptance-tests.git
+      uri: https://github.com/aliyun/bosh-acceptance-tests.git
       branch: alicloud
 
   # begin: repos for e2e bosh blobs
@@ -401,7 +394,7 @@ resources:
       branch: support_alicloud
       private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
 
-  - name: terraform-metadata
+  - name: environment
     type: git
     source:
       uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git

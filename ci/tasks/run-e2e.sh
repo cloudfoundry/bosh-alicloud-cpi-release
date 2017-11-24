@@ -13,7 +13,7 @@ LIBPQXX_DEVEL_BLOB_PATH=$CURRENT_PATH/libpqxx-blob
 LIBFFI_DEVEL_BLOB_PATH=$CURRENT_PATH/libffi-blob
 JQ_BLOB_PATH=$CURRENT_PATH/jq-blob
 
-METADATA_FILE=$CURRENT_PATH/terraform-metadata/ci/assets/terraform/metadata
+METADATA_FILE=$CURRENT_PATH/environment/metadata
 
 bosh_cli=$(realpath bosh-cli/bosh-cli-*)
 chmod +x $bosh_cli
@@ -55,7 +55,7 @@ time bosh2 -n upload-stemcell "$(realpath stemcell/*.tgz)"
 
 stemcell_name="$( bosh2 int <( tar xfO $(realpath stemcell/*.tgz) stemcell.MF ) --path /name )"
 heavy_stemcell_name="$( bosh2 int <( tar xfO $(realpath heavy-stemcell/*.tgz) stemcell.MF ) --path /name )"
-# alicloud_kms_key_arn="$(cat terraform-metadata/metadata | jq --raw-output ".alicloud_kms_key_arn")"
+# alicloud_kms_key_arn="$(cat environment/metadata | jq --raw-output ".alicloud_kms_key_arn")"
 
 # --cloud-properties "{\"encrypted\": true, \"kms_key_arn\": \"${alicloud_kms_key_arn}\"}" \
 #time bosh2 repack-stemcell \
