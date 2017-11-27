@@ -13,33 +13,51 @@ import (
 	"fmt"
 )
 
+type SpotStrategyType string
+type InstanceChargeType string
+
+const (
+	PrePaid  = InstanceChargeType("PrePaid")
+	PostPaid = InstanceChargeType("PostPaid")
+)
+
 //
 // Instance properties: ref to docs/bosh/alicloud-cpi.md
+// spot https://help.aliyun.com/knowledge_detail/48269.html
+// ram profile https://help.aliyun.com/document_detail/54579.html?spm=5176.doc25481.6.797.UVS7aB
 type InstanceProps struct {
-	EphemeralDisk DiskInfo 		`json:"ephemeral_disk"`
-	SystemDisk DiskInfo			`json:"system_disk"`
+	EphemeralDisk DiskInfo `json:"ephemeral_disk"`
+	SystemDisk    DiskInfo `json:"system_disk"`
 
-	AvailabilityZone string		`json:"availability_zone"`
-	InstanceName string 		`json:"instance_name"`
-	InstanceType string 		`json:"instance_type"`
-	Slbs []string				`json:"slbs"`
-	SlbWeight json.Number		`json:"slb_weight"`
-	Password string 			`json:"password"`
-	KeyPairName string 			`json:"key_pair_name"`
+	AvailabilityZone string      `json:"availability_zone"`
+	InstanceName     string      `json:"instance_name"`
+	InstanceType     string      `json:"instance_type"`
+	Slbs             []string    `json:"slbs"`
+	SlbWeight        json.Number `json:"slb_weight"`
+	Password         string      `json:"password"`
+	KeyPairName      string      `json:"key_pair_name"`
 
-	ChargeType string			`json:"charge_type"`
-	ChargePeriod json.Number	`json:"charge_period"`
-	AutoRenew string			`json:"auto_renew"`
-	AutoRenewPeriod json.Number	`json:"auto_renew_period"`
+	ChargeType      string      `json:"charge_type"`
+	ChargePeriod    json.Number `json:"charge_period"`
+	AutoRenew       string      `json:"auto_renew"`
+	AutoRenewPeriod json.Number `json:"auto_renew_period"`
+	RamRoleName     string      `json:"ram_role_name"`
+
+	SpotProps
+}
+
+type SpotProps struct {
+	SpotStrategy   ecs.SpotStrategyType `json:"spot_strategy"`
+	SpotPriceLimit float64              `json:"spot_price_limit"`
 }
 
 type CreateVMMethod struct {
 	CallContext
 	stemcells alicloud.StemcellManager
 	instances alicloud.InstanceManager
-	disks alicloud.DiskManager
-	networks alicloud.NetworkManager
-	registry registry.Client
+	disks     alicloud.DiskManager
+	networks  alicloud.NetworkManager
+	registry  registry.Client
 }
 
 func NewCreateVMMethod(
@@ -49,7 +67,7 @@ func NewCreateVMMethod(
 	disks alicloud.DiskManager,
 	networks alicloud.NetworkManager,
 	registry registry.Client) CreateVMMethod {
-	return CreateVMMethod{cc, stemcells,instances, disks, networks, registry}
+	return CreateVMMethod{cc, stemcells, instances, disks, networks, registry}
 }
 
 func NewInstanceProps() InstanceProps {
@@ -107,6 +125,11 @@ func (a CreateVMMethod) CreateVM(
 		return cid, a.Errorf("missing instance_type")
 	}
 
+	// spot props
+	if err := validateSpotProps(instProps); err != nil {
+		return apiv1.VMCID{}, a.WrapErrorf(err, "invalid spot properties ")
+	}
+
 	//
 	// config vm charge type
 	if instProps.ChargeType == "PrePaid" {
@@ -147,6 +170,9 @@ func (a CreateVMMethod) CreateVM(
 	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
 	args.UserData = a.Config.Registry.ToInstanceUserData()
+	args.SpotStrategy = instProps.SpotStrategy
+	args.SpotPriceLimit = instProps.SpotPriceLimit
+	args.RamRoleName = instProps.RamRoleName
 
 	//
 	// fill disks
@@ -155,7 +181,6 @@ func (a CreateVMMethod) CreateVM(
 		return cid, a.WrapErrorf(err, "bad disks format, %v", instProps)
 	}
 	disks.FillCreateInstanceArgs(&args)
-
 	//
 	// do CreateInstance !!!
 	instCid, err := a.instances.CreateInstance(args)
@@ -243,6 +268,29 @@ func (a CreateVMMethod) CreateVM(
 	//
 	// TODO: every error must free created vm before terminated
 	return apiv1.NewVMCID(instCid), nil
+}
+
+func validateSpotProps(p InstanceProps) error {
+	strategy := string(p.SpotStrategy)
+	strategyArr := []string{string(ecs.NoSpot), string(ecs.SpotWithPriceLimit), string(ecs.SpotAsPriceGo)}
+	limitPrice := float64(p.SpotPriceLimit)
+
+	if limitPrice == 0 && strategy == "" {
+		return nil
+	}
+
+	if p.ChargeType == string(PrePaid) {
+		return fmt.Errorf("the spot strategy only support 'PostPaid' instance charge type.")
+	}
+
+	if err := validAllowedStringValues(strategy, strategyArr); err != nil {
+		return err
+	}
+
+	if limitPrice != 0 && strategy != string(ecs.SpotWithPriceLimit) {
+		return fmt.Errorf("spot limit price only support 'SpotWithPriceLimit' strategy.")
+	}
+	return nil
 }
 
 func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registry.AgentSettings) error {

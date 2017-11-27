@@ -146,7 +146,6 @@ then
     exit 0
 fi
 
-#terraform state list > all_state
 echo -e "******* Write metadata ******* \n"
 echo "region: ${ALICLOUD_DEFAULT_REGION}" > $METADATA
 echo "default_key_name: ${DEFAULT_KEY_NAME}" >> $METADATA
@@ -224,9 +223,6 @@ do
 done
 echo -e "******** Write metadata successfully ********\n"
 cat $METADATA
-
-
-#rm -rf ./all_state
 
 echo -e "\n******** Copy to output ......******** "
 copyToOutput ${SOURCE_PATH} ${TERRAFORM_METADATA}
