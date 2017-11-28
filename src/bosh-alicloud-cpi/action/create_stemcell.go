@@ -14,7 +14,6 @@ import (
 )
 
 const alicloudImageNamePrefix = "stemcell"
-const alicloudImageServiceTag = "AlicloudImageService"
 
 type StemcellProps struct {
 	Architecture    string `json:"architecture"`
@@ -26,12 +25,12 @@ type StemcellProps struct {
 	//OsDistro string			`json:"os_distro"`
 	//OsType string 			`json:"os_type"`
 	//RootDeviceName string 	`json:"root_device_name"`
-	SourceUrl  string `json:"source_url"`
-	SourceSha1 string `json:"raw_disk_sha1,omitempty"`
-	Format string `json:"format,omitempty"`
-	OSSBucket string `json:"oss_bucket"`
-	OSSObject string `json:"oss_object"`
-	DiskImageSize string `json:"disk_image_size,omitempty"`
+	SourceUrl string `json:"source_url"`
+	//SourceSha1    string `json:"raw_disk_sha1,omitempty"`
+	Format        ecs.ImageFormatType `json:"format,omitempty"`
+	OSSBucket     string              `json:"oss_bucket"`
+	OSSObject     string              `json:"oss_object"`
+	DiskImageSize string              `json:"disk_image_size,omitempty"`
 	//	Version string 			`json:"version"`		TODO  sometimes string, and sometimes int
 	Images map[string]interface{} `json:"image_id"`
 }
@@ -89,27 +88,37 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	imageName := fmt.Sprintf("%s-%s", alicloudImageNamePrefix, uuidStr)
 
 	var device ecs.DiskDeviceMapping
-	device.Format = "RAW"
-	device.OSSBucket = ""
+	device.Format = string(props.Format)
+	device.OSSBucket = props.OSSBucket
+	device.OSSObject = props.OSSObject
 
 	var args ecs.ImportImageArgs
 
 	args.RegionId = a.Config.OpenApi.GetRegion()
 	args.ImageName = imageName
 	args.Description = props.Name
+	args.DiskDeviceMappings.DiskDeviceMapping = []ecs.DiskDeviceMapping{
+		device,
+	}
 
-	a.Logger.Debug(alicloudImageServiceTag, "Creating Alicloud Image with params: %#v", image)
-	operation, err := i.computeService.Images.Insert(i.project, image).Do()
+	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Creating Alicloud Image with params: %#v", args)
+	imageId, err := a.stemcells.ImportImage(args)
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to create Google Image")
+		return "", bosherr.WrapErrorf(err, "Failed to create Alicloud Image")
 	}
 
-	if _, err = i.operationService.Waiter(operation, "", ""); err != nil {
-		i.cleanUp(image.Name)
-		return "", bosherr.WrapErrorf(err, "Failed to create Google Image")
+	if err = a.stemcells.WaitForImageReady(imageId); err != nil {
+		a.cleanUp(imageId)
+		return "", bosherr.WrapErrorf(err, "Failed to create Alicloud Image")
 	}
 
-	return image.Name, nil
+	return imageId, nil
+}
+
+func (a CreateStemcellMethod) cleanUp(id string) {
+	if err := a.stemcells.DeleteStemcell(id); err != nil {
+		a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Failed cleaning up Alicloud Image '%s': %#v", id, err)
+	}
 }
 
 func (a StemcellProps) FindStemcellId(region string) (string, error) {

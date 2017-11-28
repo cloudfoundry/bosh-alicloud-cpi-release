@@ -255,7 +255,7 @@ var _ = Describe("integration:vm", func() {
 		Expect(exists).To(BeFalse())
 	})
 
-	FIt("can run the spot instance lifecycle", func() {
+	It("can run the spot instance lifecycle", func() {
 		By("create spot instance")
 		in := mock.NewBuilder(`{
 			"method": "create_vm",

@@ -40,4 +40,34 @@ var _ = Describe("create_stemcell", func() {
 		}`))
 		Expect(r.GetError()).NotTo(HaveOccurred())
 	})
+
+	FIt("can import image from oss, and then create stemcell", func() {
+		r := caller.Run([]byte(`{
+			"method": "create_stemcell",
+			"arguments": [
+				"/var/vcap/data/tmp/director/stemcell20170926-9684-17ncxdz/image",
+				{
+					"architecture": "x86_64",
+					"container_format": "",
+					"disk": "50",
+					"disk_format": "rawdisk",
+					"hypervisor": "kvm",
+					"source_url": "http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/raw/alicloud-kvm-ubuntu-1008.raw",
+					"format": "RAW",
+					"oss_bucket": "bosh-alicloud",
+					"oss_object": "alicloud-kvm-ubuntu-1008.raw",
+					"infrastructure": "alicloud",
+					"name": "bosh-alicloud-kvm-hubuntu-trusty-go_agent",
+					"os_distro": "ubuntu",
+					"os_type": "linux",
+					"root_device_name": "/dev/vda1",
+					"version": 1003
+				}
+			],
+			"context": {
+				"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"
+			}
+		}`))
+		Expect(r.GetError()).NotTo(HaveOccurred())
+	})
 })

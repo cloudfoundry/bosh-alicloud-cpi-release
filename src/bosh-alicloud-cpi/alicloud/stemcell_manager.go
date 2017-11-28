@@ -6,25 +6,22 @@ package alicloud
 import (
 	"github.com/denverdino/aliyungo/ecs"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/google/uuid"
 	"encoding/json"
 )
 
-type StemcellManager interface {
-	//	FindStemcellId() (string, error)
-	//	DeleteStemcell() (string, error)
-	ImportImage(string, args ecs.ImportImageArgs) (string, error)
-}
+const (
+	AlicloudImageServiceTag  = "AlicloudImageService"
+	WaitForImageReadyTimeout = 300
+)
 
-//func (a Runner) FindStemcellId() (string, error) {
-//	c := a.Config
-//	for _, region := range c.OpenApi.Regions {
-//		if strings.Compare(region.Name, c.OpenApi.RegionId) == 0 {
-//			return region.ImageId, nil
-//		}
-//	}
-//	return "", fmt.Errorf("Unknown Region")
-//}
+type StemcellManager interface {
+	FindStemcellById(id string) (*ecs.ImageType, error)
+	DeleteStemcell(id string) (error)
+	ImportImage(args ecs.ImportImageArgs) (string, error)
+	WaitForImageReady(id string) (error)
+}
 
 type StemcellManagerImpl struct {
 	config Config
@@ -49,7 +46,49 @@ func (a StemcellManagerImpl) log(action string, err error, args interface{}, res
 	}
 }
 
-func (a StemcellManagerImpl) ImportImage(string, args ecs.ImportImageArgs) (string, error) {
+func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.ImageType, error) {
+	client := a.config.NewEcsClient()
+	a.logger.Debug(AlicloudImageServiceTag, "Finding Google Image '%s'", id)
+
+	args := ecs.DescribeImagesArgs{
+		RegionId: a.config.OpenApi.GetRegion(),
+		ImageId:  id,
+	}
+
+	images, _, err := client.DescribeImages(&args)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(images) == 0 {
+		return nil, nil
+	}
+
+	return &images[0], nil
+}
+
+func (a StemcellManagerImpl) DeleteStemcell(id string) (error) {
+	client := a.config.NewEcsClient()
+	image, err := a.FindStemcellById(id)
+	if err != nil {
+		return err
+	}
+	if image == nil {
+		return bosherr.WrapErrorf(err, "Alicloud Image '%s' does not exists", id)
+	}
+
+	a.logger.Debug(AlicloudImageServiceTag, "Deleting Alicloud Image '%s'", id)
+	err = client.DeleteImage(a.config.OpenApi.GetRegion(), id)
+
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Failed to delete Alicloud Image '%s'", id)
+	}
+
+	return nil
+}
+
+func (a StemcellManagerImpl) ImportImage(args ecs.ImportImageArgs) (string, error) {
 	client := a.config.NewEcsClient()
 
 	args.RegionId = a.config.OpenApi.GetRegion()
@@ -59,4 +98,10 @@ func (a StemcellManagerImpl) ImportImage(string, args ecs.ImportImageArgs) (stri
 	imageId, err := client.ImportImage(&args)
 	a.log("CreateInstance", err, args, imageId)
 	return imageId, err
+}
+
+func (a StemcellManagerImpl) WaitForImageReady(id string) (error) {
+	client := a.config.NewEcsClient()
+	region := a.config.OpenApi.GetRegion()
+	return client.WaitForImageReady(region, id, WaitForImageReadyTimeout)
 }
