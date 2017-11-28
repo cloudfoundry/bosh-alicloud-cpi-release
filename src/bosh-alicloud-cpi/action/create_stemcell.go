@@ -6,11 +6,12 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	"github.com/satori/go.uuid"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/google/uuid"
 	"strings"
-	"fmt"
 	"github.com/denverdino/aliyungo/ecs"
+	"reflect"
+	"fmt"
 )
 
 const alicloudImageNamePrefix = "stemcell"
@@ -18,19 +19,18 @@ const alicloudImageNamePrefix = "stemcell"
 type StemcellProps struct {
 	Architecture    string `json:"architecture"`
 	ContainerFormat string `json:"container_format"`
-	//Disk string				`json:"disk"`
-	//DiskFormat string 		`json:"disk_format"`
-	Hypervisor string `json:"hypervisor"`
-	Name       string `json:"name"`
-	//OsDistro string			`json:"os_distro"`
-	//OsType string 			`json:"os_type"`
+	Disk            string `json:"disk"`
+	DiskFormat      string `json:"disk_format"`
+	Hypervisor      string `json:"hypervisor"`
+	Name            string `json:"name"`
+	OsDistro        string `json:"os_distro"`
+	OsType          string `json:"os_type"`
 	//RootDeviceName string 	`json:"root_device_name"`
 	SourceUrl string `json:"source_url"`
 	//SourceSha1    string `json:"raw_disk_sha1,omitempty"`
-	Format        ecs.ImageFormatType `json:"format,omitempty"`
-	OSSBucket     string              `json:"oss_bucket"`
-	OSSObject     string              `json:"oss_object"`
-	DiskImageSize string              `json:"disk_image_size,omitempty"`
+	OSSBucket   string `json:"oss_bucket"`
+	OSSObject   string `json:"oss_object"`
+	Description string `json:"description,omitempty"`
 	//	Version string 			`json:"version"`		TODO  sometimes string, and sometimes int
 	Images map[string]interface{} `json:"image_id"`
 }
@@ -63,8 +63,11 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 	case len(props.Images) > 0:
 		// find stemcell from manifest.MF
 		stemcellId, err = props.FindStemcellId(a.Config.OpenApi.RegionId)
-	case props.SourceUrl != "":
+	case props.OSSBucket != "" && props.OSSObject != "":
 		stemcellId, err = a.CreateFromURL(props)
+	default:
+		// todo: support create image from tarball
+		return apiv1.StemcellCID{}, a.WrapErrorf(err, "Do not support create image from local tarball '%s'", imagePath)
 	}
 
 	if err != nil {
@@ -84,19 +87,20 @@ func (a CreateStemcellMethod) CreateFromURL(props StemcellProps) (string, error)
 }
 
 func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
-	uuidStr := uuid.NewV4()
-	imageName := fmt.Sprintf("%s-%s", alicloudImageNamePrefix, uuidStr)
-
 	var device ecs.DiskDeviceMapping
-	device.Format = string(props.Format)
+	device.Format = string(props.DiskFormat)
 	device.OSSBucket = props.OSSBucket
 	device.OSSObject = props.OSSObject
+	device.DiskImageSize = props.Disk
 
 	var args ecs.ImportImageArgs
-
 	args.RegionId = a.Config.OpenApi.GetRegion()
-	args.ImageName = imageName
-	args.Description = props.Name
+	args.ImageName = a.getUUIDName(props)
+	args.Architecture = getValueOrDefault("Architecture", &props, alicloud.AlicloudDefaultImageArchitecture)
+	args.OSType = getValueOrDefault("OsType", &props, alicloud.AlicloudDefaultImageOSType)
+	args.Platform = props.OsDistro
+	args.Description = props.Description
+
 	args.DiskDeviceMappings.DiskDeviceMapping = []ecs.DiskDeviceMapping{
 		device,
 	}
@@ -112,7 +116,22 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 		return "", bosherr.WrapErrorf(err, "Failed to create Alicloud Image")
 	}
 
+	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Create Alicloud Image %s success", imageId)
 	return imageId, nil
+}
+
+// image name should be unique
+func (a CreateStemcellMethod) getUUIDName(props StemcellProps) (string) {
+	uuidStr := uuid.New().String()
+	name := getValueOrDefault("Name", &props, alicloud.AlicloudDefaultImageName)
+	imageName := fmt.Sprintf("%s-%s", name, uuidStr)
+	return imageName
+}
+
+func getValueOrDefault(key string, v *StemcellProps, defaultVal string) (val string) {
+	r := reflect.ValueOf(v)
+	f := reflect.Indirect(r).FieldByName(key)
+	return string(f.String())
 }
 
 func (a CreateStemcellMethod) cleanUp(id string) {

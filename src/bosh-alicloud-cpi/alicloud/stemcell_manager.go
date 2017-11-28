@@ -12,8 +12,11 @@ import (
 )
 
 const (
-	AlicloudImageServiceTag  = "AlicloudImageService"
-	WaitForImageReadyTimeout = 300
+	AlicloudImageServiceTag          = "AlicloudImageService"
+	AlicloudDefaultImageName         = "bosh-stemcell"
+	AlicloudDefaultImageArchitecture = "x86_64"
+	AlicloudDefaultImageOSType       = "linux"
+	WaitForImageReadyTimeout         = 1800
 )
 
 type StemcellManager interface {
@@ -48,7 +51,7 @@ func (a StemcellManagerImpl) log(action string, err error, args interface{}, res
 
 func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.ImageType, error) {
 	client := a.config.NewEcsClient()
-	a.logger.Debug(AlicloudImageServiceTag, "Finding Google Image '%s'", id)
+	a.logger.Debug(AlicloudImageServiceTag, "Finding Alicloud Image '%s'", id)
 
 	args := ecs.DescribeImagesArgs{
 		RegionId: a.config.OpenApi.GetRegion(),
@@ -56,6 +59,7 @@ func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.ImageType, error)
 	}
 
 	images, _, err := client.DescribeImages(&args)
+	a.logger.Debug(AlicloudImageServiceTag, "Find Alicloud Images '%#v'", images)
 
 	if err != nil {
 		return nil, err
@@ -96,10 +100,12 @@ func (a StemcellManagerImpl) ImportImage(args ecs.ImportImageArgs) (string, erro
 
 	var imageId string
 	imageId, err := client.ImportImage(&args)
-	a.log("CreateInstance", err, args, imageId)
+	a.log("Importing Image", err, args, imageId)
 	return imageId, err
 }
 
+// import image from oss may take >=15min
+// we set timeout value to 30min, if needed turn it up
 func (a StemcellManagerImpl) WaitForImageReady(id string) (error) {
 	client := a.config.NewEcsClient()
 	region := a.config.OpenApi.GetRegion()

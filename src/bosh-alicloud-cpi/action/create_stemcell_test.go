@@ -41,7 +41,7 @@ var _ = Describe("create_stemcell", func() {
 		Expect(r.GetError()).NotTo(HaveOccurred())
 	})
 
-	FIt("can import image from oss, and then create stemcell", func() {
+	It("can import image from oss, and then create stemcell", func() {
 		r := caller.Run([]byte(`{
 			"method": "create_stemcell",
 			"arguments": [
