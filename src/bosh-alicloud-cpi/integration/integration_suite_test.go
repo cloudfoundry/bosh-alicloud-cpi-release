@@ -69,6 +69,7 @@ var _ = BeforeSuite(func() {
 
 	services := action.Services{
 		Stemcells: alicloud.NewStemcellManager(config, logger),
+		Osses:     alicloud.NewOssManager(config, logger),
 		Instances: alicloud.NewInstanceManager(config, logger),
 		Disks:     alicloud.NewDiskManager(config, logger),
 		Networks:  alicloud.NewNetworkManager(config, logger),

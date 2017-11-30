@@ -9,6 +9,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/google/uuid"
 	"encoding/json"
+	"os"
 )
 
 const (
@@ -23,6 +24,7 @@ type StemcellManager interface {
 	FindStemcellById(id string) (*ecs.ImageType, error)
 	DeleteStemcell(id string) (error)
 	ImportImage(args ecs.ImportImageArgs) (string, error)
+	OpenLocalFile(path string) (*os.File, error)
 	WaitForImageReady(id string) (error)
 }
 
@@ -102,6 +104,10 @@ func (a StemcellManagerImpl) ImportImage(args ecs.ImportImageArgs) (string, erro
 	imageId, err := client.ImportImage(&args)
 	a.log("Importing Image", err, args, imageId)
 	return imageId, err
+}
+
+func (a StemcellManagerImpl) OpenLocalFile(path string) (*os.File, error) {
+	return os.Open(path)
 }
 
 // import image from oss may take >=15min

@@ -79,6 +79,7 @@ type Caller struct {
 func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
 	services := Services{
 		Stemcells: alicloud.NewStemcellManager(config, logger),
+		Osses:     alicloud.NewOssManager(config, logger),
 		Instances: alicloud.NewInstanceManager(config, logger),
 		Disks:     alicloud.NewDiskManager(config, logger),
 		Networks:  alicloud.NewNetworkManager(config, logger),

@@ -12,6 +12,7 @@ import (
 	"github.com/denverdino/aliyungo/ecs"
 	"reflect"
 	"fmt"
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
 
 const alicloudImageNamePrefix = "stemcell"
@@ -38,10 +39,11 @@ type StemcellProps struct {
 type CreateStemcellMethod struct {
 	CallContext
 	stemcells alicloud.StemcellManager
+	osses     alicloud.OssManager
 }
 
-func NewCreateStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager) CreateStemcellMethod {
-	return CreateStemcellMethod{cc, stemcells}
+func NewCreateStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager, osses alicloud.OssManager) CreateStemcellMethod {
+	return CreateStemcellMethod{cc, stemcells, osses}
 }
 
 // create stemcell policy:
@@ -66,8 +68,7 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 	case props.OSSBucket != "" && props.OSSObject != "":
 		stemcellId, err = a.CreateFromURL(props)
 	default:
-		// todo: support create image from tarball
-		return apiv1.StemcellCID{}, a.WrapErrorf(err, "Do not support create image from local tarball '%s'", imagePath)
+		stemcellId, err = a.CreateFromTarball(imagePath, props)
 	}
 
 	if err != nil {
@@ -118,6 +119,41 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Create Alicloud Image %s success", imageId)
 	return imageId, nil
+}
+
+func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props StemcellProps) (string, error) {
+	imageName := a.getUUIDName(props)
+	if err := a.osses.CreateBucket(imageName, oss.ACL(oss.ACLPublicRead)); err != nil {
+		return "", bosherr.WrapErrorf(err, "Creating Alicloud OSS Bucket")
+	}
+	defer a.osses.DeleteBucket(imageName)
+
+	bucket, err := a.osses.GetBucket(imageName)
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "Geting oss bucket")
+	}
+
+	objectName := fmt.Sprintf("%s.raw", imageName)
+
+	imageFile, err := a.stemcells.OpenLocalFile(imagePath)
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "Reading stemcell image file from local")
+	}
+	defer imageFile.Close()
+
+	err = a.osses.UploadFile(*bucket, objectName, imagePath, 100*1024, oss.Routines(3))
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "Uploading stemcell image file to oss")
+	}
+	defer a.osses.DeleteObject(*bucket, objectName)
+
+	props.OSSBucket = imageName
+	props.OSSObject = objectName
+	image, err := a.importImage(props)
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "Creating Alicloud Image from Tarball")
+	}
+	return image, err
 }
 
 // image name should be unique

@@ -45,7 +45,7 @@ var _ = Describe("integration:stemcell", func() {
 		Expect(r.GetResultString()).Should(Equal(stemcellId))
 	})
 
-	FIt("can create a stemcell from oss", func() {
+	It("can create a stemcell from oss", func() {
 		bytes := mock.NewBuilder(`{
 			"method": "create_stemcell",
 			"arguments": [

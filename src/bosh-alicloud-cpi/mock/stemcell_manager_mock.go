@@ -7,6 +7,7 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"github.com/denverdino/aliyungo/ecs"
 	"fmt"
+	"os"
 )
 
 type StemcellManagerMock struct {
@@ -42,6 +43,10 @@ func (a StemcellManagerMock) ImportImage(args ecs.ImportImageArgs) (string, erro
 	// ...
 
 	return id, nil
+}
+
+func (a StemcellManagerMock) OpenLocalFile(path string) (*os.File, error) {
+	return nil, nil
 }
 
 func (a StemcellManagerMock) WaitForImageReady(id string) (error) {

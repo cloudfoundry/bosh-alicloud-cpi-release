@@ -14,10 +14,14 @@ import (
 	"github.com/denverdino/aliyungo/common"
 	"time"
 	"github.com/denverdino/aliyungo/slb"
+
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"strings"
 )
 
 const (
 	DefaultOpenApiEndpoint = "cn-zhangjiakou.aliyuncs.com"
+	OSSSuffix              = "oss-"
 )
 
 type CloudConfigJson struct {
@@ -36,29 +40,29 @@ type Config struct {
 }
 
 const (
-	UseForceStop			= true
+	UseForceStop = true
 
 	WaitTimeout  = time.Duration(180) * time.Second
 	WaitInterval = time.Duration(5) * time.Second
 
-	DefaultEipWaitSeconds	= 120
-	DefaultSlbWeight = 100
+	DefaultEipWaitSeconds = 120
+	DefaultSlbWeight      = 100
 )
 
 type OpenApi struct {
-	RegionId        string  `json:"region_id"`
-	ZoneId			string	`json:"zone_id"`
-	AccessEndpoint	string 	`json:"access_endpoint"`
-	AccessKeyId     string  `json:"access_key_id"`
-	AccessKeySecret string  `json:"access_key_secret"`
+	RegionId        string `json:"region_id"`
+	ZoneId          string `json:"zone_id"`
+	AccessEndpoint  string `json:"access_endpoint"`
+	AccessKeyId     string `json:"access_key_id"`
+	AccessKeySecret string `json:"access_key_secret"`
 }
 
 type RegistryConfig struct {
-	User     string			`json:"user"`
-	Password string			`json:"password"`
-	Protocol string			`json:"protocol"`
-	Host     string			`json:"address"`
-	Port     json.Number	`json:"port"`
+	User     string      `json:"user"`
+	Password string      `json:"password"`
+	Protocol string      `json:"protocol"`
+	Host     string      `json:"address"`
+	Port     json.Number `json:"port"`
 }
 
 type AgentConfig struct {
@@ -68,8 +72,8 @@ type AgentConfig struct {
 }
 
 type BlobstoreConfig struct {
-	Provider string          		`json:"provider"`
-	Options  map[string]interface{}	`json:"options"`
+	Provider string                 `json:"provider"`
+	Options  map[string]interface{} `json:"options"`
 }
 
 func (c Config) Validate() error {
@@ -144,9 +148,9 @@ func (a RegistryConfig) GetEndpoint() (string) {
 }
 
 func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
-	return registry.BlobstoreSettings {
+	return registry.BlobstoreSettings{
 		Provider: a.Provider,
-		Options: a.Options,
+		Options:  a.Options,
 	}
 }
 
@@ -160,14 +164,30 @@ func (c Config) NewSlbClient() (*slb.Client) {
 	return slb.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 }
 
+func (c Config) NewOssClient() (*oss.Client) {
+	ossClient, _ := oss.New(c.GetOSSEndPoint(), c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+	return ossClient
+}
+
+func (c Config) GetOSSEndPoint() (string) {
+	return "https://" + GetOSSEndPoint(string(c.OpenApi.GetRegion())) + ".aliyuncs.com"
+}
+
+func GetOSSEndPoint(region string) string {
+	if strings.HasPrefix(region, OSSSuffix) {
+		return region
+	}
+	return OSSSuffix + region
+}
+
 func (c Config) GetHttpRegistryClient(logger boshlog.Logger) (registry.Client) {
 	r := c.Registry
 
 	port, _ := r.Port.Int64()
-	clientOptions := registry.ClientOptions {
+	clientOptions := registry.ClientOptions{
 		Protocol: r.Protocol,
-		Host: r.Host,
-		Port: int(port),
+		Host:     r.Host,
+		Port:     int(port),
 		Username: r.User,
 		Password: r.Password,
 	}
