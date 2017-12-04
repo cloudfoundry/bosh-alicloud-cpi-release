@@ -2,6 +2,15 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r13]
+- Remove `access_endpoint` for regions and using latest SDK to get endpoint automatically.
+
+## [r12]
+- Support RAM.
+
+## [r11]
+- Support 'SpotStrategy' and 'SpotPriceLimit'.
+
 ## [r10]
 - Support full cpiv1 methods, add following methods:
     - snapshot_disk

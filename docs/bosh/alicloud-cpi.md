@@ -134,7 +134,6 @@ The CPI can only talk to a single Alibaba Cloud region.
 Schema:
 
 * **region** [String, required]: Name of the `Alibaba Cloud` region, [Available regions](https://www.alibabacloud.com/help/doc-detail/40654.htm). Example: `cn-beijing`.
-* **endpoint** [String, optional]: OpenApi ecs service access endpoint. default is `aliyuncs.com`
 * **access\_key\_id** [String, optional]: Accesss Key ID. Example: `AKI...`.
 * **access\_key\_secret** [String, optional]: Accesss Key Secret. Example: `0kwh...`.
 
