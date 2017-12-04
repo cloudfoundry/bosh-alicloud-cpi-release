@@ -48,7 +48,6 @@ const (
 type OpenApi struct {
 	RegionId        string  `json:"region_id"`
 	ZoneId			string	`json:"zone_id"`
-	AccessEndpoint	string 	`json:"access_endpoint"`
 	AccessKeyId     string  `json:"access_key_id"`
 	AccessKeySecret string  `json:"access_key_secret"`
 }
@@ -88,14 +87,6 @@ func (c Config) Validate() error {
 
 func (a OpenApi) GetRegion() (common.Region) {
 	return common.Region(a.RegionId)
-}
-
-func (a OpenApi) GetEndpoint() (string) {
-	if a.AccessEndpoint == "" {
-		return DefaultOpenApiEndpoint
-	} else {
-		return a.AccessEndpoint
-	}
 }
 
 func NewConfigFromFile(configFile string, fs boshsys.FileSystem) (Config, error) {
@@ -151,13 +142,11 @@ func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
 }
 
 func (c Config) NewEcsClient() (*ecs.Client) {
-	ep := "https://ecs." + c.OpenApi.GetEndpoint()
-	return ecs.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+	return ecs.NewClientWithRegion(ecs.ECSDefaultEndpoint, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, common.Region(c.OpenApi.RegionId))
 }
 
 func (c Config) NewSlbClient() (*slb.Client) {
-	ep := "https://slb." + c.OpenApi.GetEndpoint()
-	return slb.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+	return slb.NewClientWithRegion(slb.SLBDefaultEndpoint, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, common.Region(c.OpenApi.RegionId))
 }
 
 func (c Config) GetHttpRegistryClient(logger boshlog.Logger) (registry.Client) {

@@ -32,20 +32,10 @@ Use this command, modify the parameters
 - security_group_id
 - access_key_id
 - access_key_secret
-- access_endpoint
 - region
 - zone
 
 export your BOSH_ENVIRONMENT ip address
-
-Select `access_endpoint` near your region, you can use the following list:
-
-- Tokyo(ap-northeast-1): ap-northeast-1.aliyuncs.com
-- Sydney(ap-southeast-2): ap-southeast-2.aliyuncs.com
-- Dubai(me-east-1): me-east-1.aliyuncs.com
-- Frankfurt(eu-central-1): eu-central-1.aliyuncs.com
-
-You can use `aliyuncs.com` for most region, check https://github.com/denverdino/aliyungo/blob/master/common/endpoints.xml for more information.
 
 ```
 bosh create-env bosh-deployment/bosh.yml --state=state.json \
@@ -60,7 +50,6 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
  -v internal_ip=$BOSH_ENVIRONMENT \
  -v vswitch_id=... \
  -v security_group_id=... \
- -v acccess_endpoint=eu-central-1.aliyuncs.com \
  -v access_key_id=... \
  -v access_key_secret=... \
  -v region=... \

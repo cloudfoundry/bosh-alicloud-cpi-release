@@ -11,8 +11,8 @@
 - type: replace
   path: /resource_pools/name=vms/stemcell?
   value:
-    url: http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1009-alicloud-kvm-ubuntu-trusty-go_agent.tgz
-    sha1: 7898cfb49d6f66bf568ca15641d8cd74dc538bec
+    url: http://cloudfoundry-((region)).oss-((region))-internal.aliyuncs.com/bosh/stemcells/v1010/bosh-alicloud-kvm-ubuntu-trusty-go_agent
+    sha1: 00d20db2c7cb63d8e75f4c021d5014db57ee26fe
 
 # Configure ECS sizes
 - type: replace
@@ -84,7 +84,6 @@
   value: &alicloud
     region_id: ((region))
     zone_id: ((zone))
-    access_endpoint: ((access_endpoint))
     access_key_id: ((access_key_id))
     access_key_secret: ((access_key_secret))
 
