@@ -53,7 +53,7 @@ var _ = Describe("integration:stemcell", func() {
 				{
 					"architecture": "x86_64",
 					"container_format": "",
-					"disk": "40",
+					"disk": 40960,
 					"disk_format": "RAW",
 					"hypervisor": "kvm",
 					"infrastructure": "alicloud",
