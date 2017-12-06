@@ -32,21 +32,21 @@ func NewOssManager(config Config, logger boshlog.Logger) (OssManager) {
 }
 
 func (a OssManagerImpl) CreateBucket(name string, options ...oss.Option) (error) {
-	client := a.config.NewOssClient()
+	client := a.config.NewOssClient(false)
 	a.logger.Debug(AlicloudOssServiceTag, "Creating Alicloud Oss '%s'", name)
 
 	return client.CreateBucket(name, options ...)
 }
 
 func (a OssManagerImpl) DeleteBucket(name string) (error) {
-	client := a.config.NewOssClient()
+	client := a.config.NewOssClient(false)
 	a.logger.Debug(AlicloudOssServiceTag, "Deleting Alicloud Oss '%s'", name)
 
 	return client.DeleteBucket(name)
 }
 
 func (a OssManagerImpl) GetBucket(name string) (bucket *oss.Bucket, err error) {
-	client := a.config.NewOssClient()
+	client := a.config.NewOssClient(false)
 	a.logger.Debug(AlicloudOssServiceTag, "Geting Alicloud Oss '%s'", name)
 
 	return client.Bucket(name)

@@ -13,19 +13,25 @@ import (
 	"reflect"
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"strconv"
 )
 
-const alicloudImageNamePrefix = "stemcell"
+const (
+	alicloudImageNamePrefix    = "stemcell"
+	UUID_LENGTH                = 32
+	OSS_BUCKET_NAME_MAX_LENGTH = 64
+)
 
 type StemcellProps struct {
-	Architecture    string `json:"architecture"`
-	ContainerFormat string `json:"container_format"`
-	Disk            string `json:"disk"`
-	DiskFormat      string `json:"disk_format"`
-	Hypervisor      string `json:"hypervisor"`
-	Name            string `json:"name"`
-	OsDistro        string `json:"os_distro"`
-	OsType          string `json:"os_type"`
+	Architecture    string      `json:"architecture"`
+	ContainerFormat string      `json:"container_format"`
+	Disk            interface{} `json:"disk"`
+	DiskFormat      string      `json:"disk_format"`
+	diskGB          int
+	Hypervisor      string      `json:"hypervisor"`
+	Name            string      `json:"name"`
+	OsDistro        string      `json:"os_distro"`
+	OsType          string      `json:"os_type"`
 	//RootDeviceName string 	`json:"root_device_name"`
 	SourceUrl string `json:"source_url"`
 	//SourceSha1    string `json:"raw_disk_sha1,omitempty"`
@@ -46,6 +52,51 @@ func NewCreateStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager,
 	return CreateStemcellMethod{cc, stemcells, osses}
 }
 
+func (a StemcellProps) Validate() (StemcellProps, error) {
+	if a.Disk != nil {
+		switch a.Disk.(type) {
+		case int:
+			a.diskGB = ConvertToGB(float64(a.Disk.(int)))
+			if a.diskGB < 1 {
+				return a, fmt.Errorf("disk size too small %dMB < 1GB", a.Disk.(int))
+			}
+		case float64:
+			a.diskGB = ConvertToGB(a.Disk.(float64))
+			if a.diskGB < 1 {
+				return a, fmt.Errorf("disk size too small %fMB < 1GB", a.Disk.(float64))
+			}
+		case string:
+			s, _ := a.Disk.(string)
+			if strings.Compare("", s) == 0 {
+				a.diskGB = 0
+			}
+			s = strings.Replace(s, "_", "", -1)
+			n, err := strconv.Atoi(s)
+			if err != nil {
+				return a, fmt.Errorf("error Disk.size format %v", a.Disk)
+			}
+			a.diskGB = ConvertToGB(float64(n))
+			if a.diskGB < 1 {
+				return a, fmt.Errorf("disk size too small %dMB < 1GB", n)
+			}
+		default:
+			return a, fmt.Errorf("error Disk.size type %v", a.Disk)
+		}
+	} else {
+		a.diskGB = 0
+	}
+
+	//maxBucketNameLength := OSS_BUCKET_NAME_MAX_LENGTH - UUID_LENGTH
+	//if len(a.Name) >= maxBucketNameLength {
+	//	return a, fmt.Errorf("bosh stemcell name max length is %d", maxBucketNameLength)
+	//}
+	return a, nil
+}
+
+func (a StemcellProps) GetDiskGB() int {
+	return a.diskGB
+}
+
 // create stemcell policy:
 // 1. stemcell metadate set in cloudProps
 // 2. we provide three ways to create stemcell
@@ -59,6 +110,11 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 
 	if err != nil {
 		return apiv1.StemcellCID{}, a.WrapErrorf(err, "BadInput for CreateStemcell %s", cloudProps)
+	}
+
+	props, err = props.Validate()
+	if err != nil {
+		return apiv1.StemcellCID{}, a.WrapErrorf(err, "BadInput for CreateStemcell %3v", err)
 	}
 
 	switch {
@@ -92,7 +148,7 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	device.Format = string(props.DiskFormat)
 	device.OSSBucket = props.OSSBucket
 	device.OSSObject = props.OSSObject
-	device.DiskImageSize = props.Disk
+	device.DiskImageSize = strconv.Itoa(props.GetDiskGB())
 
 	var args ecs.ImportImageArgs
 	args.RegionId = a.Config.OpenApi.GetRegion()
@@ -141,7 +197,7 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	}
 	defer imageFile.Close()
 
-	err = a.osses.UploadFile(*bucket, objectName, imagePath, 100*1024, oss.Routines(3))
+	err = a.osses.UploadFile(*bucket, objectName, imagePath, 100*1024, oss.Routines(5))
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Uploading stemcell image file to oss")
 	}
@@ -157,10 +213,12 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 }
 
 // image name should be unique
+// bucket name max length is 64bit, and random suffix length is 32
+// so the user input image name should less than 32bit
 func (a CreateStemcellMethod) getUUIDName(props StemcellProps) (string) {
 	uuidStr := uuid.New().String()
 	name := getValueOrDefault("Name", &props, alicloud.AlicloudDefaultImageName)
-	imageName := fmt.Sprintf("%s-%s", name, uuidStr)
+	imageName := fmt.Sprintf("%s-%s", name, uuidStr[0:UUID_LENGTH])
 	return imageName
 }
 

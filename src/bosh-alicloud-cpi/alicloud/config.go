@@ -17,11 +17,21 @@ import (
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"strings"
+	"net"
 )
 
+type InnerType string
+
 const (
-	DefaultOpenApiEndpoint = "cn-zhangjiakou.aliyuncs.com"
-	OSSSuffix              = "oss-"
+	DefaultOpenApiEndpoint       = "cn-zhangjiakou.aliyuncs.com"
+	DefaultClassOSSInnerEndpoint = "oss-cn-hangzhou-internal"
+	DefaultVpcOSSInnerEndpoint   = "oss-cn-hangzhou-internal"
+	OSSSuffix                    = "oss-"
+
+	InnerVpc       = InnerType("VPC")
+	InnerClassic   = InnerType("CLASSIC")
+	PingMethod     = "tcp"
+	TimeoutSeconds = 5
 )
 
 type CloudConfigJson struct {
@@ -164,16 +174,49 @@ func (c Config) NewSlbClient() (*slb.Client) {
 	return slb.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 }
 
-func (c Config) NewOssClient() (*oss.Client) {
-	ossClient, _ := oss.New(c.GetOSSEndPoint(), c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+func (c Config) NewOssClient(inner bool) (*oss.Client) {
+	ossClient, _ := oss.New(c.GetAvailableOSSEndPoint(inner), c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 	return ossClient
 }
 
-func (c Config) GetOSSEndPoint() (string) {
-	return "https://" + GetOSSEndPoint(string(c.OpenApi.GetRegion())) + ".aliyuncs.com"
+func (c Config) GetAvailableOSSEndPoint(inner bool) (string) {
+	return "https://" + c.GetOSSEndPoint(inner) + ".aliyuncs.com"
 }
 
-func GetOSSEndPoint(region string) string {
+func (c Config) GetOSSEndPoint(inner bool) (string) {
+	timeOut := time.Duration(TimeoutSeconds) * time.Second
+	ep := GetOSSEndPoint(string(c.OpenApi.GetRegion()), "")
+	if !inner {
+		return ep
+	}
+
+	ep = GetOSSEndPoint("", InnerVpc)
+	if _, err := net.DialTimeout(PingMethod, ep, timeOut); err != nil {
+		fmt.Printf("Ping oss inner vpc endpoint %s ok", ep)
+		return ep
+	}
+
+	ep = GetOSSEndPoint("", InnerClassic)
+	if _, err := net.DialTimeout(PingMethod, ep, timeOut); err != nil {
+		fmt.Printf("Ping oss inner ecs endpoint %s ok", ep)
+		return ep
+	}
+
+	ep = GetOSSEndPoint(string(c.OpenApi.GetRegion()), "")
+	return ep
+}
+
+// types allows ["VPC", "CLASSIC"], then return inner endpoint
+// otherwise return endpoint by region
+func GetOSSEndPoint(region string, types InnerType) string {
+	if types == InnerVpc {
+		return DefaultVpcOSSInnerEndpoint
+	}
+
+	if types == InnerClassic {
+		return DefaultClassOSSInnerEndpoint
+	}
+
 	if strings.HasPrefix(region, OSSSuffix) {
 		return region
 	}
