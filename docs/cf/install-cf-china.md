@@ -45,7 +45,6 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
  -v internal_ip=$BOSH_ENVIRONMENT \
  -v vswitch_id=... \
  -v security_group_id=... \
- -v access_endpoint=aliyuncs.com \
  -v access_key_id=... \
  -v access_key_secret=... \
  -v region=... \

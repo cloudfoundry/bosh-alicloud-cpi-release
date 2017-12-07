@@ -23,6 +23,8 @@ const (
 
 //
 // Instance properties: ref to docs/bosh/alicloud-cpi.md
+// spot https://help.aliyun.com/knowledge_detail/48269.html
+// ram profile https://help.aliyun.com/document_detail/54579.html?spm=5176.doc25481.6.797.UVS7aB
 type InstanceProps struct {
 	EphemeralDisk DiskInfo `json:"ephemeral_disk"`
 	SystemDisk    DiskInfo `json:"system_disk"`
@@ -39,6 +41,7 @@ type InstanceProps struct {
 	ChargePeriod    json.Number `json:"charge_period"`
 	AutoRenew       string      `json:"auto_renew"`
 	AutoRenewPeriod json.Number `json:"auto_renew_period"`
+	RamRoleName     string      `json:"ram_role_name"`
 
 	SpotProps
 }
@@ -169,6 +172,7 @@ func (a CreateVMMethod) CreateVM(
 	args.UserData = a.Config.Registry.ToInstanceUserData()
 	args.SpotStrategy = instProps.SpotStrategy
 	args.SpotPriceLimit = instProps.SpotPriceLimit
+	args.RamRoleName = instProps.RamRoleName
 
 	//
 	// fill disks
