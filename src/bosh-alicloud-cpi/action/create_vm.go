@@ -166,6 +166,7 @@ func (a CreateVMMethod) CreateVM(
 	}
 
 	//
+	args.RegionId = a.Config.OpenApi.GetRegion()
 	args.ImageId = stemcellCID.AsString()
 	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
@@ -187,6 +188,23 @@ func (a CreateVMMethod) CreateVM(
 	if err != nil {
 		req, _ := json.Marshal(args)
 		return apiv1.VMCID{}, a.WrapErrorf(err, "create instance failed with input=%s ", string(req))
+	}
+
+	err = a.instances.ChangeInstanceStatus(instCid, ecs.Stopped, func(status ecs.InstanceStatus) (bool, error) {
+		switch status {
+		case ecs.Stopped:
+			return true, nil
+		case ecs.Creating:
+			return false, nil
+		case ecs.Pending:
+			return false, nil
+		default:
+			return false, fmt.Errorf("unexcepted status %s", status)
+		}
+	})
+
+	if err != nil {
+		return apiv1.VMCID{}, a.WrapErrorf(err, "wait %s to STOPPED failed", instCid)
 	}
 
 	//

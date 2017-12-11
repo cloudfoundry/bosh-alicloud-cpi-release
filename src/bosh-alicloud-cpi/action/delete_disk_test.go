@@ -31,6 +31,4 @@ var _ = Describe("cpi:delete_disk", func() {
 		Expect(err).Should(HaveOccurred())
 		Expect(err.Error()).Should(ContainSubstring("can't delete disk"))
 	})
-
-
 })

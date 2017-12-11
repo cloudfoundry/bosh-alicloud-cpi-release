@@ -235,3 +235,12 @@ func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus ecs.Insta
 		}
 	}
 }
+
+func (a InstanceManagerImpl) GetInstanceUserData() {
+	//client := a.config.NewEcsClient()
+	//client.AddTags()
+	//client.RemoveTags()
+	//client.
+	// inst, err := client.DescribeUserdata()
+	// inst.
+}

@@ -63,7 +63,7 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		NewGetDisksMethod(cc, ss.Disks),
 		NewCreateDiskMethod(cc, ss.Disks, ss.Instances),
 		NewDeleteDiskMethod(cc, ss.Disks, ss.Instances),
-		NewAttachDiskMethod(cc, ss.Disks, ss.Registry),
+		NewAttachDiskMethod(cc, ss.Disks, ss.Instances, ss.Registry),
 		NewDetachDiskMethod(cc, ss.Disks, ss.Registry),
 		NewHasDiskMethod(cc, ss.Disks),
 		NewResizeDiskMethod(cc, ss.Disks),

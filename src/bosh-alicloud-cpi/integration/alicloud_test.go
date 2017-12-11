@@ -26,5 +26,11 @@ var _ = Describe("integration:alicloud", func() {
 		//client := caller.Config.NewEcsClient()
 		//args := ecs.ImportImageArgs{}
 		//client.CreateImage()
+		//caller.Config.OpenApi
+		//client := oss.NewOSSClient(internal)
+		//bucket := client.Bucket("Hello")
+		//bucket.PutFile()
+
+
 	})
 })
