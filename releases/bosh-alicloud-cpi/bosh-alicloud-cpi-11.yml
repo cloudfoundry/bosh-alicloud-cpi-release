@@ -1,0 +1,25 @@
+name: bosh-alicloud-cpi
+version: "11"
+commit_hash: 0f98b59
+uncommitted_changes: true
+jobs:
+- name: alicloud_cpi
+  version: 76858dfa5aaf1c58cedaba1d7a80c84333ed0ba3
+  fingerprint: 76858dfa5aaf1c58cedaba1d7a80c84333ed0ba3
+  sha1: da0999d0dbbe1810473e05f2e0cc4ee6624308e0
+packages:
+- name: bosh-alicloud-cpi
+  version: 346f26aed5c09c9db539ef4f5a0ab3a710200eca
+  fingerprint: 346f26aed5c09c9db539ef4f5a0ab3a710200eca
+  sha1: ce6779a23d824fed837727e74bc64b42f94db561
+  dependencies:
+  - golang
+- name: golang
+  version: 03d27673d09c82e7a4183d651e6c293b4a501de7
+  fingerprint: 03d27673d09c82e7a4183d651e6c293b4a501de7
+  sha1: ca71981598520b5b928af57471d408c210cc7794
+  dependencies: []
+license:
+  version: 180c96ab2e4e366b5e2866b11a6ea9b3a18d5fe8
+  fingerprint: 180c96ab2e4e366b5e2866b11a6ea9b3a18d5fe8
+  sha1: b0f7b3e4c7c789f745603552d7affcfeb6a13869
