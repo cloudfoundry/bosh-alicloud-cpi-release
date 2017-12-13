@@ -16,9 +16,9 @@ import (
 )
 
 type CpiResponse struct {
-	Result interface{}		`json:"result"`
-	Error interface{}		`json:"error"`
-	Log string				`json:"log"`
+	Result interface{} `json:"result"`
+	Error  interface{} `json:"error"`
+	Log    string      `json:"log"`
 }
 
 func WrapErrorResponse(err error, format string, args... interface{}) (CpiResponse) {
@@ -57,9 +57,9 @@ func (r CpiResponse) GetResult() interface{} {
 }
 
 type CpiError struct {
-	Type string			`json:"type,omitempty"`
-	Message string		`json:"message"`
-	OkToRetry bool		`json:"ok_to_retry"`
+	Type      string `json:"type,omitempty"`
+	Message   string `json:"message"`
+	OkToRetry bool   `json:"ok_to_retry"`
 }
 
 func (e CpiError) ToError() error {
@@ -77,12 +77,13 @@ type Caller struct {
 }
 
 func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
-	services := Services {
-		Stemcells: alicloud.NewStemcellManager(config),
+	services := Services{
+		Stemcells: alicloud.NewStemcellManager(config, logger),
+		Osses:     alicloud.NewOssManager(config, logger),
 		Instances: alicloud.NewInstanceManager(config, logger),
-		Disks: alicloud.NewDiskManager(config, logger),
-		Networks: alicloud.NewNetworkManager(config, logger),
-		Registry: config.GetRegistryClient(logger),
+		Disks:     alicloud.NewDiskManager(config, logger),
+		Networks:  alicloud.NewNetworkManager(config, logger),
+		Registry:  config.GetHttpRegistryClient(logger),
 	}
 	return NewCallerWithServices(config, logger, services)
 }

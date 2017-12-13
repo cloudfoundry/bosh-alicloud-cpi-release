@@ -66,12 +66,13 @@ var _ = BeforeSuite(func() {
 
 	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
 
-	services := action.Services {
-		Stemcells: alicloud.NewStemcellManager(config),
+	services := action.Services{
+		Stemcells: alicloud.NewStemcellManager(config, logger),
+		Osses:     alicloud.NewOssManager(config, logger),
 		Instances: alicloud.NewInstanceManager(config, logger),
-		Disks: alicloud.NewDiskManager(config, logger),
-		Networks: alicloud.NewNetworkManager(config, logger),
-		Registry: mock.NewRegistryMock(),
+		Disks:     alicloud.NewDiskManager(config, logger),
+		Networks:  alicloud.NewNetworkManager(config, logger),
+		Registry:  mock.NewRegistryMock(),
 	}
 
 	caller = action.NewCallerWithServices(config, logger, services)

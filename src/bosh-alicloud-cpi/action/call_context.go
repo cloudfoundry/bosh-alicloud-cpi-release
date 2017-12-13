@@ -21,6 +21,7 @@ type CallContext struct {
 
 type Services struct {
 	Stemcells alicloud.StemcellManager
+	Osses alicloud.OssManager
 	Instances alicloud.InstanceManager
 	Disks alicloud.DiskManager
 	Networks alicloud.NetworkManager
