@@ -66,11 +66,9 @@ properties:
     description: Whether the s3 blobstore plugin should verify its peer when using SSL
   blobstore.s3_signature_version:
     description: Signature version used to connect to an s3 blobstore
-
   blobstore.path:
     description: Address of blobstore server used by simple blobstore plugin
     default: ""
-
   blobstore.address:
     description: Address of blobstore server used by simple blobstore plugin
     default: ""

@@ -10,7 +10,7 @@ import (
 )
 
 var _ = Describe("cpi:set_disk_metadata", func() {
-	It("can run reboot vm", func() {
+	It("can set disk metadata", func() {
 		instCid, _ := mockContext.NewInstance()
 		diskCid, _ := mockContext.NewDisk(instCid)
 		r :=  caller.Run(mock.NewBuilder(`{
@@ -36,7 +36,7 @@ var _ = Describe("cpi:set_disk_metadata", func() {
 
 		disk, ok := mockContext.Disks[diskCid]
 		Expect(ok).To(BeTrue())
-		Expect(disk.DiskName).Should(Equal("consul.441e940e-2ffe-4208-993e-3e5f888e2b7e_0"))
+		Expect(disk.DiskName).Should(Equal(""))
 	})
 })
 
