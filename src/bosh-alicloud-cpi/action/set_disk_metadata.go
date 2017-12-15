@@ -28,9 +28,11 @@ func (a SetDiskMetadataMethod) SetDiskMetadata(diskCID apiv1.DiskCID, meta apiv1
 
 	tags := make(map[string]string)
 	for k, v := range md {
-		tk := normalizeTag(k)
-		if tk != "" {
-			tags[tk] = normalizeTag(v.(string))
+		if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job"  {
+			tk := normalizeTag(k)
+			if tk != "" {
+				tags[tk] = normalizeTag(v.(string))
+			}
 		}
 	}
 

@@ -33,7 +33,7 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 	for k, v := range md {
 		if k == "name" {
 			name = normalizeName(v.(string), "i_")
-		} else {
+		} else if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job"  {
 			tk := normalizeTag(k)
 			if tk != "" {
 				tags[tk] = normalizeTag(v.(string))

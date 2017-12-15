@@ -23,7 +23,6 @@ import (
 type InnerType string
 
 const (
-	DefaultOpenApiEndpoint       = "cn-zhangjiakou.aliyuncs.com"
 	DefaultClassOSSInnerEndpoint = "oss-cn-hangzhou-internal"
 	DefaultVpcOSSInnerEndpoint   = "oss-cn-hangzhou-internal"
 	OSSSuffix                    = "oss-"
@@ -115,6 +114,8 @@ func (a OpenApi) GetRegion() (common.Region) {
 func (a RegistryConfig) IsEmpty() (bool) {
 	if a.Host == "" {
 		return true
+	} else {
+		return false
 	}
 }
 
@@ -183,7 +184,7 @@ func (c Config) NewSlbClient() (*slb.Client) {
 }
 
 func (c Config) GetRegistryClient(logger boshlog.Logger) (registry.Client) {
-	if c.Registry.IsEmpty() {
+	if !c.Registry.IsEmpty() {
 		return c.GetHttpRegistryClient(logger)
 	} else {
 		return NewRegistryManager(c, logger)
