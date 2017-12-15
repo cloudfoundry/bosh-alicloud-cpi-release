@@ -220,7 +220,6 @@ func (a DiskManagerImpl) DeleteSnapshot(snapshotCid string) (error) {
 }
 
 func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
-
 	invoker := NewInvoker()
 
 	result := ""

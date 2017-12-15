@@ -28,24 +28,26 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	diskCid := diskCID.AsString()
 	device := ""
 
-	err := a.instances.ChangeInstanceStatus(instCid, ecs.Stopped, func(status ecs.InstanceStatus) (bool, error) {
-		switch status {
-		case ecs.Stopped:
-			return true, nil
-		case ecs.Running:
-			return false, a.instances.StopInstance(instCid)
-		case ecs.Stopping:
-			return false, nil
-		default:
-			return false, fmt.Errorf("unexpect %s for StopInstance", status)
-		}
-	})
+	if a.Config.Registry.IsEmpty() {
+		err := a.instances.ChangeInstanceStatus(instCid, ecs.Stopped, func(status ecs.InstanceStatus) (bool, error) {
+			switch status {
+			case ecs.Stopped:
+				return true, nil
+			case ecs.Running:
+				return false, a.instances.StopInstance(instCid)
+			case ecs.Stopping:
+				return false, nil
+			default:
+				return false, fmt.Errorf("unexpect %s for StopInstance", status)
+			}
+		})
 
-	if err != nil {
-		return a.WrapError(err, "stop instance failed")
+		if err != nil {
+			return a.WrapError(err, "stop instance failed")
+		}
 	}
 
-	err = a.disks.ChangeDiskStatus(diskCid, ecs.DiskStatusInUse, func(disk *ecs.DiskItemType) (bool, error) {
+	err := a.disks.ChangeDiskStatus(diskCid, ecs.DiskStatusInUse, func(disk *ecs.DiskItemType) (bool, error) {
 		if disk == nil {
 			return false, fmt.Errorf("missing disk %s", diskCid)
 		}
@@ -75,22 +77,25 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 		return a.WrapErrorf(err, "update registry failed %s %s", diskCid, instCid)
 	}
 
-	err = a.instances.ChangeInstanceStatus(instCid, ecs.Running, func(status ecs.InstanceStatus) (bool, error) {
-		switch status {
-		case ecs.Stopped:
-			return false, a.instances.StartInstance(instCid)
-		case ecs.Starting:
-			return false, nil
-		case ecs.Running:
-			return true, nil
-		default:
-			return false, fmt.Errorf("unexpect %s for StopInstance", status)
-		}
-	})
+	if a.Config.Registry.IsEmpty() {
+		err := a.instances.ChangeInstanceStatus(instCid, ecs.Running, func(status ecs.InstanceStatus) (bool, error) {
+			switch status {
+			case ecs.Stopped:
+				return false, a.instances.StartInstance(instCid)
+			case ecs.Starting:
+				return false, nil
+			case ecs.Running:
+				return true, nil
+			default:
+				return false, fmt.Errorf("unexpect %s for StopInstance", status)
+			}
+		})
 
-	if err != nil {
-		return a.WrapError(err, "stop instance failed")
+		if err != nil {
+			return a.WrapError(err, "stop instance failed")
+		}
 	}
+
 	return nil
 }
 

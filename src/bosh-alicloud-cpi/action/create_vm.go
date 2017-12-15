@@ -190,6 +190,8 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.VMCID{}, a.WrapErrorf(err, "create instance failed with input=%s ", string(req))
 	}
 
+	//
+	// Wait for the instance status to STOPPED
 	err = a.instances.ChangeInstanceStatus(instCid, ecs.Stopped, func(status ecs.InstanceStatus) (bool, error) {
 		switch status {
 		case ecs.Stopped:

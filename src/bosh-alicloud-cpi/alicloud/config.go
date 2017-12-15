@@ -48,7 +48,6 @@ const (
 type OpenApi struct {
 	RegionId        string  `json:"region_id"`
 	ZoneId			string	`json:"zone_id"`
-	UseRegistry		bool	`json:"use_registry"`
 	AccessEndpoint	string 	`json:"access_endpoint"`
 	AccessKeyId     string  `json:"access_key_id"`
 	AccessKeySecret string  `json:"access_key_secret"`
@@ -98,6 +97,12 @@ func (a OpenApi) GetRegion() (common.Region) {
 //		return a.AccessEndpoint
 //	}
 //}
+
+func (a RegistryConfig) IsEmpty() (bool) {
+	if a.Host == "" {
+		return true
+	}
+}
 
 func NewConfigFromFile(configFile string, fs boshsys.FileSystem) (Config, error) {
 	var config Config
@@ -164,7 +169,7 @@ func (c Config) NewSlbClient() (*slb.Client) {
 }
 
 func (c Config) GetRegistryClient(logger boshlog.Logger) (registry.Client) {
-	if c.OpenApi.UseRegistry {
+	if c.Registry.IsEmpty() {
 		return c.GetHttpRegistryClient(logger)
 	} else {
 		return NewRegistryManager(c, logger)
