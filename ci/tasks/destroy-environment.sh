@@ -109,7 +109,7 @@ function copyToOutput(){
         echo "echo LINE: $LINE"
         if [[ $LINE == HEAD*detached* ]];
         then
-            echo "****** fix detached branch ******"
+            echo "****** fix detached branch ******"s
             read -r -a Words <<< $LINE
 
             git status | sed -n 'p' |while read LI

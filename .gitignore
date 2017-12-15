@@ -12,3 +12,6 @@ src/gopkg.in
 dev_releases
 ci/vars*.*
 .terraform
+terraform.log
+terraform.tfstate.backup
+*.bak

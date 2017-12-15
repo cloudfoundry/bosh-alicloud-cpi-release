@@ -21,15 +21,15 @@ type CpiResponse struct {
 	Log    string      `json:"log"`
 }
 
-func WrapErrorResponse(err error, format string, args ... interface{}) (CpiResponse) {
+func WrapErrorResponse(err error, format string, args... interface{}) (CpiResponse) {
 	return CpiResponse{
 		Result: json.RawMessage{},
-		Error: CpiError{
+		Error:CpiError{
 			"CpiError",
 			err.Error(),
 			false,
 		},
-		Log: fmt.Sprintf(format, args),
+		Log:fmt.Sprintf(format, args),
 	}
 }
 
@@ -89,7 +89,7 @@ func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
 }
 
 func NewCallerWithServices(config alicloud.Config, logger boshlog.Logger, services Services) (Caller) {
-	return Caller{config, logger, services}
+	return Caller {config, logger, services}
 }
 
 func (c Caller) Run(input []byte) (CpiResponse) {

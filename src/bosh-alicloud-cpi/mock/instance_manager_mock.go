@@ -7,6 +7,7 @@ import (
 	"github.com/denverdino/aliyungo/ecs"
 	"fmt"
 	"bosh-alicloud-cpi/alicloud"
+	"strings"
 )
 
 type InstanceManagerMock struct {
@@ -43,6 +44,19 @@ func (a InstanceManagerMock) ModifyInstanceAttribute(cid string, name string, de
 	}
 	inst.InstanceName = name
 	inst.Description = description
+	return nil
+}
+
+func (a InstanceManagerMock) AddTags(cid string, tags map[string]string) (error) {
+	ok := true
+	if strings.HasPrefix(cid, "i-") {
+		_, ok = a.mc.Instances[cid]
+	} else {
+		_, ok = a.mc.Disks[cid]
+	}
+	if !ok {
+		return fmt.Errorf("AddTags resource not exists %s", cid)
+	}
 	return nil
 }
 
