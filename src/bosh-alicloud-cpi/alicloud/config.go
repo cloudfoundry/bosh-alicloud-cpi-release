@@ -14,10 +14,24 @@ import (
 	"github.com/denverdino/aliyungo/common"
 	"time"
 	"github.com/denverdino/aliyungo/slb"
+
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"strings"
+	"net"
 )
 
+type InnerType string
+
 const (
-	DefaultOpenApiEndpoint = "cn-zhangjiakou.aliyuncs.com"
+	DefaultOpenApiEndpoint       = "cn-zhangjiakou.aliyuncs.com"
+	DefaultClassOSSInnerEndpoint = "oss-cn-hangzhou-internal"
+	DefaultVpcOSSInnerEndpoint   = "oss-cn-hangzhou-internal"
+	OSSSuffix                    = "oss-"
+
+	InnerVpc       = InnerType("VPC")
+	InnerClassic   = InnerType("CLASSIC")
+	PingMethod     = "tcp"
+	TimeoutSeconds = 5
 )
 
 type CloudConfigJson struct {
@@ -36,13 +50,13 @@ type Config struct {
 }
 
 const (
-	UseForceStop			= true
+	UseForceStop = true
 
 	WaitTimeout  = time.Duration(180) * time.Second
 	WaitInterval = time.Duration(5) * time.Second
 
-	DefaultEipWaitSeconds	= 120
-	DefaultSlbWeight = 100
+	DefaultEipWaitSeconds = 120
+	DefaultSlbWeight      = 100
 )
 
 type OpenApi struct {
@@ -54,11 +68,11 @@ type OpenApi struct {
 }
 
 type RegistryConfig struct {
-	User     string			`json:"user"`
-	Password string			`json:"password"`
-	Protocol string			`json:"protocol"`
-	Host     string			`json:"address"`
-	Port     json.Number	`json:"port"`
+	User     string      `json:"user"`
+	Password string      `json:"password"`
+	Protocol string      `json:"protocol"`
+	Host     string      `json:"address"`
+	Port     json.Number `json:"port"`
 }
 
 type AgentConfig struct {
@@ -68,8 +82,8 @@ type AgentConfig struct {
 }
 
 type BlobstoreConfig struct {
-	Provider string          		`json:"provider"`
-	Options  map[string]interface{}	`json:"options"`
+	Provider string                 `json:"provider"`
+	Options  map[string]interface{} `json:"options"`
 }
 
 func (c Config) Validate() error {
@@ -150,9 +164,9 @@ func (a RegistryConfig) GetEndpoint() (string) {
 }
 
 func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
-	return registry.BlobstoreSettings {
+	return registry.BlobstoreSettings{
 		Provider: a.Provider,
-		Options: a.Options,
+		Options:  a.Options,
 	}
 }
 
@@ -176,14 +190,63 @@ func (c Config) GetRegistryClient(logger boshlog.Logger) (registry.Client) {
 	}
 }
 
+func (c Config) NewOssClient(inner bool) (*oss.Client) {
+	ossClient, _ := oss.New(c.GetAvailableOSSEndPoint(inner), c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+	return ossClient
+}
+
+func (c Config) GetAvailableOSSEndPoint(inner bool) (string) {
+	return "https://" + c.GetOSSEndPoint(inner) + ".aliyuncs.com"
+}
+
+func (c Config) GetOSSEndPoint(inner bool) (string) {
+	timeOut := time.Duration(TimeoutSeconds) * time.Second
+	ep := GetOSSEndPoint(string(c.OpenApi.GetRegion()), "")
+	if !inner {
+		return ep
+	}
+
+	ep = GetOSSEndPoint("", InnerVpc)
+	if _, err := net.DialTimeout(PingMethod, ep, timeOut); err != nil {
+		fmt.Printf("Ping oss inner vpc endpoint %s ok", ep)
+		return ep
+	}
+
+	ep = GetOSSEndPoint("", InnerClassic)
+	if _, err := net.DialTimeout(PingMethod, ep, timeOut); err != nil {
+		fmt.Printf("Ping oss inner ecs endpoint %s ok", ep)
+		return ep
+	}
+
+	ep = GetOSSEndPoint(string(c.OpenApi.GetRegion()), "")
+	return ep
+}
+
+// types allows ["VPC", "CLASSIC"], then return inner endpoint
+// otherwise return endpoint by region
+func GetOSSEndPoint(region string, types InnerType) string {
+	if types == InnerVpc {
+		return DefaultVpcOSSInnerEndpoint
+	}
+
+	if types == InnerClassic {
+		return DefaultClassOSSInnerEndpoint
+	}
+
+	if strings.HasPrefix(region, OSSSuffix) {
+		return region
+	}
+	return OSSSuffix + region
+}
+
 func (c Config) GetHttpRegistryClient(logger boshlog.Logger) (registry.Client) {
 	r := c.Registry
 
 	port, _ := r.Port.Int64()
-	clientOptions := registry.ClientOptions {
+	clientOptions := registry.ClientOptions{
 		Protocol: r.Protocol,
-		Host: r.Host,
-		Port: int(port),
+		Host:     r.Host,
+		Port:     int(port),
 		Username: r.User,
 		Password: r.Password,
 	}
