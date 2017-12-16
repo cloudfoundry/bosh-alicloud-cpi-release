@@ -64,12 +64,13 @@ var _ = BeforeSuite(func() {
 	logger := boshlog.NewWriterLogger(boshlog.LevelWarn, os.Stderr)
 
 	mockContext = mock.NewTestContext(config)
-	services := Services {
+	services := Services{
 		Stemcells: mock.NewStemcellManagerMock(mockContext),
+		Osses:     mock.NewOssManagerMock(mockContext),
 		Instances: mock.NewInstanceManagerMock(mockContext),
-		Disks: mock.NewDiskManagerMock(mockContext),
-		Networks: mock.NewNetworkManagerMock(mockContext),
-		Registry: mock.NewRegistryMock(),
+		Disks:     mock.NewDiskManagerMock(mockContext),
+		Networks:  mock.NewNetworkManagerMock(mockContext),
+		Registry:  mock.NewRegistryMock(),
 	}
 
 	caller = NewCallerWithServices(config, logger, services)

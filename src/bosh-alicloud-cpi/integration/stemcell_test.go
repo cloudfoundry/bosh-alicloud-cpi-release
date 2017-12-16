@@ -45,6 +45,64 @@ var _ = Describe("integration:stemcell", func() {
 		Expect(r.GetResultString()).Should(Equal(stemcellId))
 	})
 
+	It("can create a stemcell from oss", func() {
+		bytes := mock.NewBuilder(`{
+			"method": "create_stemcell",
+			"arguments": [
+				"/var/vcap/data/tmp/director/stemcell20170926-9684-17ncxdz/image",
+				{
+					"architecture": "x86_64",
+					"container_format": "",
+					"disk": 40960,
+					"disk_format": "RAW",
+					"hypervisor": "kvm",
+					"infrastructure": "alicloud",
+					"name": "bosh-alicloud-kvm-ubuntu-trusty-go_agent",
+					"oss_bucket": "bosh-stemcell",
+					"oss_object": "alicloud-kvm-ubuntu.raw",
+					"os_type": "linux",
+					"root_device_name": "/dev/vda1",
+					"version": 1003
+				}
+			],
+			"context": {
+				"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"
+			}
+		}`).P("STEMCELL_ID", stemcellId).ToBytes()
+
+		r := caller.Run(bytes)
+		Expect(r.GetError()).NotTo(HaveOccurred())
+	})
+
+	// this case can run pass, but on CI cant not fetch tarball, so annotate it temporary
+	//FIt("can create a stemcell from tarball", func() {
+	//	bytes := mock.NewBuilder(`{
+	//		"method": "create_stemcell",
+	//		"arguments": [
+	//			"/.bosh/bosh-stemcell-1008-alicloud-kvm-ubuntu-trusty-go_agent.tgz",
+	//			{
+	//				"architecture": "x86_64",
+	//				"container_format": "",
+	//				"disk": 40960,
+	//				"disk_format": "RAW",
+	//				"hypervisor": "kvm",
+	//				"infrastructure": "alicloud",
+	//				"name": "bosh-alicloud-kvm-ubuntu",
+	//				"os_type": "linux",
+	//				"os_distro": "Ubuntu",
+	//				"root_device_name": "/dev/vda1",
+	//				"version": "1008"
+	//			}
+	//		],
+	//		"context": {
+	//			"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"
+	//		}
+	//	}`).P("STEMCELL_ID", stemcellId).ToBytes()
+	//
+	//	r := caller.Run(bytes)
+	//	Expect(r.GetError()).NotTo(HaveOccurred())
+	//})
+
 	It("can delete a stemcell(light)", func() {
 		_, err := caller.Call("delete_stemcell", stemcellId)
 		Expect(err).NotTo(HaveOccurred())

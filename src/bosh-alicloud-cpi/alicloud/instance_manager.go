@@ -13,6 +13,7 @@ import (
 	"time"
 	"fmt"
 	"github.com/google/uuid"
+	"strings"
 )
 
 var DeleteInstanceCatcher = Catcher {"IncorrectInstanceStatus.Initializing", 10, 15}
@@ -29,6 +30,7 @@ type InstanceManager interface {
 
 	CreateInstance(args ecs.CreateInstanceArgs) (string, error)
 	ModifyInstanceAttribute(cid string, name string, description string) (error)
+	AddTags(cid string, tags map[string]string) (error)
 
 	DeleteInstance(cid string) (error)
 
@@ -171,6 +173,28 @@ func (a InstanceManagerImpl) RebootInstance(cid string) error {
 	})
 }
 
+func (a InstanceManagerImpl) AddTags(cid string, tags map[string]string) error {
+	client := a.config.NewEcsClient()
+
+	var args ecs.AddTagsArgs
+	args.RegionId = a.config.OpenApi.GetRegion()
+	args.ResourceId = cid
+	args.Tag = tags
+
+	if strings.HasPrefix(cid, "i-") {
+		args.ResourceType = ecs.TagResourceInstance
+	} else if strings.HasPrefix(cid, "d-") {
+		args.ResourceType = ecs.TagResourceDisk
+	} else {
+		return fmt.Errorf("unexpect resource type id=%s", cid)
+	}
+
+	invoker := NewInvoker()
+	return invoker.Run(func() (error) {
+		return client.AddTags(&args)
+	})
+}
+
 func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, error) {
 	inst, err := a.GetInstance(cid)
 
@@ -234,4 +258,13 @@ func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus ecs.Insta
 			return fmt.Errorf("change instance %s to %s timeout", cid, toStatus)
 		}
 	}
+}
+
+func (a InstanceManagerImpl) GetInstanceUserData() {
+	//client := a.config.NewEcsClient()
+	//client.AddTags()
+	//client.RemoveTags()
+	//client.
+	// inst, err := client.DescribeUserdata()
+	// inst.
 }

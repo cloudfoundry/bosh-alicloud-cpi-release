@@ -41,14 +41,9 @@ type InstanceProps struct {
 	ChargePeriod    json.Number `json:"charge_period"`
 	AutoRenew       string      `json:"auto_renew"`
 	AutoRenewPeriod json.Number `json:"auto_renew_period"`
-	RamRoleName     string      `json:"ram_role_name"`
-
-	SpotProps
-}
-
-type SpotProps struct {
-	SpotStrategy   ecs.SpotStrategyType `json:"spot_strategy"`
-	SpotPriceLimit float64              `json:"spot_price_limit"`
+	SpotStrategy 	ecs.SpotStrategyType `json:"spot_strategy"`
+	SpotPriceLimit	float64              `json:"spot_price_limit"`
+	RamRoleName     string     			 `json:"ram_role_name"`
 }
 
 type CreateVMMethod struct {
@@ -166,6 +161,7 @@ func (a CreateVMMethod) CreateVM(
 	}
 
 	//
+	args.RegionId = a.Config.OpenApi.GetRegion()
 	args.ImageId = stemcellCID.AsString()
 	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
@@ -190,6 +186,25 @@ func (a CreateVMMethod) CreateVM(
 	}
 
 	//
+	// Wait for the instance status to STOPPED
+	err = a.instances.ChangeInstanceStatus(instCid, ecs.Stopped, func(status ecs.InstanceStatus) (bool, error) {
+		switch status {
+		case ecs.Stopped:
+			return true, nil
+		case ecs.Creating:
+			return false, nil
+		case ecs.Pending:
+			return false, nil
+		default:
+			return false, fmt.Errorf("unexcepted status %s", status)
+		}
+	})
+
+	if err != nil {
+		return apiv1.VMCID{}, a.WrapErrorf(err, "wait %s to STOPPED failed", instCid)
+	}
+
+	//
 	// insert agent
 	registryEnv.Bosh.IPv6.Enable = true
 	agentSettings := registry.AgentSettings{
@@ -206,25 +221,68 @@ func (a CreateVMMethod) CreateVM(
 	}
 
 	//
-	// associate persistent disks, TODO: use ChangeDiskStatus to avoid failed
+	// updateInstance
+	err = a.updateInstance(instCid, associatedDiskCIDs, instProps, networks, disks, agentSettings)
+
+	//
+	// for every error must free created vm before terminated
+	if err != nil {
+		err2 := a.instances.ChangeInstanceStatus(instCid, ecs.Deleted, func(status ecs.InstanceStatus) (bool, error) {
+			switch status {
+			case ecs.Running:
+				return false, a.instances.StopInstance(instCid)
+			case ecs.Stopped:
+				return false, a.instances.DeleteInstance(instCid)
+			case ecs.Deleted:
+				return true, nil
+			case ecs.Pending:
+				return false, nil
+			case ecs.Creating:
+				return false, nil
+			case ecs.Starting:
+				return false, nil
+			case ecs.Stopping:
+				return false, nil
+			default:
+				return false, fmt.Errorf("unexpect %s for ReleaseInstance", status)
+			}
+		})
+		if err2 == nil {
+			return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed vm deleted", instCid)
+		} else {
+			return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed delete failed %v", instCid, err2)
+		}
+	}
+
+	return apiv1.NewVMCID(instCid), nil
+}
+
+func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv1.DiskCID, instProps InstanceProps, networks Networks, disks Disks, agentSettings registry.AgentSettings) (error) {
+	//
+	// associate persistent disks,
+	// TODO: use ChangeDiskStatus to avoid failed
 	for _, diskCid := range associatedDiskCIDs {
 		err := a.disks.AttachDisk(instCid, diskCid.AsString())
 		if err != nil {
-			return cid, a.WrapErrorf(err, "associate Persistent Disk error diskCid=%s", diskCid)
+			return a.WrapErrorf(err, "associate Persistent Disk error diskCid=%s", diskCid)
 		}
 
 		path, err := a.disks.WaitForDiskStatus(diskCid.AsString(), ecs.DiskStatusInUse)
 		if err != nil {
-			return cid, a.WrapErrorf(err, "associate and WaitForDiskStatus Failed diskCid=%s", diskCid)
+			return a.WrapErrorf(err, "associate and WaitForDiskStatus Failed diskCid=%s", diskCid)
 		}
 		disks.AssociatePersistentDisk(diskCid.AsString(), path)
 	}
 
-	err = a.UpdateAgentSettings(instCid, agentSettings)
+	//
+	// put agent settings.json to registry
+	err := a.UpdateAgentSettings(instCid, agentSettings)
 	if err != nil {
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
+		return a.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
 	}
 
+	//
+	// wait for instance to start
 	err = a.instances.ChangeInstanceStatus(instCid, ecs.Running, func(status ecs.InstanceStatus) (bool, error) {
 		switch status {
 		case ecs.Stopped:
@@ -241,13 +299,13 @@ func (a CreateVMMethod) CreateVM(
 	})
 
 	if err != nil {
-		return cid, a.WrapErrorf(err, "change %s to Running failed", instCid)
+		return a.WrapErrorf(err, "change %s to Running failed", instCid)
 	}
 
 	for _, eip := range networks.GetVips() {
 		err := a.networks.BindEip(instCid, eip)
 		if err != nil {
-			return cid, a.WrapErrorf(err, "bind eip %s to %s failed", eip, instCid)
+			return a.WrapErrorf(err, "bind eip %s to %s failed", eip, instCid)
 		}
 	}
 
@@ -261,13 +319,10 @@ func (a CreateVMMethod) CreateVM(
 	for _, slb := range instProps.Slbs {
 		err := a.networks.BindSLB(instCid, slb, int(slbWeight))
 		if err != nil {
-			return cid, a.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
+			return a.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
 		}
 	}
-
-	//
-	// TODO: every error must free created vm before terminated
-	return apiv1.NewVMCID(instCid), nil
+	return nil
 }
 
 func validateSpotProps(p InstanceProps) error {
@@ -280,7 +335,7 @@ func validateSpotProps(p InstanceProps) error {
 	}
 
 	if p.ChargeType == string(PrePaid) {
-		return fmt.Errorf("the spot strategy only support 'PostPaid' instance charge type.")
+		return fmt.Errorf("the spot strategy only support 'PostPaid' instance charge type")
 	}
 
 	if err := validAllowedStringValues(strategy, strategyArr); err != nil {
@@ -288,7 +343,7 @@ func validateSpotProps(p InstanceProps) error {
 	}
 
 	if limitPrice != 0 && strategy != string(ecs.SpotWithPriceLimit) {
-		return fmt.Errorf("spot limit price only support 'SpotWithPriceLimit' strategy.")
+		return fmt.Errorf("spot limit price only support 'SpotWithPriceLimit' strategy")
 	}
 	return nil
 }
@@ -298,9 +353,9 @@ func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registr
 	err := client.Update(instId, agentSettings)
 
 	if err != nil {
-		json, _ := json.Marshal(agentSettings)
-		a.Logger.Error("create_vm", "UpdateAgentSettings to registry failed %s json:%s", json)
-		return a.WrapErrorf(err, "UpdateAgentSettings failed %v %s", client, json)
+		txt, _ := json.Marshal(agentSettings)
+		a.Logger.Error("create_vm", "UpdateAgentSettings to registry failed %s json:%s", txt)
+		return a.WrapErrorf(err, "UpdateAgentSettings failed %v %s", client, txt)
 	}
 
 	return nil

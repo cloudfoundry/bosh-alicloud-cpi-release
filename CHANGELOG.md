@@ -2,6 +2,11 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r15]
+
+- First GA version
+- Use instance.UserData instead registry to install bosh 
+
 ## [r13]
 - Remove `access_endpoint` for regions and using latest SDK to get endpoint automatically.
 

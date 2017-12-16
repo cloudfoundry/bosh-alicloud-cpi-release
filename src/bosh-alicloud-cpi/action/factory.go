@@ -8,7 +8,7 @@ import (
 )
 
 type Factory struct {
-	cc CallContext
+	cc       CallContext
 	services Services
 }
 
@@ -39,7 +39,7 @@ type CPI struct {
 
 func NewFactory(cc CallContext, services Services) (Factory) {
 	return Factory{
-		cc: cc,
+		cc:       cc,
 		services: services,
 	}
 }
@@ -47,10 +47,10 @@ func NewFactory(cc CallContext, services Services) (Factory) {
 func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 	cc := f.cc
 	ss := f.services
-	cpi := CPI {
+	cpi := CPI{
 		NewInfoMethod(),
 
-		NewCreateStemcellMethod(cc, ss.Stemcells),
+		NewCreateStemcellMethod(cc, ss.Stemcells, ss.Osses),
 		NewDeleteStemcellMethod(cc, ss.Stemcells),
 
 		NewCreateVMMethod(cc, ss.Stemcells, ss.Instances, ss.Disks, ss.Networks, ss.Registry),
@@ -63,11 +63,11 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		NewGetDisksMethod(cc, ss.Disks),
 		NewCreateDiskMethod(cc, ss.Disks, ss.Instances),
 		NewDeleteDiskMethod(cc, ss.Disks, ss.Instances),
-		NewAttachDiskMethod(cc, ss.Disks, ss.Registry),
+		NewAttachDiskMethod(cc, ss.Disks, ss.Instances, ss.Registry),
 		NewDetachDiskMethod(cc, ss.Disks, ss.Registry),
 		NewHasDiskMethod(cc, ss.Disks),
 		NewResizeDiskMethod(cc, ss.Disks),
-		NewSetDiskMetadataMethod(cc, ss.Disks),
+		NewSetDiskMetadataMethod(cc, ss.Disks, ss.Instances),
 		NewSnapshotDiskMethod(cc, ss.Disks),
 		NewDeleteSnapshotMethod(cc, ss.Disks),
 	}

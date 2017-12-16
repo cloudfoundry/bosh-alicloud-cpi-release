@@ -8,6 +8,7 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type SetVMMetadataMethod struct {
@@ -26,22 +27,28 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 	}
 
 	instCid := vmCID.AsString()
+
+	tags := make(map[string]string)
 	name := ""
-	if s, ok := md["name"]; ok {
-		name = normalizeName(s.(string), "i_")
+	for k, v := range md {
+		if k == "name" {
+			name = normalizeName(v.(string), "i_")
+		} else if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job"  {
+			tk := normalizeTag(k)
+			if tk != "" {
+				tags[tk] = normalizeTag(v.(string))
+			}
+		}
 	}
 
-	desc := ""
-	if s, ok := md["director"]; ok {
-		desc += "director: " + s.(string) + "\n"
-	}
-	if s, ok := md["deployment"]; ok {
-		desc += "deployment: " + s.(string) + "\n"
-	}
-
-	err = a.instances.ModifyInstanceAttribute(instCid, name, desc)
+	err = a.instances.ModifyInstanceAttribute(instCid, name, "")
 	if err != nil {
-		return a.WrapErrorf(err, "set_vm_metadata failed %s", instCid)
+		return a.WrapErrorf(err, "ModifyInstanceAttribute %s failed", instCid)
+	}
+
+	err = a.instances.AddTags(instCid, tags)
+	if err != nil {
+		return a.WrapErrorf(err, "AddTags %v to %s failed", instCid, tags, instCid)
 	}
 
 	return nil
@@ -94,4 +101,19 @@ func normalizeName(s string, prefix string) (string) {
 	}
 
 	return r
+}
+
+//
+// Tag.Key Tag.Name
+// ref https://help.aliyun.com/document_detail/25616.html
+func normalizeTag(s string) (string) {
+	if strings.HasPrefix(s,"aliyun") || strings.HasPrefix(s,"http://") || strings.HasPrefix(s, "https://") {
+		s = "_" + s
+	}
+
+	if len(s) > 128 {
+		s = string(s[0:127])
+	}
+
+	return s
 }

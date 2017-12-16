@@ -1,5 +1,5 @@
 name: bosh-alicloud-cpi
-version: "10"
+version: "13"
 commit_hash: 0f98b59
 uncommitted_changes: true
 jobs:

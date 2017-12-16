@@ -21,7 +21,9 @@ hwclock --set --date="$(date -d '-8 hour')"
 hwclock --hctosys
 
 # install python dependency
+apt-get update
 apt-get -y upgrade
+apt-get clean
 apt-get install -y python python-dev libffi-dev libssl-dev python-pip python-paramiko jq
 
 # install pip dependency

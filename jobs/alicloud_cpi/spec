@@ -22,18 +22,22 @@ properties:
   alicloud.access_key_secret:
     description: "Alicloud Cloud `Access key secret`"
     default: "${ACCESS_KEY_SECRET}"
+
   registry.username:
     description: "User to access the Registry"
-    default: registry
+    default: ""
   registry.password:
     description: "Password to access the Registry"
-    default: "75imrz1jjl6yjw7b67th"
-  registry.address:
+    default: ""
+  registry.protocol:
+    default: "http"
+  registry.host:
     description: Address of the Registry to connect to
-    default: "59.110.174.237"
+    default: ""
   registry.port:
     description: Port of the Registry to connect to
     default: 25777
+
   ntp:
     description: List of ntp server IPs. pool.ntp.org attempts to return IPs closest to your location, but you can still specify if needed.
     default: [0.pool.ntp.org, 1.pool.ntp.org]
@@ -66,11 +70,9 @@ properties:
     description: Whether the s3 blobstore plugin should verify its peer when using SSL
   blobstore.s3_signature_version:
     description: Signature version used to connect to an s3 blobstore
-
   blobstore.path:
     description: Address of blobstore server used by simple blobstore plugin
     default: ""
-
   blobstore.address:
     description: Address of blobstore server used by simple blobstore plugin
     default: ""
