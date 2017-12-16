@@ -4,15 +4,14 @@
   path: /releases/-
   value:
     name: bosh-alicloud-cpi
-    version: 10
-    url: Temp/blobs/bosh-alicloud-cpi.tgz
+    version: 15
+    url: http://bosh.oss-cn-hangzhou.aliyuncs.com/bosh-alicloud-cpi-r15.tgz
 
 # light stemcell
 - type: replace
   path: /resource_pools/name=vms/stemcell?
   value:
-    url: http://cloudfoundry-((region)).oss-((region))-internal.aliyuncs.com/bosh/stemcells/v1010/bosh-alicloud-kvm-ubuntu-trusty-go_agent
-    sha1: 00d20db2c7cb63d8e75f4c021d5014db57ee26fe
+    url: http://bosh.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1015-alicloud-kvm-ubuntu-trusty-go_agent.tgz
 
 # Configure ECS sizes
 - type: replace
@@ -24,7 +23,6 @@
     ephemeral_disk: {size: "51_200", category: "cloud_efficiency"}
     system_disk: {size: "40_960", category: "cloud_efficiency"}
     availability_zone: ((zone))
-    key_pair: ""
 
 - type: replace
   path: /disk_pools/name=disks/cloud_properties?
@@ -91,13 +89,13 @@
   path: /cloud_provider/properties/alicloud?
   value: *alicloud
 
-- type: replace
-  path: /cloud_provider/ssh_tunnel?
-  value:
-    host: ((internal_ip))
-    port: 22
-    user: vcap
-    private_key: ((private_key))
+#- type: replace
+#  path: /cloud_provider/ssh_tunnel?
+#  value:
+#    host: ((internal_ip))
+#    port: 22
+#    user: vcap
+#    private_key: ((private_key))
 
 - type: replace
   path: /variables/-
