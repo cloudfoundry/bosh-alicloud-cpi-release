@@ -70,7 +70,7 @@ type RegistryConfig struct {
 	User     string      `json:"user"`
 	Password string      `json:"password"`
 	Protocol string      `json:"protocol"`
-	Host     string      `json:"address"`
+	Host     string      `json:"host"`
 	Port     json.Number `json:"port"`
 }
 
@@ -102,14 +102,6 @@ func (c Config) Validate() error {
 func (a OpenApi) GetRegion() (common.Region) {
 	return common.Region(a.RegionId)
 }
-
-//func (a OpenApi) GetEndpoint() (string) {
-//	if a.AccessEndpoint == "" {
-//		return DefaultOpenApiEndpoint
-//	} else {
-//		return a.AccessEndpoint
-//	}
-//}
 
 func (a RegistryConfig) IsEmpty() (bool) {
 	if a.Host == "" {
@@ -172,14 +164,16 @@ func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
 }
 
 func (c Config) NewEcsClient() (*ecs.Client) {
-	//ep := "https://ecs." + c.OpenApi.GetEndpoint()
-	//return ecs.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+	// Obsoleted
+	// ep := "https://ecs." + c.OpenApi.GetEndpoint()
+	// return ecs.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 	return ecs.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 }
 
 func (c Config) NewSlbClient() (*slb.Client) {
-	//ep := "https://slb." + c.OpenApi.GetEndpoint()
-	//return slb.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+	// Obsoleted
+	// ep := "https://slb." + c.OpenApi.GetEndpoint()
+	// return slb.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 	return slb.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 }
 

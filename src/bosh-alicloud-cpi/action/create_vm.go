@@ -204,7 +204,6 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.VMCID{}, a.WrapErrorf(err, "wait %s to STOPPED failed", instCid)
 	}
 
-
 	//
 	// insert agent
 	registryEnv.Bosh.IPv6.Enable = true
