@@ -206,7 +206,7 @@ func (a CreateVMMethod) CreateVM(
 
 	//
 	// insert agent
-	registryEnv.Bosh.IPv6.Enable = true
+	//registryEnv.Bosh.IPv6.Enable = true
 	agentSettings := registry.AgentSettings{
 		AgentID:   agentID.AsString(),
 		Blobstore: a.Config.Agent.Blobstore.AsRegistrySettings(),
