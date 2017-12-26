@@ -8,7 +8,7 @@
 - Create a vswitch in your `zone` and get `vswtich_id`
 - Create several security groups get their `security_group_id`
 - Create user access key, get `access_key_id/access_key_secret`
-- Create a key pair and download it private key
+- Create a key pair, get `key_pair_name` and download it private key, like bosh.pem
 - Create a jumpbox vm
 
 ## Install Bosh
@@ -27,16 +27,21 @@ use this command, modify the parameters
 - access_key_secret
 - region
 - zone
+- key_pair_name
+- private_key
 
 
 ```
 export BOSH_ENVIRONMENT=...
 ```
 
+need to specify `bosh-deployment/alicloud/releases-in-china.yml` in deploying bosh in China
+
 ```
 bosh create-env bosh-deployment/bosh.yml --state=state.json \
  --vars-store=creds.yml \
  -o bosh-deployment/alicloud/cpi.yml \
+ -o bosh-deployment/alicloud/releases-in-china.yml \
  -o bosh-deployment/jumpbox-user.yml \
  -o bosh-deployment/misc/powerdns.yml \
  -v dns_recursor_ip=8.8.8.8 \
@@ -49,7 +54,9 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
  -v access_key_id=... \
  -v access_key_secret=... \
  -v region=... \
- -v zone=...
+ -v zone=... \
+ -v key_pair_name=... \
+ -v private_key=bosh.pem
 ```
 
 ## Login to Bosh
@@ -82,19 +89,18 @@ ssh jumpbox@$BOSH_ENVIRONMENT -i jumpbox.key
     - You can use 47.47.47.47.xip.io instead custom DNS, but it's not very stable.
 - create a Tcp slb get `tcp_slb_id` [optional]
 
-
-Base your previous settings, modify `bosh-deployment/alicloud/cloud-config.yml` in `bosh-deployment/alicloud/cloud-config.yml`, and update-cloud-config
-
-```
-bosh -e my-bosh update-cloud-config bosh-deployment/alicloud/cloud-config.yml
-```
-
 ## Install Cloud Foundry
 
 Get `cf-deployment`
 
 ```
 $ git clone https://github.com/cloudfoundry/cf-deployment.git
+```
+
+Base your previous settings, modify `cf-deployment/iaas-support/alicloud/cloud-config.yml`, and update cloud-config
+
+```
+bosh -e my-bosh update-cloud-config cf-deployment/iaas-support/alicloud/cloud-config.yml
 ```
 
 Upload stemcell

@@ -31,6 +31,7 @@ $ bosh create-release --force --tarball=../bosh-alicloud-cpi.tgz
 - Create a vpc with switch and get `vswtich_id`
 - Create security group get `security_group_id`
 - Create user access key, get `access_key_id/access_key_secret`
+- Create a key pair, get `key_pair_name` and download it private key, like bosh.pem
 - Create a jumpbox vm
 
 ### Install bosh in Alibaba Cloud
@@ -50,6 +51,8 @@ use this command, modify the parameters
 - access_key_secret
 - region
 - zone
+- key_pair_name
+- private_key
 
 ```
 bosh create-env bosh-deployment/bosh.yml --state=state.json \
@@ -64,7 +67,9 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
  -v access_key_id=... \
  -v access_key_secret=... \
  -v region=cn-beijing \
- -v zone=cn-beijing-a
+ -v zone=cn-beijing-a \
+ -v key_pair_name=... \
+ -v private_key=bosh.pem
 ```
 
 ### Install with jumpbox-user
@@ -85,6 +90,8 @@ $ bosh create-env bosh-deployment/bosh.yml \
  -v access_key_secret=... \
  -v region=cn-beijing \
  -v zone=cn-beijing-e
+ -v key_pair_name=... \
+ -v private_key=bosh.pem
 ```
 
 ```
@@ -115,6 +122,8 @@ bosh create-env bosh-deployment/bosh.yml \
  -v access_key_secret=... \
  -v region=cn-beijing \
  -v zone=cn-beijing-e \
+ -v key_pair_name=... \
+ -v private_key=bosh.pem \
  -v external_ip=... \
  -v dns_recursor_ip=8.8.8.8
 ```
