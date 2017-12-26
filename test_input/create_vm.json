@@ -17,7 +17,10 @@
             "default": {
                 "cloud_properties": {
                     "internet_charge_type": "PayByTraffic",
-                    "security_group_id": "sg-2ze7qg9qdmt1lt9lgvgt",
+                    "security_group_ids": [
+                        "sg-2ze7qg9qdmt1lt9lgvgt",
+                        "sg-2ze9q0vgob6j10e3qb2n"
+                    ],
                     "vswitch_id": "vsw-2ze1oepoom33cdt6nsk88"
                 },
                 "default": [

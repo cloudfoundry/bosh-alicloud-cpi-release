@@ -33,7 +33,7 @@
   path: /networks/name=default/subnets/0/cloud_properties?
   value:
     vswitch_id: ((vswitch_id))
-    security_group_id: ((security_group_id))
+    security_group_ids: [((security_group_id))]
     internet_charge_type: "PayByTraffic"
 
 # Enable registry job

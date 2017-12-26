@@ -25,7 +25,7 @@ azs:
 Schema for `cloud_properties` section used by dynamic network or manual network subnet:
 
 * **vswitch_id** [String, required]: VSwitch ID in which the instance will be created. Example: `vsw-2zemyfytfclbcmgfkzokx`.
-* **security_group_id** [String, required]: [Security Group](https://www.alibabacloud.com/help/zh/doc-detail/25468.htm), by ID, to apply to all VMs placed on this network. Example: `sg-2zei0mcphxbdxj49qtmz`
+* **security_group_ids** [String, required]: List [Security Group](https://www.alibabacloud.com/help/zh/doc-detail/25468.htm), by ID, to apply to all VMs placed on this network. Example: `[sg-2zei0mcphxbdxj49qtmz]`
 
 Example of manual network:
 
@@ -39,7 +39,7 @@ networks:
     ip: 10.0.0.3
     cloud_properties:
       vswitch_id: vsw-2zemyfytfclbcmgfkzokx
-      security_group_id: sg-2zei0mcphxbdxj49qtmz
+      security_group_ids: ["sg-2zei0mcphxbdxj49qtmz"]
 ```
 
 Example of dynamic network:
@@ -50,7 +50,7 @@ networks:
   type: dynamic
   cloud_properties:
     vswitch_id: vsw-2zemyfytfclbcmgfkzokx
-    security_group_id: sg-2zei0mcphxbdxj49qtmz
+    security_group_ids: ["sg-2zei0mcphxbdxj49qtmz"]
 ```
 
 Example of vip network:
@@ -98,7 +98,7 @@ resource_pools:
   network: default
   stemcell:
     name: bosh-stemcell-alicloud-kvm-ubuntu-trusty-go_agent
-    version: 1009
+    version: 1016
   cloud_properties:
     availability_zone: cn-beijing-a
     instance_type: ecs.n1.small
@@ -227,21 +227,25 @@ networks:
     dns: [8.8.8.8]
     cloud_properties:
       vswitch_id: vsw-2zeamad3a8cscoicqb5c5
-      security_group_id: sg-2zei0mcphxbdxj49qtmz
+      security_group_ids:
+        - sg-2zei0mcphxbdxj49qtmz
+        - sg-2ze2pjrn2cu3rlui8klq
   - range: 192.168.16.0/24
     gateway: 192.168.16.1
     az: z2
     dns: [8.8.8.8]
     cloud_properties:
       vswitch_id: vsw-2zerkt1jluc2xdxygeu5t
-      security_group_id: sg-2zei0mcphxbdxj49qtmz
+      security_group_ids:
+        - sg-2zei0mcphxbdxj49qtmz
+        - sg-2ze2pjrn2cu3rlui8klq
   - range: 192.168.11.0/24
     gateway: 192.168.11.1
     az: z3
     dns: [8.8.8.8]
     cloud_properties:
       vswitch_id: vsw-2zedja4ggcyrahgz0s7cc
-      security_group_id: sg-2zei0mcphxbdxj49qtmz 
+      security_group_ids: [sg-2zei0mcphxbdxj49qtmz]
 - name: vip
   type: vip
 

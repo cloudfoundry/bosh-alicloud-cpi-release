@@ -6,8 +6,9 @@
 - Create a vpc
 - Select a zone get `zone`
 - Create a vswitch in your `zone` and get `vswtich_id`
-- Create security group get `security_group_id`
+- Create several security groups get their `security_group_id`
 - Create user access key, get `access_key_id/access_key_secret`
+- Create a key pair and download it private key
 - Create a jumpbox vm
 
 ## Install Bosh
@@ -99,7 +100,7 @@ $ git clone https://github.com/cloudfoundry/cf-deployment.git
 Upload stemcell
 
 ```
-bosh -e my-bosh upload-stemcell http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1010-alicloud-kvm-ubuntu-trusty-go_agent.tgz
+bosh -e my-bosh upload-stemcell http://bosh.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1016-alicloud-kvm-ubuntu-trusty-go_agent.tgz
 ```
 
 Upload CF release, For more CF version refer to [cf-release](https://bosh.io/releases/github.com/cloudfoundry/cf-release?all=1)
@@ -115,7 +116,7 @@ modify `stemcells` section in `cf-deployment.yml`
 stemcells:
 - alias: default
   name: bosh-alicloud-kvm-ubuntu-trusty-go_agent
-  version: 1010
+  version: 1016
 ```
 
 Upload cf releases (important in China regions, skip it in oversea region)

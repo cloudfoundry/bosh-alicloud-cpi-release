@@ -30,3 +30,11 @@ func (a NetworkManagerMock) WaitForEipStatus(eip string, toStatus ecs.EipStatus)
 func (a NetworkManagerMock) BindSLB(instanceId string, slbId string, weight int) error {
 	return nil
 }
+
+func (a NetworkManagerMock) DescribeSecurityGroupAttribute(groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error){
+	return ecs.DescribeSecurityGroupAttributeResponse{}, nil
+}
+
+func (a NetworkManagerMock) JoinSecurityGroup(instanceId string, groupId string) error {
+	return nil
+}

@@ -32,7 +32,10 @@ var _ = Describe("Networks", func() {
 				"ip": "10.0.16.109",
 				"netmask": "255.255.240.0",
 				"cloud_properties": {
-					"security_group_id": "sg-2ze2ct08gslmnwyv8c1k",
+					"security_group_ids": [
+						"sg-2ze2ct08gslmnwyv8c1k",
+                        			"sg-2ze7qg9qdmt1lt9lgvgt"
+                    			],
 					"vswitch_id": "vpc-2ze3owai4kbkv2yf6nivg"
 				},
 				"default": [
@@ -56,7 +59,10 @@ var _ = Describe("Networks", func() {
 				"ip": "10.0.16.109",
 				"netmask": "255.255.240.0",
 				"cloud_properties": {
-					"security_group_id": "sg-2ze2ct08gslmnwyv8c1k",
+					"security_group_ids": [
+						"sg-2ze2ct08gslmnwyv8c1k",
+                        			"sg-2ze7qg9qdmt1lt9lgvgt"
+                    			],
 					"vswitch_id": "vpc-2ze3owai4kbkv2yf6nivg"
 				},
 				"default": [
@@ -81,7 +87,10 @@ var _ = Describe("Networks", func() {
 				"ip": "10.0.16.109",
 				"netmask": "255.255.240.0",
 				"cloud_properties": {
-					"security_group_id": "sg-2ze2ct08gslmnwyv8c1k",
+					"security_group_ids": [
+						"sg-2ze2ct08gslmnwyv8c1k",
+                        			"sg-2ze7qg9qdmt1lt9lgvgt"
+                    			],
 					"vswitch_id": "vpc-2ze3owai4kbkv2yf6nivg"
 				},
 				"default": [
@@ -110,7 +119,10 @@ var _ = Describe("Networks", func() {
 				"ip": "10.0.16.109",
 				"netmask": "255.255.240.0",
 				"cloud_properties": {
-					"security_group_id": "sg-2ze2ct08gslmnwyv8c1k",
+					"security_group_ids": [
+						"sg-2ze2ct08gslmnwyv8c1k",
+                        			"sg-2ze7qg9qdmt1lt9lgvgt"
+                    			],
 					"vswitch_id": "vpc-2ze3owai4kbkv2yf6nivg"
 				},
 				"default": [
