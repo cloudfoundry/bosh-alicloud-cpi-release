@@ -35,7 +35,7 @@ var _ = Describe("create_vm", func() {
 	//					"ip": "172.16.0.63",
 	//					"netmask": "255.240.0.0",
 	//					"cloud_properties": {
-	//						"security_group_id": "sg-2zec8ubi1q5aeo5mqcbb",
+	//						"security_group_ids": ["sg-2zec8ubi1q5aeo5mqcbb"],
 	//						"vswitch_id": "vsw-2zeavutafz6yl1ixfvekx"
 	//					},
 	//					"default": [
@@ -90,7 +90,7 @@ var _ = Describe("create_vm", func() {
 	//				"default": {
 	//					"cloud_properties": {
 	//						"internet_charge_type": "PayByTraffic",
-	//						"security_group_id": "sg-2zec8ubi1q5aeo5mqcbb",
+	//						"security_group_ids": ["sg-2zec8ubi1q5aeo5mqcbb"],
 	//						"vswitch_id": "vsw-2zevwt3w7h5u761o405rd"
 	//					},
 	//					"default": [
@@ -148,7 +148,7 @@ var _ = Describe("create_vm", func() {
 	//				"default": {
 	//					"cloud_properties": {
 	//						"internet_charge_type": "PayByTraffic",
-	//						"security_group_id": "sg-2zec8ubi1q5aeo5mqcbb",
+	//						"security_group_ids": ["sg-2zec8ubi1q5aeo5mqcbb"],
 	//						"vswitch_id": "vsw-2zevwt3w7h5u761o405rd"
 	//					},
 	//					"default": [
@@ -210,7 +210,7 @@ var _ = Describe("create_vm", func() {
 	//					"ip": "172.16.0.101",
 	//					"netmask": "255.240.0.0",
 	//					"cloud_properties": {
-	//						"security_group_id": "sg-2ze7qg9qdmt1lt9lgvgt",
+	//						"security_group_ids": ["sg-2ze7qg9qdmt1lt9lgvgt"],
 	//						"vswitch_id": "vsw-2ze1oepoom33cdt6nsk88"
 	//					},
 	//					"default": [
@@ -244,7 +244,10 @@ var _ = Describe("create_vm", func() {
 						"ip": "10.0.16.109",
 						"netmask": "255.255.240.0",
 						"cloud_properties": {
-							"security_group_id": "sg-2ze2ct08gslmnwyv8c1k",
+							"security_group_ids": [
+								"sg-2ze2ct08gslmnwyv8c1k",
+                        					"sg-2ze7qg9qdmt1lt9lgvgt"
+                    					],
 							"vswitch_id": "vpc-2ze3owai4kbkv2yf6nivg"
 						},
 						"default": [

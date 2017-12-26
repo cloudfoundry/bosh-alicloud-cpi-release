@@ -34,7 +34,7 @@ var _ = Describe("integration:vm", func() {
 						"ip": "${INTERNAL_IP}",
 						"netmask": "${INTERNAL_NETMASK}",
 						"cloud_properties": {
-							"security_group_id": "${SECURITY_GROUP_ID}",
+							"security_group_ids": ["${SECURITY_GROUP_ID}"],
 							"vswitch_id": "${VSWITCH_ID}"
 						},
 						"default": [
@@ -108,7 +108,7 @@ var _ = Describe("integration:vm", func() {
 						"ip": "${INTERNAL_IP}",
 						"netmask": "${INTERNAL_NETMASK}",
 						"cloud_properties": {
-							"security_group_id": "${SECURITY_GROUP_ID}",
+							"security_group_ids": ["${SECURITY_GROUP_ID}"],
 							"vswitch_id": "${VSWITCH_ID}"
 						},
 						"default": [
@@ -181,7 +181,7 @@ var _ = Describe("integration:vm", func() {
 						"ip": "${INTERNAL_IP}",
 						"netmask": "${INTERNAL_NETMASK}",
 						"cloud_properties": {
-							"security_group_id": "${SECURITY_GROUP_ID}",
+							"security_group_ids": ["${SECURITY_GROUP_ID}"],
 							"vswitch_id": "${VSWITCH_ID}"
 						},
 						"default": [
@@ -280,7 +280,7 @@ var _ = Describe("integration:vm", func() {
 						"ip": "${INTERNAL_IP}",
 						"netmask": "${INTERNAL_NETMASK}",
 						"cloud_properties": {
-							"security_group_id": "${SECURITY_GROUP_ID}",
+							"security_group_ids": ["${SECURITY_GROUP_ID}"],
 							"vswitch_id": "${VSWITCH_ID}"
 						},
 						"default": [
@@ -352,7 +352,7 @@ var _ = Describe("integration:vm", func() {
 						"ip": "${INTERNAL_IP}",
 						"netmask": "${INTERNAL_NETMASK}",
 						"cloud_properties": {
-							"security_group_id": "${SECURITY_GROUP_ID}",
+							"security_group_ids": ["${SECURITY_GROUP_ID}"],
 							"vswitch_id": "${VSWITCH_ID}"
 						},
 						"default": [

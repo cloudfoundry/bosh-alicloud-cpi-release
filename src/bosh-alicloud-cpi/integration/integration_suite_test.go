@@ -30,7 +30,7 @@ var configForIntegration = string(`{
         "properties": {
             "alicloud": {
                 "region_id": "${CPI_REGION}",
-				"zone_id": "${CPI_ZONE}",
+		"zone_id": "${CPI_ZONE}",
                 "access_key_id": "${CPI_ACCESS_KEY_ID}",
                 "access_key_secret": "${CPI_ACCESS_KEY_SECRET}"
             },

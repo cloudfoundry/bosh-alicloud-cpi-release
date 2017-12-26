@@ -204,9 +204,6 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.VMCID{}, a.WrapErrorf(err, "wait %s to STOPPED failed", instCid)
 	}
 
-	//
-	// insert agent
-	registryEnv.Bosh.IPv6.Enable = true
 	agentSettings := registry.AgentSettings{
 		AgentID:   agentID.AsString(),
 		Blobstore: a.Config.Agent.Blobstore.AsRegistrySettings(),
@@ -259,6 +256,28 @@ func (a CreateVMMethod) CreateVM(
 
 func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv1.DiskCID, instProps InstanceProps, networks Networks, disks Disks, agentSettings registry.AgentSettings) (error) {
 	//
+	// join instance to multiple security groups
+	if len(networks.privateProps.SecurityGroupIds) > 0 {
+		inst, err := a.instances.GetInstance(instCid)
+		if err != nil {
+			return a.WrapErrorf(err, "GetInstance instanceId=%s falied.", instCid)
+		}
+		for _, group := range networks.privateProps.SecurityGroupIds {
+			find := false
+			for _, gr := range inst.SecurityGroupIds.SecurityGroupId {
+				if group == gr {
+					find = true
+					break
+				}
+			}
+			if !find {
+				if err := a.networks.JoinSecurityGroup(instCid, group); err != nil {
+					return a.WrapErrorf(err, "Instance %s JoinSecurityGroup %s failed.", instCid, group)
+				}
+			}
+		}
+	}
+
 	// associate persistent disks,
 	// TODO: use ChangeDiskStatus to avoid failed
 	for _, diskCid := range associatedDiskCIDs {
