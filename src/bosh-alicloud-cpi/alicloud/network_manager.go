@@ -10,6 +10,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/slb"
+	"github.com/denverdino/aliyungo/common"
 )
 
 type NetworkManager interface {
@@ -18,6 +19,9 @@ type NetworkManager interface {
 	WaitForEipStatus(eip string, toStatus ecs.EipStatus) error
 
 	BindSLB(instanceId string, slbId string, weight int) error
+	DescribeSecurityGroupAttribute(groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error)
+	JoinSecurityGroup(instanceId string, groupId string) error
+
 }
 
 type NetworkManagerImpl struct {
@@ -140,4 +144,52 @@ func (a NetworkManagerImpl) BindSLB(instanceId string, slbId string, weight int)
 
 	a.logger.Info("NetworkManager", "BindSLB %s to %s, after bind server=%v", instanceId, slbId, servers)
 	return err
+}
+
+func (a NetworkManagerImpl) DescribeSecurityGroupAttribute(groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error) {
+	client := a.config.NewEcsClient()
+	invoker := NewInvoker()
+
+	args := ecs.DescribeSecurityGroupAttributeArgs{
+		SecurityGroupId:groupId,
+		RegionId:a.config.OpenApi.GetRegion(),
+	}
+
+	var group ecs.DescribeSecurityGroupAttributeResponse
+	err := invoker.Run(func() error {
+		if r, err := client.DescribeSecurityGroupAttribute(&args); err != nil {
+			return err
+		} else {
+			group = *r
+			return nil
+		}
+	})
+
+	if err != nil {
+		return group, bosherr.WrapErrorf(err, "DescribeSecurityGroupAttribute(%v) failed", args)
+	}
+	return group, nil
+}
+
+func (a NetworkManagerImpl) JoinSecurityGroup(instanceId string, groupId string) error {
+	if _, err := a.DescribeSecurityGroupAttribute(groupId); err != nil {
+		return bosherr.WrapErrorf(err, "DescribeSecurityGroupAttribute(%s) failed", groupId)
+	}
+
+	client := a.config.NewEcsClient()
+	invoker := NewInvoker()
+
+	err := invoker.Run(func() error {
+		return client.JoinSecurityGroup(instanceId, groupId)
+	})
+	a.log("JoinSecurityGroup("+groupId+")", err, instanceId, "")
+
+	if err != nil {
+		if e, ok := err.(*common.Error); ok && e.Code == "InvalidInstanceId.AlreadyExists" {
+			return nil
+		}
+		return bosherr.WrapErrorf(err, "JoinSecurityGroup %s to %s failed", instanceId, groupId)
+	}
+
+	return nil
 }

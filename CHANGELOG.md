@@ -2,6 +2,12 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r16]
+
+- Second GA version
+- Fix registry issue
+- Support join instance into multiple security groups
+
 ## [r15]
 
 - First GA version

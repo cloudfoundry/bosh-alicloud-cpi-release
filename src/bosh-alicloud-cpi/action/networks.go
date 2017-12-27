@@ -26,6 +26,7 @@ type Networks struct {
 
 type NetworkProps struct {
 	SecurityGroupId string		`json:"security_group_id,omitempty"`
+	SecurityGroupIds []string		`json:"security_group_ids,omitempty"`
 	VSwitchId string			`json:"vswitch_id,omitempty"`
 	InternetChargeType string	`json:"internet_charge_type,omitempty"`
 }
@@ -76,12 +77,16 @@ func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) (error) {
 	if props.VSwitchId == "" {
 		return fmt.Errorf("unexpected empty VSwitchId")
 	}
-	if props.VSwitchId == "" {
-		return fmt.Errorf("unexpected empty SecurityGroupId")
+	if props.SecurityGroupId == "" && len(props.SecurityGroupIds) < 1 {
+		return fmt.Errorf("unexpected empty SecurityGroupIds")
 	}
 
+	if props.SecurityGroupId != "" {
+		args.SecurityGroupId = props.SecurityGroupId
+	}else {
+		args.SecurityGroupId = props.SecurityGroupIds[0]
+	}
 	args.VSwitchId = props.VSwitchId
-	args.SecurityGroupId = props.SecurityGroupId
 	// args.InternetChargeType = common.InternetChargeType(props.InternetChargeType)
 
 	// TODO no need to add

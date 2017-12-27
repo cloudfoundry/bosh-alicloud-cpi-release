@@ -6,8 +6,9 @@
 - Create a vpc
 - Select a zone get `zone`
 - Create a vswitch in your `zone` and get `vswtich_id`, `internal_cidr`
-- Create security group get `security_group_id`
+- Create several security groups get their `security_group_id`
 - Create user access key, get `access_key_id/access_key_secret`
+- Create a key pair, get `key_pair_name` and download it private key, like bosh.pem
 - Create a jumpbox vm or elastic eip
 
 ## Install Bosh 
@@ -34,6 +35,8 @@ Use this command, modify the parameters
 - access_key_secret
 - region
 - zone
+- key_pair_name
+- private_key
 
 export your BOSH_ENVIRONMENT ip address
 
@@ -53,7 +56,9 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
  -v access_key_id=... \
  -v access_key_secret=... \
  -v region=... \
- -v zone=...
+ -v zone=... \
+ -v key_pair_name=... \
+ -v private_key=bosh.pem
 ```
 
 ## Login to Bosh
@@ -85,13 +90,6 @@ ssh jumpbox@$BOSH_ENVIRONMENT -i jumpbox.key
     - You can use 47.47.47.47.xip.io instead custom DNS, but it's not very stable.
 - create a Tcp slb get `tcp_slb_id` [optional]
 
-
-Base your previous settings, modify `bosh-deployment/alicloud/cloud-config.yml` in `bosh-deployment/alicloud/cloud-config.yml`, and update-cloud-config
-
-```
-bosh -e my-bosh update-cloud-config bosh-deployment/alicloud/cloud-config.yml
-```
-
 ## Install Cloud Foundry
 
 Get `cf-deployment`
@@ -100,10 +98,16 @@ Get `cf-deployment`
 $ git clone https://github.com/cloudfoundry/cf-deployment.git
 ```
 
+Base your previous settings, modify `cf-deployment/iaas-support/alicloud/cloud-config.yml`, and update cloud-config
+
+```
+bosh -e my-bosh update-cloud-config cf-deployment/iaas-support/alicloud/cloud-config.yml
+```
+
 Upload stemcell
 
 ```
-bosh -e my-bosh upload-stemcell http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1010-alicloud-kvm-ubuntu-trusty-go_agent.tgz
+bosh -e my-bosh upload-stemcell http://bosh.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1016-alicloud-kvm-ubuntu-trusty-go_agent.tgz
 ```
 
 Upload CF release, For more CF version refer to [cf-release](https://bosh.io/releases/github.com/cloudfoundry/cf-release?all=1)
@@ -119,7 +123,7 @@ modify `stemcells` section in `cf-deployment.yml`
 stemcells:
 - alias: default
   name: bosh-alicloud-kvm-ubuntu-trusty-go_agent
-  version: 1010
+  version: 1016
 ```
 
 Setup Domain, use your domain name
