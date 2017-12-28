@@ -115,16 +115,6 @@ Upload CF release, For more CF version refer to [cf-release](https://bosh.io/rel
 bosh upload-release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=278 --sha1 7e05e98a9333b187807501ab4252e52058859a2c
 ```
 
-modify `stemcells` section in `cf-deployment.yml`
-
-```yaml
-...
-stemcells:
-- alias: default
-  name: bosh-alicloud-kvm-ubuntu-trusty-go_agent
-  version: 1016
-```
-
 Upload cf releases (important in China regions, skip it in oversea region)
 Install maybe very slow in China regions, so you can upload your releases first.
 Get releases from [cf-release-278.zip](http://bosh-alicloud.oss-cn-hangzhou.aliyuncs.com/cf-release-278.zip) and unzip it.
@@ -218,8 +208,10 @@ export CF_DOMAIN=...
 Install Cloud Foundry
 
 ```
-bosh -e my-bosh -d cf deploy cf-deployment.yml \
+bosh -e my-bosh -d cf deploy cf-deployment/cf-deployment.yml \
   --vars-store cf-vars.yml \
+  -o cf-deployment/iaas-support/alicloud/stemcells.yml \
+  -v region=... \
   -v system_domain=$CF_DOMAIN
 ```
 
