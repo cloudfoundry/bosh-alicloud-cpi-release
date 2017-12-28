@@ -167,14 +167,14 @@ func (c Config) NewEcsClient() (*ecs.Client) {
 	// Obsoleted
 	// ep := "https://ecs." + c.OpenApi.GetEndpoint()
 	// return ecs.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
-	return ecs.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+	return ecs.NewECSClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, common.Region(c.OpenApi.RegionId))
 }
 
 func (c Config) NewSlbClient() (*slb.Client) {
 	// Obsoleted
 	// ep := "https://slb." + c.OpenApi.GetEndpoint()
 	// return slb.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
-	return slb.NewClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+	return slb.NewSLBClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, common.Region(c.OpenApi.RegionId))
 }
 
 func (c Config) GetRegistryClient(logger boshlog.Logger) (registry.Client) {

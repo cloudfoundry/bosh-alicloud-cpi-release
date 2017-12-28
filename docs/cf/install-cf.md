@@ -110,21 +110,12 @@ Upload stemcell
 bosh -e my-bosh upload-stemcell http://bosh.oss-cn-hangzhou.aliyuncs.com/light-bosh-stemcell-1016-alicloud-kvm-ubuntu-trusty-go_agent.tgz
 ```
 
-Upload CF release, For more CF version refer to [cf-release](https://bosh.io/releases/github.com/cloudfoundry/cf-release?all=1)
+ Upload CF release, For more CF version refer to [cf-release](https://bosh.io/releases/github.com/cloudfoundry/cf-release?all=1)
 
-```
-bosh upload-release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=278 --sha1 7e05e98a9333b187807501ab4252e52058859a2c
-```
+ ```
+ bosh upload-release https://bosh.io/d/github.com/cloudfoundry/cf-release?v=278 --sha1 7e05e98a9333b187807501ab4252e52058859a2c
+ ```
 
-modify `stemcells` section in `cf-deployment.yml`
-
-```yaml
-...
-stemcells:
-- alias: default
-  name: bosh-alicloud-kvm-ubuntu-trusty-go_agent
-  version: 1016
-```
 
 Setup Domain, use your domain name
 
@@ -135,8 +126,10 @@ export CF_DOMAIN=...
 Install Cloud Foundry...
 
 ```
-bosh -e my-bosh -d cf deploy cf-deployment.yml \
+bosh -e my-bosh -d cf deploy cf-deployment/cf-deployment.yml \
   --vars-store cf-vars.yml \
+  -o cf-deployment/iaas-support/alicloud/stemcells.yml \
+  -v region=... \
   -v system_domain=$CF_DOMAIN
 ```
 
