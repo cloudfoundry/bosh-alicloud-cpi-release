@@ -1,0 +1,27 @@
+required = ["github.com/onsi/ginkgo/ginkgo"]
+
+[[constraint]]
+  name = "github.com/aliyun/aliyun-oss-go-sdk"
+  version = "1.8.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/cloudfoundry/bosh-utils"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/cppforlife/bosh-cpi-go"
+  source = "github.com/aliyun/bosh-cpi-go"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/denverdino/aliyungo"
+
+[[constraint]]
+  name = "github.com/google/uuid"
+  version = "0.2.0"
+
+[prune]
+  go-tests = true
+  non-go = true
+  unused-packages = true
