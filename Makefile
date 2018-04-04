@@ -15,34 +15,18 @@ endif
 # TODO add local link invocation
 BUILD_OPTIONS = -a -ldflags "-X main.GitCommit=\"$(COMMIT)\""
 
-all: clean deps build
+all: clean build
 
 clean:
 	rm -f ${EXECUTABLE}
 	rm -f bin/bosh-alicloud-cpi.tgz
 
-deps:
-	go get -v github.com/aliyun/bosh-cpi-go/apiv1
-	go get -v github.com/aliyun/bosh-cpi-go/rpc
-	go get -v github.com/denverdino/aliyungo/...
-	go get -v github.com/cloudfoundry/bosh-utils/logger
-	go get -v github.com/cloudfoundry/bosh-utils/uuid
-	go get -v github.com/cloudfoundry/bosh-utils/system
-	go get -v github.com/google/uuid
-	go get -v github.com/aliyun/aliyun-oss-go-sdk/oss
-	rm -rf src/github.com/cppforlife/bosh-cpi-go
-	rm -rf pkg/*
-	mv -f src/github.com/aliyun/bosh-cpi-go src/github.com/cppforlife
-
-build: deps
+build:
 	mkdir -p $(BINDIR)
 	go build $(GO_OPTIONS) $(BUILD_OPTIONS) -o ${EXECUTABLE} $(MAINFILE)
 
 testdeps:
-	go get -v github.com/onsi/ginkgo/ginkgo
-	go get -v github.com/onsi/gomega
-	go install github.com/onsi/ginkgo/ginkgo
-	export PATH=$PATH:$PWD/bin
+	go install bosh-alicloud-cpi/vendor/github.com/onsi/ginkgo/ginkgo
 
 test: testdeps
 	ginkgo -r -skipPackage integration src/bosh-alicloud-cpi
