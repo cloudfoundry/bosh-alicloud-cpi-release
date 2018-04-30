@@ -2,6 +2,10 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r17]
+
+A temporary release for fixing a go sdk invalid timestamp error. (Changed in local)
+
 ## [r16]
 
 - Second GA version
