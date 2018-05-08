@@ -1,19 +1,23 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	"github.com/denverdino/aliyungo/ecs"
 	"bosh-alicloud-cpi/alicloud"
-	"encoding/json"
-	"strings"
 	"bosh-alicloud-cpi/registry"
+	"encoding/json"
 	"fmt"
+	"strings"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+
+	"encoding/base64"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
-type SpotStrategyType string
 type InstanceChargeType string
 
 const (
@@ -37,13 +41,14 @@ type InstanceProps struct {
 	Password         string      `json:"password"`
 	KeyPairName      string      `json:"key_pair_name"`
 
-	ChargeType      string      `json:"charge_type"`
-	ChargePeriod    json.Number `json:"charge_period"`
-	AutoRenew       string      `json:"auto_renew"`
-	AutoRenewPeriod json.Number `json:"auto_renew_period"`
-	SpotStrategy 	ecs.SpotStrategyType `json:"spot_strategy"`
-	SpotPriceLimit	float64              `json:"spot_price_limit"`
-	RamRoleName     string     			 `json:"ram_role_name"`
+	ChargeType       string                    `json:"charge_type"`
+	ChargePeriod     json.Number               `json:"charge_period"`
+	ChargePeriodUnit string                    `json:"charge_period_unit"`
+	AutoRenew        string                    `json:"auto_renew"`
+	AutoRenewPeriod  json.Number               `json:"auto_renew_period"`
+	SpotStrategy     alicloud.SpotStrategyType `json:"spot_strategy"`
+	SpotPriceLimit   float64                   `json:"spot_price_limit"`
+	RamRoleName      string                    `json:"ram_role_name"`
 }
 
 type CreateVMMethod struct {
@@ -66,8 +71,7 @@ func NewCreateVMMethod(
 }
 
 func NewInstanceProps() InstanceProps {
-	return InstanceProps{
-	}
+	return InstanceProps{}
 }
 
 func (a CreateVMMethod) CreateVM(
@@ -99,8 +103,10 @@ func (a CreateVMMethod) CreateVM(
 		return cid, a.WrapErrorf(err, "parse network cloud_properties %v", networkArgs)
 	}
 
-	var args ecs.CreateInstanceArgs
-	networks.FillCreateInstanceArgs(&args)
+	args := ecs.CreateCreateInstanceRequest()
+	if err := networks.FillCreateInstanceArgs(args); err != nil {
+		return cid, a.WrapErrorf(err, "fill instance network args failed and args: %v", networks.privateProps)
+	}
 
 	//
 	// assign zone
@@ -133,16 +139,17 @@ func (a CreateVMMethod) CreateVM(
 		if err != nil {
 			return cid, a.WrapErrorf(err, "parse charge_period %s failed when charge_type is `PrePaid`", instProps.ChargePeriod.String())
 		}
-		args.Period = int(period)
+		args.Period = requests.NewInteger64(period)
+		args.PeriodUnit = instProps.ChargePeriodUnit
 		if strings.EqualFold(instProps.AutoRenew, "True") {
-			args.AutoRenew = true
+			args.AutoRenew = requests.NewBoolean(true)
 			period, err = instProps.AutoRenewPeriod.Int64()
 			if err != nil {
 				return cid, a.WrapErrorf(err, "parse charge_auto_renew_period %s failed when charge_auto_renew is `True`", instProps.AutoRenewPeriod.String())
 			}
-			args.AutoRenewPeriod = int(period)
+			args.AutoRenewPeriod = requests.NewInteger64(period)
 		} else if strings.EqualFold(instProps.AutoRenew, "False") || instProps.AutoRenew == "" {
-			args.AutoRenew = false
+			args.AutoRenew = requests.NewBoolean(false)
 		} else {
 			return cid, a.Errorf("unexpected charge_auto_renew: %s", instProps.AutoRenew)
 		}
@@ -165,9 +172,11 @@ func (a CreateVMMethod) CreateVM(
 	args.ImageId = stemcellCID.AsString()
 	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
-	args.UserData = a.Config.Registry.ToInstanceUserData()
-	args.SpotStrategy = instProps.SpotStrategy
-	args.SpotPriceLimit = instProps.SpotPriceLimit
+	if a.Config.Registry.ToInstanceUserData() != "" {
+		args.UserData = base64.StdEncoding.EncodeToString([]byte(a.Config.Registry.ToInstanceUserData()))
+	}
+	args.SpotStrategy = string(instProps.SpotStrategy)
+	args.SpotPriceLimit = requests.NewFloat(instProps.SpotPriceLimit)
 	args.RamRoleName = instProps.RamRoleName
 
 	//
@@ -176,7 +185,7 @@ func (a CreateVMMethod) CreateVM(
 	if err != nil {
 		return cid, a.WrapErrorf(err, "bad disks format, %v", instProps)
 	}
-	disks.FillCreateInstanceArgs(&args)
+	disks.FillCreateInstanceArgs(args)
 	//
 	// do CreateInstance !!!
 	instCid, err := a.instances.CreateInstance(args)
@@ -187,13 +196,13 @@ func (a CreateVMMethod) CreateVM(
 
 	//
 	// Wait for the instance status to STOPPED
-	err = a.instances.ChangeInstanceStatus(instCid, ecs.Stopped, func(status ecs.InstanceStatus) (bool, error) {
+	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Stopped, func(status alicloud.InstanceStatus) (bool, error) {
 		switch status {
-		case ecs.Stopped:
+		case alicloud.Stopped:
 			return true, nil
-		case ecs.Creating:
+		case alicloud.Creating:
 			return false, nil
-		case ecs.Pending:
+		case alicloud.Pending:
 			return false, nil
 		default:
 			return false, fmt.Errorf("unexcepted status %s", status)
@@ -224,21 +233,21 @@ func (a CreateVMMethod) CreateVM(
 	//
 	// for every error must free created vm before terminated
 	if err != nil {
-		err2 := a.instances.ChangeInstanceStatus(instCid, ecs.Deleted, func(status ecs.InstanceStatus) (bool, error) {
+		err2 := a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
 			switch status {
-			case ecs.Running:
+			case alicloud.Running:
 				return false, a.instances.StopInstance(instCid)
-			case ecs.Stopped:
+			case alicloud.Stopped:
 				return false, a.instances.DeleteInstance(instCid)
-			case ecs.Deleted:
+			case alicloud.Deleted:
 				return true, nil
-			case ecs.Pending:
+			case alicloud.Pending:
 				return false, nil
-			case ecs.Creating:
+			case alicloud.Creating:
 				return false, nil
-			case ecs.Starting:
+			case alicloud.Starting:
 				return false, nil
-			case ecs.Stopping:
+			case alicloud.Stopping:
 				return false, nil
 			default:
 				return false, fmt.Errorf("unexpect %s for ReleaseInstance", status)
@@ -254,7 +263,7 @@ func (a CreateVMMethod) CreateVM(
 	return apiv1.NewVMCID(instCid), nil
 }
 
-func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv1.DiskCID, instProps InstanceProps, networks Networks, disks Disks, agentSettings registry.AgentSettings) (error) {
+func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv1.DiskCID, instProps InstanceProps, networks Networks, disks Disks, agentSettings registry.AgentSettings) error {
 	//
 	// join instance to multiple security groups
 	if len(networks.privateProps.SecurityGroupIds) > 0 {
@@ -286,7 +295,7 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 			return a.WrapErrorf(err, "associate Persistent Disk error diskCid=%s", diskCid)
 		}
 
-		path, err := a.disks.WaitForDiskStatus(diskCid.AsString(), ecs.DiskStatusInUse)
+		path, err := a.disks.WaitForDiskStatus(diskCid.AsString(), alicloud.DiskStatusInUse)
 		if err != nil {
 			return a.WrapErrorf(err, "associate and WaitForDiskStatus Failed diskCid=%s", diskCid)
 		}
@@ -297,20 +306,20 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 	// put agent settings.json to registry
 	err := a.UpdateAgentSettings(instCid, agentSettings)
 	if err != nil {
-		return a.WrapErrorf(err, "UpdateAgentSettings Failed %s", )
+		return a.WrapErrorf(err, "UpdateAgentSettings Failed %s")
 	}
 
 	//
 	// wait for instance to start
-	err = a.instances.ChangeInstanceStatus(instCid, ecs.Running, func(status ecs.InstanceStatus) (bool, error) {
+	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Running, func(status alicloud.InstanceStatus) (bool, error) {
 		switch status {
-		case ecs.Stopped:
+		case alicloud.Stopped:
 			return false, a.instances.StartInstance(instCid)
-		case ecs.Pending:
+		case alicloud.Pending:
 			return false, nil
-		case ecs.Starting:
+		case alicloud.Starting:
 			return false, nil
-		case ecs.Running:
+		case alicloud.Running:
 			return true, nil
 		default:
 			return false, fmt.Errorf("unexcepted status %s", status)
@@ -346,7 +355,7 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 
 func validateSpotProps(p InstanceProps) error {
 	strategy := string(p.SpotStrategy)
-	strategyArr := []string{string(ecs.NoSpot), string(ecs.SpotWithPriceLimit), string(ecs.SpotAsPriceGo)}
+	strategyArr := []string{string(alicloud.NoSpot), string(alicloud.SpotWithPriceLimit), string(alicloud.SpotAsPriceGo)}
 	limitPrice := float64(p.SpotPriceLimit)
 
 	if limitPrice == 0 && strategy == "" {
@@ -361,7 +370,7 @@ func validateSpotProps(p InstanceProps) error {
 		return err
 	}
 
-	if limitPrice != 0 && strategy != string(ecs.SpotWithPriceLimit) {
+	if limitPrice != 0 && strategy != string(alicloud.SpotWithPriceLimit) {
 		return fmt.Errorf("spot limit price only support 'SpotWithPriceLimit' strategy")
 	}
 	return nil

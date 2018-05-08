@@ -1,23 +1,25 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package alicloud
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"bosh-alicloud-cpi/registry"
 	"encoding/json"
 	"fmt"
-	"bosh-alicloud-cpi/registry"
-	"github.com/denverdino/aliyungo/ecs"
-	"github.com/denverdino/aliyungo/common"
-	"time"
-	"github.com/denverdino/aliyungo/slb"
-
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"strings"
 	"net"
+	"strings"
+	"time"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth"
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/slb"
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
 
 type InnerType string
@@ -59,11 +61,12 @@ const (
 )
 
 type OpenApi struct {
-	RegionId        string  `json:"region_id"`
-	ZoneId			string	`json:"zone_id"`
-	AccessEndpoint	string 	`json:"access_endpoint"`
-	AccessKeyId     string  `json:"access_key_id"`
-	AccessKeySecret string  `json:"access_key_secret"`
+	RegionId        string `json:"region_id"`
+	ZoneId          string `json:"zone_id"`
+	AccessEndpoint  string `json:"access_endpoint"`
+	AccessKeyId     string `json:"access_key_id"`
+	AccessKeySecret string `json:"access_key_secret"`
+	SecurityToken   string `json:"security_token"`
 }
 
 type RegistryConfig struct {
@@ -99,11 +102,11 @@ func (c Config) Validate() error {
 	return nil
 }
 
-func (a OpenApi) GetRegion() (common.Region) {
-	return common.Region(a.RegionId)
+func (a OpenApi) GetRegion() string {
+	return a.RegionId
 }
 
-func (a RegistryConfig) IsEmpty() (bool) {
+func (a RegistryConfig) IsEmpty() bool {
 	if a.Host == "" {
 		return true
 	} else {
@@ -151,33 +154,37 @@ func (a RegistryConfig) ToInstanceUserData() string {
 	return json
 }
 
-func (a RegistryConfig) GetEndpoint() (string) {
+func (a RegistryConfig) GetEndpoint() string {
 	port, _ := a.Port.Int64()
 	return fmt.Sprintf("%s://%s:%s@%s:%d", a.Protocol, a.User, a.Password, a.Host, port)
 }
 
-func (a BlobstoreConfig) AsRegistrySettings() (registry.BlobstoreSettings) {
+func (a BlobstoreConfig) AsRegistrySettings() registry.BlobstoreSettings {
 	return registry.BlobstoreSettings{
 		Provider: a.Provider,
 		Options:  a.Options,
 	}
 }
 
-func (c Config) NewEcsClient() (*ecs.Client) {
+func (c Config) NewEcsClient() (*ecs.Client, error) {
 	// Obsoleted
-	// ep := "https://ecs." + c.OpenApi.GetEndpoint()
-	// return ecs.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
-	return ecs.NewECSClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, common.Region(c.OpenApi.RegionId))
+	client, err := ecs.NewClientWithOptions(c.OpenApi.RegionId, getSdkConfig(), c.getAuthCredential(true))
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", c.OpenApi.RegionId)
+	}
+	return client, nil
 }
 
-func (c Config) NewSlbClient() (*slb.Client) {
+func (c Config) NewSlbClient() (*slb.Client, error) {
 	// Obsoleted
-	// ep := "https://slb." + c.OpenApi.GetEndpoint()
-	// return slb.NewClientWithEndpoint(ep, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
-	return slb.NewSLBClient(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, common.Region(c.OpenApi.RegionId))
+	client, err := slb.NewClientWithOptions(c.OpenApi.RegionId, getSdkConfig(), c.getAuthCredential(true))
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Initiating SLB Client in '%s' got an error.", c.OpenApi.RegionId)
+	}
+	return client, nil
 }
 
-func (c Config) GetRegistryClient(logger boshlog.Logger) (registry.Client) {
+func (c Config) GetRegistryClient(logger boshlog.Logger) registry.Client {
 	if !c.Registry.IsEmpty() {
 		return c.GetHttpRegistryClient(logger)
 	} else {
@@ -185,16 +192,16 @@ func (c Config) GetRegistryClient(logger boshlog.Logger) (registry.Client) {
 	}
 }
 
-func (c Config) NewOssClient(inner bool) (*oss.Client) {
+func (c Config) NewOssClient(inner bool) *oss.Client {
 	ossClient, _ := oss.New(c.GetAvailableOSSEndPoint(inner), c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 	return ossClient
 }
 
-func (c Config) GetAvailableOSSEndPoint(inner bool) (string) {
+func (c Config) GetAvailableOSSEndPoint(inner bool) string {
 	return "https://" + c.GetOSSEndPoint(inner) + ".aliyuncs.com"
 }
 
-func (c Config) GetOSSEndPoint(inner bool) (string) {
+func (c Config) GetOSSEndPoint(inner bool) string {
 	timeOut := time.Duration(TimeoutSeconds) * time.Second
 	ep := GetOSSEndPoint(string(c.OpenApi.GetRegion()), "")
 	if !inner {
@@ -234,7 +241,7 @@ func GetOSSEndPoint(region string, types InnerType) string {
 	return OSSSuffix + region
 }
 
-func (c Config) GetHttpRegistryClient(logger boshlog.Logger) (registry.Client) {
+func (c Config) GetHttpRegistryClient(logger boshlog.Logger) registry.Client {
 	r := c.Registry
 
 	port, _ := r.Port.Int64()
@@ -248,4 +255,12 @@ func (c Config) GetHttpRegistryClient(logger boshlog.Logger) (registry.Client) {
 
 	client := registry.NewHTTPClient(clientOptions, logger)
 	return client
+}
+
+func (c *Config) getAuthCredential(stsSupported bool) auth.Credential {
+	if stsSupported {
+		return credentials.NewStsTokenCredential(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, c.OpenApi.SecurityToken)
+	}
+
+	return credentials.NewAccessKeyCredential(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
 }

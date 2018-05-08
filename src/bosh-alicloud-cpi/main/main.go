@@ -1,17 +1,18 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package main
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"os"
 	"bosh-alicloud-cpi/action"
 	"bosh-alicloud-cpi/alicloud"
+	"encoding/json"
 	"flag"
 	"io/ioutil"
-	"encoding/json"
+	"os"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 var configFile = flag.String("configFile", "", `cpi -configFile=/path/to/configuration_file.json`)

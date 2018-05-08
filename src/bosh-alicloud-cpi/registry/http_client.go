@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  *
  */
 package registry
@@ -39,7 +39,7 @@ func NewHTTPClient(
 	}
 }
 
-func (c HTTPClient) GetOptions() (ClientOptions) {
+func (c HTTPClient) GetOptions() ClientOptions {
 	return c.options
 }
 

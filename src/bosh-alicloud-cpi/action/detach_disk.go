@@ -1,19 +1,20 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/registry"
-	"github.com/denverdino/aliyungo/ecs"
 	"fmt"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type DetachDiskMethod struct {
 	CallContext
-	disks alicloud.DiskManager
+	disks    alicloud.DiskManager
 	registry registry.Client
 }
 
@@ -25,16 +26,16 @@ func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	instCid := vmCID.AsString()
 	diskCid := diskCID.AsString()
 
-	err := a.disks.ChangeDiskStatus(diskCid, ecs.DiskStatusAvailable, func(disk *ecs.DiskItemType) (bool, error) {
+	err := a.disks.ChangeDiskStatus(diskCid, alicloud.DiskStatusAvailable, func(disk *ecs.Disk) (bool, error) {
 		if disk == nil {
 			return false, fmt.Errorf("missing disk %s", diskCid)
 		}
-		switch disk.Status {
-		case ecs.DiskStatusInUse:
+		switch alicloud.DiskStatus(disk.Status) {
+		case alicloud.DiskStatusInUse:
 			return false, a.disks.DetachDisk(instCid, diskCid)
-		case ecs.DiskStatusAvailable:
+		case alicloud.DiskStatusAvailable:
 			return true, nil
-		case ecs.DiskStatusDetaching:
+		case alicloud.DiskStatusDetaching:
 			return false, nil
 		default:
 			return false, fmt.Errorf("unexpect disk %s status %s", diskCid, disk.Status)

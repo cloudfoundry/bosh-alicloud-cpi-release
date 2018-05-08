@@ -1,19 +1,20 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
+	"bosh-alicloud-cpi/alicloud"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/denverdino/aliyungo/ecs"
 )
 
 var _ = Describe("cpi:detach_disk", func() {
 	It("can detach disk", func() {
 		instCid, _ := mockContext.NewInstance()
 		diskCid, disk := mockContext.NewDisk(instCid)
-		disk.Status = ecs.DiskStatusInUse
+		disk.Status = alicloud.DiskStatusInUse
 
 		_, err := caller.Call("detach_disk", instCid, diskCid)
 		Expect(err).NotTo(HaveOccurred())

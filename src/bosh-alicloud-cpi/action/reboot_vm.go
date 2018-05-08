@@ -1,16 +1,16 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
 	"fmt"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
-type RebootVMMethod struct{
+type RebootVMMethod struct {
 	CallContext
 	instances alicloud.InstanceManager
 }
@@ -27,13 +27,13 @@ func (a RebootVMMethod) RebootVM(cid apiv1.VMCID) error {
 		return a.WrapErrorf(err, "RebootInstance failed cid=%s", instCid)
 	}
 
-	err = a.instances.ChangeInstanceStatus(instCid, ecs.Running, func(status ecs.InstanceStatus) (bool, error) {
+	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Running, func(status alicloud.InstanceStatus) (bool, error) {
 		switch status {
-		case ecs.Running:
+		case alicloud.Running:
 			return true, nil
-		case ecs.Stopping:
+		case alicloud.Stopping:
 			return false, nil
-		case ecs.Starting:
+		case alicloud.Starting:
 			return false, nil
 		default:
 			return false, fmt.Errorf("unexpect status %s", status)

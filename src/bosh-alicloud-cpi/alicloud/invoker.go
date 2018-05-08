@@ -1,8 +1,9 @@
 package alicloud
 
 import (
-	"time"
 	"strings"
+	"time"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
@@ -11,16 +12,16 @@ type Invoker struct {
 }
 
 type Catcher struct {
-	Reason string
-	RetryCount int
+	Reason           string
+	RetryCount       int
 	RetryWaitSeconds int
 }
 
 var ClientErrorCatcher = Catcher{"AliyunGoClientFailure", 5, 3}
 var ServiceBusyCatcher = Catcher{"ServiceUnavailable", 5, 3}
 
-func NewInvoker() (Invoker) {
-	i := Invoker {}
+func NewInvoker() Invoker {
+	i := Invoker{}
 	i.AddCatcher(ClientErrorCatcher)
 	i.AddCatcher(ServiceBusyCatcher)
 	return i
@@ -30,7 +31,7 @@ func (a *Invoker) AddCatcher(catcher Catcher) {
 	a.catchers = append(a.catchers, &catcher)
 }
 
-func (a *Invoker) Run(f func() error) (error) {
+func (a *Invoker) Run(f func() error) error {
 	err := f()
 
 	if err == nil {
@@ -71,9 +72,3 @@ func (a *Invoker) RunUntil(timeout time.Duration, interval time.Duration, f func
 		time.Sleep(time.Duration(interval))
 	}
 }
-
-
-
-
-
-

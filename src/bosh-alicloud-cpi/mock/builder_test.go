@@ -1,17 +1,17 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package mock
 
 import (
+	"encoding/json"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"encoding/json"
 )
 
-
 type TestJson struct {
-	Key string `json:"Key"`
+	Key    string `json:"Key"`
 	Secret string `json:Secret`
 }
 
@@ -29,9 +29,9 @@ var _ = Describe("mock:builder", func() {
 			"Key": "${KEY}",
 			"Secret": "${SECRET}"
 		}`).
-		P("KEY", key).
-		P("${SECRET}", secret).		// compatible for key surround with ${} or not
-		ToBytes()
+			P("KEY", key).
+			P("${SECRET}", secret). // compatible for key surround with ${} or not
+			ToBytes()
 
 		var v TestJson
 		err := json.Unmarshal(bytes, &v)

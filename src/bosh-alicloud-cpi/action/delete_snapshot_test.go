@@ -1,12 +1,13 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
+	"bosh-alicloud-cpi/mock"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"bosh-alicloud-cpi/mock"
 )
 
 var _ = Describe("cpi:delete_snapshot", func() {

@@ -1,18 +1,19 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
+	"bosh-alicloud-cpi/mock"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"bosh-alicloud-cpi/mock"
 )
 
 var _ = Describe("cpi:set_vm_metadata", func() {
 	It("can run reboot vm", func() {
 		id, _ := mockContext.NewInstance()
-		r :=  caller.Run(mock.NewBuilder(`{
+		r := caller.Run(mock.NewBuilder(`{
 			"method": "set_vm_metadata",
 			"arguments": [
 				"${INST_ID}", {
@@ -46,8 +47,6 @@ var _ = Describe("cpi:set_vm_metadata", func() {
 		Expect(s).Should(Equal("i_a"))
 
 		s = normalizeName("11123", "i_")
-		Expect(s).Should(Equal( "i_11123"))
+		Expect(s).Should(Equal("i_11123"))
 	})
 })
-
-

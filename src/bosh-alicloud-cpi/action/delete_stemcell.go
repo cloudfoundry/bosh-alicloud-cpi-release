@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type DeleteStemcellMethod struct {
@@ -20,7 +21,6 @@ func NewDeleteStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager)
 func (a DeleteStemcellMethod) DeleteStemcell(cid apiv1.StemcellCID) error {
 	//
 	// NOTHING TO DELETE
-
 
 	//stemcell, found, err := a.runner.FindStemcellId(cid)
 	//if err != nil {

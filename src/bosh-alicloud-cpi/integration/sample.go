@@ -1,13 +1,16 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package integration
 
 import (
+	"bosh-alicloud-cpi/alicloud"
 	"fmt"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	"github.com/denverdino/aliyungo/ecs"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type CreateStemcellMethod struct {
@@ -16,13 +19,18 @@ type CreateStemcellMethod struct {
 
 const ACCESS_KEY_ID = "***your key***"
 const ACCESS_KEY_SECRET = "***you secret***"
+const REGION_ID = "cn-hangzhou"
 
 func (a CreateStemcellMethod) CreateStemcell(imagePath string, _ apiv1.StemcellCloudProps) (apiv1.StemcellCID, error) {
 	// stemcell, err := a.stemcellImporter.ImportFromPath(imagePath)
 
-	client := ecs.NewClient(ACCESS_KEY_ID, ACCESS_KEY_SECRET)
+	client, err := ecs.NewClientWithOptions(REGION_ID, alicloud.getSdkConfig(), credentials.NewAccessKeyCredential(ACCESS_KEY_ID, ACCESS_KEY_SECRET))
+	if err != nil {
+		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", REGION_ID)
+	}
 
-	regions, err := client.DescribeRegions()
+	args := ecs.CreateDescribeRegionsRequest()
+	regions, err := client.DescribeRegions(args)
 
 	if err != nil {
 		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)

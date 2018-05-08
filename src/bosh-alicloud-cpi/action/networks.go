@@ -1,34 +1,35 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"bosh-alicloud-cpi/registry"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	"github.com/denverdino/aliyungo/ecs"
 	"fmt"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 const (
-	NetworkTypeManual = "manual"
+	NetworkTypeManual  = "manual"
 	NetworkTypeDynamic = "dynamic"
-	NetworkTypeVip = "vip"
+	NetworkTypeVip     = "vip"
 )
 
 type Networks struct {
-	networks	apiv1.Networks
-	private   	apiv1.Network
+	networks     apiv1.Networks
+	private      apiv1.Network
 	privateProps NetworkProps
-	vips		[]apiv1.Network
+	vips         []apiv1.Network
 }
 
 type NetworkProps struct {
-	SecurityGroupId string		`json:"security_group_id,omitempty"`
-	SecurityGroupIds []string		`json:"security_group_ids,omitempty"`
-	VSwitchId string			`json:"vswitch_id,omitempty"`
-	InternetChargeType string	`json:"internet_charge_type,omitempty"`
+	SecurityGroupId    string   `json:"security_group_id"`
+	SecurityGroupIds   []string `json:"security_group_ids"`
+	VSwitchId          string   `json:"vswitch_id"`
+	InternetChargeType string   `json:"internet_charge_type,omitempty"`
 }
 
 func NewNetworks(args apiv1.Networks) (Networks, error) {
@@ -67,23 +68,23 @@ func NewNetworks(args apiv1.Networks) (Networks, error) {
 	return r, nil
 }
 
-func (a Networks) HasVip() (bool) {
+func (a Networks) HasVip() bool {
 	return len(a.vips) > 0
 }
 
-func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) (error) {
+func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceRequest) error {
 	props := a.privateProps
 
 	if props.VSwitchId == "" {
-		return fmt.Errorf("unexpected empty VSwitchId")
+		return fmt.Errorf("unexpected empty vswitch_id")
 	}
 	if props.SecurityGroupId == "" && len(props.SecurityGroupIds) < 1 {
-		return fmt.Errorf("unexpected empty SecurityGroupIds")
+		return fmt.Errorf("unexpected empty security_group_ids")
 	}
 
 	if props.SecurityGroupId != "" {
 		args.SecurityGroupId = props.SecurityGroupId
-	}else {
+	} else {
 		args.SecurityGroupId = props.SecurityGroupIds[0]
 	}
 	args.VSwitchId = props.VSwitchId
@@ -118,18 +119,17 @@ func (a Networks) GetVips() []string {
 	return result
 }
 
-
-func (a Networks) AsRegistrySettings() (registry.NetworksSettings) {
+func (a Networks) AsRegistrySettings() registry.NetworksSettings {
 	r := map[string]registry.NetworkSettings{}
 
 	for k, v := range a.networks {
 		r[k] = registry.NetworkSettings{
-			Type: v.Type(),
-			IP: v.IP(),
+			Type:    v.Type(),
+			IP:      v.IP(),
 			Netmask: v.Netmask(),
 			Gateway: v.Gateway(),
-			DNS: v.DNS(),
-			DHCP: false,
+			DNS:     v.DNS(),
+			DHCP:    false,
 			Default: v.Default(),
 			// CloudProperties: v.CloudProps()
 		}

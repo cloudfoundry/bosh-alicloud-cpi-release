@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package mock
 
@@ -9,7 +9,7 @@ import (
 
 var randomChars = "0123456789abcdefghijklmnopqrstuvwxyz"
 
-func RandomString(length int) (string) {
+func RandomString(length int) string {
 	s := ""
 	for i := 0; i < length; i++ {
 		s = s + string(randomChars[rand.Intn(len(randomChars))])
@@ -17,30 +17,30 @@ func RandomString(length int) (string) {
 	return s
 }
 
-func NewDiskId() (string) {
+func NewDiskId() string {
 	return "d-" + RandomString(20)
 }
 
-func NewInstanceId() (string) {
+func NewInstanceId() string {
 	return "i-" + RandomString(20)
 }
 
-func NewStemcellId() (string) {
+func NewStemcellId() string {
 	return "m-" + RandomString(20)
 }
 
-func NewOssBucketName() (string) {
+func NewOssBucketName() string {
 	return "oss-" + RandomString(10)
 }
 
-func NewOssObejctName() (string) {
+func NewOssObejctName() string {
 	return "obj-" + RandomString(10)
 }
 
-func NewVswitchId() (string) {
+func NewVswitchId() string {
 	return "vsw-" + RandomString(20)
 }
 
-func NewSnapshotId() (string) {
+func NewSnapshotId() string {
 	return "s-" + RandomString(20)
 }

@@ -1,16 +1,17 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package mock
 
 import (
 	"bosh-alicloud-cpi/alicloud"
 	"fmt"
-	"github.com/denverdino/aliyungo/ecs"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
 const (
-	MaxDiskSizeGB=32768
+	MaxDiskSizeGB = 32768
 )
 
 type DiskManagerMock struct {
@@ -21,8 +22,8 @@ func NewDiskManagerMock(mc TestContext) alicloud.DiskManager {
 	return DiskManagerMock{&mc}
 }
 
-func (a DiskManagerMock) GetDisks(instCid string) ([]ecs.DiskItemType, error) {
-	r := []ecs.DiskItemType{}
+func (a DiskManagerMock) GetDisks(instCid string) ([]ecs.Disk, error) {
+	r := []ecs.Disk{}
 	for _, d := range a.mc.Disks {
 		if d.InstanceId == instCid {
 			r = append(r, *d)
@@ -31,7 +32,7 @@ func (a DiskManagerMock) GetDisks(instCid string) ([]ecs.DiskItemType, error) {
 	return r, nil
 }
 
-func (a DiskManagerMock) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
+func (a DiskManagerMock) GetDisk(diskCid string) (*ecs.Disk, error) {
 	if d, ok := a.mc.Disks[diskCid]; ok {
 		return d, nil
 	} else {
@@ -39,7 +40,7 @@ func (a DiskManagerMock) GetDisk(diskCid string) (*ecs.DiskItemType, error) {
 	}
 }
 
-func (a DiskManagerMock) CreateDisk(args ecs.CreateDiskArgs) (string, error) {
+func (a DiskManagerMock) CreateDisk(args ecs.CreateDiskRequest) (string, error) {
 	if args.Size < 5 || args.Size > MaxDiskSizeGB {
 		return "", fmt.Errorf("CreateDisk size too small or large %d", args.Size)
 	}
@@ -105,7 +106,7 @@ func (a DiskManagerMock) DetachDisk(instCid string, diskCid string) error {
 	return nil
 }
 
-func (a DiskManagerMock) ResizeDisk(diskCid string, sizeGB int) (error) {
+func (a DiskManagerMock) ResizeDisk(diskCid string, sizeGB int) error {
 	disk, ok := a.mc.Disks[diskCid]
 	if !ok {
 		return fmt.Errorf("ResizeDisk disk %s not exists", diskCid)
@@ -119,7 +120,7 @@ func (a DiskManagerMock) ResizeDisk(diskCid string, sizeGB int) (error) {
 	return nil
 }
 
-func (a DiskManagerMock) ModifyDiskAttribute(diskCid string, name string, description string) (error) {
+func (a DiskManagerMock) ModifyDiskAttribute(diskCid string, name string, description string) error {
 	disk, ok := a.mc.Disks[diskCid]
 	if !ok {
 		return fmt.Errorf("ModifyDiskAttribute disk %s not exists", diskCid)
@@ -140,7 +141,7 @@ func (a DiskManagerMock) CreateSnapshot(diskCid string, snapshotName string) (st
 	return ssid, nil
 }
 
-func (a DiskManagerMock) DeleteSnapshot(snapshotCid string) (error) {
+func (a DiskManagerMock) DeleteSnapshot(snapshotCid string) error {
 	_, ok := a.mc.Snapshots[snapshotCid]
 	if !ok {
 		return fmt.Errorf("DeleteSnapshot %s not found", snapshotCid)
@@ -160,7 +161,7 @@ func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStat
 	return disk.Device, nil
 }
 
-func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus ecs.DiskStatus, checkFunc func(*ecs.DiskItemType) (bool, error)) (error) {
+func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus ecs.DiskStatus, checkFunc func(*ecs.DiskItemType) (bool, error)) error {
 	disk, err := a.GetDisk(cid)
 	if err != nil {
 		return err

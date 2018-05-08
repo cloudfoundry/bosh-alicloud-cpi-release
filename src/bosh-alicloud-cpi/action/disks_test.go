@@ -1,13 +1,15 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
+	"encoding/json"
+
+	"bosh-alicloud-cpi/alicloud"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"encoding/json"
-	"github.com/denverdino/aliyungo/ecs"
 )
 
 func parseCloudProps(in string) (Disks, error) {
@@ -37,9 +39,9 @@ var _ = Describe("Disks", func() {
 		}`)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(disks.SystemDisk.sizeGB).To(Equal(50))
-		Expect(disks.SystemDisk.GetCategory()).To(Equal(ecs.DiskCategoryCloudEfficiency))
+		Expect(disks.SystemDisk.GetCategory()).To(Equal(alicloud.DiskCategoryCloudEfficiency))
 		Expect(disks.EphemeralDisk.sizeGB).To(Equal(40))
-		Expect(disks.EphemeralDisk.GetCategory()).To(Equal(ecs.DiskCategoryEphemeralSSD))
+		Expect(disks.EphemeralDisk.GetCategory()).To(Equal(alicloud.DiskCategoryEphemeralSSD))
 	})
 	It("can work with alternative size format and emit types", func() {
 		disks, err := parseCloudProps(`{
@@ -69,9 +71,9 @@ var _ = Describe("Disks", func() {
 		}`)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(disks.SystemDisk.sizeGB).To(Equal(DefaultSystemDiskSizeGB))
-		Expect(disks.SystemDisk.ecsCategory).To(Equal(ecs.DiskCategoryCloudEfficiency))
+		Expect(disks.SystemDisk.ecsCategory).To(Equal(alicloud.DiskCategoryCloudEfficiency))
 		Expect(disks.EphemeralDisk.sizeGB).To(Equal(40))
-		Expect(disks.EphemeralDisk.GetCategory()).To(Equal(ecs.DiskCategoryCloud))
+		Expect(disks.EphemeralDisk.GetCategory()).To(Equal(alicloud.DiskCategoryCloud))
 	})
 	It("can work without ephemeral_disk", func() {
 		disks, err := parseCloudProps(`{
@@ -83,7 +85,7 @@ var _ = Describe("Disks", func() {
 		`)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(disks.SystemDisk.sizeGB).To(Equal(80))
-		Expect(disks.SystemDisk.ecsCategory).To(Equal(ecs.DiskCategoryCloudSSD))
+		Expect(disks.SystemDisk.ecsCategory).To(Equal(alicloud.DiskCategoryCloudSSD))
 	})
 	It("will check system disk category", func() {
 		_, err := parseCloudProps(`{

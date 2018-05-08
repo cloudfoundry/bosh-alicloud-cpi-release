@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
@@ -37,7 +37,7 @@ type CPI struct {
 	DeleteSnapshotMethod
 }
 
-func NewFactory(cc CallContext, services Services) (Factory) {
+func NewFactory(cc CallContext, services Services) Factory {
 	return Factory{
 		cc:       cc,
 		services: services,

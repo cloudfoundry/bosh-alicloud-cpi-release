@@ -5,5 +5,4 @@ dependencies:
   - golang
 files:
   - bosh-alicloud-cpi/**/*
-  - github.com/**/*
   - Makefile

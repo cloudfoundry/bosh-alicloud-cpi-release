@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
@@ -11,8 +11,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type CpiResponse struct {
@@ -21,15 +21,15 @@ type CpiResponse struct {
 	Log    string      `json:"log"`
 }
 
-func WrapErrorResponse(err error, format string, args... interface{}) (CpiResponse) {
+func WrapErrorResponse(err error, format string, args ...interface{}) CpiResponse {
 	return CpiResponse{
 		Result: json.RawMessage{},
-		Error:CpiError{
+		Error: CpiError{
 			"CpiError",
 			err.Error(),
 			false,
 		},
-		Log:fmt.Sprintf(format, args),
+		Log: fmt.Sprintf(format, args),
 	}
 }
 
@@ -48,7 +48,7 @@ func (r CpiResponse) GetError() error {
 	}
 }
 
-func (r CpiResponse) GetResultString() (string) {
+func (r CpiResponse) GetResultString() string {
 	return r.Result.(string)
 }
 
@@ -76,7 +76,7 @@ type Caller struct {
 	Services
 }
 
-func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
+func NewCaller(config alicloud.Config, logger boshlog.Logger) Caller {
 	services := Services{
 		Stemcells: alicloud.NewStemcellManager(config, logger),
 		Osses:     alicloud.NewOssManager(config, logger),
@@ -88,11 +88,11 @@ func NewCaller(config alicloud.Config, logger boshlog.Logger) (Caller) {
 	return NewCallerWithServices(config, logger, services)
 }
 
-func NewCallerWithServices(config alicloud.Config, logger boshlog.Logger, services Services) (Caller) {
-	return Caller {config, logger, services}
+func NewCallerWithServices(config alicloud.Config, logger boshlog.Logger, services Services) Caller {
+	return Caller{config, logger, services}
 }
 
-func (c Caller) Run(input []byte) (CpiResponse) {
+func (c Caller) Run(input []byte) CpiResponse {
 	var req json.RawMessage
 	err := json.Unmarshal(input, &req)
 	if err != nil {

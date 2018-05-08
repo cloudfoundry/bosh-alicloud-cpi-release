@@ -2,6 +2,13 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r18]
+
+- Support instance new field charge_period_unit. ([#33](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/33))
+- Change go sdk to alibaba cloud official go sdk. ([#33](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/33))
+- Fix [issue Ephemeral Disk Encryption](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/issues/33).  ([#33](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/33))
+- Format go file. ([#33](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/33))
+
 ## [r17]
 
 A temporary release for fixing a go sdk invalid timestamp error. (Changed in local)

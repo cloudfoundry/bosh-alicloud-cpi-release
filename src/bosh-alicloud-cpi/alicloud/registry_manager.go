@@ -2,11 +2,12 @@ package alicloud
 
 import (
 	"bosh-alicloud-cpi/registry"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"fmt"
-	"github.com/denverdino/aliyungo/ecs"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type RegistryManager struct {
@@ -14,7 +15,7 @@ type RegistryManager struct {
 	logger boshlog.Logger
 }
 
-func NewRegistryManager(c Config, logger boshlog.Logger) (RegistryManager) {
+func NewRegistryManager(c Config, logger boshlog.Logger) RegistryManager {
 	return RegistryManager{config: c, logger: logger}
 }
 
@@ -34,15 +35,17 @@ func (a RegistryManager) Delete(instanceID string) error {
 }
 
 func (a RegistryManager) Fetch(instanceID string) (registry.AgentSettings, error) {
-	client := a.config.NewEcsClient()
-	args := ecs.DescribeUserdataArgs{
-		RegionId: a.config.OpenApi.GetRegion(),
-		InstanceId: instanceID,
+	var settings registry.AgentSettings
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return settings, err
 	}
 
-	var settings registry.AgentSettings
+	args := ecs.CreateDescribeUserDataRequest()
+	args.RegionId = a.config.OpenApi.GetRegion()
+	args.InstanceId = instanceID
 
-	r, err := client.DescribeUserdata(&args)
+	r, err := client.DescribeUserData(args)
 	if err != nil {
 		return settings, fmt.Errorf("OpenAPI::DescribeUserData Failed %v", err)
 	}
@@ -66,19 +69,23 @@ func (a RegistryManager) Update(instanceID string, settings registry.AgentSettin
 		return err
 	}
 	err = a.updateUserData(instanceID, data)
-	a.log("Update/" + instanceID, err, data, "")
+	a.log("Update/"+instanceID, err, data, "")
 	return err
 }
 
-func (a RegistryManager) updateUserData(instanceID string, data []byte) (error) {
-	client := a.config.NewEcsClient()
+func (a RegistryManager) updateUserData(instanceID string, data []byte) error {
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return err
+	}
 
-	var args ecs.ModifyInstanceAttributeArgs
+	args := ecs.CreateModifyInstanceAttributeRequest()
 	args.InstanceId = instanceID
 	args.UserData = base64.StdEncoding.EncodeToString(data)
 
 	invoker := NewInvoker()
-	return invoker.Run(func() (error){
-		return client.ModifyInstanceAttribute(&args)
+	return invoker.Run(func() error {
+		_, err := client.ModifyInstanceAttribute(args)
+		return err
 	})
 }

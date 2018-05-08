@@ -1,20 +1,20 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package integration
 
 import (
-	"os"
-	"testing"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"bosh-alicloud-cpi/action"
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/mock"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/denverdino/aliyungo/ecs"
-	"github.com/denverdino/aliyungo/common"
 	"fmt"
+	"os"
+	"testing"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 func TestIntegration(t *testing.T) {
@@ -81,19 +81,24 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 })
 
-func CleanInstances(config alicloud.Config, manager alicloud.InstanceManager) (error) {
-	client := config.NewEcsClient()
-	var args ecs.DescribeInstancesArgs
+func CleanInstances(config alicloud.Config, manager alicloud.InstanceManager) error {
+	client, err := config.NewEcsClient()
+	if err != nil {
+		return err
+	}
+	args := ecs.CreateDescribeInstancesRequest()
 	args.PrivateIpAddresses = `["` + internalIp + `"]`
 	args.VSwitchId = vswitchId
-	args.RegionId = common.Region(regionId)
 
-	insts, _, err := client.DescribeInstances(&args)
+	insts, err := client.DescribeInstances(args)
 	if err != nil {
 		return fmt.Errorf("CleanInstances try DescribeInstances failed %s", err.Error())
 	}
 
-	for _, inst := range insts {
+	if insts == nil || len(insts.Instances.Instance) <= 0 {
+		return nil
+	}
+	for _, inst := range insts.Instances.Instance {
 		_, err := caller.Call("delete_vm", inst.InstanceId)
 		if err != nil {
 			return fmt.Errorf("CleanInstances try delete_vm %s failed %s", inst.InstanceId, err.Error())

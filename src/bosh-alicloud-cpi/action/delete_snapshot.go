@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type DeleteSnapshotMethod struct {
@@ -17,7 +18,7 @@ func NewDeleteSnapshotMethod(cc CallContext, disks alicloud.DiskManager) DeleteS
 	return DeleteSnapshotMethod{cc, disks}
 }
 
-func (a DeleteSnapshotMethod) DeleteSnapshot(snapshotCID apiv1.SnapshotCID) (error) {
+func (a DeleteSnapshotMethod) DeleteSnapshot(snapshotCID apiv1.SnapshotCID) error {
 	cid := snapshotCID.AsString()
 
 	err := a.disks.DeleteSnapshot(cid)

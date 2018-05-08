@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package integration
 
 import (
-	"fmt"
-	"os"
 	"bosh-alicloud-cpi/alicloud"
 	"encoding/json"
+	"fmt"
+	"os"
 )
 
 var (
@@ -47,7 +47,7 @@ var (
 	registryPort     = envOrDefault("CPI_REGISTRY_PORT", "25777")
 )
 
-func ApplySystemEnv(config *alicloud.Config) (error) {
+func ApplySystemEnv(config *alicloud.Config) error {
 	a := &config.OpenApi
 
 	a.RegionId = regionId
