@@ -1,14 +1,15 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type SetVMMetadataMethod struct {
@@ -33,7 +34,7 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 	for k, v := range md {
 		if k == "name" {
 			name = normalizeName(v.(string), "i_")
-		} else if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job"  {
+		} else if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job" {
 			tk := normalizeTag(k)
 			if tk != "" {
 				tags[tk] = normalizeTag(v.(string))
@@ -71,9 +72,10 @@ func convertMetaData(input MetaInput) (MetaData, error) {
 	}
 	return r, nil
 }
+
 //
 // InstanceName ref https://help.aliyun.com/document_detail/25503.html
-func normalizeName(s string, prefix string) (string) {
+func normalizeName(s string, prefix string) string {
 	r := ""
 
 	// can only contains [a-zA-Z0-9-_\.]
@@ -106,8 +108,8 @@ func normalizeName(s string, prefix string) (string) {
 //
 // Tag.Key Tag.Name
 // ref https://help.aliyun.com/document_detail/25616.html
-func normalizeTag(s string) (string) {
-	if strings.HasPrefix(s,"aliyun") || strings.HasPrefix(s,"http://") || strings.HasPrefix(s, "https://") {
+func normalizeTag(s string) string {
+	if strings.HasPrefix(s, "aliyun") || strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://") {
 		s = "_" + s
 	}
 

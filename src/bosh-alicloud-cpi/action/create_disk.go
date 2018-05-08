@@ -1,17 +1,20 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
 type CreateDiskMethod struct {
 	CallContext
-	disks alicloud.DiskManager
+	disks     alicloud.DiskManager
 	instances alicloud.InstanceManager
 }
 
@@ -32,7 +35,7 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid
 
 	inst, err := a.instances.GetInstance(vmCid.AsString())
 	if err != nil {
-		return cid, a.WrapErrorf(err,"create_disk GetInstance failed %s", vmCid.AsString())
+		return cid, a.WrapErrorf(err, "create_disk GetInstance failed %s", vmCid.AsString())
 	}
 
 	if inst == nil {
@@ -45,11 +48,11 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid
 		return cid, a.WrapErrorf(err, "create_disk check input failed %n, %v", size, props)
 	}
 
-	var args ecs.CreateDiskArgs
+	args := ecs.CreateCreateDiskRequest()
 	args.ZoneId = inst.ZoneId
-	args.Size = disk.GetSizeGB()
-	args.DiskCategory = disk.GetCategory()
-	args.Encrypted = disk.Encrypted
+	args.Size = requests.NewInteger(disk.GetSizeGB())
+	args.DiskCategory = string(disk.GetCategory())
+	args.Encrypted = requests.NewBoolean(disk.Encrypted)
 	diskCid, err := a.disks.CreateDisk(args)
 
 	if err != nil {

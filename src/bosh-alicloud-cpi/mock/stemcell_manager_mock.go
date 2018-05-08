@@ -1,24 +1,25 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package mock
 
 import (
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
 	"fmt"
 	"os"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
 type StemcellManagerMock struct {
 	mc *TestContext
 }
 
-func NewStemcellManagerMock(mc TestContext) (alicloud.StemcellManager) {
+func NewStemcellManagerMock(mc TestContext) alicloud.StemcellManager {
 	return StemcellManagerMock{&mc}
 }
 
-func (a StemcellManagerMock) FindStemcellById(id string) (*ecs.ImageType, error) {
+func (a StemcellManagerMock) FindStemcellById(id string) (*ecs.Image, error) {
 	i, ok := a.mc.Stemcells[id]
 	if !ok {
 		return nil, nil
@@ -27,7 +28,7 @@ func (a StemcellManagerMock) FindStemcellById(id string) (*ecs.ImageType, error)
 	}
 }
 
-func (a StemcellManagerMock) DeleteStemcell(id string) (error) {
+func (a StemcellManagerMock) DeleteStemcell(id string) error {
 	_, ok := a.mc.Stemcells[id]
 	if !ok {
 		return fmt.Errorf("DeleteImage image not exists %s", id)
@@ -36,7 +37,7 @@ func (a StemcellManagerMock) DeleteStemcell(id string) (error) {
 	return nil
 }
 
-func (a StemcellManagerMock) ImportImage(args ecs.ImportImageArgs) (string, error) {
+func (a StemcellManagerMock) ImportImage(args ecs.ImportImageRequest) (string, error) {
 	id, image := a.mc.NewStemcell()
 
 	image.ImageName = args.ImageName
@@ -49,6 +50,6 @@ func (a StemcellManagerMock) OpenLocalFile(path string) (*os.File, error) {
 	return nil, nil
 }
 
-func (a StemcellManagerMock) WaitForImageReady(id string) (error) {
+func (a StemcellManagerMock) WaitForImageReady(id string) error {
 	return nil
 }

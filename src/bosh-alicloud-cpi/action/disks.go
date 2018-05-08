@@ -1,56 +1,55 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/denverdino/aliyungo/ecs"
-	"strconv"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	"math"
-	"strings"
-	"fmt"
-	"bosh-alicloud-cpi/registry"
 	"bosh-alicloud-cpi/alicloud"
+	"bosh-alicloud-cpi/registry"
+	"fmt"
+	"math"
+	"strconv"
+	"strings"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 const (
-	DefaultDiskCategory     = ecs.DiskCategoryCloudEfficiency
+	DefaultDiskCategory     = alicloud.DiskCategoryCloudEfficiency
 	DefaultSystemDiskSizeGB = 40
 	AmendSmallDiskSize      = true
 )
 
 type Disks struct {
-	SystemDisk DiskInfo
-	EphemeralDisk DiskInfo
+	SystemDisk      DiskInfo
+	EphemeralDisk   DiskInfo
 	PersistentDisks []PersistentDisk
 }
 
 type DiskInfo struct {
-	SizeRaw     interface{} `json:"size"`
-	Category    string      `json:"category"`
-	Encrypted 	bool		`json:"encrypted"`
-	DeleteWithInstance bool `json:"delete_with_instance"`
-	sizeGB      int
-	path        string
-	ecsCategory ecs.DiskCategory
+	SizeRaw            interface{} `json:"size"`
+	Category           string      `json:"category"`
+	Encrypted          bool        `json:"encrypted"`
+	DeleteWithInstance bool        `json:"delete_with_instance"`
+	sizeGB             int
+	path               string
+	ecsCategory        alicloud.DiskCategory
 }
 
 type PersistentDisk struct {
-	Cid string
+	Cid      string
 	VolumeId string
-	Path string
+	Path     string
 }
 
-func NewDiskInfo() (DiskInfo) {
-	return DiskInfo{
-		Encrypted: false,
-		DeleteWithInstance: true,
-	}
+func NewDiskInfo() DiskInfo {
+	return DiskInfo{}
 }
 
-func NewDiskInfoWithSize(size int, props apiv1.DiskCloudProps) (DiskInfo, error){
+func NewDiskInfoWithSize(size int, props apiv1.DiskCloudProps) (DiskInfo, error) {
 	d := NewDiskInfo()
 	err := props.As(&d)
 	if err != nil {
@@ -61,7 +60,7 @@ func NewDiskInfoWithSize(size int, props apiv1.DiskCloudProps) (DiskInfo, error)
 }
 
 func NewDisksWithProps(systemDisk DiskInfo, ephemeralDisk DiskInfo) (Disks, error) {
-	r := Disks {systemDisk, ephemeralDisk, []PersistentDisk{}}
+	r := Disks{systemDisk, ephemeralDisk, []PersistentDisk{}}
 
 	d, err := systemDisk.Validate(true)
 	if err != nil {
@@ -121,11 +120,11 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 
 	c := DefaultDiskCategory
 	if len(strings.TrimSpace(a.Category)) > 0 {
-		c = ecs.DiskCategory(a.Category)
+		c = alicloud.DiskCategory(a.Category)
 	}
 
 	if isSystem {
-		if c != ecs.DiskCategoryCloudEfficiency && c != ecs.DiskCategoryCloudSSD {
+		if c != alicloud.DiskCategoryCloudEfficiency && c != alicloud.DiskCategoryCloudSSD {
 			return a, fmt.Errorf("system disk only support: cloud_efficiency/cloud_ssd not %s", a.ecsCategory)
 		}
 		if a.sizeGB == 0 {
@@ -133,8 +132,8 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 		}
 		a.path = "/dev/xvda"
 	} else {
-		if c != ecs.DiskCategoryCloud && c != ecs.DiskCategoryCloudEfficiency &&
-			c != ecs.DiskCategoryCloudSSD && c != ecs.DiskCategoryEphemeralSSD {
+		if c != alicloud.DiskCategoryCloud && c != alicloud.DiskCategoryCloudEfficiency &&
+			c != alicloud.DiskCategoryCloudSSD && c != alicloud.DiskCategoryEphemeralSSD {
 			return a, fmt.Errorf("unsupported ephemeral disk type: %s", c)
 		}
 		a.path = "/dev/xvdb"
@@ -148,7 +147,7 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	// cloud_efficiency: [20, 32768]
 	// cloud_ssd: [20, 32768]
 	if AmendSmallDiskSize {
-		if a.ecsCategory == ecs.DiskCategoryCloud {
+		if a.ecsCategory == alicloud.DiskCategoryCloud {
 			if a.sizeGB < 5 {
 				a.sizeGB = 5
 			}
@@ -161,7 +160,7 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	return a, nil
 }
 
-func ConvertToGB(size float64) (int) {
+func ConvertToGB(size float64) int {
 	return int(math.Ceil(size / float64(1024)))
 }
 
@@ -169,35 +168,38 @@ func (a DiskInfo) GetSizeGB() int {
 	return a.sizeGB
 }
 
-func (a DiskInfo) GetCategory() ecs.DiskCategory {
- 	return a.ecsCategory
+func (a DiskInfo) GetCategory() alicloud.DiskCategory {
+	return a.ecsCategory
 }
 
-func (a DiskInfo) GetPath() (string) {
+func (a DiskInfo) GetPath() string {
 	return a.path
 }
 
-func (a Disks) FillCreateInstanceArgs(args *ecs.CreateInstanceArgs) {
-	args.SystemDisk.Size = a.SystemDisk.sizeGB
-	args.SystemDisk.Category = a.SystemDisk.ecsCategory
+func (a Disks) FillCreateInstanceArgs(args *ecs.CreateInstanceRequest) {
+	args.SystemDiskSize = requests.NewInteger(a.SystemDisk.sizeGB)
+	args.SystemDiskCategory = string(a.SystemDisk.ecsCategory)
 
 	if a.EphemeralDisk.sizeGB > 0 {
-		args.DataDisk = append(args.DataDisk, ecs.DataDiskType{
-			Size:               a.EphemeralDisk.sizeGB,
-			Category:           a.EphemeralDisk.GetCategory(),
-			DeleteWithInstance: a.EphemeralDisk.DeleteWithInstance,
+		var disks []ecs.CreateInstanceDataDisk
+		disks = append(disks, ecs.CreateInstanceDataDisk{
+			Size:               strconv.Itoa(a.EphemeralDisk.sizeGB),
+			Category:           string(a.EphemeralDisk.GetCategory()),
+			Encrypted:          strconv.FormatBool(a.EphemeralDisk.Encrypted),
+			DeleteWithInstance: strconv.FormatBool(a.EphemeralDisk.DeleteWithInstance),
 		})
+		args.DataDisk = &disks
 	}
 }
 
 func (a Disks) AssociatePersistentDisk(cid string, path string) {
 	a.PersistentDisks = append(a.PersistentDisks, PersistentDisk{
-		Cid: cid,
+		Cid:  cid,
 		Path: path,
 	})
 }
 
-func (a Disks) getPersistentDiskMap() (map[string]interface{}){
+func (a Disks) getPersistentDiskMap() map[string]interface{} {
 	r := map[string]interface{}{}
 	for _, pd := range a.PersistentDisks {
 		r[pd.Cid] = pd.Path
@@ -205,7 +207,7 @@ func (a Disks) getPersistentDiskMap() (map[string]interface{}){
 	return r
 }
 
-func (a Disks) AsRegistrySettings() (registry.DisksSettings) {
+func (a Disks) AsRegistrySettings() registry.DisksSettings {
 	if a.EphemeralDisk.sizeGB > 0 {
 		return registry.DisksSettings{
 			System:     a.SystemDisk.path,

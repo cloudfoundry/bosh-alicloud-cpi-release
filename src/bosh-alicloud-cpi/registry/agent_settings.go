@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package registry
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"encoding/json"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 const defaultSystemDisk = "/dev/sda"
@@ -76,8 +77,8 @@ type PersistentSettings struct {
 }
 
 type Env struct {
-	Bosh             BoshEnv             `json:"bosh"`
-	PersistentDiskFS string				 `json:"persistent_disk_fs"`
+	Bosh             BoshEnv `json:"bosh"`
+	PersistentDiskFS string  `json:"persistent_disk_fs"`
 }
 
 type BoshEnv struct {
@@ -105,7 +106,6 @@ type CertKeyPair struct {
 type IPv6 struct {
 	Enable bool `json:"enable"`
 }
-
 
 // NetworksSettings are the Networks settings for a particular VM.
 type NetworksSettings map[string]NetworkSettings

@@ -1,13 +1,14 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
+	"encoding/json"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"encoding/json"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type NetworksInputEntity struct {
@@ -79,7 +80,6 @@ var _ = Describe("Networks", func() {
 		_ = networks
 	})
 
-
 	It("can process networks with external ip", func() {
 		networks, err := parseNetworks(`{
 			"default": {
@@ -110,7 +110,6 @@ var _ = Describe("Networks", func() {
 		Expect(err).NotTo(HaveOccurred())
 		_ = networks
 	})
-
 
 	It("can process network with other name", func() {
 		networks, err := parseNetworks(`{

@@ -1,32 +1,38 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package alicloud
 
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/slb"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/denverdino/aliyungo/ecs"
-	"github.com/denverdino/aliyungo/slb"
-	"github.com/denverdino/aliyungo/common"
 )
 
 type NetworkManager interface {
-	DescribeEip(eip string) (ecs.EipAddressSetType, error)
+	DescribeEip(eip string) (ecs.EipAddressInDescribeEipAddresses, error)
 	BindEip(instanceId string, eip string) error
-	WaitForEipStatus(eip string, toStatus ecs.EipStatus) error
+	WaitForEipStatus(eip string, toStatus EipStatus) error
 
 	BindSLB(instanceId string, slbId string, weight int) error
 	DescribeSecurityGroupAttribute(groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error)
 	JoinSecurityGroup(instanceId string, groupId string) error
-
 }
 
 type NetworkManagerImpl struct {
 	config Config
 	logger boshlog.Logger
+}
+
+type BackendServerType struct {
+	ServerId string
+	Weight   int
 }
 
 func NewNetworkManager(config Config, logger boshlog.Logger) NetworkManager {
@@ -45,31 +51,33 @@ func (a NetworkManagerImpl) log(action string, err error, args interface{}, resu
 	}
 }
 
-func (a NetworkManagerImpl) DescribeEip(eip string) (ecs.EipAddressSetType, error) {
-	client := a.config.NewEcsClient()
+func (a NetworkManagerImpl) DescribeEip(eip string) (eipAddress ecs.EipAddressInDescribeEipAddresses, err error) {
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return
+	}
 	invoker := NewInvoker()
 
-	var args ecs.DescribeEipAddressesArgs
+	args := ecs.CreateDescribeEipAddressesRequest()
 	args.EipAddress = eip
 	args.RegionId = a.config.OpenApi.GetRegion()
 
-	var eipAddress ecs.EipAddressSetType
-	err := invoker.Run(func() error {
-		r, _, err := client.DescribeEipAddresses(&args)
+	err = invoker.Run(func() error {
+		r, err := client.DescribeEipAddresses(args)
 		if err != nil {
 			return err
 		}
-		if len(r) != 1 {
-			return fmt.Errorf("expect 1 EIP(%s) but get %d", eip, len(r))
+		if r == nil || len(r.EipAddresses.EipAddress) != 1 {
+			return fmt.Errorf("expect 1 EIP(%s) but get %#v", eip, r)
 		}
-		eipAddress = r[0]
+		eipAddress = r.EipAddresses.EipAddress[0]
 		return nil
 	})
 
 	if err != nil {
 		return eipAddress, bosherr.WrapErrorf(err, "DescribeEipAddress(%v) failed", args)
 	}
-	return eipAddress, nil
+	return
 }
 
 func (a NetworkManagerImpl) BindEip(instanceId string, eip string) error {
@@ -79,16 +87,27 @@ func (a NetworkManagerImpl) BindEip(instanceId string, eip string) error {
 		return bosherr.WrapErrorf(err, "DescribeEip(%s) failed", eip)
 	}
 
-	if eipAddress.Status != ecs.EipStatusAvailable {
+	if eipAddress.Status != string(EipStatusAvailable) {
 		return bosherr.WrapErrorf(err, "BindEip(%s) status %s failed", eip, eipAddress.Status)
 	}
 
-	client := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return err
+	}
 	invoker := NewInvoker()
 
-	allocationId := eipAddress.AllocationId
+	args := ecs.CreateAssociateEipAddressRequest()
+	args.AllocationId = eipAddress.AllocationId
+	args.InstanceId = instanceId
+	if strings.HasPrefix(instanceId, "i-") {
+		args.InstanceType = "EcsInstance"
+	}
+	args.RegionId = a.config.OpenApi.GetRegion()
+
 	err = invoker.Run(func() error {
-		return client.AssociateEipAddress(allocationId, instanceId)
+		_, e := client.AssociateEipAddress(args)
+		return e
 	})
 	a.log("BingEip("+eip+")", err, instanceId, "")
 
@@ -96,7 +115,7 @@ func (a NetworkManagerImpl) BindEip(instanceId string, eip string) error {
 		return bosherr.WrapErrorf(err, "AssociateEipAddress %s to %s failed", eip, instanceId)
 	}
 
-	err = a.WaitForEipStatus(eip, ecs.EipStatusInUse)
+	err = a.WaitForEipStatus(eip, EipStatusInUse)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "WaitForEipStatus %s to InUse failed", eip)
 	}
@@ -104,12 +123,12 @@ func (a NetworkManagerImpl) BindEip(instanceId string, eip string) error {
 	return nil
 }
 
-func (a NetworkManagerImpl) WaitForEipStatus(eip string, toStatus ecs.EipStatus) error {
+func (a NetworkManagerImpl) WaitForEipStatus(eip string, toStatus EipStatus) error {
 	invoker := NewInvoker()
 	ok, err := invoker.RunUntil(WaitTimeout, WaitInterval, func() (bool, error) {
 		r, e := a.DescribeEip(eip)
 		a.log("WaitForEipStatus", e, r.Status, "")
-		return r.Status == toStatus, e
+		return EipStatus(r.Status) == toStatus, e
 	})
 
 	if err != nil {
@@ -125,17 +144,24 @@ func (a NetworkManagerImpl) WaitForEipStatus(eip string, toStatus ecs.EipStatus)
 //
 // TODO: add retry
 func (a NetworkManagerImpl) BindSLB(instanceId string, slbId string, weight int) error {
-	client := a.config.NewSlbClient()
+	client, err := a.config.NewSlbClient()
+	if err != nil {
+		return err
+	}
 
 	if weight == 0 {
 		weight = DefaultSlbWeight
 	}
 
-	servers := []slb.BackendServerType{
+	bytes, _ := json.Marshal([]BackendServerType{
 		{ServerId: instanceId, Weight: weight},
-	}
+	})
+	args := slb.CreateAddBackendServersRequest()
+	args.RegionId = a.config.OpenApi.GetRegion()
+	args.LoadBalancerId = slbId
+	args.BackendServers = string(bytes)
 
-	servers, err := client.AddBackendServers(slbId, servers)
+	servers, err := client.AddBackendServers(args)
 
 	if err != nil {
 		a.logger.Error("NetworkManager", "BindSLB %s to %s failed %v", instanceId, slbId, err)
@@ -146,29 +172,29 @@ func (a NetworkManagerImpl) BindSLB(instanceId string, slbId string, weight int)
 	return err
 }
 
-func (a NetworkManagerImpl) DescribeSecurityGroupAttribute(groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error) {
-	client := a.config.NewEcsClient()
+func (a NetworkManagerImpl) DescribeSecurityGroupAttribute(groupId string) (group ecs.DescribeSecurityGroupAttributeResponse, err error) {
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return
+	}
 	invoker := NewInvoker()
 
-	args := ecs.DescribeSecurityGroupAttributeArgs{
-		SecurityGroupId:groupId,
-		RegionId:a.config.OpenApi.GetRegion(),
-	}
+	args := ecs.CreateDescribeSecurityGroupAttributeRequest()
+	args.SecurityGroupId = groupId
+	args.RegionId = a.config.OpenApi.GetRegion()
 
-	var group ecs.DescribeSecurityGroupAttributeResponse
-	err := invoker.Run(func() error {
-		if r, err := client.DescribeSecurityGroupAttribute(&args); err != nil {
-			return err
-		} else {
+	err = invoker.Run(func() error {
+		r, err := client.DescribeSecurityGroupAttribute(args)
+		if r != nil {
 			group = *r
-			return nil
 		}
+		return err
 	})
 
 	if err != nil {
 		return group, bosherr.WrapErrorf(err, "DescribeSecurityGroupAttribute(%v) failed", args)
 	}
-	return group, nil
+	return
 }
 
 func (a NetworkManagerImpl) JoinSecurityGroup(instanceId string, groupId string) error {
@@ -176,19 +202,27 @@ func (a NetworkManagerImpl) JoinSecurityGroup(instanceId string, groupId string)
 		return bosherr.WrapErrorf(err, "DescribeSecurityGroupAttribute(%s) failed", groupId)
 	}
 
-	client := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return err
+	}
 	invoker := NewInvoker()
 
-	err := invoker.Run(func() error {
-		return client.JoinSecurityGroup(instanceId, groupId)
+	args := ecs.CreateJoinSecurityGroupRequest()
+	args.InstanceId = instanceId
+	args.SecurityGroupId = groupId
+
+	err = invoker.Run(func() error {
+		_, err := client.JoinSecurityGroup(args)
+		return err
 	})
 	a.log("JoinSecurityGroup("+groupId+")", err, instanceId, "")
 
 	if err != nil {
-		if e, ok := err.(*common.Error); ok && e.Code == "InvalidInstanceId.AlreadyExists" {
+		if e, ok := err.(*errors.ServerError); ok && e.ErrorCode() == "InvalidInstanceId.AlreadyExists" {
 			return nil
 		}
-		return bosherr.WrapErrorf(err, "JoinSecurityGroup %s to %s failed", instanceId, groupId)
+		return bosherr.WrapErrorf(err, "JoinSecurityGroup %s to %s failed, args: %#v.", instanceId, groupId, args)
 	}
 
 	return nil

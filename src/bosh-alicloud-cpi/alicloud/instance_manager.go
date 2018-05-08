@@ -1,47 +1,49 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package alicloud
 
 import (
-	"github.com/denverdino/aliyungo/ecs"
-	"github.com/denverdino/aliyungo/common"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"encoding/json"
-	"time"
-	"fmt"
 	"github.com/google/uuid"
-	"strings"
 )
 
-var DeleteInstanceCatcher = Catcher {"IncorrectInstanceStatus.Initializing", 10, 15}
-var CreateInstanceCatcher_IpUsed = Catcher {"InvalidPrivateIpAddress.Duplicated", 10, 15}
-var CreateInstanceCatcher_IpUsed2 = Catcher {"InvalidIPAddress.AlreadyUsed", 10, 15}
+var DeleteInstanceCatcher = Catcher{"IncorrectInstanceStatus.Initializing", 10, 15}
+var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 10, 15}
+var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 10, 15}
+var CreateInstanceCatcher_TokenProcessing = Catcher{"LastTokenProcessing", 10, 15}
 
 const (
-	ChangeInstanceStatusTimeout = time.Duration(300) * time.Second
+	ChangeInstanceStatusTimeout       = time.Duration(300) * time.Second
 	ChangeInstanceStatusSleepInterval = time.Duration(5) * time.Second
 )
 
 type InstanceManager interface {
-	GetInstance(cid string) (*ecs.InstanceAttributesType, error)
+	GetInstance(cid string) (*ecs.Instance, error)
 
-	CreateInstance(args ecs.CreateInstanceArgs) (string, error)
-	ModifyInstanceAttribute(cid string, name string, description string) (error)
-	AddTags(cid string, tags map[string]string) (error)
+	CreateInstance(args *ecs.CreateInstanceRequest) (string, error)
+	ModifyInstanceAttribute(cid string, name string, description string) error
+	AddTags(cid string, tags map[string]string) error
 
-	DeleteInstance(cid string) (error)
+	DeleteInstance(cid string) error
 
-	StartInstance(cid string) (error)
-	StopInstance(cid string) (error)
-	RebootInstance(cid string) (error)
+	StartInstance(cid string) error
+	StopInstance(cid string) error
+	RebootInstance(cid string) error
 
-	GetInstanceStatus(cid string) (ecs.InstanceStatus, error)
+	GetInstanceStatus(cid string) (InstanceStatus, error)
 
 	// WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus, error)
-	ChangeInstanceStatus(cid string, toStatus ecs.InstanceStatus, checkFunc func(status ecs.InstanceStatus) (bool, error)) (error)
+	ChangeInstanceStatus(cid string, toStatus InstanceStatus, checkFunc func(status InstanceStatus) (bool, error)) error
 }
 
 type InstanceManagerImpl struct {
@@ -50,8 +52,8 @@ type InstanceManagerImpl struct {
 	region string
 }
 
-func NewInstanceManager(config Config, logger boshlog.Logger) (InstanceManager) {
-	return InstanceManagerImpl {
+func NewInstanceManager(config Config, logger boshlog.Logger) InstanceManager {
+	return InstanceManagerImpl{
 		config: config,
 		logger: logger,
 		region: config.OpenApi.RegionId,
@@ -67,17 +69,20 @@ func (a InstanceManagerImpl) log(action string, err error, args interface{}, res
 	}
 }
 
-func (a InstanceManagerImpl) GetInstance(cid string) (*ecs.InstanceAttributesType, error) {
-	client := a.config.NewEcsClient()
+func (a InstanceManagerImpl) GetInstance(cid string) (*ecs.Instance, error) {
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return nil, err
+	}
 
-	var args ecs.DescribeInstancesArgs
-	args.RegionId = common.Region(a.region)
+	args := ecs.CreateDescribeInstancesRequest()
+	args.RegionId = a.region
 	args.InstanceIds = "[\"" + cid + "\"]"
 
-	var insts []ecs.InstanceAttributesType
+	var insts *ecs.DescribeInstancesResponse
 	invoker := NewInvoker()
-	err := invoker.Run(func() (error) {
-		r, _, e := client.DescribeInstances(&args)
+	err = invoker.Run(func() error {
+		r, e := client.DescribeInstances(args)
 		insts = r
 		return e
 	})
@@ -86,116 +91,186 @@ func (a InstanceManagerImpl) GetInstance(cid string) (*ecs.InstanceAttributesTyp
 		return nil, err
 	}
 
-	if len(insts) == 0 {
+	if insts == nil || len(insts.Instances.Instance) <= 0 {
 		return nil, nil
 	}
 
-	return &insts[0], nil
+	return &insts.Instances.Instance[0], nil
 }
 
-func (a InstanceManagerImpl) CreateInstance(args ecs.CreateInstanceArgs) (string, error) {
-	client := a.config.NewEcsClient()
+func (a InstanceManagerImpl) CreateInstance(args *ecs.CreateInstanceRequest) (string, error) {
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return "", err
+	}
 
 	invoker := NewInvoker()
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed)
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
+	invoker.AddCatcher(CreateInstanceCatcher_TokenProcessing)
 
 	args.RegionId = a.config.OpenApi.GetRegion()
-	args.ClientToken = uuid.New().String()
+	token := strings.Replace(fmt.Sprintf("bosh-cpi-%s-%s", time.Now().String(), uuid.New().String()), " ", "", -1)
+	args.ClientToken = token
+	if len(token) > 64 {
+		args.ClientToken = token[0:64]
+	}
 
 	var cid string
-	err := invoker.Run(func() (error) {
-		a2 := args // copy args to avoid base64 UserData again
-		c2, e := client.CreateInstance(&a2)
-		cid = c2
-		a.log("CreateInstance", e, a2, c2)
+	err = invoker.Run(func() error {
+		resp, e := client.CreateInstance(args)
+		if resp != nil {
+			cid = resp.InstanceId
+		}
 		return e
 	})
 	return cid, err
 }
 
-func (a InstanceManagerImpl) ModifyInstanceAttribute(cid string, name string, description string) (error) {
-	client := a.config.NewEcsClient()
+func (a InstanceManagerImpl) ModifyInstanceAttribute(cid string, name string, description string) error {
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return err
+	}
 
-	var args ecs.ModifyInstanceAttributeArgs
+	args := ecs.CreateModifyInstanceAttributeRequest()
 	args.InstanceId = cid
 	args.InstanceName = name
 	args.Description = description
 
 	invoker := NewInvoker()
-	return invoker.Run(func() (error) {
-		e := client.ModifyInstanceAttribute(&args)
+	return invoker.Run(func() error {
+		_, e := client.ModifyInstanceAttribute(args)
 		a.log("ModifyInstanceAttributes", e, args, "ok")
 		return e
 	})
 }
 
-func (a InstanceManagerImpl) DeleteInstance(cid string) (error) {
-	client := a.config.NewEcsClient()
+func (a InstanceManagerImpl) DeleteInstance(cid string) error {
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return err
+	}
 
 	invoker := NewInvoker()
 	invoker.AddCatcher(DeleteInstanceCatcher)
 
-	return invoker.Run(func() (error) {
-		e := client.DeleteInstance(cid)
+	args := ecs.CreateDeleteInstanceRequest()
+	args.InstanceId = cid
+
+	return invoker.Run(func() error {
+		_, e := client.DeleteInstance(args)
 		a.log("DeleteInstance", e, cid, "ok")
 		return e
 	})
 }
 
 func (a InstanceManagerImpl) StartInstance(cid string) error {
-	client := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return err
+	}
+
 	invoker := NewInvoker()
-	return invoker.Run(func() (error) {
-		err := client.StartInstance(cid)
+
+	args := ecs.CreateStartInstanceRequest()
+	args.InstanceId = cid
+
+	return invoker.Run(func() error {
+		_, err := client.StartInstance(args)
 		a.log("StartInstance", err, cid, "ok")
 		return err
 	})
 }
 
 func (a InstanceManagerImpl) StopInstance(cid string) error {
-	client := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return err
+	}
+
 	invoker := NewInvoker()
-	return invoker.Run(func() (error) {
-		err := client.StopInstance(cid, UseForceStop)
+
+	args := ecs.CreateStopInstanceRequest()
+	args.InstanceId = cid
+	args.ForceStop = requests.NewBoolean(UseForceStop)
+
+	return invoker.Run(func() error {
+		_, err := client.StopInstance(args)
 		a.log("StopInstance", err, cid, "ok")
 		return err
 	})
 }
 
 func (a InstanceManagerImpl) RebootInstance(cid string) error {
-	client := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return err
+	}
+
 	invoker := NewInvoker()
-	return invoker.Run(func() (error) {
-		err := client.RebootInstance(cid, UseForceStop)
+
+	args := ecs.CreateRebootInstanceRequest()
+	args.InstanceId = cid
+	args.ForceStop = requests.NewBoolean(UseForceStop)
+
+	return invoker.Run(func() error {
+		_, err := client.RebootInstance(args)
 		a.log("RebootInstance", err, cid, "ok")
 		return err
 	})
 }
 
 func (a InstanceManagerImpl) AddTags(cid string, tags map[string]string) error {
-	client := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient()
+	if err != nil {
+		return err
+	}
 
-	var args ecs.AddTagsArgs
+	args := ecs.CreateAddTagsRequest()
 	args.RegionId = a.config.OpenApi.GetRegion()
 	args.ResourceId = cid
-	args.Tag = tags
+	count := 1
+	for k, v := range tags {
+		switch count {
+
+		case 1:
+			args.Tag1Key = k
+			args.Tag1Value = v
+		case 2:
+			args.Tag2Key = k
+			args.Tag2Value = v
+		case 3:
+			args.Tag3Key = k
+			args.Tag3Value = v
+		case 4:
+			args.Tag4Key = k
+			args.Tag4Value = v
+		case 5:
+			args.Tag4Key = k
+			args.Tag4Value = v
+		default:
+			break
+		}
+		count++
+	}
 
 	if strings.HasPrefix(cid, "i-") {
-		args.ResourceType = ecs.TagResourceInstance
+		args.ResourceType = string(TagResourceInstance)
 	} else if strings.HasPrefix(cid, "d-") {
-		args.ResourceType = ecs.TagResourceDisk
+		args.ResourceType = string(TagResourceDisk)
 	} else {
 		return fmt.Errorf("unexpect resource type id=%s", cid)
 	}
 
 	invoker := NewInvoker()
-	return invoker.Run(func() (error) {
-		return client.AddTags(&args)
+	return invoker.Run(func() error {
+		_, err := client.AddTags(args)
+		return err
 	})
 }
 
-func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, error) {
+func (a InstanceManagerImpl) GetInstanceStatus(cid string) (InstanceStatus, error) {
 	inst, err := a.GetInstance(cid)
 
 	if err != nil {
@@ -203,15 +278,15 @@ func (a InstanceManagerImpl) GetInstanceStatus(cid string) (ecs.InstanceStatus, 
 	}
 
 	if inst == nil {
-		return ecs.Deleted, nil
+		return Deleted, nil
 	}
-	return inst.Status, nil
+	return InstanceStatus(inst.Status), nil
 }
 
-func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus ,error) {
+func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus InstanceStatus) (InstanceStatus, error) {
 	invoker := NewInvoker()
 
-	var status ecs.InstanceStatus
+	var status InstanceStatus
 
 	ok, err := invoker.RunUntil(WaitTimeout, WaitInterval, func() (bool, error) {
 		status, e := a.GetInstanceStatus(cid)
@@ -230,7 +305,7 @@ func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus ecs.Inst
 	return status, nil
 }
 
-func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus ecs.InstanceStatus, checkFunc func(status ecs.InstanceStatus) (bool, error)) (error) {
+func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus InstanceStatus, checkFunc func(status InstanceStatus) (bool, error)) error {
 	timeout := ChangeInstanceStatusTimeout
 	for {
 		status, err := a.GetInstanceStatus(cid)

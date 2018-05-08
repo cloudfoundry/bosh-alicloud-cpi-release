@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
@@ -14,5 +14,5 @@ func NewInfoMethod() InfoMethod {
 }
 
 func (a InfoMethod) Info() (apiv1.Info, error) {
-	return apiv1.Info{StemcellFormats: []string{"general-tar","alicloud-tar","alicloud-raw"}}, nil
+	return apiv1.Info{StemcellFormats: []string{"general-tar", "alicloud-tar", "alicloud-raw"}}, nil
 }

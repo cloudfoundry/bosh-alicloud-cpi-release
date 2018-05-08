@@ -1,19 +1,20 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/google/uuid"
-	"strings"
-	"github.com/denverdino/aliyungo/ecs"
-	"reflect"
 	"fmt"
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"reflect"
 	"strconv"
+	"strings"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
+	"github.com/google/uuid"
 )
 
 const (
@@ -28,10 +29,10 @@ type StemcellProps struct {
 	Disk            interface{} `json:"disk"`
 	DiskFormat      string      `json:"disk_format"`
 	diskGB          int
-	Hypervisor      string      `json:"hypervisor"`
-	Name            string      `json:"name"`
-	OsDistro        string      `json:"os_distro"`
-	OsType          string      `json:"os_type"`
+	Hypervisor      string `json:"hypervisor"`
+	Name            string `json:"name"`
+	OsDistro        string `json:"os_distro"`
+	OsType          string `json:"os_type"`
 	//RootDeviceName string 	`json:"root_device_name"`
 	SourceUrl string `json:"source_url"`
 	//SourceSha1    string `json:"raw_disk_sha1,omitempty"`
@@ -144,13 +145,13 @@ func (a CreateStemcellMethod) CreateFromURL(props StemcellProps) (string, error)
 }
 
 func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
-	var device ecs.DiskDeviceMapping
+	var device ecs.ImportImageDiskDeviceMapping
 	device.Format = string(props.DiskFormat)
 	device.OSSBucket = props.OSSBucket
 	device.OSSObject = props.OSSObject
 	device.DiskImageSize = strconv.Itoa(props.GetDiskGB())
 
-	var args ecs.ImportImageArgs
+	args := ecs.CreateImportImageRequest()
 	args.RegionId = a.Config.OpenApi.GetRegion()
 	args.ImageName = a.getUUIDName(props)
 	args.Architecture = getValueOrDefault("Architecture", &props, alicloud.AlicloudDefaultImageArchitecture)
@@ -158,9 +159,10 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	args.Platform = props.OsDistro
 	args.Description = props.Description
 
-	args.DiskDeviceMappings.DiskDeviceMapping = []ecs.DiskDeviceMapping{
+	devices := []ecs.ImportImageDiskDeviceMapping{
 		device,
 	}
+	args.DiskDeviceMapping = &devices
 
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Creating Alicloud Image with params: %#v", args)
 	imageId, err := a.stemcells.ImportImage(args)
@@ -215,7 +217,7 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 // image name should be unique
 // bucket name max length is 64bit, and random suffix length is 32
 // so the user input image name should less than 32bit
-func (a CreateStemcellMethod) getUUIDName(props StemcellProps) (string) {
+func (a CreateStemcellMethod) getUUIDName(props StemcellProps) string {
 	uuidStr := uuid.New().String()
 	name := getValueOrDefault("Name", &props, alicloud.AlicloudDefaultImageName)
 	imageName := fmt.Sprintf("%s-%s", name, uuidStr[0:UUID_LENGTH])

@@ -2,19 +2,20 @@ package mock
 
 import (
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"fmt"
+
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
 
 type OssManagerMock struct {
 	mc *TestContext
 }
 
-func NewOssManagerMock(mc TestContext) (alicloud.OssManager) {
+func NewOssManagerMock(mc TestContext) alicloud.OssManager {
 	return OssManagerMock{&mc}
 }
 
-func (a OssManagerMock) CreateBucket(name string, options ...oss.Option) (error) {
+func (a OssManagerMock) CreateBucket(name string, options ...oss.Option) error {
 	_, bucket := a.mc.NewBucket(name)
 	bucket.BucketName = name
 	// ...
@@ -22,7 +23,7 @@ func (a OssManagerMock) CreateBucket(name string, options ...oss.Option) (error)
 	return nil
 }
 
-func (a OssManagerMock) DeleteBucket(name string) (error) {
+func (a OssManagerMock) DeleteBucket(name string) error {
 	_, ok := a.mc.Buckets[name]
 	if !ok {
 		return fmt.Errorf("DeleteBucket bucket not exists %s", name)
@@ -46,7 +47,7 @@ func (a OssManagerMock) UploadFile(
 	return nil
 }
 
-func (a OssManagerMock) DeleteObject(bucket oss.Bucket, name string) (error) {
+func (a OssManagerMock) DeleteObject(bucket oss.Bucket, name string) error {
 	_, ok := a.mc.OssObjects[name]
 	if !ok {
 		return fmt.Errorf("DeleteObject object not exists %s", name)

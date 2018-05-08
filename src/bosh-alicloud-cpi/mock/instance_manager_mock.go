@@ -1,33 +1,34 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package mock
 
 import (
-	"github.com/denverdino/aliyungo/ecs"
-	"fmt"
 	"bosh-alicloud-cpi/alicloud"
+	"fmt"
 	"strings"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
 type InstanceManagerMock struct {
 	mc *TestContext
 }
 
-func NewInstanceManagerMock(mc TestContext) (alicloud.InstanceManager) {
+func NewInstanceManagerMock(mc TestContext) alicloud.InstanceManager {
 	return InstanceManagerMock{&mc}
 }
 
-func (a InstanceManagerMock) GetInstance(cid string) (*ecs.InstanceAttributesType, error) {
+func (a InstanceManagerMock) GetInstance(cid string) (*ecs.Instance, error) {
 	i, ok := a.mc.Instances[cid]
 	if !ok {
 		return nil, nil
-	}  else {
+	} else {
 		return i, nil
 	}
 }
 
-func (a InstanceManagerMock) CreateInstance(args ecs.CreateInstanceArgs) (string, error) {
+func (a InstanceManagerMock) CreateInstance(args *ecs.CreateInstanceRequest) (string, error) {
 	id, inst := a.mc.NewInstance()
 
 	inst.RegionId = args.RegionId
@@ -37,7 +38,7 @@ func (a InstanceManagerMock) CreateInstance(args ecs.CreateInstanceArgs) (string
 	return id, nil
 }
 
-func (a InstanceManagerMock) ModifyInstanceAttribute(cid string, name string, description string) (error) {
+func (a InstanceManagerMock) ModifyInstanceAttribute(cid string, name string, description string) error {
 	inst, ok := a.mc.Instances[cid]
 	if !ok {
 		return fmt.Errorf("ModifyInstanceAttribute instance not exists %s", cid)
@@ -47,7 +48,7 @@ func (a InstanceManagerMock) ModifyInstanceAttribute(cid string, name string, de
 	return nil
 }
 
-func (a InstanceManagerMock) AddTags(cid string, tags map[string]string) (error) {
+func (a InstanceManagerMock) AddTags(cid string, tags map[string]string) error {
 	ok := true
 	if strings.HasPrefix(cid, "i-") {
 		_, ok = a.mc.Instances[cid]
@@ -60,12 +61,12 @@ func (a InstanceManagerMock) AddTags(cid string, tags map[string]string) (error)
 	return nil
 }
 
-func (a InstanceManagerMock) DeleteInstance(cid string) (error) {
+func (a InstanceManagerMock) DeleteInstance(cid string) error {
 	inst, ok := a.mc.Instances[cid]
 	if !ok {
 		return fmt.Errorf("DeleteInstance instance not exists %s", cid)
 	}
-	if inst.Status != ecs.Stopped {
+	if alicloud.InstanceStatus(inst.Status) != alicloud.Stopped {
 		return fmt.Errorf("DeleteInstance instance %s status %s is not Stopped", cid, inst.Status)
 	}
 	delete(a.mc.Instances, cid)
@@ -77,10 +78,10 @@ func (a InstanceManagerMock) StartInstance(cid string) error {
 	if !ok {
 		return fmt.Errorf("StartInstance instance not exists %s", cid)
 	}
-	if inst.Status != ecs.Stopped {
+	if alicloud.InstanceStatus(inst.Status) != alicloud.Stopped {
 		return fmt.Errorf("StartInstance instance %s status %s is not Stopped", cid, inst.Status)
 	}
-	inst.Status = ecs.Running
+	inst.Status = string(alicloud.Running)
 	return nil
 }
 
@@ -89,10 +90,10 @@ func (a InstanceManagerMock) StopInstance(cid string) error {
 	if !ok {
 		return fmt.Errorf("StopInstance instance not exists %s", cid)
 	}
-	if inst.Status != ecs.Running {
+	if alicloud.InstanceStatus(inst.Status) != alicloud.Running {
 		return fmt.Errorf("StopInstance instance %s status %s is not Running", cid, inst.Status)
 	}
-	inst.Status = ecs.Stopped
+	inst.Status = string(alicloud.Stopped)
 	a.mc.Instances[inst.InstanceId] = inst
 	return nil
 }
@@ -102,38 +103,38 @@ func (a InstanceManagerMock) RebootInstance(cid string) error {
 	if !ok {
 		return fmt.Errorf("StopInstance instance not exists %s", cid)
 	}
-	if inst.Status != ecs.Running || inst.Status != ecs.Stopped {
+	if alicloud.InstanceStatus(inst.Status) != alicloud.Running || alicloud.InstanceStatus(inst.Status) != alicloud.Stopped {
 		return fmt.Errorf("RebootInstance instance %s status %s can't reboot", cid, inst.Status)
 	}
-	inst.Status = ecs.Running
+	inst.Status = string(alicloud.Running)
 	return nil
 }
 
-func (a InstanceManagerMock) GetInstanceStatus(cid string) (ecs.InstanceStatus, error) {
+func (a InstanceManagerMock) GetInstanceStatus(cid string) (alicloud.InstanceStatus, error) {
 	inst, ok := a.mc.Instances[cid]
 	if !ok {
-		return ecs.Deleted, nil
+		return alicloud.Deleted, nil
 	} else {
-		return inst.Status, nil
+		return alicloud.InstanceStatus(inst.Status), nil
 	}
 }
 
-func (a InstanceManagerMock) WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus, error) {
+func (a InstanceManagerMock) WaitForInstanceStatus(cid string, toStatus alicloud.InstanceStatus) (alicloud.InstanceStatus, error) {
 	inst, ok := a.mc.Instances[cid]
 	if !ok {
-		if toStatus == ecs.Deleted {
-			return ecs.Deleted, nil
+		if toStatus == alicloud.Deleted {
+			return alicloud.Deleted, nil
 		} else {
-			return ecs.Deleted, fmt.Errorf("WaitForInstanceStatus instance not exists %s", cid)
+			return alicloud.Deleted, fmt.Errorf("WaitForInstanceStatus instance not exists %s", cid)
 		}
 	}
-	if inst.Status != toStatus {
-		return inst.Status,fmt.Errorf("WaitForInstanceStatus instance %s excepted status %s but get %s", cid, toStatus, inst.Status)
+	if alicloud.InstanceStatus(inst.Status) != toStatus {
+		return alicloud.InstanceStatus(inst.Status), fmt.Errorf("WaitForInstanceStatus instance %s excepted status %s but get %s", cid, toStatus, inst.Status)
 	}
-	return toStatus,nil
+	return toStatus, nil
 }
 
-func (a InstanceManagerMock) ChangeInstanceStatus(cid string, toStatus ecs.InstanceStatus, checkFunc func(status ecs.InstanceStatus) (bool, error)) (error) {
+func (a InstanceManagerMock) ChangeInstanceStatus(cid string, toStatus alicloud.InstanceStatus, checkFunc func(status alicloud.InstanceStatus) (bool, error)) error {
 	status, err := a.GetInstanceStatus(cid)
 	if err != nil {
 		return err

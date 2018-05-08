@@ -1,27 +1,27 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	"github.com/denverdino/aliyungo/ecs"
 	"bosh-alicloud-cpi/registry"
 	"fmt"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type AttachDiskMethod struct {
 	CallContext
-	disks alicloud.DiskManager
+	disks     alicloud.DiskManager
 	instances alicloud.InstanceManager
-	registry registry.Client
+	registry  registry.Client
 }
 
-func NewAttachDiskMethod(cc CallContext,disks alicloud.DiskManager, instances alicloud.InstanceManager, rc registry.Client) AttachDiskMethod {
+func NewAttachDiskMethod(cc CallContext, disks alicloud.DiskManager, instances alicloud.InstanceManager, rc registry.Client) AttachDiskMethod {
 	return AttachDiskMethod{cc, disks, instances, rc}
 }
-
 
 func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
 	instCid := vmCID.AsString()
@@ -29,13 +29,13 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	device := ""
 
 	if a.Config.Registry.IsEmpty() {
-		err := a.instances.ChangeInstanceStatus(instCid, ecs.Stopped, func(status ecs.InstanceStatus) (bool, error) {
+		err := a.instances.ChangeInstanceStatus(instCid, alicloud.Stopped, func(status alicloud.InstanceStatus) (bool, error) {
 			switch status {
-			case ecs.Stopped:
+			case alicloud.Stopped:
 				return true, nil
-			case ecs.Running:
+			case alicloud.Running:
 				return false, a.instances.StopInstance(instCid)
-			case ecs.Stopping:
+			case alicloud.Stopping:
 				return false, nil
 			default:
 				return false, fmt.Errorf("unexpect %s for StopInstance", status)
@@ -47,17 +47,17 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 		}
 	}
 
-	err := a.disks.ChangeDiskStatus(diskCid, ecs.DiskStatusInUse, func(disk *ecs.DiskItemType) (bool, error) {
+	err := a.disks.ChangeDiskStatus(diskCid, alicloud.DiskStatusInUse, func(disk *ecs.Disk) (bool, error) {
 		if disk == nil {
 			return false, fmt.Errorf("missing disk %s", diskCid)
 		}
-		switch disk.Status {
-		case ecs.DiskStatusInUse:
-			device = alicloud.AmendDiskPath(disk.Device, disk.Category)
+		switch alicloud.DiskStatus(disk.Status) {
+		case alicloud.DiskStatusInUse:
+			device = alicloud.AmendDiskPath(disk.Device, alicloud.DiskCategory(disk.Category))
 			return true, nil
-		case ecs.DiskStatusAvailable:
+		case alicloud.DiskStatusAvailable:
 			return false, a.disks.AttachDisk(instCid, diskCid)
-		case ecs.DiskStatusAttaching:
+		case alicloud.DiskStatusAttaching:
 			return false, nil
 		default:
 			return false, fmt.Errorf("unexcepted disk %s status %s", diskCid, disk.Status)
@@ -78,13 +78,13 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	}
 
 	if a.Config.Registry.IsEmpty() {
-		err := a.instances.ChangeInstanceStatus(instCid, ecs.Running, func(status ecs.InstanceStatus) (bool, error) {
+		err := a.instances.ChangeInstanceStatus(instCid, alicloud.Running, func(status alicloud.InstanceStatus) (bool, error) {
 			switch status {
-			case ecs.Stopped:
+			case alicloud.Stopped:
 				return false, a.instances.StartInstance(instCid)
-			case ecs.Starting:
+			case alicloud.Starting:
 				return false, nil
-			case ecs.Running:
+			case alicloud.Running:
 				return true, nil
 			default:
 				return false, fmt.Errorf("unexpect %s for StopInstance", status)
@@ -98,4 +98,3 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 
 	return nil
 }
-

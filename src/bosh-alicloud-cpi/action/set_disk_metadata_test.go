@@ -1,19 +1,20 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
+	"bosh-alicloud-cpi/mock"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"bosh-alicloud-cpi/mock"
 )
 
 var _ = Describe("cpi:set_disk_metadata", func() {
 	It("can set disk metadata", func() {
 		instCid, _ := mockContext.NewInstance()
 		diskCid, _ := mockContext.NewDisk(instCid)
-		r :=  caller.Run(mock.NewBuilder(`{
+		r := caller.Run(mock.NewBuilder(`{
         	"method": "set_disk_metadata",
         	"arguments": [
                 "${DISK_ID}",
@@ -39,5 +40,3 @@ var _ = Describe("cpi:set_disk_metadata", func() {
 		Expect(disk.DiskName).Should(Equal(""))
 	})
 })
-
-

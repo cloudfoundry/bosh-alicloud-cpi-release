@@ -2,6 +2,7 @@ BINDIR := $(CURDIR)/bin
 MAINDIR := bosh-alicloud-cpi
 MAINFILE := $(CURDIR)/src/$(MAINDIR)/main/main.go
 EXECUTABLE := $(BINDIR)/alicloud_cpi
+GOFMT_FILES?=$$(find ./src/bosh-alicloud-cpi -name '*.go' | grep -v vendor)
 
 GOPATH := $(CURDIR)
 
@@ -15,11 +16,15 @@ endif
 # TODO add local link invocation
 BUILD_OPTIONS = -a -ldflags "-X main.GitCommit=\"$(COMMIT)\""
 
-all: clean build
+all: clean fmt build
 
 clean:
 	rm -f ${EXECUTABLE}
 	rm -f bin/bosh-alicloud-cpi.tgz
+
+fmt:
+	gofmt -w $(GOFMT_FILES)
+	goimports -w $(GOFMT_FILES)
 
 build:
 	mkdir -p $(BINDIR)

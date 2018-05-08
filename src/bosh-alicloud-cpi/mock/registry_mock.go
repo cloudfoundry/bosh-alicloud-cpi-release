@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func NewRegistryMock() (registry.Client) {
+func NewRegistryMock() registry.Client {
 	r := RegistryClientMock{}
 	r.registries = make(map[string]registry.AgentSettings)
 	return r
@@ -14,7 +14,6 @@ func NewRegistryMock() (registry.Client) {
 type RegistryClientMock struct {
 	registries map[string]registry.AgentSettings
 }
-
 
 func (c RegistryClientMock) Delete(instanceID string) error {
 	delete(c.registries, instanceID)

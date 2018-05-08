@@ -1,8 +1,8 @@
 package alicloud
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 const (
@@ -10,11 +10,11 @@ const (
 )
 
 type OssManager interface {
-	CreateBucket(name string, options ...oss.Option) (error)
-	DeleteBucket(name string) (error)
+	CreateBucket(name string, options ...oss.Option) error
+	DeleteBucket(name string) error
 	GetBucket(name string) (bucket *oss.Bucket, err error)
-	UploadFile(bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) (error)
-	DeleteObject(bucket oss.Bucket, name string) (error)
+	UploadFile(bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error
+	DeleteObject(bucket oss.Bucket, name string) error
 }
 
 type OssManagerImpl struct {
@@ -23,7 +23,7 @@ type OssManagerImpl struct {
 	region string
 }
 
-func NewOssManager(config Config, logger boshlog.Logger) (OssManager) {
+func NewOssManager(config Config, logger boshlog.Logger) OssManager {
 	return OssManagerImpl{
 		config: config,
 		logger: logger,
@@ -31,14 +31,14 @@ func NewOssManager(config Config, logger boshlog.Logger) (OssManager) {
 	}
 }
 
-func (a OssManagerImpl) CreateBucket(name string, options ...oss.Option) (error) {
+func (a OssManagerImpl) CreateBucket(name string, options ...oss.Option) error {
 	client := a.config.NewOssClient(false)
 	a.logger.Debug(AlicloudOssServiceTag, "Creating Alicloud Oss '%s'", name)
 
-	return client.CreateBucket(name, options ...)
+	return client.CreateBucket(name, options...)
 }
 
-func (a OssManagerImpl) DeleteBucket(name string) (error) {
+func (a OssManagerImpl) DeleteBucket(name string) error {
 	client := a.config.NewOssClient(false)
 	a.logger.Debug(AlicloudOssServiceTag, "Deleting Alicloud Oss '%s'", name)
 
@@ -55,10 +55,10 @@ func (a OssManagerImpl) GetBucket(name string) (bucket *oss.Bucket, err error) {
 func (a OssManagerImpl) UploadFile(
 	bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error {
 	a.logger.Debug(AlicloudOssServiceTag, "Upload file '%s' to bucket", objectKey, bucket.BucketName)
-	return bucket.UploadFile(objectKey, filePath, partSize, options ...)
+	return bucket.UploadFile(objectKey, filePath, partSize, options...)
 }
 
-func (a OssManagerImpl) DeleteObject(bucket oss.Bucket, name string) (error) {
+func (a OssManagerImpl) DeleteObject(bucket oss.Bucket, name string) error {
 	a.logger.Debug(AlicloudOssServiceTag, "Deleting Alicloud Object '%s'", name)
 	return bucket.DeleteObject(name)
 }

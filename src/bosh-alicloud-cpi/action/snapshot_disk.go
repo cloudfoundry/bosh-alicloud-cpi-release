@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-"github.com/cppforlife/bosh-cpi-go/apiv1"
-"bosh-alicloud-cpi/alicloud"
+	"bosh-alicloud-cpi/alicloud"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type SnapshotDiskMethod struct {
@@ -16,7 +17,6 @@ type SnapshotDiskMethod struct {
 func NewSnapshotDiskMethod(cc CallContext, disks alicloud.DiskManager) SnapshotDiskMethod {
 	return SnapshotDiskMethod{cc, disks}
 }
-
 
 func (a SnapshotDiskMethod) SnapshotDisk(diskCID apiv1.DiskCID, meta apiv1.DiskMeta) (apiv1.SnapshotCID, error) {
 	diskCid := diskCID.AsString()

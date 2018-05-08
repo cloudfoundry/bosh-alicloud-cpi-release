@@ -1,16 +1,17 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type SetDiskMetadataMethod struct {
 	CallContext
-	disks alicloud.DiskManager
+	disks     alicloud.DiskManager
 	instances alicloud.InstanceManager
 }
 
@@ -28,7 +29,7 @@ func (a SetDiskMetadataMethod) SetDiskMetadata(diskCID apiv1.DiskCID, meta apiv1
 
 	tags := make(map[string]string)
 	for k, v := range md {
-		if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job"  {
+		if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job" {
 			tk := normalizeTag(k)
 			if tk != "" {
 				tags[tk] = normalizeTag(v.(string))

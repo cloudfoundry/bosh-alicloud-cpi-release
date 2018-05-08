@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package alicloud
 
@@ -11,7 +11,7 @@ import (
 var _ = Describe("LoadConfig from Json", func() {
 	var (
 		config Config
-		err error
+		err    error
 	)
 
 	BeforeEach(func() {
@@ -62,10 +62,10 @@ var _ = Describe("LoadConfig from Json", func() {
 	It("generate registry settings correctly", func() {
 		s1 := RegistryConfig{
 			Protocol: "http",
-			User:"registry",
+			User:     "registry",
 			Password: "registry-password",
-			Host: "10.0.0.2",
-			Port: "6901",
+			Host:     "10.0.0.2",
+			Port:     "6901",
 		}
 		s2 := `{"registry":{"endpoint":"http://registry:registry-password@10.0.0.2:6901"}}`
 		Expect(s2).To(Equal(s1.ToInstanceUserData()))

@@ -1,16 +1,17 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
+	"bosh-alicloud-cpi/alicloud"
+	"bosh-alicloud-cpi/mock"
+	"os"
+	"testing"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"os"
-	"testing"
-	"bosh-alicloud-cpi/mock"
-	"bosh-alicloud-cpi/alicloud"
 )
 
 func TestActions(t *testing.T) {

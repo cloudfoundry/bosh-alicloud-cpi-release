@@ -1,14 +1,14 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
+	"bosh-alicloud-cpi/alicloud"
+	"fmt"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
-	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
-	"fmt"
 )
 
 type DeleteVMMethod struct {
@@ -28,17 +28,17 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 		return a.WrapErrorf(err, "delete %s get status failed", instCid)
 	}
 
-	if status == ecs.Deleted {
+	if status == alicloud.Deleted {
 		return nil
 	}
 
-	err = a.instances.ChangeInstanceStatus(instCid, ecs.Stopped, func(status ecs.InstanceStatus) (bool, error) {
+	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Stopped, func(status alicloud.InstanceStatus) (bool, error) {
 		switch status {
-		case ecs.Stopped:
+		case alicloud.Stopped:
 			return true, nil
-		case ecs.Running:
+		case alicloud.Running:
 			return false, a.instances.StopInstance(instCid)
-		case ecs.Stopping:
+		case alicloud.Stopping:
 			return false, nil
 		default:
 			return false, fmt.Errorf("unexpect %s for StopInstance", status)
@@ -49,11 +49,11 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 		return bosherr.WrapErrorf(err, "delete %s failed when stop it", instCid)
 	}
 
-	err = a.instances.ChangeInstanceStatus(instCid, ecs.Deleted, func(status ecs.InstanceStatus) (bool, error) {
+	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
 		switch status {
-		case ecs.Stopped:
+		case alicloud.Stopped:
 			return false, a.instances.DeleteInstance(instCid)
-		case ecs.Deleted:
+		case alicloud.Deleted:
 			return true, nil
 		default:
 			return false, fmt.Errorf("unexpect %s status %s for delete", instCid, status)

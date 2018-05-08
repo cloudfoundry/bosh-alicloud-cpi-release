@@ -1,21 +1,21 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package mock
 
 import (
-	"strings"
-	"os"
 	"fmt"
+	"os"
+	"strings"
 )
 
 type Builder string
 
-func NewBuilder(json string) (Builder) {
+func NewBuilder(json string) Builder {
 	return Builder(json)
 }
 
-func (b Builder) P(p string, v string) (Builder) {
+func (b Builder) P(p string, v string) Builder {
 	if !strings.HasPrefix(p, "${") {
 		p = "${" + p + "}"
 	}
@@ -31,7 +31,7 @@ func (b Builder) ApplyEnvs() (Builder, error) {
 	return Builder(s), nil
 }
 
-func GetWrappedString(s string, prefix string, suffix string) (string) {
+func GetWrappedString(s string, prefix string, suffix string) string {
 	i := strings.Index(s, prefix)
 	if i < 0 {
 		return ""

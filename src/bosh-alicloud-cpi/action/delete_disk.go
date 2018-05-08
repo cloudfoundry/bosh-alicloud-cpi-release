@@ -1,17 +1,17 @@
 /*
- * Copyright (C) 2017-2017 Alibaba Group Holding Limited
+ * Copyright (C) 2017-2018 Alibaba Group Holding Limited
  */
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"bosh-alicloud-cpi/alicloud"
-	"github.com/denverdino/aliyungo/ecs"
+
+	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type DeleteDiskMethod struct {
 	CallContext
-	disks alicloud.DiskManager
+	disks     alicloud.DiskManager
 	instances alicloud.InstanceManager
 }
 
@@ -32,30 +32,30 @@ func (a DeleteDiskMethod) DeleteDisk(diskCID apiv1.DiskCID) error {
 		return nil
 	}
 
-	switch disk.Status {
-	case ecs.DiskStatusAvailable:
+	switch alicloud.DiskStatus(disk.Status) {
+	case alicloud.DiskStatusAvailable:
 		// nothing to do, delete
-	case ecs.DiskStatusInUse:
+	case alicloud.DiskStatusInUse:
 		instCid := disk.InstanceId
 		if instCid != "" {
 			inst, err := a.instances.GetInstance(instCid)
 			if err != nil {
 				return a.WrapErrorf(err, "DeleteDisk %s get host vm %s failed", diskCid, instCid)
 			}
-			if inst != nil && inst.Status != ecs.Deleted {
+			if inst != nil && alicloud.InstanceStatus(inst.Status) != alicloud.Deleted {
 				return a.WrapErrorf(err, "can't delete disk %s with a <%s> vm %s", diskCid, inst.Status, instCid)
 			}
 		}
-		_, err = a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusAvailable)
+		_, err = a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable)
 		if err != nil {
 			return a.WrapErrorf(err, "DeleteDisk %s waiting status from %s to %s failed",
-				diskCid, disk.Status, ecs.DiskStatusAvailable)
+				diskCid, disk.Status, alicloud.DiskStatusAvailable)
 		}
-	case ecs.DiskStatusDetaching:
-		_, err = a.disks.WaitForDiskStatus(diskCid, ecs.DiskStatusAvailable)
+	case alicloud.DiskStatusDetaching:
+		_, err = a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable)
 		if err != nil {
 			return a.WrapErrorf(err, "DeleteDisk %s waiting status from %s to %s failed",
-				diskCid, disk.Status, ecs.DiskStatusAvailable)
+				diskCid, disk.Status, alicloud.DiskStatusAvailable)
 		}
 	default:
 		return a.Errorf("DeleteDisk %s unexpected status %s", diskCid, disk.Status)
