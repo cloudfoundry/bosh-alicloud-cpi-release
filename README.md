@@ -23,6 +23,22 @@ $ source .envrc
 $ make
 $ bosh create-release --force --tarball=../bosh-alicloud-cpi.tgz
 ```
+### Latest Version (v18)
+
+At present, alibaba cloud the lastet cpi release is stored in the OSS. You can reference this release in your deployment manifest from the releases section:
+```
+- name: bosh-alicloud-cpi
+  version: 18
+  url: http://bosh-((region)).oss-((region)).aliyuncs.com/bosh-alicloud-cpi-release-r18.tgz
+  sha1: 2e36b60f99e51fe2dd4e7ea021bf3ecce883487c
+```
+Or upload it to your director with the upload-release command:
+```
+bosh upload-release --sha1 2e36b60f99e51fe2dd4e7ea021bf3ecce883487c \
+  http://bosh-((region)).oss-((region)).aliyuncs.com/bosh-alicloud-cpi-release-r18.tgz
+```
+
+**-> Note:** If region is in China mainland, its download url is unified as: `http://bosh.oss-cn-hangzhou.aliyuncs.com/bosh-alicloud-cpi-release-r18.tgz`.
 
 ## Usage
 
