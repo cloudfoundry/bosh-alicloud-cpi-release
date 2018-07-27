@@ -10,18 +10,23 @@ templates:
   config/cpi.json.erb: config/cpi.json
 
 properties:
-  alicloud.region_id:
-    description: "Alibaba Cloud owned regions, such as ap-southeast-1, cn-qingdao"
-    default: "cn-beijing"
-  alicloud.zone_id:
-    description: "Alicloud Cloud default zone, every region has zones"
-    default: "cn-beijing-a"
+  alicloud.region:
+    description: "Alibaba Cloud owned regions, such as ap-southeast-1, cn-qingdao. Default to `DEFAULT_REGION`."
+    default: $DEFAULT_REGION
+  alicloud.availability_zone:
+    description: "Alicloud Cloud default zone, each region has several zones."
   alicloud.access_key_id:
-    description: "Alicloud Cloud `Access key id`"
-    default: "${ACCESS_KEY_ID}"
+    description: "Alicloud Cloud `Access key id`. Default to env `ACCESS_KEY_ID`."
+    default: $ACCESS_KEY_ID
   alicloud.access_key_secret:
-    description: "Alicloud Cloud `Access key secret`"
-    default: "${ACCESS_KEY_SECRET}"
+    description: "Alicloud Cloud `Access key secret`. Default to env `ACCESS_KEY_SECRET`."
+    default: $ACCESS_KEY_SECRET
+  alicloud.security_token:
+    description: "Alicloud Cloud STS token. Default to env `SECURITY_TOKEN`."
+    default: $SECURITY_TOKEN
+  alicloud.encrypted:
+    description: "Whether to encrypt alibaba cloud disk. Default to `false`."
+    default: false
 
   registry.username:
     description: "User to access the Registry"
@@ -46,18 +51,18 @@ properties:
     description: Provider of the blobstore used by director and agent (dav|simple|s3)
     default: 'dav'
   blobstore.bucket_name:
-    description: AWS S3 Bucket used by s3 blobstore plugin
+    description: Alibaba Cloud OSS or AWS S3 Bucket used by s3 blobstore plugin
   blobstore.credentials_source:
     description: Where to get AWS credentials for the aws cpi. This can be set to `static` for to use an `access_key_id` and `secret_access_key` or `env_or_profile` to get the credentials from environment variables or an EC2 instance profile.
     default: 'static'
   blobstore.access_key_id:
-    description: AWS access_key_id used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
+    description: Alibaba Cloud or AWS access_key_id used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
     default: null
   blobstore.secret_access_key:
-    description: AWS secret_access_key used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
+    description: Alibaba Cloud or AWS secret_access_key used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
     default: null
   blobstore.s3_region:
-    description: AWS region used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
+    description: Alibaba Cloud or AWS region used by s3 blobstore plugin (Required when blobstore.credentials_source is set to `static`)
   blobstore.use_ssl:
     description: Whether the s3 blobstore plugin should use SSL to connect to the blobstore server
     default: true

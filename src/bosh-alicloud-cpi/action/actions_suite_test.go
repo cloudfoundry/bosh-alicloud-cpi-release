@@ -27,8 +27,8 @@ var configForTest = []byte(`{
         "plugin": "alicloud",
         "properties": {
             "alicloud": {
-                "region_id": "cn-beijing",
-				"zone_id": "cn-beijing-a",
+                "region": "cn-beijing",
+				"availability_zone": "cn-beijing-a",
                 "access_key_id": "---",
                 "access_key_secret": "---"
             },

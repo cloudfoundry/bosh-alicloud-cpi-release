@@ -121,7 +121,7 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 	switch {
 	case len(props.Images) > 0:
 		// find stemcell from manifest.MF
-		stemcellId, err = props.FindStemcellId(a.Config.OpenApi.RegionId)
+		stemcellId, err = props.FindStemcellId(a.Config.OpenApi.GetRegion(""))
 	case props.OSSBucket != "" && props.OSSObject != "":
 		stemcellId, err = a.CreateFromURL(props)
 	default:
@@ -146,16 +146,16 @@ func (a CreateStemcellMethod) CreateFromURL(props StemcellProps) (string, error)
 
 func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	var device ecs.ImportImageDiskDeviceMapping
-	device.Format = string(props.DiskFormat)
+	device.Format = strings.ToUpper(props.DiskFormat)
 	device.OSSBucket = props.OSSBucket
 	device.OSSObject = props.OSSObject
 	device.DiskImageSize = strconv.Itoa(props.GetDiskGB())
 
 	args := ecs.CreateImportImageRequest()
-	args.RegionId = a.Config.OpenApi.GetRegion()
 	args.ImageName = a.getUUIDName(props)
 	args.Architecture = getValueOrDefault("Architecture", &props, alicloud.AlicloudDefaultImageArchitecture)
-	args.OSType = getValueOrDefault("OsType", &props, alicloud.AlicloudDefaultImageOSType)
+	// OS type valid values: linux and windows
+	args.OSType = strings.ToLower(getValueOrDefault("OsType", &props, alicloud.AlicloudDefaultImageOSType))
 	args.Platform = props.OsDistro
 	args.Description = props.Description
 

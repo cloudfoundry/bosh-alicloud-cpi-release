@@ -176,16 +176,20 @@ func (a DiskInfo) GetPath() string {
 	return a.path
 }
 
-func (a Disks) FillCreateInstanceArgs(args *ecs.CreateInstanceRequest) {
+func (a Disks) FillCreateInstanceArgs(golbalEncrypt bool, args *ecs.CreateInstanceRequest) {
 	args.SystemDiskSize = requests.NewInteger(a.SystemDisk.sizeGB)
 	args.SystemDiskCategory = string(a.SystemDisk.ecsCategory)
 
+	encrypt := a.EphemeralDisk.Encrypted
+	if &encrypt == nil {
+		encrypt = golbalEncrypt
+	}
 	if a.EphemeralDisk.sizeGB > 0 {
 		var disks []ecs.CreateInstanceDataDisk
 		disks = append(disks, ecs.CreateInstanceDataDisk{
 			Size:               strconv.Itoa(a.EphemeralDisk.sizeGB),
 			Category:           string(a.EphemeralDisk.GetCategory()),
-			Encrypted:          strconv.FormatBool(a.EphemeralDisk.Encrypted),
+			Encrypted:          strconv.FormatBool(encrypt),
 			DeleteWithInstance: strconv.FormatBool(a.EphemeralDisk.DeleteWithInstance),
 		})
 		args.DataDisk = &disks

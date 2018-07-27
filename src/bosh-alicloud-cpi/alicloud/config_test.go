@@ -20,9 +20,8 @@ var _ = Describe("LoadConfig from Json", func() {
 				"plugin": "alicloud",
 				"properties": {
 					"alicloud": {
-						"region_id": "cn-beijing",
-						"zone_id": "cn-beijing-a",
-						"endpoint": "cn-zhangjiakou.aliyuncs.com",
+						"region": "cn-beijing",
+						"availability_zone": "cn-beijing-a",
 						"access_key_id": "${ACCESS_KEY_ID}",
 						"access_key_secret": "${ACCESS_KEY_SECRET}"
 					},
@@ -70,18 +69,4 @@ var _ = Describe("LoadConfig from Json", func() {
 		s2 := `{"registry":{"endpoint":"http://registry:registry-password@10.0.0.2:6901"}}`
 		Expect(s2).To(Equal(s1.ToInstanceUserData()))
 	})
-
-	//It("", )
-	//
-	//It("loading from JSON", func() {
-	//	Context("when the JSON parses succesfully", func() {
-	//		It("should populate the fields correctly", func() {
-	//			Expect(config.OpenApi.RegionId).To(Equal("cn-beijing"))
-	//		})
-	//
-	//		It("should not error", func() {
-	//			Expect(err).NotTo(HaveOccurred())
-	//		})
-	//	})
-	//})
 })

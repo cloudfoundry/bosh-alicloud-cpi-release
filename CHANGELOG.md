@@ -2,6 +2,14 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r19]
+
+- New instance field region to support crossing region deployment. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
+- Deprecate global parameter region_id and use region instead. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
+- Deprecate global parameter zone_id and use availability_zone instead. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
+- Add global parameter 'encrypted' to support disk encryption. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
+- Add global parameter 'security_token' to support STS token. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
+
 ## [r18]
 
 - Support instance new field charge_period_unit. ([#33](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/33))

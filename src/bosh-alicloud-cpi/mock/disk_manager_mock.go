@@ -6,6 +6,7 @@ package mock
 import (
 	"bosh-alicloud-cpi/alicloud"
 	"fmt"
+	"strconv"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
@@ -41,7 +42,11 @@ func (a DiskManagerMock) GetDisk(diskCid string) (*ecs.Disk, error) {
 }
 
 func (a DiskManagerMock) CreateDisk(args ecs.CreateDiskRequest) (string, error) {
-	if args.Size < 5 || args.Size > MaxDiskSizeGB {
+	size, err := strconv.Atoi(string(args.Size))
+	if err != nil {
+		return "", fmt.Errorf("convert size %s got an error: %#v.", args.Size, err)
+	}
+	if size < 5 || size > MaxDiskSizeGB {
 		return "", fmt.Errorf("CreateDisk size too small or large %d", args.Size)
 	}
 	if args.ZoneId == "" {
@@ -51,10 +56,10 @@ func (a DiskManagerMock) CreateDisk(args ecs.CreateDiskRequest) (string, error) 
 		return "", fmt.Errorf("CreateDisk category empty")
 	}
 	id, d := a.mc.NewDisk("")
-	d.Size = args.Size
+	d.Size = size
 	d.RegionId = args.RegionId
 	d.ZoneId = args.ZoneId
-	d.Status = ecs.DiskStatusAvailable
+	d.Status = string(alicloud.DiskStatusAvailable)
 	d.Category = args.DiskCategory
 	return id, nil
 }
@@ -74,7 +79,7 @@ func (a DiskManagerMock) AttachDisk(instCid string, diskCid string) error {
 		return fmt.Errorf("AttachDisk disk not exists id=%s", diskCid)
 	}
 
-	if disk.Status != ecs.DiskStatusAvailable {
+	if disk.Status != string(alicloud.DiskStatusAvailable) {
 		return fmt.Errorf("AttachDisk unexcepted Disk.Status: %s", disk.Status)
 	}
 
@@ -83,7 +88,7 @@ func (a DiskManagerMock) AttachDisk(instCid string, diskCid string) error {
 	}
 
 	disk.InstanceId = instCid
-	disk.Status = ecs.DiskStatusInUse
+	disk.Status = string(alicloud.DiskStatusInUse)
 	return nil
 }
 
@@ -93,7 +98,7 @@ func (a DiskManagerMock) DetachDisk(instCid string, diskCid string) error {
 		return fmt.Errorf("DetachDisk disk not exists id=%s", diskCid)
 	}
 
-	if disk.Status != ecs.DiskStatusInUse {
+	if disk.Status != string(alicloud.DiskStatusInUse) {
 		return fmt.Errorf("DetachDisk unexcepted Disk.Status: %s", disk.Status)
 	}
 
@@ -102,7 +107,7 @@ func (a DiskManagerMock) DetachDisk(instCid string, diskCid string) error {
 	}
 
 	disk.InstanceId = ""
-	disk.Status = ecs.DiskStatusAvailable
+	disk.Status = string(alicloud.DiskStatusAvailable)
 	return nil
 }
 
@@ -150,18 +155,18 @@ func (a DiskManagerMock) DeleteSnapshot(snapshotCid string) error {
 	return nil
 }
 
-func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus ecs.DiskStatus) (string, error) {
+func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus alicloud.DiskStatus) (string, error) {
 	disk, ok := a.mc.Disks[diskCid]
 	if !ok {
 		return "", fmt.Errorf("WaitForDiskStatus disk not exists id=%s", diskCid)
 	}
-	if disk.Status != toStatus {
+	if disk.Status != string(toStatus) {
 		return "", fmt.Errorf("WaitForDiskStatus %s disk.Status expect %s but get %s", diskCid, toStatus, disk.Status)
 	}
 	return disk.Device, nil
 }
 
-func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus ecs.DiskStatus, checkFunc func(*ecs.DiskItemType) (bool, error)) error {
+func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus alicloud.DiskStatus, checkFunc func(disk *ecs.Disk) (bool, error)) error {
 	disk, err := a.GetDisk(cid)
 	if err != nil {
 		return err
@@ -185,7 +190,7 @@ func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus ecs.DiskStatus, c
 	}
 
 	status := disk.Status
-	if status == toStatus {
+	if status == string(toStatus) {
 		return nil
 	} else {
 		return fmt.Errorf("<MOCK> expect instance %s status is %s but get %s", cid, toStatus, status)

@@ -48,9 +48,6 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	}
 
 	err := a.disks.ChangeDiskStatus(diskCid, alicloud.DiskStatusInUse, func(disk *ecs.Disk) (bool, error) {
-		if disk == nil {
-			return false, fmt.Errorf("missing disk %s", diskCid)
-		}
 		switch alicloud.DiskStatus(disk.Status) {
 		case alicloud.DiskStatusInUse:
 			device = alicloud.AmendDiskPath(disk.Device, alicloud.DiskCategory(disk.Category))

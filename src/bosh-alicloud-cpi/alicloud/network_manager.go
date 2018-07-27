@@ -16,13 +16,13 @@ import (
 )
 
 type NetworkManager interface {
-	DescribeEip(eip string) (ecs.EipAddressInDescribeEipAddresses, error)
-	BindEip(instanceId string, eip string) error
-	WaitForEipStatus(eip string, toStatus EipStatus) error
+	DescribeEip(region, eip string) (ecs.EipAddressInDescribeEipAddresses, error)
+	BindEip(region, instanceId, eip string) error
+	WaitForEipStatus(region, eip string, toStatus EipStatus) error
 
-	BindSLB(instanceId string, slbId string, weight int) error
-	DescribeSecurityGroupAttribute(groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error)
-	JoinSecurityGroup(instanceId string, groupId string) error
+	BindSLB(region, instanceId, slbId string, weight int) error
+	DescribeSecurityGroupAttribute(region, groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error)
+	JoinSecurityGroup(region, instanceId, groupId string) error
 }
 
 type NetworkManagerImpl struct {
@@ -51,8 +51,8 @@ func (a NetworkManagerImpl) log(action string, err error, args interface{}, resu
 	}
 }
 
-func (a NetworkManagerImpl) DescribeEip(eip string) (eipAddress ecs.EipAddressInDescribeEipAddresses, err error) {
-	client, err := a.config.NewEcsClient()
+func (a NetworkManagerImpl) DescribeEip(region, eip string) (eipAddress ecs.EipAddressInDescribeEipAddresses, err error) {
+	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return
 	}
@@ -60,7 +60,6 @@ func (a NetworkManagerImpl) DescribeEip(eip string) (eipAddress ecs.EipAddressIn
 
 	args := ecs.CreateDescribeEipAddressesRequest()
 	args.EipAddress = eip
-	args.RegionId = a.config.OpenApi.GetRegion()
 
 	err = invoker.Run(func() error {
 		r, err := client.DescribeEipAddresses(args)
@@ -80,8 +79,8 @@ func (a NetworkManagerImpl) DescribeEip(eip string) (eipAddress ecs.EipAddressIn
 	return
 }
 
-func (a NetworkManagerImpl) BindEip(instanceId string, eip string) error {
-	eipAddress, err := a.DescribeEip(eip)
+func (a NetworkManagerImpl) BindEip(region, instanceId, eip string) error {
+	eipAddress, err := a.DescribeEip(region, eip)
 
 	if err != nil {
 		return bosherr.WrapErrorf(err, "DescribeEip(%s) failed", eip)
@@ -91,7 +90,7 @@ func (a NetworkManagerImpl) BindEip(instanceId string, eip string) error {
 		return bosherr.WrapErrorf(err, "BindEip(%s) status %s failed", eip, eipAddress.Status)
 	}
 
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return err
 	}
@@ -103,7 +102,6 @@ func (a NetworkManagerImpl) BindEip(instanceId string, eip string) error {
 	if strings.HasPrefix(instanceId, "i-") {
 		args.InstanceType = "EcsInstance"
 	}
-	args.RegionId = a.config.OpenApi.GetRegion()
 
 	err = invoker.Run(func() error {
 		_, e := client.AssociateEipAddress(args)
@@ -115,7 +113,7 @@ func (a NetworkManagerImpl) BindEip(instanceId string, eip string) error {
 		return bosherr.WrapErrorf(err, "AssociateEipAddress %s to %s failed", eip, instanceId)
 	}
 
-	err = a.WaitForEipStatus(eip, EipStatusInUse)
+	err = a.WaitForEipStatus(region, eip, EipStatusInUse)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "WaitForEipStatus %s to InUse failed", eip)
 	}
@@ -123,10 +121,10 @@ func (a NetworkManagerImpl) BindEip(instanceId string, eip string) error {
 	return nil
 }
 
-func (a NetworkManagerImpl) WaitForEipStatus(eip string, toStatus EipStatus) error {
+func (a NetworkManagerImpl) WaitForEipStatus(region, eip string, toStatus EipStatus) error {
 	invoker := NewInvoker()
 	ok, err := invoker.RunUntil(WaitTimeout, WaitInterval, func() (bool, error) {
-		r, e := a.DescribeEip(eip)
+		r, e := a.DescribeEip(region, eip)
 		a.log("WaitForEipStatus", e, r.Status, "")
 		return EipStatus(r.Status) == toStatus, e
 	})
@@ -143,8 +141,8 @@ func (a NetworkManagerImpl) WaitForEipStatus(eip string, toStatus EipStatus) err
 
 //
 // TODO: add retry
-func (a NetworkManagerImpl) BindSLB(instanceId string, slbId string, weight int) error {
-	client, err := a.config.NewSlbClient()
+func (a NetworkManagerImpl) BindSLB(region, instanceId string, slbId string, weight int) error {
+	client, err := a.config.NewSlbClient(region)
 	if err != nil {
 		return err
 	}
@@ -157,7 +155,6 @@ func (a NetworkManagerImpl) BindSLB(instanceId string, slbId string, weight int)
 		{ServerId: instanceId, Weight: weight},
 	})
 	args := slb.CreateAddBackendServersRequest()
-	args.RegionId = a.config.OpenApi.GetRegion()
 	args.LoadBalancerId = slbId
 	args.BackendServers = string(bytes)
 
@@ -172,8 +169,8 @@ func (a NetworkManagerImpl) BindSLB(instanceId string, slbId string, weight int)
 	return err
 }
 
-func (a NetworkManagerImpl) DescribeSecurityGroupAttribute(groupId string) (group ecs.DescribeSecurityGroupAttributeResponse, err error) {
-	client, err := a.config.NewEcsClient()
+func (a NetworkManagerImpl) DescribeSecurityGroupAttribute(region, groupId string) (group ecs.DescribeSecurityGroupAttributeResponse, err error) {
+	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return
 	}
@@ -181,7 +178,6 @@ func (a NetworkManagerImpl) DescribeSecurityGroupAttribute(groupId string) (grou
 
 	args := ecs.CreateDescribeSecurityGroupAttributeRequest()
 	args.SecurityGroupId = groupId
-	args.RegionId = a.config.OpenApi.GetRegion()
 
 	err = invoker.Run(func() error {
 		r, err := client.DescribeSecurityGroupAttribute(args)
@@ -197,12 +193,12 @@ func (a NetworkManagerImpl) DescribeSecurityGroupAttribute(groupId string) (grou
 	return
 }
 
-func (a NetworkManagerImpl) JoinSecurityGroup(instanceId string, groupId string) error {
-	if _, err := a.DescribeSecurityGroupAttribute(groupId); err != nil {
+func (a NetworkManagerImpl) JoinSecurityGroup(region, instanceId, groupId string) error {
+	if _, err := a.DescribeSecurityGroupAttribute(region, groupId); err != nil {
 		return bosherr.WrapErrorf(err, "DescribeSecurityGroupAttribute(%s) failed", groupId)
 	}
 
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return err
 	}
