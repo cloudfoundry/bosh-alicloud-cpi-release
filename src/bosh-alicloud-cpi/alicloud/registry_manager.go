@@ -36,13 +36,16 @@ func (a RegistryManager) Delete(instanceID string) error {
 
 func (a RegistryManager) Fetch(instanceID string) (registry.AgentSettings, error) {
 	var settings registry.AgentSettings
-	client, err := a.config.NewEcsClient()
+	region, err := a.config.GetInstanceRegion(instanceID)
+	if err != nil {
+		return settings, err
+	}
+	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return settings, err
 	}
 
 	args := ecs.CreateDescribeUserDataRequest()
-	args.RegionId = a.config.OpenApi.GetRegion()
 	args.InstanceId = instanceID
 
 	r, err := client.DescribeUserData(args)
@@ -74,7 +77,11 @@ func (a RegistryManager) Update(instanceID string, settings registry.AgentSettin
 }
 
 func (a RegistryManager) updateUserData(instanceID string, data []byte) error {
-	client, err := a.config.NewEcsClient()
+	region, err := a.config.GetInstanceRegion(instanceID)
+	if err != nil {
+		return err
+	}
+	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return err
 	}

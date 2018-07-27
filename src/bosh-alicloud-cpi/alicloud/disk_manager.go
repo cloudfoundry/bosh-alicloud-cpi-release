@@ -26,14 +26,14 @@ type DiskManager interface {
 	GetDisks(instCid string) ([]ecs.Disk, error)
 	GetDisk(diskCid string) (*ecs.Disk, error)
 
-	CreateDisk(args *ecs.CreateDiskRequest) (string, error)
+	CreateDisk(region string, args *ecs.CreateDiskRequest) (string, error)
 	DeleteDisk(diskCid string) error
 
-	AttachDisk(instCid string, diskCid string) error
-	DetachDisk(instCid string, diskCid string) error
+	AttachDisk(instCid, diskCid string) error
+	DetachDisk(instCid, diskCid string) error
 
 	ResizeDisk(diskCid string, sizeGB int) error
-	ModifyDiskAttribute(diskCid string, name string, description string) error
+	ModifyDiskAttribute(diskCid, name, description string) error
 
 	CreateSnapshot(diskCid string, snapshotName string) (string, error)
 	DeleteSnapshot(snapshotCid string) error
@@ -54,7 +54,7 @@ func NewDiskManager(config Config, logger boshlog.Logger) DiskManager {
 	return DiskManagerImpl{
 		config: config,
 		logger: logger,
-		region: config.OpenApi.RegionId,
+		region: config.OpenApi.GetRegion(""),
 	}
 }
 
@@ -68,12 +68,15 @@ func (a DiskManagerImpl) log(action string, err error, args interface{}, result 
 }
 
 func (a DiskManagerImpl) GetDisks(instCid string) (disks []ecs.Disk, err error) {
-	client, err := a.config.NewEcsClient()
+	region, err := a.config.GetInstanceRegion(instCid)
+	if err != nil {
+		return
+	}
+	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return
 	}
 	args := ecs.CreateDescribeDisksRequest()
-	args.RegionId = a.config.OpenApi.RegionId
 	args.InstanceId = instCid
 
 	invoker := NewInvoker()
@@ -87,39 +90,46 @@ func (a DiskManagerImpl) GetDisks(instCid string) (disks []ecs.Disk, err error) 
 	return
 }
 
-func (a DiskManagerImpl) GetDisk(diskCid string) (*ecs.Disk, error) {
-	client, err := a.config.NewEcsClient()
+func (a DiskManagerImpl) GetDisk(diskCid string) (disk *ecs.Disk, err error) {
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return nil, err
 	}
-	args := ecs.CreateDescribeDisksRequest()
-	args.RegionId = a.config.OpenApi.RegionId
-	bytes, _ := json.Marshal([]string{diskCid})
-	args.DiskIds = string(bytes)
 
-	invoker := NewInvoker()
-	var disks []ecs.Disk
-	err = invoker.Run(func() error {
-		r, e := client.DescribeDisks(args)
-		if r != nil {
-			disks = r.Disks.Disk
-		}
-		return e
-	})
+	disk, err = DescribeDisks(client, diskCid)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "GetDisk() Failed %s", args)
+		return
 	}
-	if len(disks) == 0 {
-		return nil, nil
+	if disk == nil {
+		regions, e := a.config.GetCrossRegions()
+		if e != nil {
+			return nil, e
+		}
+		if len(regions) <= 0 {
+			return
+		}
+		for _, region := range regions {
+			client, e := a.config.NewEcsClient(region)
+			if e != nil {
+				return nil, e
+			}
+			d, e := DescribeDisks(client, diskCid)
+			if e != nil {
+				return nil, e
+			}
+			if d != nil {
+				disk = d
+				return
+			}
+		}
 	}
-	return &disks[0], nil
+	return
 }
 
-func (a DiskManagerImpl) CreateDisk(args *ecs.CreateDiskRequest) (cid string, err error) {
-	args.RegionId = a.config.OpenApi.GetRegion()
+func (a DiskManagerImpl) CreateDisk(region string, args *ecs.CreateDiskRequest) (cid string, err error) {
 	args.ClientToken = uuid.New().String()
 
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return
 	}
@@ -136,7 +146,7 @@ func (a DiskManagerImpl) CreateDisk(args *ecs.CreateDiskRequest) (cid string, er
 }
 
 func (a DiskManagerImpl) DeleteDisk(diskCid string) error {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -145,7 +155,6 @@ func (a DiskManagerImpl) DeleteDisk(diskCid string) error {
 	invoker.AddCatcher(DeleteDiskCatcher)
 
 	args := ecs.CreateDeleteDiskRequest()
-	args.RegionId = a.config.OpenApi.RegionId
 	args.DiskId = diskCid
 
 	return invoker.Run(func() error {
@@ -156,7 +165,7 @@ func (a DiskManagerImpl) DeleteDisk(diskCid string) error {
 }
 
 func (a DiskManagerImpl) AttachDisk(instCid string, diskCid string) error {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -173,8 +182,8 @@ func (a DiskManagerImpl) AttachDisk(instCid string, diskCid string) error {
 	})
 }
 
-func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) error {
-	client, err := a.config.NewEcsClient()
+func (a DiskManagerImpl) DetachDisk(instCid, diskCid string) error {
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -191,7 +200,7 @@ func (a DiskManagerImpl) DetachDisk(instCid string, diskCid string) error {
 }
 
 func (a DiskManagerImpl) ResizeDisk(diskCid string, size int) error {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -208,8 +217,8 @@ func (a DiskManagerImpl) ResizeDisk(diskCid string, size int) error {
 	})
 }
 
-func (a DiskManagerImpl) ModifyDiskAttribute(diskCid string, name string, description string) error {
-	client, err := a.config.NewEcsClient()
+func (a DiskManagerImpl) ModifyDiskAttribute(diskCid, name, description string) error {
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -227,8 +236,8 @@ func (a DiskManagerImpl) ModifyDiskAttribute(diskCid string, name string, descri
 	})
 }
 
-func (a DiskManagerImpl) CreateSnapshot(diskCid string, snapshotName string) (snapshotId string, err error) {
-	client, err := a.config.NewEcsClient()
+func (a DiskManagerImpl) CreateSnapshot(diskCid, snapshotName string) (snapshotId string, err error) {
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return
 	}
@@ -252,7 +261,7 @@ func (a DiskManagerImpl) CreateSnapshot(diskCid string, snapshotName string) (sn
 }
 
 func (a DiskManagerImpl) DeleteSnapshot(snapshotCid string) error {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -323,6 +332,9 @@ func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus DiskStatus, check
 		if err != nil {
 			return fmt.Errorf("get disk %s status failed %s", cid, err.Error())
 		}
+		if disk == nil {
+			return fmt.Errorf("get disk %s failed and disk is nil", cid)
+		}
 
 		ok, err := checkFunc(disk)
 		status := "Deleted"
@@ -352,8 +364,7 @@ func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus DiskStatus, check
 
 func AmendDiskPath(path string, category DiskCategory) string {
 	//
-	// 如果非普通云盘，需要去除x字母，如: xvdb -> vdb
-	// if not normal Cloud need trim first x: xvdc -> vcd
+	// if not normal Cloud need trim first x, like: xvdc -> vdc
 	//
 	// cloud:
 	// cloud_efficiency:
@@ -366,4 +377,20 @@ func AmendDiskPath(path string, category DiskCategory) string {
 	}
 
 	return path
+}
+
+func DescribeDisks(client *ecs.Client, diskId string) (disk *ecs.Disk, err error) {
+	args := ecs.CreateDescribeDisksRequest()
+	bytes, _ := json.Marshal([]string{diskId})
+	args.DiskIds = string(bytes)
+
+	invoker := NewInvoker()
+	err = invoker.Run(func() error {
+		r, e := client.DescribeDisks(args)
+		if r != nil && len(r.Disks.Disk) > 0 {
+			disk = &r.Disks.Disk[0]
+		}
+		return e
+	})
+	return
 }

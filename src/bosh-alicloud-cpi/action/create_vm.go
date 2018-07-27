@@ -33,6 +33,7 @@ type InstanceProps struct {
 	EphemeralDisk DiskInfo `json:"ephemeral_disk"`
 	SystemDisk    DiskInfo `json:"system_disk"`
 
+	Region           string      `json:"region"`
 	AvailabilityZone string      `json:"availability_zone"`
 	InstanceName     string      `json:"instance_name"`
 	InstanceType     string      `json:"instance_type"`
@@ -49,6 +50,7 @@ type InstanceProps struct {
 	SpotStrategy     alicloud.SpotStrategyType `json:"spot_strategy"`
 	SpotPriceLimit   float64                   `json:"spot_price_limit"`
 	RamRoleName      string                    `json:"ram_role_name"`
+	StemcellId       string                    `json:"stemcell_id"`
 }
 
 type CreateVMMethod struct {
@@ -81,14 +83,12 @@ func (a CreateVMMethod) CreateVM(
 
 	cid := apiv1.VMCID{}
 
-	//
 	// convert registry env
 	registryEnv, err := registry.UnmarshalEnvSettings(env)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "unmarshal EnvSettings failed %v", env)
 	}
 
-	//
 	// convert CloudProps to alicloud dedicated Props
 	instProps := NewInstanceProps()
 	err = cloudProps.As(&instProps)
@@ -96,7 +96,10 @@ func (a CreateVMMethod) CreateVM(
 		return cid, a.WrapErrorf(err, "unmarshal instance cloud_properties failed %v", cloudProps)
 	}
 
-	//
+	// if cross region deployment, bosh region and stemcell id must be specified
+	if strings.TrimSpace(instProps.Region) != "" && strings.TrimSpace(instProps.StemcellId) == "" {
+		return cid, a.Errorf("'stemcell_id' must be specified when self-defined region is specified.")
+	}
 	// parse networks from networkArgs
 	networks, err := NewNetworks(networkArgs)
 	if err != nil {
@@ -108,18 +111,15 @@ func (a CreateVMMethod) CreateVM(
 		return cid, a.WrapErrorf(err, "fill instance network args failed and args: %v", networks.privateProps)
 	}
 
-	//
-	// assign zone
 	if instProps.AvailabilityZone != "" {
 		args.ZoneId = instProps.AvailabilityZone
 	} else {
-		args.ZoneId = a.Config.OpenApi.ZoneId
+		args.ZoneId = a.Config.OpenApi.GetAvailabilityZone()
 	}
 	if args.ZoneId == "" {
 		return cid, a.Errorf("can't get zone from availability_zone or cpi.config")
 	}
 
-	//
 	// config instance_type
 	args.InstanceType = instProps.InstanceType
 	if args.InstanceType == "" {
@@ -131,7 +131,6 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.VMCID{}, a.WrapErrorf(err, "invalid spot properties ")
 	}
 
-	//
 	// config vm charge type
 	if instProps.ChargeType == "PrePaid" {
 		args.InstanceChargeType = "PrePaid"
@@ -159,7 +158,6 @@ func (a CreateVMMethod) CreateVM(
 		return cid, a.Errorf("unexpected charge type %s", instProps.ChargeType)
 	}
 
-	//
 	// compare key pair or password
 	if len(strings.TrimSpace(instProps.KeyPairName)) > 0 {
 		args.KeyPairName = instProps.KeyPairName
@@ -167,9 +165,10 @@ func (a CreateVMMethod) CreateVM(
 		args.Password = instProps.Password
 	}
 
-	//
-	args.RegionId = a.Config.OpenApi.GetRegion()
 	args.ImageId = stemcellCID.AsString()
+	if instProps.StemcellId != "" {
+		args.ImageId = instProps.StemcellId
+	}
 	args.InstanceName = instProps.InstanceName
 	args.IoOptimized = "optimized"
 	if a.Config.Registry.ToInstanceUserData() != "" {
@@ -179,22 +178,21 @@ func (a CreateVMMethod) CreateVM(
 	args.SpotPriceLimit = requests.NewFloat(instProps.SpotPriceLimit)
 	args.RamRoleName = instProps.RamRoleName
 
-	//
 	// fill disks
 	disks, err := NewDisksWithProps(instProps.SystemDisk, instProps.EphemeralDisk)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "bad disks format, %v", instProps)
 	}
-	disks.FillCreateInstanceArgs(args)
-	//
+
+	disks.FillCreateInstanceArgs(a.Config.OpenApi.Encrypted, args)
+
 	// do CreateInstance !!!
-	instCid, err := a.instances.CreateInstance(args)
+	instCid, err := a.instances.CreateInstance(instProps.Region, args)
 	if err != nil {
 		req, _ := json.Marshal(args)
 		return apiv1.VMCID{}, a.WrapErrorf(err, "create instance failed with input=%s ", string(req))
 	}
 
-	//
 	// Wait for the instance status to STOPPED
 	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Stopped, func(status alicloud.InstanceStatus) (bool, error) {
 		switch status {
@@ -280,7 +278,7 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 				}
 			}
 			if !find {
-				if err := a.networks.JoinSecurityGroup(instCid, group); err != nil {
+				if err := a.networks.JoinSecurityGroup(instProps.Region, instCid, group); err != nil {
 					return a.WrapErrorf(err, "Instance %s JoinSecurityGroup %s failed.", instCid, group)
 				}
 			}
@@ -331,7 +329,7 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 	}
 
 	for _, eip := range networks.GetVips() {
-		err := a.networks.BindEip(instCid, eip)
+		err := a.networks.BindEip(instProps.Region, instCid, eip)
 		if err != nil {
 			return a.WrapErrorf(err, "bind eip %s to %s failed", eip, instCid)
 		}
@@ -345,7 +343,7 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 	}
 
 	for _, slb := range instProps.Slbs {
-		err := a.networks.BindSLB(instCid, slb, int(slbWeight))
+		err := a.networks.BindSLB(instProps.Region, instCid, slb, int(slbWeight))
 		if err != nil {
 			return a.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
 		}

@@ -2,6 +2,9 @@ package alicloud
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 )
 
 const (
@@ -9,7 +12,12 @@ const (
 	WaitForTimeout = "WaitForTimeout"
 	// ecs
 	InstanceNotFound = "Instance.Notfound"
+	//stemcell
+	ImageIsImporting = "ImageIsImporting"
 )
+
+var EcsInstanceNotFound = []string{"Instance.Notfound", "InvalidInstanceId.NotFound"}
+var ResourceNotFound = []string{"InvalidResourceId.NotFound"}
 
 // An Error represents a custom error for Terraform failure response
 type ProviderError struct {
@@ -49,4 +57,13 @@ func GetNotFoundMessage(product, id string) string {
 
 func GetTimeoutMessage(product, status string) string {
 	return fmt.Sprintf("Waitting for %s %s is timeout.", product, status)
+}
+
+func IsExceptedErrors(err error, expectCodes []string) bool {
+	for _, code := range expectCodes {
+		if e, ok := err.(*errors.ServerError); ok && (e.ErrorCode() == code || strings.Contains(e.Message(), code)) {
+			return true
+		}
+	}
+	return false
 }

@@ -3,8 +3,8 @@
     "plugin": "alicloud",
     "properties": {
       "alicloud": {
-        "region_id": "cn-beijing",
-        "zone_id": "cn-beijing-a",
+        "region": "cn-beijing",
+        "availability_zone": "cn-beijing-a",
         "access_key_id": "${ACCESS_KEY_ID}",
         "access_key_secret": "${ACCESS_KEY_SECRET}"
       },

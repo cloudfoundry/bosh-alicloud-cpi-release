@@ -28,9 +28,9 @@ const (
 )
 
 type InstanceManager interface {
-	GetInstance(cid string) (*ecs.Instance, error)
+	GetInstance(cid string) (*ecs.DescribeInstanceAttributeResponse, error)
 
-	CreateInstance(args *ecs.CreateInstanceRequest) (string, error)
+	CreateInstance(region string, args *ecs.CreateInstanceRequest) (string, error)
 	ModifyInstanceAttribute(cid string, name string, description string) error
 	AddTags(cid string, tags map[string]string) error
 
@@ -56,7 +56,7 @@ func NewInstanceManager(config Config, logger boshlog.Logger) InstanceManager {
 	return InstanceManagerImpl{
 		config: config,
 		logger: logger,
-		region: config.OpenApi.RegionId,
+		region: config.OpenApi.GetRegion(""),
 	}
 }
 
@@ -69,37 +69,30 @@ func (a InstanceManagerImpl) log(action string, err error, args interface{}, res
 	}
 }
 
-func (a InstanceManagerImpl) GetInstance(cid string) (*ecs.Instance, error) {
-	client, err := a.config.NewEcsClient()
+func (a InstanceManagerImpl) GetInstance(cid string) (inst *ecs.DescribeInstanceAttributeResponse, err error) {
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return nil, err
 	}
 
-	args := ecs.CreateDescribeInstancesRequest()
-	args.RegionId = a.region
-	args.InstanceIds = "[\"" + cid + "\"]"
+	args := ecs.CreateDescribeInstanceAttributeRequest()
+	args.InstanceId = cid
 
-	var insts *ecs.DescribeInstancesResponse
 	invoker := NewInvoker()
 	err = invoker.Run(func() error {
-		r, e := client.DescribeInstances(args)
-		insts = r
+		r, e := client.DescribeInstanceAttribute(args)
+		if e != nil && IsExceptedErrors(e, EcsInstanceNotFound) {
+			return nil
+		}
+		inst = r
 		return e
 	})
 
-	if err != nil {
-		return nil, err
-	}
-
-	if insts == nil || len(insts.Instances.Instance) <= 0 {
-		return nil, nil
-	}
-
-	return &insts.Instances.Instance[0], nil
+	return
 }
 
-func (a InstanceManagerImpl) CreateInstance(args *ecs.CreateInstanceRequest) (string, error) {
-	client, err := a.config.NewEcsClient()
+func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInstanceRequest) (string, error) {
+	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return "", err
 	}
@@ -109,7 +102,6 @@ func (a InstanceManagerImpl) CreateInstance(args *ecs.CreateInstanceRequest) (st
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
 	invoker.AddCatcher(CreateInstanceCatcher_TokenProcessing)
 
-	args.RegionId = a.config.OpenApi.GetRegion()
 	token := strings.Replace(fmt.Sprintf("bosh-cpi-%s-%s", time.Now().String(), uuid.New().String()), " ", "", -1)
 	args.ClientToken = token
 	if len(token) > 64 {
@@ -127,8 +119,8 @@ func (a InstanceManagerImpl) CreateInstance(args *ecs.CreateInstanceRequest) (st
 	return cid, err
 }
 
-func (a InstanceManagerImpl) ModifyInstanceAttribute(cid string, name string, description string) error {
-	client, err := a.config.NewEcsClient()
+func (a InstanceManagerImpl) ModifyInstanceAttribute(cid, name, description string) error {
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -141,13 +133,13 @@ func (a InstanceManagerImpl) ModifyInstanceAttribute(cid string, name string, de
 	invoker := NewInvoker()
 	return invoker.Run(func() error {
 		_, e := client.ModifyInstanceAttribute(args)
-		a.log("ModifyInstanceAttributes", e, args, "ok")
+		a.log("ModifyInstanceAttribute", e, args, "ok")
 		return e
 	})
 }
 
 func (a InstanceManagerImpl) DeleteInstance(cid string) error {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -161,12 +153,15 @@ func (a InstanceManagerImpl) DeleteInstance(cid string) error {
 	return invoker.Run(func() error {
 		_, e := client.DeleteInstance(args)
 		a.log("DeleteInstance", e, cid, "ok")
+		if e != nil && IsExceptedErrors(e, EcsInstanceNotFound) {
+			return nil
+		}
 		return e
 	})
 }
 
 func (a InstanceManagerImpl) StartInstance(cid string) error {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -184,7 +179,7 @@ func (a InstanceManagerImpl) StartInstance(cid string) error {
 }
 
 func (a InstanceManagerImpl) StopInstance(cid string) error {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -203,7 +198,7 @@ func (a InstanceManagerImpl) StopInstance(cid string) error {
 }
 
 func (a InstanceManagerImpl) RebootInstance(cid string) error {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
@@ -222,50 +217,67 @@ func (a InstanceManagerImpl) RebootInstance(cid string) error {
 }
 
 func (a InstanceManagerImpl) AddTags(cid string, tags map[string]string) error {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
 
-	args := ecs.CreateAddTagsRequest()
-	args.RegionId = a.config.OpenApi.GetRegion()
-	args.ResourceId = cid
-	count := 1
-	for k, v := range tags {
-		switch count {
-
-		case 1:
-			args.Tag1Key = k
-			args.Tag1Value = v
-		case 2:
-			args.Tag2Key = k
-			args.Tag2Value = v
-		case 3:
-			args.Tag3Key = k
-			args.Tag3Value = v
-		case 4:
-			args.Tag4Key = k
-			args.Tag4Value = v
-		case 5:
-			args.Tag4Key = k
-			args.Tag4Value = v
-		default:
-			break
-		}
-		count++
-	}
-
-	if strings.HasPrefix(cid, "i-") {
-		args.ResourceType = string(TagResourceInstance)
-	} else if strings.HasPrefix(cid, "d-") {
-		args.ResourceType = string(TagResourceDisk)
-	} else {
-		return fmt.Errorf("unexpect resource type id=%s", cid)
-	}
+	//args := ecs.CreateAddTagsRequest()
+	//args.ResourceId = cid
+	//count := 1
+	//for k, v := range tags {
+	//	switch count {
+	//
+	//	case 1:
+	//		args.Tag1Key = k
+	//		args.Tag1Value = v
+	//	case 2:
+	//		args.Tag2Key = k
+	//		args.Tag2Value = v
+	//	case 3:
+	//		args.Tag3Key = k
+	//		args.Tag3Value = v
+	//	case 4:
+	//		args.Tag4Key = k
+	//		args.Tag4Value = v
+	//	case 5:
+	//		args.Tag4Key = k
+	//		args.Tag4Value = v
+	//	default:
+	//		break
+	//	}
+	//	count++
+	//}
+	//
+	//if strings.HasPrefix(cid, "i-") {
+	//	args.ResourceType = string(TagResourceInstance)
+	//} else if strings.HasPrefix(cid, "d-") {
+	//	args.ResourceType = string(TagResourceDisk)
+	//} else {
+	//	return fmt.Errorf("unexpect resource type id=%s", cid)
+	//}
 
 	invoker := NewInvoker()
 	return invoker.Run(func() error {
-		_, err := client.AddTags(args)
+		_, err := client.AddTags(getTagsRequest(cid, tags))
+		if err != nil && IsExceptedErrors(err, ResourceNotFound) {
+			regions, e := a.config.GetCrossRegions()
+			if e != nil {
+				return e
+			}
+			if len(regions) > 0 {
+				for _, r := range regions {
+					client, e := a.config.NewEcsClient(r)
+					if e != nil {
+						return e
+					}
+					if _, e = client.AddTags(getTagsRequest(cid, tags)); e != nil && IsExceptedErrors(e, ResourceNotFound) {
+						continue
+					}
+					return e
+				}
+			}
+		}
 		return err
 	})
 }
@@ -342,4 +354,41 @@ func (a InstanceManagerImpl) GetInstanceUserData() {
 	//client.
 	// inst, err := client.DescribeUserdata()
 	// inst.
+}
+
+func getTagsRequest(cid string, tags map[string]string) *ecs.AddTagsRequest {
+	args := ecs.CreateAddTagsRequest()
+	args.ResourceId = cid
+	count := 1
+	for k, v := range tags {
+		switch count {
+
+		case 1:
+			args.Tag1Key = k
+			args.Tag1Value = v
+		case 2:
+			args.Tag2Key = k
+			args.Tag2Value = v
+		case 3:
+			args.Tag3Key = k
+			args.Tag3Value = v
+		case 4:
+			args.Tag4Key = k
+			args.Tag4Value = v
+		case 5:
+			args.Tag4Key = k
+			args.Tag4Value = v
+		default:
+			break
+		}
+		count++
+	}
+
+	if strings.HasPrefix(cid, "i-") {
+		args.ResourceType = string(TagResourceInstance)
+	} else if strings.HasPrefix(cid, "d-") {
+		args.ResourceType = string(TagResourceDisk)
+	}
+	return args
+
 }

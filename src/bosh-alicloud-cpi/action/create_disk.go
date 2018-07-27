@@ -52,8 +52,12 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid
 	args.ZoneId = inst.ZoneId
 	args.Size = requests.NewInteger(disk.GetSizeGB())
 	args.DiskCategory = string(disk.GetCategory())
-	args.Encrypted = requests.NewBoolean(disk.Encrypted)
-	diskCid, err := a.disks.CreateDisk(args)
+	encrypt := disk.Encrypted
+	if &encrypt == nil {
+		encrypt = a.Config.OpenApi.Encrypted
+	}
+	args.Encrypted = requests.NewBoolean(encrypt)
+	diskCid, err := a.disks.CreateDisk(inst.RegionId, args)
 
 	if err != nil {
 		return cid, a.WrapError(err, "create_disk failed")

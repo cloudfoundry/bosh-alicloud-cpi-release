@@ -4,10 +4,12 @@
       "plugin" => "alicloud",
       "properties" => {
         "alicloud" => {
-          "region_id" => p("alicloud.region_id"),
-          "zone_id" => p("alicloud.zone_id"),
+          "region" => p("alicloud.region"),
+          "availability_zone" => p("alicloud.availability_zone"),
           "access_key_id" => p("alicloud.access_key_id"),
           "access_key_secret" => p("alicloud.access_key_secret"),
+          "security_token" => p("alicloud.security_token"),
+          "encrypted" => p("alicloud.encrypted"),
         },
         "registry" => {
           "user" => p("registry.username"),

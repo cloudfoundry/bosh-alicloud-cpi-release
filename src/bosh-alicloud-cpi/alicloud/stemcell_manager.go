@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	aliclouderr "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -41,7 +42,7 @@ func NewStemcellManager(config Config, logger boshlog.Logger) StemcellManager {
 	return StemcellManagerImpl{
 		config: config,
 		logger: logger,
-		region: config.OpenApi.RegionId,
+		region: config.OpenApi.GetRegion(""),
 	}
 }
 
@@ -55,14 +56,13 @@ func (a StemcellManagerImpl) log(action string, err error, args interface{}, res
 }
 
 func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.Image, error) {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return nil, err
 	}
 	a.logger.Debug(AlicloudImageServiceTag, "Finding Alicloud Image '%s'", id)
 
 	args := ecs.CreateDescribeImagesRequest()
-	args.RegionId = a.config.OpenApi.GetRegion()
 	args.ImageId = id
 
 	images, err := client.DescribeImages(args)
@@ -89,12 +89,11 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 	}
 
 	a.logger.Debug(AlicloudImageServiceTag, "Deleting Alicloud Image '%s'", id)
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return err
 	}
 	args := ecs.CreateDeleteImageRequest()
-	args.RegionId = a.config.OpenApi.GetRegion()
 	args.ImageId = id
 	_, err = client.DeleteImage(args)
 
@@ -106,16 +105,22 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 }
 
 func (a StemcellManagerImpl) ImportImage(args *ecs.ImportImageRequest) (string, error) {
-	client, err := a.config.NewEcsClient()
+	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return "", err
 	}
 
-	args.RegionId = a.config.OpenApi.GetRegion()
-
 	resp, err := client.ImportImage(args)
-	if err != nil || resp == nil {
+	if err != nil {
+		if e, ok := err.(*aliclouderr.ServerError); ok && e.ErrorCode() == ImageIsImporting {
+			if resp != nil {
+				return resp.ImageId, nil
+			}
+		}
 		return "", bosherr.WrapErrorf(err, "Failed to import Alicloud Image in '%s'.", args.RegionId)
+	}
+	if resp == nil {
+		return "", bosherr.WrapErrorf(err, "Failed to import Alicloud Image in '%s' and ImportImage result is '%#v'.", args.RegionId, resp)
 	}
 	a.log("Importing Image", err, args, resp.ImageId)
 	return resp.ImageId, err
@@ -128,7 +133,7 @@ func (a StemcellManagerImpl) OpenLocalFile(path string) (*os.File, error) {
 // import image from oss may take >=15min
 // we set timeout value to 30min, if needed turn it up
 func (a StemcellManagerImpl) WaitForImageReady(id string) error {
-	region := a.config.OpenApi.GetRegion()
+	region := a.config.OpenApi.GetRegion("")
 	return a.WaitForImage(region, id, WaitForImageReadyTimeout)
 }
 

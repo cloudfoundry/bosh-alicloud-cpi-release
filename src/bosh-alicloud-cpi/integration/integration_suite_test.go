@@ -29,8 +29,8 @@ var configForIntegration = string(`{
         "plugin": "alicloud",
         "properties": {
             "alicloud": {
-                "region_id": "${CPI_REGION}",
-		"zone_id": "${CPI_ZONE}",
+                "region": "${CPI_REGION}",
+		        "availability_zone": "${CPI_ZONE}",
                 "access_key_id": "${CPI_ACCESS_KEY_ID}",
                 "access_key_secret": "${CPI_ACCESS_KEY_SECRET}"
             },
@@ -82,7 +82,7 @@ var _ = BeforeSuite(func() {
 })
 
 func CleanInstances(config alicloud.Config, manager alicloud.InstanceManager) error {
-	client, err := config.NewEcsClient()
+	client, err := config.NewEcsClient("")
 	if err != nil {
 		return err
 	}

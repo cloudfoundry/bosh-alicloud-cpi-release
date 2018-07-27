@@ -50,13 +50,13 @@ var (
 func ApplySystemEnv(config *alicloud.Config) error {
 	a := &config.OpenApi
 
-	a.RegionId = regionId
-	if a.RegionId == "" {
+	a.Region = regionId
+	if a.Region == "" {
 		return fmt.Errorf("can't find sysenv: CPI_REGION")
 	}
 
-	a.ZoneId = zoneId
-	if a.ZoneId == "" {
+	a.AvailabilityZone = zoneId
+	if a.AvailabilityZone == "" {
 		return fmt.Errorf("can't find sysenv: CPI_ZONE")
 	}
 

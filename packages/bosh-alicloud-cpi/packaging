@@ -10,10 +10,6 @@ PLATFORM=`uname | tr '[:upper:]' '[:lower:]'`
 if [ $PLATFORM = "linux" ]; then
     export GOROOT=$(cd "${PACKAGES_DIR}/golang" && pwd -P)
     export PATH=${GOROOT}/bin:${PATH}
-else
-    echo "Mac user set GOROOT and PATH=" $PATH
-    export GOROOT=/usr/local/go
-    export PATH=$GOROOT/bin:${PATH}
 fi
 
 # Build BOSH Alicloud CPI package
