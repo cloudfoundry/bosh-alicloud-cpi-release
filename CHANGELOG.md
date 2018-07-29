@@ -4,11 +4,12 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
 ## [r19]
 
-- New instance field region to support crossing region deployment. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
-- Deprecate global parameter region_id and use region instead. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
-- Deprecate global parameter zone_id and use availability_zone instead. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
-- Add global parameter 'encrypted' to support disk encryption. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
-- Add global parameter 'security_token' to support STS token. ([#36](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/36))
+- Support security_group_ids in vm_type and vm_extensions. ([#40](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/40))
+- New instance field region to support crossing region deployment. ([#39](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/39))
+- Deprecate global parameter region_id and use region instead. ([#39](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/39))
+- Deprecate global parameter zone_id and use availability_zone instead. ([#39](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/39))
+- Add global parameter 'encrypted' to support disk encryption. ([#39](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/39))
+- Add global parameter 'security_token' to support STS token. ([#39](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/39))
 
 ## [r18]
 
