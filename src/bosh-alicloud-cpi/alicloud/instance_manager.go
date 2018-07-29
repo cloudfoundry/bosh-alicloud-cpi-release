@@ -222,41 +222,6 @@ func (a InstanceManagerImpl) AddTags(cid string, tags map[string]string) error {
 		return err
 	}
 
-	//args := ecs.CreateAddTagsRequest()
-	//args.ResourceId = cid
-	//count := 1
-	//for k, v := range tags {
-	//	switch count {
-	//
-	//	case 1:
-	//		args.Tag1Key = k
-	//		args.Tag1Value = v
-	//	case 2:
-	//		args.Tag2Key = k
-	//		args.Tag2Value = v
-	//	case 3:
-	//		args.Tag3Key = k
-	//		args.Tag3Value = v
-	//	case 4:
-	//		args.Tag4Key = k
-	//		args.Tag4Value = v
-	//	case 5:
-	//		args.Tag4Key = k
-	//		args.Tag4Value = v
-	//	default:
-	//		break
-	//	}
-	//	count++
-	//}
-	//
-	//if strings.HasPrefix(cid, "i-") {
-	//	args.ResourceType = string(TagResourceInstance)
-	//} else if strings.HasPrefix(cid, "d-") {
-	//	args.ResourceType = string(TagResourceDisk)
-	//} else {
-	//	return fmt.Errorf("unexpect resource type id=%s", cid)
-	//}
-
 	invoker := NewInvoker()
 	return invoker.Run(func() error {
 		_, err := client.AddTags(getTagsRequest(cid, tags))

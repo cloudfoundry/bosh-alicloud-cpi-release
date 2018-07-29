@@ -33,15 +33,15 @@ type InstanceProps struct {
 	EphemeralDisk DiskInfo `json:"ephemeral_disk"`
 	SystemDisk    DiskInfo `json:"system_disk"`
 
-	Region           string      `json:"region"`
-	AvailabilityZone string      `json:"availability_zone"`
-	InstanceName     string      `json:"instance_name"`
-	InstanceType     string      `json:"instance_type"`
-	Slbs             []string    `json:"slbs"`
-	SlbWeight        json.Number `json:"slb_weight"`
-	Password         string      `json:"password"`
-	KeyPairName      string      `json:"key_pair_name"`
-
+	Region           string                    `json:"region"`
+	AvailabilityZone string                    `json:"availability_zone"`
+	InstanceName     string                    `json:"instance_name"`
+	InstanceType     string                    `json:"instance_type"`
+	Slbs             []string                  `json:"slbs"`
+	SlbWeight        json.Number               `json:"slb_weight"`
+	Password         string                    `json:"password"`
+	KeyPairName      string                    `json:"key_pair_name"`
+	SecurityGroupIds []string                  `json:"security_group_ids"`
 	ChargeType       string                    `json:"charge_type"`
 	ChargePeriod     json.Number               `json:"charge_period"`
 	ChargePeriodUnit string                    `json:"charge_period_unit"`
@@ -104,6 +104,11 @@ func (a CreateVMMethod) CreateVM(
 	networks, err := NewNetworks(networkArgs)
 	if err != nil {
 		return cid, a.WrapErrorf(err, "parse network cloud_properties %v", networkArgs)
+	}
+
+	//Security groups can be specified as follows, ordered by greatest precedence: vm_types, followed by networks.
+	if len(instProps.SecurityGroupIds) > 0 {
+		networks.privateProps.SecurityGroupIds = instProps.SecurityGroupIds
 	}
 
 	args := ecs.CreateCreateInstanceRequest()
