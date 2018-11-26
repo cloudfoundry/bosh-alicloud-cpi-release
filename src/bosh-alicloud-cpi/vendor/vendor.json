@@ -1,0 +1,43 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "SVnszaKKMKt0r7RZCTWj3ZmGnwo=",
+			"path": "github.com/aliyun/alibaba-cloud-sdk-go/sdk/endpoints",
+			"revision": "7f62c725fd772127834d5be24e9de85837ba26fb",
+			"revisionTime": "2018-11-19T08:26:46Z"
+		},
+		{
+			"checksumSHA1": "qoPqra0a503H4J1Q/Q0mZ4DBw0A=",
+			"path": "github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils",
+			"revision": "7f62c725fd772127834d5be24e9de85837ba26fb",
+			"revisionTime": "2018-11-19T08:26:46Z"
+		},
+		{
+			"checksumSHA1": "3KhDEC5MM0iyN+FsLfxpnvFVeuY=",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "d8f796af33cc11cb798c1aaeb27a4ebc5099927d",
+			"revisionTime": "2018-08-30T19:11:22Z"
+		},
+		{
+			"checksumSHA1": "a2yC46a1qsJomgY6rb+FkTFiqmE=",
+			"path": "github.com/davecgh/go-spew/spew/testdata",
+			"revision": "d8f796af33cc11cb798c1aaeb27a4ebc5099927d",
+			"revisionTime": "2018-08-30T19:11:22Z"
+		},
+		{
+			"checksumSHA1": "RZOdTSZN/PgcTqko5LzIAzw+UT4=",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
+			"revisionTime": "2016-01-10T10:55:54Z"
+		},
+		{
+			"checksumSHA1": "URw4XbfrdLpl0OmG5jKT/i1mpAs=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "8019298d9fa5a04fc2ad10ae03349df3483096a6",
+			"revisionTime": "2018-10-28T12:27:15Z"
+		}
+	],
+	"rootPath": "github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/src/bosh-alicloud-cpi"
+}

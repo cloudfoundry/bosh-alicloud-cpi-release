@@ -2,6 +2,12 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r20]
+
+IMPROVEMENTS
+
+- Update sdk alibaba-cloud-sdk-go/sdk to improve fetching endpoint ([#41](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/41))
+
 ## [r19]
 
 - Support security_group_ids in vm_type and vm_extensions. ([#40](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/40))
