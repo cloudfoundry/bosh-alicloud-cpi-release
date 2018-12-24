@@ -23,8 +23,8 @@
 [[projects]]
   name = "github.com/aliyun/aliyun-oss-go-sdk"
   packages = ["oss"]
-  revision = "52de7239022ceba47354832fbcc65983aa8d019d"
-  version = "1.8.0"
+  revision = "c6838fdc33edd68aca9fed3a805f4303ca330b0c"
+  version = "1.9.2"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -57,15 +57,6 @@
   ]
   revision = "5fba528bd06dcebd0a346499128e813c0858f7ef"
   source = "github.com/aliyun/bosh-cpi-go"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/denverdino/aliyungo"
-  packages = [
-    "common",
-    "util"
-  ]
-  revision = "39745192ce9045d198ca2003b493ea29b3f7d9d3"
 
 [[projects]]
   name = "github.com/google/uuid"
@@ -160,6 +151,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7465dad1bd3cb71f632980ee7b859b6961b0e874adffebd11fb0c55687bd12be"
+  inputs-digest = "2d763d9b41b5a0187ef35a77bab4d3df8da81adc08cfc2b462d479ef92429289"
   solver-name = "gps-cdcl"
   solver-version = 1

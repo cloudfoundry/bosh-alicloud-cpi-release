@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	alicloudImageNamePrefix    = "stemcell"
-	UUID_LENGTH                = 32
+	AlicloudImageNamePrefix    = "stemcell"
+	MinImageDiskSize           = 5 //in GB
 	OSS_BUCKET_NAME_MAX_LENGTH = 64
 )
 
@@ -38,6 +38,7 @@ type StemcellProps struct {
 	//SourceSha1    string `json:"raw_disk_sha1,omitempty"`
 	OSSBucket   string `json:"oss_bucket"`
 	OSSObject   string `json:"oss_object"`
+	OSSHost     string `json:"oss_host"`
 	Description string `json:"description,omitempty"`
 	//	Version string 			`json:"version"`		TODO  sometimes string, and sometimes int
 	Images map[string]interface{} `json:"image_id"`
@@ -94,7 +95,11 @@ func (a StemcellProps) Validate() (StemcellProps, error) {
 	return a, nil
 }
 
+// Image size minimum is 5GB. Refer to https://www.alibabacloud.com/help/doc-detail/25542.htm
 func (a StemcellProps) GetDiskGB() int {
+	if a.diskGB < MinImageDiskSize {
+		return MinImageDiskSize
+	}
 	return a.diskGB
 }
 
@@ -152,11 +157,11 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	device.DiskImageSize = strconv.Itoa(props.GetDiskGB())
 
 	args := ecs.CreateImportImageRequest()
-	args.ImageName = a.getUUIDName(props)
+	args.ImageName = props.OSSObject
 	args.Architecture = getValueOrDefault("Architecture", &props, alicloud.AlicloudDefaultImageArchitecture)
 	// OS type valid values: linux and windows
 	args.OSType = strings.ToLower(getValueOrDefault("OsType", &props, alicloud.AlicloudDefaultImageOSType))
-	args.Platform = props.OsDistro
+	args.Platform = formatImagePlatform(strings.ToLower(props.OsDistro))
 	args.Description = props.Description
 
 	devices := []ecs.ImportImageDiskDeviceMapping{
@@ -180,18 +185,21 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 }
 
 func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props StemcellProps) (string, error) {
-	imageName := a.getUUIDName(props)
-	if err := a.osses.CreateBucket(imageName, oss.ACL(oss.ACLPublicRead)); err != nil {
+	imageName := fmt.Sprintf("%s-%s.raw", AlicloudImageNamePrefix, a.getUUIDName(props))
+	bucketName := fmt.Sprintf("%s-%s", alicloud.AlicloudDefaultImageName, uuid.New().String())
+	if len(bucketName) > OSS_BUCKET_NAME_MAX_LENGTH {
+		bucketName = bucketName[0:OSS_BUCKET_NAME_MAX_LENGTH]
+	}
+	endpoint := props.OSSHost
+	if err := a.osses.CreateBucket(endpoint, bucketName, oss.ACL(oss.ACLPublicRead)); err != nil {
 		return "", bosherr.WrapErrorf(err, "Creating Alicloud OSS Bucket")
 	}
-	defer a.osses.DeleteBucket(imageName)
+	defer a.osses.DeleteBucket(endpoint, bucketName)
 
-	bucket, err := a.osses.GetBucket(imageName)
+	bucket, err := a.osses.GetBucket(endpoint, bucketName)
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Geting oss bucket")
 	}
-
-	objectName := fmt.Sprintf("%s.raw", imageName)
 
 	imageFile, err := a.stemcells.OpenLocalFile(imagePath)
 	if err != nil {
@@ -199,14 +207,14 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	}
 	defer imageFile.Close()
 
-	err = a.osses.UploadFile(*bucket, objectName, imagePath, 100*1024, oss.Routines(5))
+	err = a.osses.UploadFile(*bucket, imageName, imagePath, 100*1024, oss.Routines(5))
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Uploading stemcell image file to oss")
 	}
-	defer a.osses.DeleteObject(*bucket, objectName)
+	defer a.osses.DeleteObject(*bucket, imageName)
 
-	props.OSSBucket = imageName
-	props.OSSObject = objectName
+	props.OSSBucket = bucketName
+	props.OSSObject = imageName
 	image, err := a.importImage(props)
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Creating Alicloud Image from Tarball")
@@ -214,13 +222,11 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	return image, err
 }
 
-// image name should be unique
-// bucket name max length is 64bit, and random suffix length is 32
-// so the user input image name should less than 32bit
+// image name should be unique and it comes from full stemcell and random suffix length
 func (a CreateStemcellMethod) getUUIDName(props StemcellProps) string {
 	uuidStr := uuid.New().String()
 	name := getValueOrDefault("Name", &props, alicloud.AlicloudDefaultImageName)
-	imageName := fmt.Sprintf("%s-%s", name, uuidStr[0:UUID_LENGTH])
+	imageName := fmt.Sprintf("%s-%s", name, uuidStr)
 	return imageName
 }
 
@@ -247,4 +253,19 @@ func (a StemcellProps) FindStemcellId(region string) (string, error) {
 		}
 	}
 	return "", bosherr.Errorf("Can't find stemcell for Region: %s", region)
+}
+
+// Convert bosh stemcell platform to alibaba cloud api image platform format
+// https://www.alibabacloud.com/help/doc-detail/25542.htm
+func formatImagePlatform(platform string) string {
+	switch platform {
+	case "ubuntu":
+		return "Ubuntu"
+	case "centos":
+		return "CentOS"
+	case "opensuse":
+		return "OpenSUSE"
+	default:
+		return "Others Linux"
+	}
 }

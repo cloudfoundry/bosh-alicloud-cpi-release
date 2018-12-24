@@ -15,3 +15,4 @@ ci/vars*.*
 terraform.log
 terraform.tfstate.backup
 *.bak
+*.tgz
