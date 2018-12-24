@@ -12,18 +12,18 @@ templates:
 properties:
   alicloud.region:
     description: "Alibaba Cloud owned regions, such as ap-southeast-1, cn-qingdao. Default to `DEFAULT_REGION`."
-    default: $DEFAULT_REGION
+    default: ""
   alicloud.availability_zone:
     description: "Alicloud Cloud default zone, each region has several zones."
   alicloud.access_key_id:
     description: "Alicloud Cloud `Access key id`. Default to env `ACCESS_KEY_ID`."
-    default: $ACCESS_KEY_ID
+    default: ""
   alicloud.access_key_secret:
     description: "Alicloud Cloud `Access key secret`. Default to env `ACCESS_KEY_SECRET`."
-    default: $ACCESS_KEY_SECRET
+    default: ""
   alicloud.security_token:
     description: "Alicloud Cloud STS token. Default to env `SECURITY_TOKEN`."
-    default: $SECURITY_TOKEN
+    default: ""
   alicloud.encrypted:
     description: "Whether to encrypt alibaba cloud disk. Default to `false`."
     default: false

@@ -5,13 +5,17 @@ import (
 	"strings"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
 
 const (
 	// common
+	NotFound       = "NotFound"
 	WaitForTimeout = "WaitForTimeout"
 	// ecs
-	InstanceNotFound = "Instance.Notfound"
+	InstanceNotFound        = "Instance.Notfound"
+	RamInstanceNotFound     = "Forbidden.InstanceNotFound"
+	MessageInstanceNotFound = "instance is not found"
 	//stemcell
 	ImageIsImporting = "ImageIsImporting"
 )
@@ -26,7 +30,7 @@ type ProviderError struct {
 }
 
 func (e *ProviderError) Error() string {
-	return fmt.Sprintf("[ERROR] Terraform Alicloud Provider Error: Code: %s Message: %s", e.errorCode, e.message)
+	return fmt.Sprintf("[ERROR] Bosh ALicloud CPI Error: Code: %s Message: %s.", e.errorCode, e.message)
 }
 
 func (err *ProviderError) ErrorCode() string {
@@ -59,9 +63,34 @@ func GetTimeoutMessage(product, status string) string {
 	return fmt.Sprintf("Waitting for %s %s is timeout.", product, status)
 }
 
+func NotFoundError(err error) bool {
+
+	if e, ok := err.(*errors.ServerError); ok &&
+		(e.ErrorCode() == InstanceNotFound || e.ErrorCode() == RamInstanceNotFound || e.ErrorCode() == NotFound ||
+			strings.Contains(strings.ToLower(e.Message()), MessageInstanceNotFound)) {
+		return true
+	}
+
+	if e, ok := err.(*ProviderError); ok &&
+		(e.ErrorCode() == InstanceNotFound || e.ErrorCode() == RamInstanceNotFound || e.ErrorCode() == NotFound ||
+			strings.Contains(strings.ToLower(e.Message()), MessageInstanceNotFound)) {
+		return true
+	}
+
+	return false
+}
+
 func IsExceptedErrors(err error, expectCodes []string) bool {
 	for _, code := range expectCodes {
 		if e, ok := err.(*errors.ServerError); ok && (e.ErrorCode() == code || strings.Contains(e.Message(), code)) {
+			return true
+		}
+
+		if e, ok := err.(*ProviderError); ok && (e.ErrorCode() == code || strings.Contains(e.Message(), code)) {
+			return true
+		}
+
+		if e, ok := err.(oss.ServiceError); ok && (e.Code == code || strings.Contains(e.Message, code)) {
 			return true
 		}
 	}

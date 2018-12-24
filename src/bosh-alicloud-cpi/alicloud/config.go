@@ -7,7 +7,6 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"encoding/json"
 	"fmt"
-	"net"
 	"os"
 	"strings"
 	"time"
@@ -26,14 +25,7 @@ import (
 type InnerType string
 
 const (
-	DefaultClassOSSInnerEndpoint = "oss-cn-hangzhou-internal"
-	DefaultVpcOSSInnerEndpoint   = "oss-cn-hangzhou-internal"
-	OSSSuffix                    = "oss-"
-
-	InnerVpc       = InnerType("VPC")
-	InnerClassic   = InnerType("CLASSIC")
-	PingMethod     = "tcp"
-	TimeoutSeconds = 5
+	OSSPrefix = "oss-"
 )
 
 type CloudConfigJson struct {
@@ -201,53 +193,34 @@ func (c Config) GetRegistryClient(logger boshlog.Logger) registry.Client {
 	}
 }
 
-func (c Config) NewOssClient(region string, inner bool) *oss.Client {
-	ossClient, _ := oss.New(c.GetAvailableOSSEndPoint(region, inner), c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
-	return ossClient
+func (c Config) NewOssClient(region, endpoint string, inner bool) (*oss.Client, error) {
+	if strings.Trim(endpoint, " ") != "" {
+		endpoint = strings.Trim(endpoint, " ")
+	} else {
+		endpoint = c.GetAvailableOSSEndPoint(region, inner)
+	}
+
+	if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
+		endpoint = fmt.Sprintf("https://%s", endpoint)
+	}
+
+	clientOptions := []oss.ClientOption{oss.UserAgent(getUserAgent()),
+		oss.SecurityToken(c.OpenApi.SecurityToken)}
+	ossClient, err := oss.New(endpoint, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, clientOptions...)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Initiating OSS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
+	}
+	return ossClient, nil
 }
 
 func (c Config) GetAvailableOSSEndPoint(region string, inner bool) string {
-	return "https://" + c.GetOSSEndPoint(region, inner) + ".aliyuncs.com"
-}
-
-func (c Config) GetOSSEndPoint(region string, inner bool) string {
-	timeOut := time.Duration(TimeoutSeconds) * time.Second
-	ep := GetOSSEndPoint(string(c.OpenApi.GetRegion(region)), "")
-	if !inner {
-		return ep
+	if strings.Trim(region, " ") == "" {
+		region = c.OpenApi.Region
 	}
-
-	ep = GetOSSEndPoint("", InnerVpc)
-	if _, err := net.DialTimeout(PingMethod, ep, timeOut); err != nil {
-		fmt.Printf("Ping oss inner vpc endpoint %s ok", ep)
-		return ep
+	if inner {
+		return fmt.Sprintf("%s%s-internal.aliyuncs.com", OSSPrefix, strings.Trim(region, " "))
 	}
-
-	ep = GetOSSEndPoint("", InnerClassic)
-	if _, err := net.DialTimeout(PingMethod, ep, timeOut); err != nil {
-		fmt.Printf("Ping oss inner ecs endpoint %s ok", ep)
-		return ep
-	}
-
-	ep = GetOSSEndPoint(string(c.OpenApi.GetRegion(region)), "")
-	return ep
-}
-
-// types allows ["VPC", "CLASSIC"], then return inner endpoint
-// otherwise return endpoint by region
-func GetOSSEndPoint(region string, types InnerType) string {
-	if types == InnerVpc {
-		return DefaultVpcOSSInnerEndpoint
-	}
-
-	if types == InnerClassic {
-		return DefaultClassOSSInnerEndpoint
-	}
-
-	if strings.HasPrefix(region, OSSSuffix) {
-		return region
-	}
-	return OSSSuffix + region
+	return fmt.Sprintf("%s%s.aliyuncs.com", OSSPrefix, strings.Trim(region, " "))
 }
 
 func (c Config) GetHttpRegistryClient(logger boshlog.Logger) registry.Client {

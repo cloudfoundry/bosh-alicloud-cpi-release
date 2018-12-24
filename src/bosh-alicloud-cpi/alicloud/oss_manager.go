@@ -10,9 +10,9 @@ const (
 )
 
 type OssManager interface {
-	CreateBucket(name string, options ...oss.Option) error
-	DeleteBucket(name string) error
-	GetBucket(name string) (bucket *oss.Bucket, err error)
+	CreateBucket(endpoint, name string, options ...oss.Option) error
+	DeleteBucket(endpoint, name string) error
+	GetBucket(endpoint, name string) (bucket *oss.Bucket, err error)
 	UploadFile(bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error
 	DeleteObject(bucket oss.Bucket, name string) error
 }
@@ -31,22 +31,32 @@ func NewOssManager(config Config, logger boshlog.Logger) OssManager {
 	}
 }
 
-func (a OssManagerImpl) CreateBucket(name string, options ...oss.Option) error {
-	client := a.config.NewOssClient("", false)
+func (a OssManagerImpl) CreateBucket(endpoint, name string, options ...oss.Option) error {
+	client, err := a.config.NewOssClient(a.region, endpoint, false)
+	if err != nil {
+		return err
+	}
 	a.logger.Debug(AlicloudOssServiceTag, "Creating Alicloud Oss '%s'", name)
 
-	return client.CreateBucket(name, options...)
+	err = client.CreateBucket(name, options...)
+	return err
 }
 
-func (a OssManagerImpl) DeleteBucket(name string) error {
-	client := a.config.NewOssClient("", false)
+func (a OssManagerImpl) DeleteBucket(endpoint, name string) error {
+	client, err := a.config.NewOssClient(a.region, endpoint, false)
+	if err != nil {
+		return err
+	}
 	a.logger.Debug(AlicloudOssServiceTag, "Deleting Alicloud Oss '%s'", name)
 
 	return client.DeleteBucket(name)
 }
 
-func (a OssManagerImpl) GetBucket(name string) (bucket *oss.Bucket, err error) {
-	client := a.config.NewOssClient("", false)
+func (a OssManagerImpl) GetBucket(endpoint, name string) (bucket *oss.Bucket, err error) {
+	client, err := a.config.NewOssClient(a.region, endpoint, false)
+	if err != nil {
+		return nil, err
+	}
 	a.logger.Debug(AlicloudOssServiceTag, "Geting Alicloud Oss '%s'", name)
 
 	return client.Bucket(name)
@@ -54,7 +64,7 @@ func (a OssManagerImpl) GetBucket(name string) (bucket *oss.Bucket, err error) {
 
 func (a OssManagerImpl) UploadFile(
 	bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error {
-	a.logger.Debug(AlicloudOssServiceTag, "Upload file '%s' to bucket", objectKey, bucket.BucketName)
+	a.logger.Debug(AlicloudOssServiceTag, "Upload file '%s' to bucket %s.", objectKey, bucket.BucketName)
 	return bucket.UploadFile(objectKey, filePath, partSize, options...)
 }
 

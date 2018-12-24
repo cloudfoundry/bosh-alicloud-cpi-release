@@ -60,7 +60,6 @@ func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	a.logger.Debug(AlicloudImageServiceTag, "Finding Alicloud Image '%s'", id)
 
 	args := ecs.CreateDescribeImagesRequest()
 	args.ImageId = id
@@ -73,7 +72,7 @@ func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.Image, error) {
 	}
 
 	if images == nil || len(images.Images.Image) <= 0 {
-		return nil, nil
+		return nil, GetNotFoundErrorFromString(GetNotFoundMessage("ECS image", id))
 	}
 
 	return &images.Images.Image[0], nil
@@ -82,6 +81,9 @@ func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.Image, error) {
 func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 	image, err := a.FindStemcellById(id)
 	if err != nil {
+		if NotFoundError(err) {
+			return nil
+		}
 		return err
 	}
 	if image == nil {
@@ -145,17 +147,13 @@ func (a StemcellManagerImpl) WaitForImage(regionId, imageId string, timeout int)
 
 	for {
 		image, err := a.FindStemcellById(imageId)
-		a.logger.Debug(AlicloudImageServiceTag, "Find Alicloud Images '%#v'", imageId)
+		a.logger.Debug(AlicloudImageServiceTag, "Waitting for alicloud image '%#v' is ready.", imageId)
 
-		if err != nil {
+		if err != nil && !NotFoundError(err) {
 			return err
 		}
 
-		if image == nil {
-			return GetNotFoundErrorFromString(GetNotFoundMessage("ECS image", imageId))
-		}
-
-		if image.Status == "Available" {
+		if image != nil && image.Status == "Available" {
 			break
 		}
 
