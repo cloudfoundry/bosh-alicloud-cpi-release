@@ -29,7 +29,10 @@ type NetworkInterfaceSet struct {
 	Description          string                                      `json:"Description" xml:"Description"`
 	InstanceId           string                                      `json:"InstanceId" xml:"InstanceId"`
 	CreationTime         string                                      `json:"CreationTime" xml:"CreationTime"`
+	ResourceGroupId      string                                      `json:"ResourceGroupId" xml:"ResourceGroupId"`
 	SecurityGroupIds     SecurityGroupIdsInDescribeNetworkInterfaces `json:"SecurityGroupIds" xml:"SecurityGroupIds"`
 	AssociatedPublicIp   AssociatedPublicIp                          `json:"AssociatedPublicIp" xml:"AssociatedPublicIp"`
 	PrivateIpSets        PrivateIpSets                               `json:"PrivateIpSets" xml:"PrivateIpSets"`
+	Ipv6Sets             Ipv6Sets                                    `json:"Ipv6Sets" xml:"Ipv6Sets"`
+	Tags                 TagsInDescribeNetworkInterfaces             `json:"Tags" xml:"Tags"`
 }

@@ -6,6 +6,7 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
 IMPROVEMENTS
 
+- Support self-define service endpoint and upgrade sdk alibaba-cloud-sdk-go ([#43](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/43))
 - Update sdk alibaba-cloud-sdk-go/sdk to improve fetching endpoint ([#41](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/41))
 
 BUG FIXES
