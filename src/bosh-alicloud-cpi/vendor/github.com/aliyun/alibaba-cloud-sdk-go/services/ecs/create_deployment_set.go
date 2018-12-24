@@ -76,17 +76,17 @@ func (client *Client) CreateDeploymentSetWithCallback(request *CreateDeploymentS
 // CreateDeploymentSetRequest is the request struct for api CreateDeploymentSet
 type CreateDeploymentSetRequest struct {
 	*requests.RpcRequest
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	ZoneId               string           `position:"Query" name:"ZoneId"`
-	Description          string           `position:"Query" name:"Description"`
-	ClientToken          string           `position:"Query" name:"ClientToken"`
-	DeploymentSetName    string           `position:"Query" name:"DeploymentSetName"`
-	Domain               string           `position:"Query" name:"Domain"`
-	Granularity          string           `position:"Query" name:"Granularity"`
-	Strategy             string           `position:"Query" name:"Strategy"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
+	ResourceOwnerId                  requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	ResourceOwnerAccount             string           `position:"Query" name:"ResourceOwnerAccount"`
+	ClientToken                      string           `position:"Query" name:"ClientToken"`
+	OwnerAccount                     string           `position:"Query" name:"OwnerAccount"`
+	Description                      string           `position:"Query" name:"Description"`
+	DeploymentSetName                string           `position:"Query" name:"DeploymentSetName"`
+	OwnerId                          requests.Integer `position:"Query" name:"OwnerId"`
+	OnUnableToRedeployFailedInstance string           `position:"Query" name:"OnUnableToRedeployFailedInstance"`
+	Granularity                      string           `position:"Query" name:"Granularity"`
+	Domain                           string           `position:"Query" name:"Domain"`
+	Strategy                         string           `position:"Query" name:"Strategy"`
 }
 
 // CreateDeploymentSetResponse is the response struct for api CreateDeploymentSet

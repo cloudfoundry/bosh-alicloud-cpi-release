@@ -14,19 +14,32 @@ properties:
     description: "Alibaba Cloud owned regions, such as ap-southeast-1, cn-qingdao. Default to `DEFAULT_REGION`."
     default: ""
   alicloud.availability_zone:
-    description: "Alicloud Cloud default zone, each region has several zones."
+    description: "Alibaba Cloud default zone, each region has several zones."
+    default: ""
   alicloud.access_key_id:
-    description: "Alicloud Cloud `Access key id`. Default to env `ACCESS_KEY_ID`."
+    description: "Alibaba Cloud `Access key id`. Default to env `ACCESS_KEY_ID`."
     default: ""
   alicloud.access_key_secret:
-    description: "Alicloud Cloud `Access key secret`. Default to env `ACCESS_KEY_SECRET`."
+    description: "Alibaba Cloud `Access key secret`. Default to env `ACCESS_KEY_SECRET`."
     default: ""
   alicloud.security_token:
-    description: "Alicloud Cloud STS token. Default to env `SECURITY_TOKEN`."
+    description: "Alibaba Cloud STS token. Default to env `SECURITY_TOKEN`."
     default: ""
   alicloud.encrypted:
     description: "Whether to encrypt alibaba cloud disk. Default to `false`."
     default: false
+  alicloud.ecs_endpoint:
+    description: "Alibaba Cloud self-defined endpoint to access ECS services. Default to `ECS_ENDPOINT`"
+    default: ""
+  alicloud.slb_endpoint:
+    description: "Alibaba Cloud self-defined endpoint to access SLB services. Default to `SLB_ENDPOINT`"
+    default: ""
+  alicloud.oss_endpoint:
+    description: "Alibaba Cloud self-defined endpoint to access OSS services. Default to `OSS_ENDPOINT`"
+    default: ""
+  alicloud.location_endpoint:
+    description: "Alibaba Cloud self-defined endpoint to access Location services. Default to `LOCATION_ENDPOINT`"
+    default: ""
 
   registry.username:
     description: "User to access the Registry"

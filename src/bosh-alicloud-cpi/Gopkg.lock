@@ -14,11 +14,12 @@
     "sdk/responses",
     "sdk/utils",
     "services/ecs",
+    "services/location",
     "services/slb"
   ]
-  revision = "64d5d148fecdfbc6566e5593103d90581b6ea87d"
+  revision = "2ce95bbb8f649f8e477ee6f84c00ff7a4a3aa0fc"
   source = "github.com/aliyun/alibaba-cloud-sdk-go"
-  version = "1.10.3"
+  version = "1.47.2"
 
 [[projects]]
   name = "github.com/aliyun/aliyun-oss-go-sdk"
@@ -151,6 +152,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2d763d9b41b5a0187ef35a77bab4d3df8da81adc08cfc2b462d479ef92429289"
+  inputs-digest = "43bad2462d084c0c17fdd840003fac76ce2e8e47645cd6f71b577db521c04f5e"
   solver-name = "gps-cdcl"
   solver-version = 1

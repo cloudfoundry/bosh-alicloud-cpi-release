@@ -38,7 +38,6 @@ type StemcellProps struct {
 	//SourceSha1    string `json:"raw_disk_sha1,omitempty"`
 	OSSBucket   string `json:"oss_bucket"`
 	OSSObject   string `json:"oss_object"`
-	OSSHost     string `json:"oss_host"`
 	Description string `json:"description,omitempty"`
 	//	Version string 			`json:"version"`		TODO  sometimes string, and sometimes int
 	Images map[string]interface{} `json:"image_id"`
@@ -190,13 +189,12 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	if len(bucketName) > OSS_BUCKET_NAME_MAX_LENGTH {
 		bucketName = bucketName[0:OSS_BUCKET_NAME_MAX_LENGTH]
 	}
-	endpoint := props.OSSHost
-	if err := a.osses.CreateBucket(endpoint, bucketName, oss.ACL(oss.ACLPublicRead)); err != nil {
+	if err := a.osses.CreateBucket(bucketName, oss.ACL(oss.ACLPublicRead)); err != nil {
 		return "", bosherr.WrapErrorf(err, "Creating Alicloud OSS Bucket")
 	}
-	defer a.osses.DeleteBucket(endpoint, bucketName)
+	defer a.osses.DeleteBucket(bucketName)
 
-	bucket, err := a.osses.GetBucket(endpoint, bucketName)
+	bucket, err := a.osses.GetBucket(bucketName)
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Geting oss bucket")
 	}

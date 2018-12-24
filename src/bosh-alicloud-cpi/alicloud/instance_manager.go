@@ -324,30 +324,15 @@ func (a InstanceManagerImpl) GetInstanceUserData() {
 func getTagsRequest(cid string, tags map[string]string) *ecs.AddTagsRequest {
 	args := ecs.CreateAddTagsRequest()
 	args.ResourceId = cid
-	count := 1
-	for k, v := range tags {
-		switch count {
+	var argsTags []ecs.AddTagsTag
 
-		case 1:
-			args.Tag1Key = k
-			args.Tag1Value = v
-		case 2:
-			args.Tag2Key = k
-			args.Tag2Value = v
-		case 3:
-			args.Tag3Key = k
-			args.Tag3Value = v
-		case 4:
-			args.Tag4Key = k
-			args.Tag4Value = v
-		case 5:
-			args.Tag4Key = k
-			args.Tag4Value = v
-		default:
-			break
-		}
-		count++
+	for k, v := range tags {
+		argsTags = append(argsTags, ecs.AddTagsTag{
+			Key:   k,
+			Value: v,
+		})
 	}
+	args.Tag = &argsTags
 
 	if strings.HasPrefix(cid, "i-") {
 		args.ResourceType = string(TagResourceInstance)

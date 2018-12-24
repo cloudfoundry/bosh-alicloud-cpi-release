@@ -10,9 +10,9 @@ const (
 )
 
 type OssManager interface {
-	CreateBucket(endpoint, name string, options ...oss.Option) error
-	DeleteBucket(endpoint, name string) error
-	GetBucket(endpoint, name string) (bucket *oss.Bucket, err error)
+	CreateBucket(name string, options ...oss.Option) error
+	DeleteBucket(name string) error
+	GetBucket(name string) (bucket *oss.Bucket, err error)
 	UploadFile(bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error
 	DeleteObject(bucket oss.Bucket, name string) error
 }
@@ -31,8 +31,8 @@ func NewOssManager(config Config, logger boshlog.Logger) OssManager {
 	}
 }
 
-func (a OssManagerImpl) CreateBucket(endpoint, name string, options ...oss.Option) error {
-	client, err := a.config.NewOssClient(a.region, endpoint, false)
+func (a OssManagerImpl) CreateBucket(name string, options ...oss.Option) error {
+	client, err := a.config.NewOssClient(a.region)
 	if err != nil {
 		return err
 	}
@@ -42,8 +42,8 @@ func (a OssManagerImpl) CreateBucket(endpoint, name string, options ...oss.Optio
 	return err
 }
 
-func (a OssManagerImpl) DeleteBucket(endpoint, name string) error {
-	client, err := a.config.NewOssClient(a.region, endpoint, false)
+func (a OssManagerImpl) DeleteBucket(name string) error {
+	client, err := a.config.NewOssClient(a.region)
 	if err != nil {
 		return err
 	}
@@ -52,8 +52,8 @@ func (a OssManagerImpl) DeleteBucket(endpoint, name string) error {
 	return client.DeleteBucket(name)
 }
 
-func (a OssManagerImpl) GetBucket(endpoint, name string) (bucket *oss.Bucket, err error) {
-	client, err := a.config.NewOssClient(a.region, endpoint, false)
+func (a OssManagerImpl) GetBucket(name string) (bucket *oss.Bucket, err error) {
+	client, err := a.config.NewOssClient(a.region)
 	if err != nil {
 		return nil, err
 	}

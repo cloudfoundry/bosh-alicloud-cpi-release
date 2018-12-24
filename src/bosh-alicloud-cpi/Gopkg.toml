@@ -6,7 +6,7 @@ required = ["github.com/onsi/ginkgo/ginkgo"]
 
 [[constraint]]
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
-  version = "1.10.3"
+  version = "1.47.2"
   source = "github.com/aliyun/alibaba-cloud-sdk-go"
 
 [[constraint]]

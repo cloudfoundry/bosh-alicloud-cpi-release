@@ -17,16 +17,14 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/endpoints"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/location"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/slb"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
 
 type InnerType string
-
-const (
-	OSSPrefix = "oss-"
-)
 
 type CloudConfigJson struct {
 	Root CloudConfig `json:"cloud"`
@@ -61,6 +59,10 @@ type OpenApi struct {
 	AccessKeySecret  string `json:"access_key_secret"`
 	SecurityToken    string `json:"security_token"`
 	Encrypted        bool   `json:"encrypted"`
+	EcsEndpoint      string `json:"ecs_endpoint"`
+	SlbEndpoint      string `json:"slb_endpoint"`
+	OssEndpoint      string `json:"oss_endpoint"`
+	LocationEndpoint string `json:"location_endpoint"`
 }
 
 type RegistryConfig struct {
@@ -168,7 +170,13 @@ func (a BlobstoreConfig) AsRegistrySettings() registry.BlobstoreSettings {
 }
 
 func (c Config) NewEcsClient(region string) (*ecs.Client, error) {
-	// Obsoleted
+	endpoint := strings.TrimSpace(c.OpenApi.EcsEndpoint)
+	if endpoint == "" {
+		endpoint = strings.TrimSpace(os.Getenv("ECS_ENDPOINT"))
+	}
+	if endpoint != "" {
+		endpoints.AddEndpointMapping(c.OpenApi.Region, "ecs", endpoint)
+	}
 	client, err := ecs.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig(), c.getAuthCredential(true))
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
@@ -177,7 +185,13 @@ func (c Config) NewEcsClient(region string) (*ecs.Client, error) {
 }
 
 func (c Config) NewSlbClient(region string) (*slb.Client, error) {
-	// Obsoleted
+	endpoint := strings.TrimSpace(c.OpenApi.SlbEndpoint)
+	if endpoint == "" {
+		endpoint = strings.TrimSpace(os.Getenv("SLB_ENDPOINT"))
+	}
+	if endpoint != "" {
+		endpoints.AddEndpointMapping(c.OpenApi.Region, "slb", endpoint)
+	}
 	client, err := slb.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig(), c.getAuthCredential(true))
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Initiating SLB Client in '%s' got an error.", c.OpenApi.GetRegion(region))
@@ -193,15 +207,29 @@ func (c Config) GetRegistryClient(logger boshlog.Logger) registry.Client {
 	}
 }
 
-func (c Config) NewOssClient(region, endpoint string, inner bool) (*oss.Client, error) {
-	if strings.Trim(endpoint, " ") != "" {
-		endpoint = strings.Trim(endpoint, " ")
-	} else {
-		endpoint = c.GetAvailableOSSEndPoint(region, inner)
+func (c Config) NewOssClient(region string) (*oss.Client, error) {
+	endpoint := strings.TrimSpace(c.OpenApi.OssEndpoint)
+	if endpoint == "" {
+		endpoint = strings.TrimSpace(os.Getenv("OSS_ENDPOINT"))
 	}
+	schma := "https"
 
-	if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
-		endpoint = fmt.Sprintf("https://%s", endpoint)
+	if endpoint == "" {
+		if strings.TrimSpace(region) == "" {
+			region = c.OpenApi.Region
+		}
+		endpointItem, _ := c.describeEndpointForService("oss")
+		if endpointItem != nil && len(endpointItem.Endpoint) > 0 {
+			if len(endpointItem.Protocols.Protocols) > 0 {
+				schma = endpointItem.Protocols.Protocols[0]
+			}
+			endpoint = endpointItem.Endpoint
+		} else {
+			endpoint = fmt.Sprintf("oss-%s.aliyuncs.com", c.OpenApi.Region)
+		}
+	}
+	if !strings.HasPrefix(endpoint, "http") {
+		endpoint = fmt.Sprintf("%s://%s", schma, endpoint)
 	}
 
 	clientOptions := []oss.ClientOption{oss.UserAgent(getUserAgent()),
@@ -211,16 +239,6 @@ func (c Config) NewOssClient(region, endpoint string, inner bool) (*oss.Client, 
 		return nil, bosherr.WrapErrorf(err, "Initiating OSS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
 	}
 	return ossClient, nil
-}
-
-func (c Config) GetAvailableOSSEndPoint(region string, inner bool) string {
-	if strings.Trim(region, " ") == "" {
-		region = c.OpenApi.Region
-	}
-	if inner {
-		return fmt.Sprintf("%s%s-internal.aliyuncs.com", OSSPrefix, strings.Trim(region, " "))
-	}
-	return fmt.Sprintf("%s%s.aliyuncs.com", OSSPrefix, strings.Trim(region, " "))
 }
 
 func (c Config) GetHttpRegistryClient(logger boshlog.Logger) registry.Client {
@@ -315,4 +333,28 @@ func (c Config) GetCrossRegions() (regions []string, err error) {
 		return nil
 	})
 	return
+}
+
+func (c Config) describeEndpointForService(serviceCode string) (*location.DescribeEndpointResponse, error) {
+	args := location.CreateDescribeEndpointRequest()
+	args.ServiceCode = serviceCode
+	args.Id = c.OpenApi.Region
+	args.Domain = strings.TrimSpace(c.OpenApi.LocationEndpoint)
+	if args.Domain == "" {
+		args.Domain = strings.TrimSpace(os.Getenv("LOCATION_ENDPOINT"))
+		if args.Domain == "" {
+			args.Domain = "location-readonly.aliyuncs.com"
+		}
+	}
+
+	locationClient, err := location.NewClientWithOptions(c.OpenApi.Region, getSdkConfig(), c.getAuthCredential(true))
+	if err != nil {
+		return nil, fmt.Errorf("Unable to initialize the location client: %#v", err)
+
+	}
+	endpointsResponse, err := locationClient.DescribeEndpoint(args)
+	if err != nil {
+		return nil, fmt.Errorf("Describe %s endpoint using region: %#v got an error: %#v.", serviceCode, c.OpenApi.Region, err)
+	}
+	return endpointsResponse, nil
 }
