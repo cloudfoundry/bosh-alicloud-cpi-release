@@ -58,7 +58,7 @@ type OpenApi struct {
 	AccessKeyId      string `json:"access_key_id"`
 	AccessKeySecret  string `json:"access_key_secret"`
 	SecurityToken    string `json:"security_token"`
-	Encrypted        bool   `json:"encrypted"`
+	Encrypted        *bool  `json:"encrypted,omitempty"`
 	EcsEndpoint      string `json:"ecs_endpoint"`
 	SlbEndpoint      string `json:"slb_endpoint"`
 	OssEndpoint      string `json:"oss_endpoint"`
@@ -221,7 +221,14 @@ func (c Config) NewOssClient(region string) (*oss.Client, error) {
 		endpointItem, _ := c.describeEndpointForService("oss")
 		if endpointItem != nil && len(endpointItem.Endpoint) > 0 {
 			if len(endpointItem.Protocols.Protocols) > 0 {
-				schma = endpointItem.Protocols.Protocols[0]
+				// HTTP or HTTPS
+				schma = strings.ToLower(endpointItem.Protocols.Protocols[0])
+				for _, p := range endpointItem.Protocols.Protocols {
+					if strings.ToLower(p) == "https" {
+						schma = strings.ToLower(p)
+						break
+					}
+				}
 			}
 			endpoint = endpointItem.Endpoint
 		} else {

@@ -11,6 +11,7 @@ IMPROVEMENTS
 
 BUG FIXES
 
+- Fix DeleteWithInstance not working bug ([#46](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/46))
 - Fix upload stemcell bug and upgrade oss sdk version ([#42](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/42))
 
 ## [r19]

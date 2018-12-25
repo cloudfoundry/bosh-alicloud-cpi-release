@@ -32,8 +32,8 @@ type Disks struct {
 type DiskInfo struct {
 	SizeRaw            interface{} `json:"size"`
 	Category           string      `json:"category"`
-	Encrypted          bool        `json:"encrypted"`
-	DeleteWithInstance bool        `json:"delete_with_instance"`
+	Encrypted          *bool       `json:"encrypted,omitempty"`
+	DeleteWithInstance *bool       `json:"delete_with_instance,omitempty"`
 	sizeGB             int
 	path               string
 	ecsCategory        alicloud.DiskCategory
@@ -176,21 +176,26 @@ func (a DiskInfo) GetPath() string {
 	return a.path
 }
 
-func (a Disks) FillCreateInstanceArgs(golbalEncrypt bool, args *ecs.CreateInstanceRequest) {
+func (a Disks) FillCreateInstanceArgs(golbalEncrypt *bool, args *ecs.CreateInstanceRequest) {
 	args.SystemDiskSize = requests.NewInteger(a.SystemDisk.sizeGB)
 	args.SystemDiskCategory = string(a.SystemDisk.ecsCategory)
 
 	encrypt := a.EphemeralDisk.Encrypted
-	if &encrypt == nil {
+	if encrypt == nil {
 		encrypt = golbalEncrypt
+	}
+	deleteWithInstance := a.EphemeralDisk.DeleteWithInstance
+	if deleteWithInstance == nil {
+		deleteWithInstance = new(bool)
+		*deleteWithInstance = true
 	}
 	if a.EphemeralDisk.sizeGB > 0 {
 		var disks []ecs.CreateInstanceDataDisk
 		disks = append(disks, ecs.CreateInstanceDataDisk{
 			Size:               strconv.Itoa(a.EphemeralDisk.sizeGB),
 			Category:           string(a.EphemeralDisk.GetCategory()),
-			Encrypted:          strconv.FormatBool(encrypt),
-			DeleteWithInstance: strconv.FormatBool(a.EphemeralDisk.DeleteWithInstance),
+			Encrypted:          strconv.FormatBool(*encrypt),
+			DeleteWithInstance: strconv.FormatBool(*deleteWithInstance),
 		})
 		args.DataDisk = &disks
 	}
