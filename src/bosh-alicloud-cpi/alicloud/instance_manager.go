@@ -17,10 +17,12 @@ import (
 	"github.com/google/uuid"
 )
 
-var DeleteInstanceCatcher = Catcher{"IncorrectInstanceStatus.Initializing", 10, 15}
-var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 10, 15}
-var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 10, 15}
-var CreateInstanceCatcher_TokenProcessing = Catcher{"LastTokenProcessing", 10, 15}
+var InstanceInvalidOperationConflictCatcher = Catcher{"InvalidOperation.Conflict", 20, 10}
+var DeleteInstanceCatcher = Catcher{"IncorrectInstanceStatus.Initializing", 20, 15}
+var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 20, 10}
+var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 20, 10}
+var CreateInstanceCatcher_TokenProcessing = Catcher{"LastTokenProcessing", 15, 5}
+var CreateInstanceCatcher_IdempotentProcessing = Catcher{"IdempotentProcessing", 15, 5}
 
 const (
 	ChangeInstanceStatusTimeout       = time.Duration(300) * time.Second
@@ -101,8 +103,9 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed)
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
 	invoker.AddCatcher(CreateInstanceCatcher_TokenProcessing)
+	invoker.AddCatcher(CreateInstanceCatcher_IdempotentProcessing)
 
-	token := strings.Replace(fmt.Sprintf("bosh-cpi-%s-%s", time.Now().String(), uuid.New().String()), " ", "", -1)
+	token := fmt.Sprintf("bosh-cpi-%d-%s", time.Now().UnixNano(), uuid.New().String())
 	args.ClientToken = token
 	if len(token) > 64 {
 		args.ClientToken = token[0:64]
@@ -146,6 +149,7 @@ func (a InstanceManagerImpl) DeleteInstance(cid string) error {
 
 	invoker := NewInvoker()
 	invoker.AddCatcher(DeleteInstanceCatcher)
+	invoker.AddCatcher(InstanceInvalidOperationConflictCatcher)
 
 	args := ecs.CreateDeleteInstanceRequest()
 	args.InstanceId = cid
@@ -167,6 +171,7 @@ func (a InstanceManagerImpl) StartInstance(cid string) error {
 	}
 
 	invoker := NewInvoker()
+	invoker.AddCatcher(InstanceInvalidOperationConflictCatcher)
 
 	args := ecs.CreateStartInstanceRequest()
 	args.InstanceId = cid
@@ -185,6 +190,7 @@ func (a InstanceManagerImpl) StopInstance(cid string) error {
 	}
 
 	invoker := NewInvoker()
+	invoker.AddCatcher(InstanceInvalidOperationConflictCatcher)
 
 	args := ecs.CreateStopInstanceRequest()
 	args.InstanceId = cid
@@ -204,6 +210,7 @@ func (a InstanceManagerImpl) RebootInstance(cid string) error {
 	}
 
 	invoker := NewInvoker()
+	invoker.AddCatcher(InstanceInvalidOperationConflictCatcher)
 
 	args := ecs.CreateRebootInstanceRequest()
 	args.InstanceId = cid

@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"sync"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -170,6 +171,10 @@ func (a BlobstoreConfig) AsRegistrySettings() registry.BlobstoreSettings {
 }
 
 func (c Config) NewEcsClient(region string) (*ecs.Client, error) {
+	var mutex = sync.RWMutex{}
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	endpoint := strings.TrimSpace(c.OpenApi.EcsEndpoint)
 	if endpoint == "" {
 		endpoint = strings.TrimSpace(os.Getenv("ECS_ENDPOINT"))
@@ -185,6 +190,10 @@ func (c Config) NewEcsClient(region string) (*ecs.Client, error) {
 }
 
 func (c Config) NewSlbClient(region string) (*slb.Client, error) {
+	var mutex = sync.RWMutex{}
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	endpoint := strings.TrimSpace(c.OpenApi.SlbEndpoint)
 	if endpoint == "" {
 		endpoint = strings.TrimSpace(os.Getenv("SLB_ENDPOINT"))
@@ -208,6 +217,10 @@ func (c Config) GetRegistryClient(logger boshlog.Logger) registry.Client {
 }
 
 func (c Config) NewOssClient(region string) (*oss.Client, error) {
+	var mutex = sync.RWMutex{}
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	endpoint := strings.TrimSpace(c.OpenApi.OssEndpoint)
 	if endpoint == "" {
 		endpoint = strings.TrimSpace(os.Getenv("OSS_ENDPOINT"))
