@@ -11,6 +11,7 @@ IMPROVEMENTS
 
 BUG FIXES
 
+- Fix creating vm IdempotentProcessing and add sync lock for client ([#44](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/44))
 - Fix DeleteWithInstance not working bug ([#46](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/46))
 - Fix upload stemcell bug and upgrade oss sdk version ([#42](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/42))
 
