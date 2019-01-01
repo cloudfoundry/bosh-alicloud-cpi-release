@@ -87,7 +87,8 @@ func getSdkConfig() *sdk.Config {
 		WithUserAgent(getUserAgent()).
 		WithGoRoutinePoolSize(10).
 		WithDebug(false).
-		WithHttpTransport(getTransport())
+		WithHttpTransport(getTransport()).
+		WithScheme("https")
 }
 
 func getTransport() *http.Transport {
