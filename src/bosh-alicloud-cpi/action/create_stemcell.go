@@ -187,26 +187,37 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props StemcellProps) (string, error) {
 	imageName := fmt.Sprintf("%s-%s.raw", AlicloudImageNamePrefix, a.getUUIDName(props))
 	bucketName := fmt.Sprintf("%s-%s", alicloud.AlicloudDefaultImageName, uuid.New().String())
+
 	if len(bucketName) > OSS_BUCKET_NAME_MAX_LENGTH {
 		bucketName = bucketName[0:OSS_BUCKET_NAME_MAX_LENGTH]
 	}
+
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+
+	defer a.osses.DeleteBucket(bucketName)
+
 	if err := a.osses.CreateBucket(bucketName, oss.ACL(oss.ACLPublicRead)); err != nil {
 		return "", bosherr.WrapErrorf(err, "Creating Alicloud OSS Bucket")
 	}
-	defer a.osses.DeleteBucket(bucketName)
 
 	bucket, err := a.osses.GetBucket(bucketName)
+
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Geting oss bucket")
 	}
 
-	imageFile, err := a.stemcells.OpenLocalFile(imagePath)
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Reading stemcell image file from local")
-	}
-	defer imageFile.Close()
+	cmd := exec.Command("tar", "-xf", imagePath)
+	cmd.Dir = path.Dir(imagePath)
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err = cmd.Run()
 
-	err = a.osses.UploadFile(*bucket, imageName, imagePath, 100*1024, oss.Routines(5))
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, fmt.Sprintf("%s-(%s)-(%s)", "Unable to extract image", out.String(),stderr.String()))
+	}
+
+	err = a.osses.UploadFile(*bucket, imageName, fmt.Sprintf("%s/%s", path.Dir(imagePath), "root.img"), PART_SIZE, oss.Routines(5))
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Uploading stemcell image file to oss")
 	}
@@ -218,6 +229,7 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Creating Alicloud Image from Tarball")
 	}
+
 	return image, err
 }
 
