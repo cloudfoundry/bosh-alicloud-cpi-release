@@ -21,6 +21,7 @@ const (
 	AlicloudImageNamePrefix    = "stemcell"
 	MinImageDiskSize           = 5 //in GB
 	OSS_BUCKET_NAME_MAX_LENGTH = 64
+	PART_SIZE = 5*1024*1024
 )
 
 type StemcellProps struct {
