@@ -15,6 +15,11 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"github.com/google/uuid"
+	"os"
+	"io"
+	"os/exec"
+	"bytes"
+	"path"
 )
 
 const (
