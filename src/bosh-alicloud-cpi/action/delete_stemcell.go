@@ -19,20 +19,9 @@ func NewDeleteStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager)
 }
 
 func (a DeleteStemcellMethod) DeleteStemcell(cid apiv1.StemcellCID) error {
-	//
-	// NOTHING TO DELETE
-
-	//stemcell, found, err := a.runner.FindStemcellId(cid)
-	//if err != nil {
-	//	return bosherr.WrapErrorf(err, "Finding stemcell '%s'", cid)
-	//}
-	//
-	//if found {
-	//	err := stemcell.Delete()
-	//	if err != nil {
-	//		return bosherr.WrapErrorf(err, "Deleting stemcell '%s'", cid)
-	//	}
-	//}
+	if err := a.stemcells.DeleteStemcell(cid.AsString()); err != nil {
+		return a.WrapErrorf(err, "Deleting stemcell '%s'", cid)
+	}
 
 	return nil
 }
