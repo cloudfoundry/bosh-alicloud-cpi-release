@@ -11,6 +11,7 @@ IMPROVEMENTS
 
 BUG FIXES
 
+- Fix uploading stemcell image faild error by using multipart ([#54](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/54))
 - Fix deleting stemcell faild error ([#53](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/53))
 - Fix creating vm IdempotentProcessing and add sync lock for client ([#52](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/52))
 - Fix full stemcell create flow ([#50](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/50))

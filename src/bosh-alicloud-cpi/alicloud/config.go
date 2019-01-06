@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 	"sync"
+	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

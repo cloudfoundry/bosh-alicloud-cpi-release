@@ -1,6 +1,8 @@
 package alicloud
 
 import (
+	"fmt"
+
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
@@ -14,6 +16,7 @@ type OssManager interface {
 	DeleteBucket(name string) error
 	GetBucket(name string) (bucket *oss.Bucket, err error)
 	UploadFile(bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error
+	MultipartUploadFile(bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error
 	DeleteObject(bucket oss.Bucket, name string) error
 }
 
@@ -66,6 +69,33 @@ func (a OssManagerImpl) UploadFile(
 	bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error {
 	a.logger.Debug(AlicloudOssServiceTag, "Upload file '%s' to bucket %s.", objectKey, bucket.BucketName)
 	return bucket.UploadFile(objectKey, filePath, partSize, options...)
+}
+
+func (a OssManagerImpl) MultipartUploadFile(
+	bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error {
+
+	chunks, err := oss.SplitFileByPartSize(filePath, partSize)
+	if err != nil {
+		return fmt.Errorf("SplitFileByPartSize got an error: %#v", err)
+	}
+
+	imur, err := bucket.InitiateMultipartUpload(objectKey, options...)
+	if err != nil {
+		return fmt.Errorf("InitiateMultipartUpload got an error: %#v", err)
+	}
+	var parts []oss.UploadPart
+	for _, chunk := range chunks {
+		part, err := bucket.UploadPartFromFile(imur, filePath, chunk.Offset, chunk.Size, chunk.Number)
+		if err != nil {
+			return fmt.Errorf("UploadPartFromFile got an error: %#v.", err)
+		}
+		parts = append(parts, part)
+	}
+
+	if _, err := bucket.CompleteMultipartUpload(imur, parts); err != nil {
+		return fmt.Errorf("CompleteMultipartUpload got an error: %#v.", err)
+	}
+	return nil
 }
 
 func (a OssManagerImpl) DeleteObject(bucket oss.Bucket, name string) error {
