@@ -11,20 +11,21 @@ import (
 	"strings"
 
 	"bytes"
+	"os/exec"
+	"path"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"github.com/google/uuid"
-	"os/exec"
-	"path"
 )
 
 const (
 	AlicloudImageNamePrefix    = "stemcell"
 	MinImageDiskSize           = 5 //in GB
 	OSS_BUCKET_NAME_MAX_LENGTH = 64
-	PART_SIZE                  = 5 * 1024 * 1024
+	PART_SIZE                  = 5 * 1024 * 1024 // 5MB
 )
 
 type StemcellProps struct {
@@ -33,10 +34,10 @@ type StemcellProps struct {
 	Disk            interface{} `json:"disk"`
 	DiskFormat      string      `json:"disk_format"`
 	diskGB          int
-	Hypervisor      string      `json:"hypervisor"`
-	Name            string      `json:"name"`
-	OsDistro        string      `json:"os_distro"`
-	OsType          string      `json:"os_type"`
+	Hypervisor      string `json:"hypervisor"`
+	Name            string `json:"name"`
+	OsDistro        string `json:"os_distro"`
+	OsType          string `json:"os_type"`
 	//RootDeviceName string 	`json:"root_device_name"`
 	SourceUrl string `json:"source_url"`
 	//SourceSha1    string `json:"raw_disk_sha1,omitempty"`
@@ -219,8 +220,8 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, fmt.Sprintf("%s-(%s)-(%s)", "Unable to extract image", out.String(), stderr.String()))
 	}
-
-	err = a.osses.UploadFile(*bucket, imageName, fmt.Sprintf("%s/%s", path.Dir(imagePath), "root.img"), PART_SIZE, oss.Routines(5))
+	// The root stemcell is 3 GB and using multipart uploading to avoid timeout error
+	err = a.osses.MultipartUploadFile(*bucket, imageName, fmt.Sprintf("%s/%s", path.Dir(imagePath), "root.img"), PART_SIZE, oss.Routines(5))
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Uploading stemcell image file to oss")
 	}
