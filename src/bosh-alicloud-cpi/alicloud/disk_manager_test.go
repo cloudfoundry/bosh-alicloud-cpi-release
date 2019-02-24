@@ -17,7 +17,7 @@ var _ = Describe("DiskManager", func() {
 		By("cloud_efficiency /dev/vdc -> /dev/vdc")
 		Expect(AmendDiskPath("/dev/vdc", alicloud.DiskCategoryCloudEfficiency)).To(Equal("/dev/vdc"))
 		By("ssd /dev/xvdc -> /dev/xvdc")
-		Expect(AmendDiskPath("/dev/xvdc", alicloud.DiskCategoryCloudSSD)).To(Equal("/dev/xvdc"))
+		Expect(AmendDiskPath("/dev/xvdc", alicloud.DiskCategoryCloudSSD)).To(Equal("/dev/vdc"))
 		By("ssd /dev/vdc -> /dev/vdc")
 		Expect(AmendDiskPath("/dev/vdc", alicloud.DiskCategoryCloudEfficiency)).To(Equal("/dev/vdc"))
 	})

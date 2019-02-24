@@ -370,7 +370,7 @@ func AmendDiskPath(path string, category DiskCategory) string {
 	// cloud_efficiency:
 	// cloud_ssd:
 	// ephemeral_ssd:
-	if category == DiskCategoryCloudEfficiency {
+	if category == DiskCategoryCloudEfficiency || category == DiskCategoryCloudSSD{
 		if path[5] == 'x' {
 			path = "/dev/" + string(path[6:])
 		}
