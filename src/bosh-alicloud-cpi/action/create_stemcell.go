@@ -201,7 +201,7 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 
 	defer a.osses.DeleteBucket(bucketName)
 
-	if err := a.osses.CreateBucket(bucketName, oss.ACL(oss.ACLPublicRead)); err != nil {
+	if err := a.osses.CreateBucket(bucketName, oss.ACL(oss.ACLPrivate)); err != nil {
 		return "", bosherr.WrapErrorf(err, "Creating Alicloud OSS Bucket")
 	}
 

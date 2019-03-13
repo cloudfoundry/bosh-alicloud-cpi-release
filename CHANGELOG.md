@@ -2,6 +2,19 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r21]
+
+IMPROVEMENTS
+
+- Modify oss bucket acl to private when uploading stemcell ([#59](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/59))
+- Modify copyright to 2017-2019 ([#55](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/55))
+- Support self-define service endpoint and upgrade sdk alibaba-cloud-sdk-go ([#43](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/43))
+- Update sdk alibaba-cloud-sdk-go/sdk to improve fetching endpoint ([#41](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/41))
+
+BUG FIXES
+
+- fix device name (xvdc -> vdc) for disk category cloud_ssd ([#58](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/58))
+
 ## [r20]
 
 IMPROVEMENTS
