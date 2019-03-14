@@ -19,8 +19,8 @@ const (
 	AlicloudDefaultImageName         = "bosh-stemcell"
 	AlicloudDefaultImageArchitecture = "x86_64"
 	AlicloudDefaultImageOSType       = "linux"
-	WaitForImageReadyTimeout         = 1800
-	DefaultWaitForImageReadyTimeout  = 1200
+	WaitForImageReadyTimeout         = 3600
+	DefaultWaitForImageReadyTimeout  = 1800
 	DefaultWaitForInterval           = 10
 )
 
