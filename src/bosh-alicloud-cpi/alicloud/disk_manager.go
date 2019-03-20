@@ -8,7 +8,6 @@ import (
 
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
@@ -293,26 +292,11 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus DiskStatus) 
 			return false, fmt.Errorf("disk missing id=%s", diskCid)
 		}
 
-		if DiskStatus(disk.Status) == toStatus {
-			path := disk.Device
-			a.logger.Info("DiskManager", "Waiting disk %s to %s DONE! path=%s", diskCid, toStatus, path)
-			if len(path) > 0 {
-				//
-				// expect "/dev/vda" or "/dev/xvda"
-				if len(path) >= 8 && strings.HasPrefix(path, "/dev/") {
-					path = AmendDiskPath(disk.Device, DiskCategory(disk.Category))
-					result = path
-					return true, nil
-				} else {
-					return false, fmt.Errorf("WaitForDiskStatus unexcepted disk.Device=%s", path)
-				}
-			} else {
-				return true, nil
-			}
-		} else {
+		if DiskStatus(disk.Status) != toStatus {
 			a.logger.Info("DiskManager", "Waiting disk %s from %v to %v", diskCid, disk.Status, toStatus)
 			return false, nil
 		}
+		return true, nil
 	})
 
 	if err != nil {
@@ -370,7 +354,7 @@ func AmendDiskPath(path string, category DiskCategory) string {
 	// cloud_efficiency:
 	// cloud_ssd:
 	// ephemeral_ssd:
-	if category == DiskCategoryCloudEfficiency || category == DiskCategoryCloudSSD{
+	if category == DiskCategoryCloudEfficiency || category == DiskCategoryCloudSSD {
 		if path[5] == 'x' {
 			path = "/dev/" + string(path[6:])
 		}

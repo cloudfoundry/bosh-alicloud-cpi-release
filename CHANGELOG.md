@@ -6,6 +6,7 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
 IMPROVEMENTS
 
+- Remove useless codes when waiting for attaching disk is ok ([#62](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/62))
 - Enlarge the timeout of waitting for image ready ([#61](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/61))
 - Update go version to 1.11.5 ([#60](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/60))
 - Modify oss bucket acl to private when uploading stemcell ([#59](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/59))
