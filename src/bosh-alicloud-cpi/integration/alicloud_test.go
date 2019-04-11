@@ -4,9 +4,9 @@
 package integration
 
 import (
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
 var _ = Describe("integration:alicloud", func() {

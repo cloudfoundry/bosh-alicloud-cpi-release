@@ -10,6 +10,10 @@ IMPROVEMENTS
 - Improve integration testcase and mock method ([#67](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/67))
 - Upgrade SDK and support HTTP PROXY ([#66](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/66))
 
+BUG FIXES
+
+- fix IdempotentProcessing error when create disk ([#69](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/69))
+
 ## [r21]
 
 IMPROVEMENTS

@@ -14,15 +14,12 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/google/uuid"
 )
 
 var InstanceInvalidOperationConflictCatcher = Catcher{"InvalidOperation.Conflict", 20, 10}
 var DeleteInstanceCatcher = Catcher{"IncorrectInstanceStatus.Initializing", 20, 15}
 var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 20, 10}
 var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 20, 10}
-var CreateInstanceCatcher_TokenProcessing = Catcher{"LastTokenProcessing", 15, 5}
-var CreateInstanceCatcher_IdempotentProcessing = Catcher{"IdempotentProcessing", 15, 5}
 
 const (
 	ChangeInstanceStatusTimeout       = time.Duration(300) * time.Second
@@ -102,14 +99,8 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 	invoker := NewInvoker()
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed)
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
-	invoker.AddCatcher(CreateInstanceCatcher_TokenProcessing)
-	invoker.AddCatcher(CreateInstanceCatcher_IdempotentProcessing)
 
-	token := fmt.Sprintf("bosh-cpi-%d-%s", time.Now().UnixNano(), uuid.New().String())
-	args.ClientToken = token
-	if len(token) > 64 {
-		args.ClientToken = token[0:64]
-	}
+	args.ClientToken = buildClientToken(args.GetActionName())
 
 	var cid string
 	err = invoker.Run(func() error {
