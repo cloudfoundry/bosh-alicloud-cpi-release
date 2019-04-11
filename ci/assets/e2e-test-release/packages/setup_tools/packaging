@@ -1,7 +1,0 @@
-set -e
-
-tar zxvf setup_tools/setuptools-0.6c11.tar.gz
-cd setuptools-0.6c11
-chmod +x setup.py
-python setup.py install
-cd ..

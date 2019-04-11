@@ -2,28 +2,16 @@
 platform: linux
 image_resource:
   type: docker-image
-  source: {repository: boshcpi/gce-cpi-release}
+  source:
+    repository: boshcpi/gce-cpi-release
 
 inputs:
   - name: bosh-cpi-src
-  - name: bosh-cpi-dev-artifacts
-  - name: go-cpi-blobs
   - name: version-semver
+  - name: bosh-cli
 
 outputs:
   - name: candidate
 
-#run:
-#  path: bosh-cpi-src/ci/tasks/build-candidate.sh
-
 run:
-  path: sh
-  args:
-  - -exc
-  - |
-    chmod +x bosh-cpi-src/ci/tasks/build-candidate.sh
-    bash bosh-cpi-src/ci/tasks/build-candidate.sh
-
-params:
-  GIT_USER_EMAIL: ""
-  GIT_USER_NAME: ""
+  path: bosh-cpi-src/ci/tasks/build-candidate.sh

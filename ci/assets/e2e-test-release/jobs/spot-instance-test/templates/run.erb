@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e -o pipefail
+
+export PATH=$(readlink -nf /var/vcap/packages/jq):/usr/local/bin:/var/vcap/packages/aliyuncli/bin/:${PATH}
+
+region=<%= p('ecs_region') %>
+key=<%= p('access_key') %>
+secret=<%= p('secret_key') %>
+
+echo "fetching instance ID"
+instance_id=$(curl http://100.100.100.200/latest/meta-data/instance-id)
+echo "instance id: $instance_id"
+
+echo "checking if our instance $instance_id is a spot instance"
+instance_info="$(aliyun ecs DescribeInstances --InstanceIds \[\"${instance_id}\"\] --access-key-id $key --access-key-secret $secret --region $region)"
+spot_strategy="$(echo ${instance_info} | jq -r '.Instances.Instance[0].SpotStrategy')"
+
+if [ "${spot_strategy}" != "SpotWithPriceLimit" ]; then
+  echo "Expected Instance SpotStrategy to be 'SpotWithPriceLimit' but was '${spot_strategy}'"
+  exit 1
+fi
+
+echo "Success!"

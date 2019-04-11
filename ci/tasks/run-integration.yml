@@ -7,13 +7,9 @@ inputs:
   - name: bosh-cpi-src
   - name: stemcell
   - name: environment
+  - name: aliyun-cli
 run:
-  path: sh
-  args:
-  - -exc
-  - |
-    chmod +x bosh-cpi-src/ci/tasks/run-integration.sh
-    bash bosh-cpi-src/ci/tasks/run-integration.sh
+  path: bosh-cpi-src/ci/tasks/run-integration.sh
 params:
   ALICLOUD_ACCESS_KEY_ID:     ""
   ALICLOUD_ACCESS_KEY_SECRET: ""

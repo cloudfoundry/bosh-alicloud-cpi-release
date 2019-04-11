@@ -1,0 +1,5 @@
+set -e
+
+mkdir -p ${BOSH_INSTALL_TARGET}/bin
+
+tar xzvf aliyuncli/aliyun-cli-linux-amd64.tar.gz -C ${BOSH_INSTALL_TARGET}/bin

@@ -1,0 +1,32 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: boshcpi/aws-cpi-release}
+
+inputs:
+  - name: bosh-cpi-src
+
+outputs:
+  - name: environment
+
+run:
+  path: bosh-cpi-src/ci/tasks/put-environment.sh
+params:
+  access_key: ""
+  secret_key: ""
+  region: ""
+  env_name: ""
+  public_key: ""
+  delete_on_failure: false
+  generate_random_name: false
+  action: ""
+  terraform_source: ""
+  output_statefile: ""
+  output_module: ""
+  access_key_id: ""
+  secret_access_key: ""
+  region_name: ""
+  bucket: ""
+  bucket_path: ""

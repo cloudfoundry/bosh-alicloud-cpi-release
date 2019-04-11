@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -o pipefail
 
-export PATH=/usr/local/bin:/var/vcap/packages/aliyun_py/bin/:${PATH}
+export PATH=$(readlink -nf /var/vcap/packages/jq):/usr/local/bin:/var/vcap/packages/aliyuncli/bin/:${PATH}
 
 slb_id=<%= p('load_balancer_id') %>
 region=<%= p('ecs_region') %>
@@ -12,34 +12,5 @@ echo "fetching instance ID"
 instance_id=$(curl http://100.100.100.200/latest/meta-data/instance-id)
 echo "instance id: $instance_id"
 
-# utc to cst
-echo "Asia/Shanghai" | tee /etc/timezone
-dpkg-reconfigure --frontend noninteractive tzdata
-
-#adjust system clock
-hwclock --set --date="$(date -d '-8 hour')"
-hwclock --hctosys
-
-# install python dependency
-apt-get update
-apt-get -y upgrade
-apt-get clean
-apt-get install -y python python-dev libffi-dev libssl-dev python-pip python-paramiko jq
-
-# install pip dependency
-curl "https://bootstrap.pypa.io/get-pip.py" -o "pip-install.py"
-python pip-install.py
-pip install cryptography
-
-# install python sdk
-# refers: https://help.aliyun.com/document_detail/29995.html
-pip install aliyun-python-sdk-slb
-
 echo "checking if our instance $instance_id is registered with $slb_id"
-#aliyuncli --region $region slb describe-load-balancers --load-balancer-id $slb_id | jq --arg instance_id $instance_id -e '.LoadBalancerDescriptions[0].Instances[] | select(.InstanceId == $instance_id)'
-#check_slb_bind_ecs --slb_id=$slb_id --ecs_id=$instance_id --access_key=$key --secret_key=$secret --region=$region
-
-if [[ "$(check_slb_bind_ecs --slb_id=$slb_id --ecs_id=$instance_id --access_key=$key --secret_key=$secret --region=$region)" == "0" ]]; then
-  echo "slb $slb_id has not be attached to ecs $instance_id!"
-  exit 1;
-fi
+aliyun slb DescribeLoadBalancerAttribute --LoadBalancerId "$slb_id" --access-key-id $key --access-key-secret $secret --region $region | jq --arg instance_id $instance_id -e '.BackendServers.BackendServer[0] | select(.ServerId == $instance_id)'

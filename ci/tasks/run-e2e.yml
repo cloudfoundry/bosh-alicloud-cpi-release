@@ -21,6 +21,7 @@ inputs:
   - name: pycrypto-blob
   - name: core-blob
   - name: slb-blob
+  - name: aliyun-cli
 
 run:
   path: sh
