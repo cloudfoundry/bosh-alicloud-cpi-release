@@ -30,7 +30,7 @@ var configForIntegration = string(`{
         "properties": {
             "alicloud": {
                 "region": "${CPI_REGION}",
-		        "availability_zone": "${CPI_ZONE}",
+		"availability_zone": "${CPI_ZONE}",
                 "access_key_id": "${CPI_ACCESS_KEY_ID}",
                 "access_key_secret": "${CPI_ACCESS_KEY_SECRET}"
             },
@@ -79,6 +79,44 @@ var _ = BeforeSuite(func() {
 
 	err = CleanInstances(config, services.Instances)
 	Expect(err).NotTo(HaveOccurred())
+
+	data :=  mock.NewBuilder(`{
+			"method": "create_stemcell",
+			"arguments": [
+				"${STEMCELL_FILE}",
+				{
+					"architecture": "x86_64",
+					"container_format": "bare",
+					"disk": 3072,
+					"disk_format": "raw",
+					"hypervisor": "kvm",
+					"infrastructure": "alicloud",
+					"name": "bosh-alicloud-kvm-ubuntu-xenial-go_agent",
+					"os_type": "linux",
+					"os_distro": "ubuntu",
+					"root_device_name": "/dev/vda1",
+					"version": "${STEMCELL_VERSION}"
+				}
+			],
+			"context": {
+				"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"
+			}
+		}`).P("STEMCELL_FILE", stemcellFile).
+			P("STEMCELL_VERSION", stemcellVersion).
+		    	ToBytes()
+
+	r := caller.Run(data)
+	Expect(r.GetError()).NotTo(HaveOccurred())
+	existingStemcell = r.GetResultString()
+	Expect(existingStemcell).ToNot(BeEmpty())
+})
+
+var _ = AfterSuite(func() {
+	_, err := caller.Call("delete_stemcell", existingStemcell)
+	Expect(err).NotTo(HaveOccurred())
+	//Expect(response.Error).To(BeNil())
+	//Expect(response.Result).To(BeNil())
+
 })
 
 func CleanInstances(config alicloud.Config, manager alicloud.InstanceManager) error {
