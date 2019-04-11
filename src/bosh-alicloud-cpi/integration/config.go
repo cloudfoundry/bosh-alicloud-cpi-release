@@ -22,10 +22,10 @@ var (
 	// Configurable defaults
 	// A stemcell that will be created in integration_suite_test.go
 	existingStemcell string
-	stemcellFile                  = envOrDefault("CPI_STEMCELL_FILE", "")
-	stemcellVersion               = envOrDefault("CPI_STEMCELL_VERSION", "")
-	imageOssBucket = envOrDefault("CPI_STEMCELL_OSS_BUCKET", "")
-	imageOssObject = envOrDefault("CPI_STEMCELL_OSS_OBJECT", "")
+	stemcellFile     = envOrDefault("CPI_STEMCELL_FILE", "")
+	stemcellVersion  = envOrDefault("CPI_STEMCELL_VERSION", "")
+	imageOssBucket   = envOrDefault("CPI_STEMCELL_OSS_BUCKET", "")
+	imageOssObject   = envOrDefault("CPI_STEMCELL_OSS_OBJECT", "")
 
 	securityGroupId = os.Getenv("CPI_SECURITY_GROUP_ID")
 	vswitchId       = os.Getenv("CPI_VSWITCH_ID")

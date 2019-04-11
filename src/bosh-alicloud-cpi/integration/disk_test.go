@@ -9,7 +9,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"fmt"
 )
 
 var _ = Describe("integration:disk", func() {

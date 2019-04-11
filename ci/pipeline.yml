@@ -316,7 +316,7 @@ resources:
     source:
       uri: git@github.com:xiaozhu/bosh-alicloud-cpi-release.git
       branch: promote_release_artifacts
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      private_key: {{github_bosh-alicloud-cpi-release_private-key}}
   - name: version-semver
     type: semver
     source:
@@ -333,7 +333,7 @@ resources:
 #      uri: git@github.com:demonwy/test-semver-version.git
 #      branch: release
 #      file: version
-#      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+#      private_key: {{github_bosh-alicloud-cpi-release_private-key}}
   - name: release-version-semver
     type: semver
     source:
@@ -441,7 +441,7 @@ resources:
 #    source:
 #      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
 #      branch: concourse_ci_tmp
-#      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+#      private_key: {{github_bosh-alicloud-cpi-release_private-key}}
 
   - name: aliyun-cli
     type: github-release

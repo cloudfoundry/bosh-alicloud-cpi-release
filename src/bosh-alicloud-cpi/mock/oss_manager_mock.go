@@ -60,6 +60,6 @@ func (a OssManagerMock) DeleteObject(bucket oss.Bucket, name string) error {
 }
 
 func (a OssManagerMock) MultipartUploadFile(
-bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error {
+	bucket oss.Bucket, objectKey, filePath string, partSize int64, options ...oss.Option) error {
 	return nil
 }

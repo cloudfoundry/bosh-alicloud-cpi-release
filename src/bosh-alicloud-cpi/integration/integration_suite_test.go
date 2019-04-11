@@ -80,7 +80,7 @@ var _ = BeforeSuite(func() {
 	err = CleanInstances(config, services.Instances)
 	Expect(err).NotTo(HaveOccurred())
 
-	data :=  mock.NewBuilder(`{
+	data := mock.NewBuilder(`{
 			"method": "create_stemcell",
 			"arguments": [
 				"${STEMCELL_FILE}",
@@ -102,8 +102,8 @@ var _ = BeforeSuite(func() {
 				"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"
 			}
 		}`).P("STEMCELL_FILE", stemcellFile).
-			P("STEMCELL_VERSION", stemcellVersion).
-		    	ToBytes()
+		P("STEMCELL_VERSION", stemcellVersion).
+		ToBytes()
 
 	r := caller.Run(data)
 	Expect(r.GetError()).NotTo(HaveOccurred())

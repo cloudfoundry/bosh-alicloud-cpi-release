@@ -13,7 +13,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/google/uuid"
 )
 
 const (
@@ -126,7 +125,7 @@ func (a DiskManagerImpl) GetDisk(diskCid string) (disk *ecs.Disk, err error) {
 }
 
 func (a DiskManagerImpl) CreateDisk(region string, args *ecs.CreateDiskRequest) (cid string, err error) {
-	args.ClientToken = uuid.New().String()
+	args.ClientToken = buildClientToken(args.GetActionName())
 
 	client, err := a.config.NewEcsClient(region)
 	if err != nil {
@@ -244,7 +243,7 @@ func (a DiskManagerImpl) CreateSnapshot(diskCid, snapshotName string) (snapshotI
 	args := ecs.CreateCreateSnapshotRequest()
 	args.DiskId = diskCid
 	args.SnapshotName = snapshotName
-	args.ClientToken = uuid.New().String()
+	args.ClientToken = buildClientToken(args.GetActionName())
 
 	invoker := NewInvoker()
 

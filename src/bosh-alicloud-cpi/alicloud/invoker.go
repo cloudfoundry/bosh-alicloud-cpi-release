@@ -22,11 +22,15 @@ type Catcher struct {
 
 var ClientErrorCatcher = Catcher{"AliyunGoClientFailure", 5, 3}
 var ServiceBusyCatcher = Catcher{"ServiceUnavailable", 5, 3}
+var CreateInstanceCatcher_TokenProcessing = Catcher{"LastTokenProcessing", 15, 5}
+var CreateInstanceCatcher_IdempotentProcessing = Catcher{"IdempotentProcessing", 15, 5}
 
 func NewInvoker() Invoker {
 	i := Invoker{}
 	i.AddCatcher(ClientErrorCatcher)
 	i.AddCatcher(ServiceBusyCatcher)
+	i.AddCatcher(CreateInstanceCatcher_TokenProcessing)
+	i.AddCatcher(CreateInstanceCatcher_IdempotentProcessing)
 	return i
 }
 

@@ -4,12 +4,15 @@
 package alicloud
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
+	"github.com/google/uuid"
 )
 
 type TagResourceType string
@@ -102,3 +105,10 @@ func getTransport() *http.Transport {
 		TLSHandshakeTimeout: time.Duration(handshakeTimeout) * time.Second}
 }
 
+func buildClientToken(action string) string {
+	token := strings.TrimSpace(fmt.Sprintf("Bosh-Cpi-%s-%d-%s", action, time.Now().Unix(), strings.Trim(uuid.New().String(), "-")))
+	if len(token) > 64 {
+		token = token[0:64]
+	}
+	return token
+}

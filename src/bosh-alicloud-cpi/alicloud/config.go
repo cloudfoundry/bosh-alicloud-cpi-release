@@ -50,8 +50,8 @@ const (
 
 	DefaultEipWaitSeconds = 120
 	DefaultSlbWeight      = 100
-	BoshCPI = "Bosh-Alicloud-Cpi"
-	BoshCPIVersion = "1.0"
+	BoshCPI               = "Bosh-Alicloud-Cpi"
+	BoshCPIVersion        = "1.0"
 )
 
 type OpenApi struct {
@@ -256,7 +256,7 @@ func (c Config) NewOssClient(region string) (*oss.Client, error) {
 		endpoint = fmt.Sprintf("%s://%s", schma, endpoint)
 	}
 
-	clientOptions := []oss.ClientOption{oss.UserAgent(BoshCPI+"/"+BoshCPIVersion),
+	clientOptions := []oss.ClientOption{oss.UserAgent(BoshCPI + "/" + BoshCPIVersion),
 		oss.SecurityToken(c.OpenApi.SecurityToken)}
 	ossClient, err := oss.New(endpoint, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, clientOptions...)
 	if err != nil {
