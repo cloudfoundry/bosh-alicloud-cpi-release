@@ -19,7 +19,7 @@ func NewInstanceManagerMock(mc TestContext) alicloud.InstanceManager {
 	return InstanceManagerMock{&mc}
 }
 
-func (a InstanceManagerMock) GetInstance(cid string) (*ecs.Instance, error) {
+func (a InstanceManagerMock) GetInstance(cid string) (*ecs.DescribeInstanceAttributeResponse, error) {
 	i, ok := a.mc.Instances[cid]
 	if !ok {
 		return nil, nil
@@ -28,7 +28,7 @@ func (a InstanceManagerMock) GetInstance(cid string) (*ecs.Instance, error) {
 	}
 }
 
-func (a InstanceManagerMock) CreateInstance(args *ecs.CreateInstanceRequest) (string, error) {
+func (a InstanceManagerMock) CreateInstance(region string, args *ecs.CreateInstanceRequest) (string, error) {
 	id, inst := a.mc.NewInstance()
 
 	inst.RegionId = args.RegionId

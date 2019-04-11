@@ -23,7 +23,7 @@ var _ = Describe("integration:vm", func() {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"instance_name": "test-cc",
+					"instance_name": "bosh-test-cpi-integration",
 					"instance_type": "ecs.n4.small",
 					"system_disk": {
 						"size": "61_440",
@@ -55,7 +55,7 @@ var _ = Describe("integration:vm", func() {
 				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
 			}
 		}`).
-			P("STEMCELL_ID", stemcellId).
+			P("STEMCELL_ID", existingStemcell).
 			P("SECURITY_GROUP_ID", securityGroupId).
 			P("VSWITCH_ID", vswitchId).
 			P("INTERNAL_IP", internalIp).
@@ -81,9 +81,6 @@ var _ = Describe("integration:vm", func() {
 	})
 
 	It("can run the vm lifecycle with slb", func() {
-		if slbId == "" {
-			Skip("no CPI_SLB_IP settings")
-		}
 		By("create vm with slb")
 		in := mock.NewBuilder(`{
 			"method": "create_vm",
@@ -95,7 +92,7 @@ var _ = Describe("integration:vm", func() {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"instance_name": "test-cc",
+					"instance_name": "bosh-test-cpi-integration",
 					"instance_type": "ecs.n4.small",
 					"slbs": ["${SLB_ID}"],
 					"system_disk": {
@@ -128,7 +125,7 @@ var _ = Describe("integration:vm", func() {
 			"context": {
 				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
 			}
-		}`).P("STEMCELL_ID", stemcellId).
+		}`).P("STEMCELL_ID", existingStemcell).
 			P("SECURITY_GROUP_ID", securityGroupId).
 			P("VSWITCH_ID", vswitchId).
 			P("INTERNAL_IP", internalIp).
@@ -155,9 +152,6 @@ var _ = Describe("integration:vm", func() {
 	})
 
 	It("can run the vm lifecycle with external ip", func() {
-		if externalIp == "" {
-			Skip("no CPI_EXTERNAL_IP settings")
-		}
 		By("create vm with external ip")
 		in := mock.NewBuilder(`{
 			"method": "create_vm",
@@ -169,7 +163,7 @@ var _ = Describe("integration:vm", func() {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"instance_name": "test-cc",
+					"instance_name": "bosh-test-cpi-integration",
 					"instance_type": "ecs.n4.small",
 					"system_disk": {
 						"size": "61_440",
@@ -207,7 +201,7 @@ var _ = Describe("integration:vm", func() {
 				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
 			}
 		}`).
-			P("STEMCELL_ID", stemcellId).
+			P("STEMCELL_ID", existingStemcell).
 			P("SECURITY_GROUP_ID", securityGroupId).
 			P("VSWITCH_ID", vswitchId).
 			P("INTERNAL_IP", internalIp).
@@ -267,7 +261,7 @@ var _ = Describe("integration:vm", func() {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"instance_name": "test-cc",
+					"instance_name": "bosh-test-cpi-integration",
 					"instance_type": "ecs.n4.small",
 					"spot_strategy": "${SPOT_STRATEGY}",
 					"spot_price_limit": ${SPOT_PRICE_LIMIT},
@@ -301,7 +295,7 @@ var _ = Describe("integration:vm", func() {
 				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
 			}
 		}`).
-			P("STEMCELL_ID", stemcellId).
+			P("STEMCELL_ID", existingStemcell).
 			P("SECURITY_GROUP_ID", securityGroupId).
 			P("VSWITCH_ID", vswitchId).
 			P("INTERNAL_IP", internalIp).
@@ -339,7 +333,7 @@ var _ = Describe("integration:vm", func() {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"instance_name": "test-cc",
+					"instance_name": "bosh-test-cpi-integration",
 					"instance_type": "ecs.n4.small",
 					"password": "Cloud12345",
 					"ram_role_name": "${RAM_ROLE_NAME}",
@@ -373,7 +367,7 @@ var _ = Describe("integration:vm", func() {
 				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
 			}
 		}`).
-			P("STEMCELL_ID", stemcellId).
+			P("STEMCELL_ID", existingStemcell).
 			P("SECURITY_GROUP_ID", securityGroupId).
 			P("VSWITCH_ID", vswitchId).
 			P("INTERNAL_IP", internalIp).

@@ -37,7 +37,7 @@ func (a StemcellManagerMock) DeleteStemcell(id string) error {
 	return nil
 }
 
-func (a StemcellManagerMock) ImportImage(args ecs.ImportImageRequest) (string, error) {
+func (a StemcellManagerMock) ImportImage(args *ecs.ImportImageRequest) (string, error) {
 	id, image := a.mc.NewStemcell()
 
 	image.ImageName = args.ImageName

@@ -41,7 +41,7 @@ func (a DiskManagerMock) GetDisk(diskCid string) (*ecs.Disk, error) {
 	}
 }
 
-func (a DiskManagerMock) CreateDisk(args ecs.CreateDiskRequest) (string, error) {
+func (a DiskManagerMock) CreateDisk(region string, args *ecs.CreateDiskRequest) (string, error) {
 	size, err := strconv.Atoi(string(args.Size))
 	if err != nil {
 		return "", fmt.Errorf("convert size %s got an error: %#v.", args.Size, err)

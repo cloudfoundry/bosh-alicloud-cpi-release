@@ -19,9 +19,13 @@ var (
 	accessKeyId     = os.Getenv("CPI_ACCESS_KEY_ID")
 	accessKeySecret = os.Getenv("CPI_ACCESS_KEY_SECRET")
 
-	//
-	// for <light-bosh-stemcell-1008-alicloud-kvm-ubuntu-trusty-go_agent> in beijing
-	stemcellId = envOrDefault("CPI_STEMCELL_ID", "m-2ze2ct08gslmli5e6fw5")
+	// Configurable defaults
+	// A stemcell that will be created in integration_suite_test.go
+	existingStemcell string
+	stemcellFile                  = envOrDefault("CPI_STEMCELL_FILE", "")
+	stemcellVersion               = envOrDefault("CPI_STEMCELL_VERSION", "")
+	imageOssBucket = envOrDefault("CPI_STEMCELL_OSS_BUCKET", "")
+	imageOssObject = envOrDefault("CPI_STEMCELL_OSS_OBJECT", "")
 
 	securityGroupId = os.Getenv("CPI_SECURITY_GROUP_ID")
 	vswitchId       = os.Getenv("CPI_VSWITCH_ID")
@@ -45,6 +49,9 @@ var (
 	registryPassword = envOrDefault("CPI_REGISTRY_PASSWORD", "admin-password")
 	registryHost     = envOrDefault("CPI_REGISTRY_ADDRESS", "172.0.0.1")
 	registryPort     = envOrDefault("CPI_REGISTRY_PORT", "25777")
+
+	// Channel that will be used to retrieve IPs to use
+	ips chan string
 )
 
 func ApplySystemEnv(config *alicloud.Config) error {

@@ -17,7 +17,7 @@ const (
 type TestContext struct {
 	config     alicloud.Config
 	Disks      map[string]*ecs.Disk
-	Instances  map[string]*ecs.Instance
+	Instances  map[string]*ecs.DescribeInstanceAttributeResponse
 	Stemcells  map[string]*ecs.Image
 	Buckets    map[string]*oss.Bucket
 	OssObjects map[string]string
@@ -28,7 +28,7 @@ func NewTestContext(config alicloud.Config) TestContext {
 	return TestContext{
 		config:     config,
 		Disks:      make(map[string]*ecs.Disk),
-		Instances:  make(map[string]*ecs.Instance),
+		Instances:  make(map[string]*ecs.DescribeInstanceAttributeResponse),
 		Stemcells:  make(map[string]*ecs.Image),
 		Buckets:    make(map[string]*oss.Bucket),
 		OssObjects: make(map[string]string),
@@ -42,20 +42,20 @@ func (c TestContext) NewDisk(instCid string) (string, *ecs.Disk) {
 		RegionId:   c.config.OpenApi.GetRegion(""),
 		ZoneId:     c.config.OpenApi.GetAvailabilityZone(),
 		Size:       defaultDiskSize,
-		Status:     alicloud.DiskStatusAvailable,
-		Category:   alicloud.DiskCategoryCloudEfficiency,
+		Status:     string(alicloud.DiskStatusAvailable),
+		Category:   string(alicloud.DiskCategoryCloudEfficiency),
 		InstanceId: instCid,
 	}
 	c.Disks[d.DiskId] = &d
 	return d.DiskId, &d
 }
 
-func (c TestContext) NewInstance() (string, *ecs.Instance) {
-	i := ecs.Instance{
+func (c TestContext) NewInstance() (string, *ecs.DescribeInstanceAttributeResponse) {
+	i := ecs.DescribeInstanceAttributeResponse{
 		InstanceId: NewInstanceId(),
 		RegionId:   c.config.OpenApi.GetRegion(""),
 		ZoneId:     c.config.OpenApi.GetAvailabilityZone(),
-		Status:     alicloud.Stopped,
+		Status:     string(alicloud.Stopped),
 	}
 	c.Instances[i.InstanceId] = &i
 	return i.InstanceId, &i

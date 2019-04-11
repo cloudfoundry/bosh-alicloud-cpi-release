@@ -18,7 +18,6 @@ package integration
 //	Expect(err).ToNot(HaveOccurred())
 //	print(response.Error.Message)
 //	Expect(response.Error).To(BeNil())
-//
 //	Expect(response.Result).ToNot(BeNil())
 //	return response.Result
 //}

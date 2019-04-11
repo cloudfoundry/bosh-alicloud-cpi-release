@@ -6,15 +6,16 @@ package integration
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
 var _ = Describe("integration:alicloud", func() {
 	It("get regions and zones", func() {
-		client := caller.Config.NewEcsClient()
-		regions, err := client.DescribeRegions()
+		client, _ := caller.Config.NewEcsClient("")
+		resp, err := client.DescribeRegions(ecs.CreateDescribeRegionsRequest())
 		Expect(err).NotTo(HaveOccurred())
 
-		for _, r := range regions {
+		for _, r := range resp.Regions.Region {
 			// region := common.Region(r.RegionId)
 			// zones, err := client.DescribeZones(region)
 			// Expect(err).NotTo(HaveOccurred())

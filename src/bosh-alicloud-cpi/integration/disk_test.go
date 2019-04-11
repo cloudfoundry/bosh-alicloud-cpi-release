@@ -9,6 +9,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"fmt"
 )
 
 var _ = Describe("integration:disk", func() {
@@ -24,7 +25,7 @@ var _ = Describe("integration:disk", func() {
 						"size": "40_960",
 						"category": "cloud_efficiency"
 					},
-					"instance_name": "test-cc",
+					"instance_name": "bosh-test-cpi-integration",
 					"instance_type": "ecs.n4.small",
 					"system_disk": {
 						"size": "61_440",
@@ -56,7 +57,7 @@ var _ = Describe("integration:disk", func() {
 			"context": {
 				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
 			}
-		}`).P("STEMCELL_ID", stemcellId).
+		}`).P("STEMCELL_ID", existingStemcell).
 			P("SECURITY_GROUP_ID", securityGroupId).
 			P("VSWITCH_ID", vswitchId).
 			P("INTERNAL_IP", internalIp).
