@@ -87,7 +87,6 @@ func getSdkConfig() *sdk.Config {
 	return sdk.NewConfig().
 		WithMaxRetryTime(5).
 		WithTimeout(time.Duration(60) * time.Second).
-		WithUserAgent(getUserAgent()).
 		WithGoRoutinePoolSize(10).
 		WithDebug(false).
 		WithHttpTransport(getTransport()).
@@ -103,6 +102,3 @@ func getTransport() *http.Transport {
 		TLSHandshakeTimeout: time.Duration(handshakeTimeout) * time.Second}
 }
 
-func getUserAgent() string {
-	return "Bosh-Alicloud-Cpi"
-}
