@@ -22,12 +22,27 @@ stemcells:
 #    version: latest
 
 instance_groups:
+  - name: spot-instance-test
+    jobs:
+      - name: spot-instance-test
+        release: e2e-test
+        properties:
+          ecs_region: ((region))
+          access_key: ((access_key))
+          secret_key: ((secret_key))
+    stemcell: stemcell
+    lifecycle: errand
+    instances: 1
+    vm_type: spot_instance_pool
+    networks:
+      - name: private
+        default: [dns, gateway]
   - name: slb-registration-test
     jobs:
       - name: slb-registration-test
         release: e2e-test
         properties:
-          load_balancer_id: ((slb_http_id))
+          load_balancer_id: ((slb))
           ecs_region: ((region))
           access_key: ((access_key))
           secret_key: ((secret_key))
@@ -38,6 +53,6 @@ instance_groups:
     networks:
       - name: private
         default: [dns, gateway]
-      - name: vip
-        static_ips: [((external_1_ip_address))]
+#      - name: vip
+#        static_ips: [((external_1_ip_address))]
 

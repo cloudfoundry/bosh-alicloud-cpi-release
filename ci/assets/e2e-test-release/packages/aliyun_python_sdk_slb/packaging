@@ -1,7 +1,0 @@
-set -e
-
-tar -xzvf sdk_slb/aliyun-python-sdk-slb-3.2.1.tar.gz
-cd aliyun-python-sdk-slb-3.2.1
-chmod +x setup.py
-python setup.py install
-cd ..

@@ -6,6 +6,7 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
 IMPROVEMENTS
 
+- Improve bosh cpi CI including assets, e2e, candidate, integration and so on ([#68](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/68))
 - Improve integration testcase and mock method ([#67](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/67))
 - Upgrade SDK and support HTTP PROXY ([#66](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/66))
 

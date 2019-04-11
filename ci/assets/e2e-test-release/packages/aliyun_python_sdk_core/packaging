@@ -1,8 +1,0 @@
-set -e
-
-tar -xzvf sdk_core/aliyun-python-sdk-core-2.5.2.tar.gz
-cd aliyun-python-sdk-core-2.5.2
-chmod +x setup.py
-python setup.py install
-cd ..
-#pip list

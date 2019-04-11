@@ -1,7 +1,0 @@
----
-name: aliyun_python_sdk_core
-
-dependencies:
-- pycrypto
-files:
-  - sdk_core/aliyun-python-sdk-core-2.5.2.tar.gz

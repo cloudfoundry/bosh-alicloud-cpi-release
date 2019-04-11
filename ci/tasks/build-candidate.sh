@@ -1,58 +1,41 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
-: ${GIT_USER_EMAIL:?}
-: ${GIT_USER_NAME:?}
-
 source bosh-cpi-src/ci/tasks/utils.sh
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 cpi_release_name="bosh-alicloud-cpi"
 semver=`cat version-semver/number`
-
-CURRENT_PATH=$(pwd)
-DESC=$CURRENT_PATH/bosh-cpi-dev-artifacts/
-
-# install bosh
-echo "Installing Bosh CLI..."
-curl -O https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-2.0.28-linux-amd64
-chmod +x ./bosh-cli-*
-mv ./bosh-cli-* /usr/local/bin/bosh2
-
-git config --global user.email ${GIT_USER_EMAIL}
-git config --global user.name ${GIT_USER_NAME}
+image_path=$PWD/bosh-cpi-src/${cpi_release_name}-${semver}.tgz
 
 pushd bosh-cpi-src
-  echo "using bosh CLI version..."
-  bosh2 -v
+  echo "Using Bosh CLI version..."
+  bosh -v
 
-  #echo $GOPATH
   source .envrc
 
-  # add go cpi blob
-  bosh2 add-blob ../go-cpi-blobs/go1.8.1.linux-amd64.tar.gz go1.8.1.linux-amd64.tar.gz
+  echo "Finding Golang Release and downloading it..."
+  cat config/blobs.yml | while read LINE
+    do
+        if [[ ${LINE//:/} =~ ^go[0-9.]+linux-[a-z0-9]+.tar.gz$ ]]; then
+            gorelease=${LINE//:/}
+            echo "Downloading ${gorelease}..."
+            wget -q https://dl.google.com/go/${gorelease}
+            echo "Adding ${gorelease} to blob..."
+            bosh add-blob ./${gorelease} ${gorelease}
+            break
+        fi
+    done
 
-  make
+  echo "Exposing release semver to bosh-alicloud-cpi"
+  echo ${semver} > "src/bosh-alicloud-cpi/release"
 
-  # Git repository has local modifications:
-  # M ci/tasks/build-candidate.sh
-  git add .
-  git commit -m 'do nothing'
-
-  echo "building CPI release..."
-  # refers: https://bosh.io/docs/cli-v2#create-release
-  bosh2 create-release --name $cpi_release_name --version $semver --tarball $cpi_release_name-$semver.tgz
-
-  rm -rf ${DESC}/*
-  mv $cpi_release_name-$semver.tgz ${DESC}/
+  # We have to use the --force flag because we just added the `src/bosh-alicloud-cpi/release` file
+  echo "Creating CPI BOSH Release..."
+  bosh create-release --name=${cpi_release_name} --version=${semver} --tarball=${image_path} --force
 popd
 
-cp -r bosh-cpi-dev-artifacts candidate/repo
-pushd candidate/repo
-  ls -al ${DESC}/
-  echo "git status..."
-  git status
-  git add .
-  git commit -m 'create cpi release $cpi_release_name-$semver.tgz'
-popd
+echo -n $(sha1sum $image_path | awk '{print $1}') > $image_path.sha1
+
+mv ${image_path} candidate/
+mv ${image_path}.sha1 candidate/

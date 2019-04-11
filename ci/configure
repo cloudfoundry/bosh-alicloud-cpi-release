@@ -1,0 +1,3 @@
+fly -t stemcell sp -p bosh-alicloud-cpi \
+  -c pipeline.yml \
+  --load-vars-from=vars-pipeline-develop.yaml
