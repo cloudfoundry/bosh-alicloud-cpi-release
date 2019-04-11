@@ -30,7 +30,7 @@ var _ = Describe("Disks", func() {
 				"category": "ephemeral_ssd"
 			},
 			"image_id": "m-2ze200tcuotb5uk2kol4",
-			"instance_name": "test-cc",
+			"instance_name": "bosh-test-cpi-integration",
 			"instance_type": "ecs.n4.small",
 			"system_disk": {
 				"size": 51200,
@@ -49,7 +49,7 @@ var _ = Describe("Disks", func() {
 				"size": "81920"
 			},
 			"image_id": "m-2ze200tcuotb5uk2kol4",
-			"instance_name": "test-cc",
+			"instance_name": "bosh-test-cpi-integration",
 			"instance_type": "ecs.n4.small",
 			"system_disk": {
 				"size": "102_400"

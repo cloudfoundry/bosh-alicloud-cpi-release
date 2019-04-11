@@ -23,7 +23,7 @@ var _ = Describe("create_vm", func() {
 	//					"type": "cloud_efficiency"
 	//				},
 	//				"image_id": "m-2ze200tcuotb5uk2kol4",
-	//				"instance_name": "test-cc",
+	//				"instance_name": "bosh-test-cpi-integration",
 	//				"instance_type": "ecs.n4.small",
 	//				"system_disk": {
 	//					"size": "61_440",

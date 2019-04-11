@@ -183,6 +183,10 @@ func (a Disks) FillCreateInstanceArgs(golbalEncrypt *bool, args *ecs.CreateInsta
 	encrypt := a.EphemeralDisk.Encrypted
 	if encrypt == nil {
 		encrypt = golbalEncrypt
+		if encrypt == nil {
+			encrypt = new(bool)
+			*encrypt = false
+		}
 	}
 	deleteWithInstance := a.EphemeralDisk.DeleteWithInstance
 	if deleteWithInstance == nil {

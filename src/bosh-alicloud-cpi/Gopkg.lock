@@ -7,6 +7,7 @@
     "sdk",
     "sdk/auth",
     "sdk/auth/credentials",
+    "sdk/auth/credentials/provider",
     "sdk/auth/signers",
     "sdk/endpoints",
     "sdk/errors",
@@ -17,9 +18,9 @@
     "services/location",
     "services/slb"
   ]
-  revision = "2ce95bbb8f649f8e477ee6f84c00ff7a4a3aa0fc"
+  revision = "23d39810132af317d6c3474cd9c8001a791b10fb"
   source = "github.com/aliyun/alibaba-cloud-sdk-go"
-  version = "1.47.2"
+  version = "1.54.0"
 
 [[projects]]
   name = "github.com/aliyun/aliyun-oss-go-sdk"
@@ -74,8 +75,8 @@
 [[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
-  revision = "ca39e5af3ece67bbcda3d0f4f56a8e24d9f2dad4"
-  version = "1.1.3"
+  revision = "0ff49de124c6f76f8494e194af75bde0f1a49a29"
+  version = "v1.1.6"
 
 [[projects]]
   name = "github.com/modern-go/concurrent"
@@ -86,8 +87,8 @@
 [[projects]]
   name = "github.com/modern-go/reflect2"
   packages = ["."]
-  revision = "1df9eeb2bb81f327b96228865c5687bc2194af3f"
-  version = "1.0.0"
+  revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
+  version = "1.0.1"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -144,6 +145,12 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "gopkg.in/ini.v1"
+  packages = ["."]
+  revision = "c85607071cf08ca1adaf48319cd1aa322e81d8c1"
+  version = "v1.42.0"
+
+[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
@@ -152,6 +159,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "43bad2462d084c0c17fdd840003fac76ce2e8e47645cd6f71b577db521c04f5e"
+  inputs-digest = "d54f271fe8caa9c31c63415fee8877dfe04603cd385339096ea48157ad3e5243"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -50,6 +50,8 @@ const (
 
 	DefaultEipWaitSeconds = 120
 	DefaultSlbWeight      = 100
+	BoshCPI = "Bosh-Alicloud-Cpi"
+	BoshCPIVersion = "1.0"
 )
 
 type OpenApi struct {
@@ -183,6 +185,7 @@ func (c Config) NewEcsClient(region string) (*ecs.Client, error) {
 		endpoints.AddEndpointMapping(c.OpenApi.Region, "ecs", endpoint)
 	}
 	client, err := ecs.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig(), c.getAuthCredential(true))
+	client.AppendUserAgent(BoshCPI, BoshCPIVersion)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
 	}
@@ -202,6 +205,7 @@ func (c Config) NewSlbClient(region string) (*slb.Client, error) {
 		endpoints.AddEndpointMapping(c.OpenApi.Region, "slb", endpoint)
 	}
 	client, err := slb.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig(), c.getAuthCredential(true))
+	client.AppendUserAgent(BoshCPI, BoshCPIVersion)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Initiating SLB Client in '%s' got an error.", c.OpenApi.GetRegion(region))
 	}
@@ -252,7 +256,7 @@ func (c Config) NewOssClient(region string) (*oss.Client, error) {
 		endpoint = fmt.Sprintf("%s://%s", schma, endpoint)
 	}
 
-	clientOptions := []oss.ClientOption{oss.UserAgent(getUserAgent()),
+	clientOptions := []oss.ClientOption{oss.UserAgent(BoshCPI+"/"+BoshCPIVersion),
 		oss.SecurityToken(c.OpenApi.SecurityToken)}
 	ossClient, err := oss.New(endpoint, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, clientOptions...)
 	if err != nil {
@@ -368,6 +372,7 @@ func (c Config) describeEndpointForService(serviceCode string) (*location.Descri
 	}
 
 	locationClient, err := location.NewClientWithOptions(c.OpenApi.Region, getSdkConfig(), c.getAuthCredential(true))
+	locationClient.AppendUserAgent(BoshCPI, BoshCPIVersion)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize the location client: %#v", err)
 

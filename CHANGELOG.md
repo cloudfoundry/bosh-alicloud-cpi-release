@@ -2,6 +2,12 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## [r22]
+
+IMPROVEMENTS
+
+- Upgrade SDK and support HTTP PROXY ([#63](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/63))
+
 ## [r21]
 
 IMPROVEMENTS
