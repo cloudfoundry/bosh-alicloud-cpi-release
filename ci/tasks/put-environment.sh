@@ -20,6 +20,8 @@ set -e
 : ${bucket:?}
 : ${bucket_path:="terraform-state"}
 
+source bosh-cpi-src/ci/tasks/utils.sh
+
 if [[ ${env_name} == "" ]]; then
     if [[ ${generate_random_name} = true ]]; then
         env_name="bosh-concourse-$(echo $RANDOM)"
@@ -42,9 +44,6 @@ TERRAFORM_VERSION=0.11.4
 
 wget -qN https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/bin
-
-wget -q http://aliyun-cli.oss-cn-hangzhou.aliyuncs.com/aliyun-cli-linux-3.0.4-amd64.tgz
-tar -xzf aliyun-cli-linux-3.0.4-amd64.tgz -C /usr/bin
 
 pushd ${terraform_source}
     terraform init

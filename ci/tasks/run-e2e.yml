@@ -13,23 +13,10 @@ inputs:
   - name: bosh-cli
   - name: director-state
   - name: jq-blob
-  - name: libffi-blob
-  - name: libpqxx-blob
-  - name: pip-blob
-  - name: python-blob
-  - name: python-setup-tools-blob
-  - name: pycrypto-blob
-  - name: core-blob
-  - name: slb-blob
   - name: aliyun-cli
 
 run:
-  path: sh
-  args:
-  - -exc
-  - |
-    chmod +x bosh-cpi-src/ci/tasks/run-e2e.sh
-    bash bosh-cpi-src/ci/tasks/run-e2e.sh
+  path: bosh-cpi-src/ci/tasks/run-e2e.sh
 
 params:
   BOSH_DEBUG_LEVEL: info

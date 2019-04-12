@@ -3,14 +3,11 @@
 set -e
 
 source bosh-cpi-src/ci/tasks/utils.sh
-#source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_ACCESS_KEY_SECRET:?}
 : ${CPI_STEMCELL_ID:?}
 : ${METADATA_FILE:=environment/metadata}
-
-tar -xzf aliyun-cli/aliyun-cli-linux-amd64.tar.gz -C /usr/bin
 
 # Stemcell stuff
 export CPI_STEMCELL_VERSION=`cat stemcell/version`
