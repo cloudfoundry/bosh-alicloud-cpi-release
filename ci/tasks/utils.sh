@@ -3,7 +3,6 @@
 # Oportunistically configure bosh for use
 configure_bosh_cli() {
   local bosh_input="$(realpath bosh-cli/*bosh-cli-* 2>/dev/null || true)"
-  ls -l ${bosh_input}
   if [[ -n "${bosh_input}" ]]; then
     export bosh_cli="/usr/local/bin/bosh"
     cp "${bosh_input}" "${bosh_cli}"
@@ -11,6 +10,15 @@ configure_bosh_cli() {
   fi
 }
 configure_bosh_cli
+
+# Oportunistically configure aliyun cli for use
+configure_aliyun_cli() {
+  local cli_input="$(realpath aliyun-cli/aliyun-cli-* 2>/dev/null || true)"
+  if [[ -n "${cli_input}" ]]; then
+    tar -xzf aliyun-cli/aliyun-cli-linux-amd64.tar.gz -C /usr/bin
+  fi
+}
+configure_aliyun_cli
 
 check_param() {
   local name=$1
