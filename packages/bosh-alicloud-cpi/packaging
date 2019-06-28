@@ -1,39 +1,25 @@
+#!/bin/bash
+
 set -e # exit immediately if a simple command exits with a non-zero status
 set -u # report the usage of uninitialized variables
 
-# Set package dependencies directory
+# Available variables
+# $BOSH_COMPILE_TARGET - where this package & spec'd source files are available
+# $BOSH_INSTALL_TARGET - where you copy/install files to be included in package
+
+export HOME=${HOME:-/tmp/home}
 PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 
 # Set Golang dependency
-PLATFORM=`uname | tr '[:upper:]' '[:lower:]'`
+export GOROOT=$(cd "${PACKAGES_DIR}/golang" && pwd -P)
+ls -alR $GOROOT/bin
+export PATH=${GOROOT}/bin:${PATH}
 
-if [ $PLATFORM = "linux" ]; then
-    export GOROOT=$(cd "${PACKAGES_DIR}/golang" && pwd -P)
-    export PATH=${GOROOT}/bin:${PATH}
-fi
-
-# Build BOSH Alicloud CPI package
-echo " ========================================== "
-echo " Source Patch: " $BOSH_COMPILE_TARGET
-echo " Installed in: " $BOSH_INSTALL_TARGET
-echo " ========================================== "
-
-mkdir -p ${BOSH_COMPILE_TARGET}/go/src
-mv ${BOSH_COMPILE_TARGET}/Makefile ${BOSH_COMPILE_TARGET}/go/
-mv ${BOSH_COMPILE_TARGET}/bosh-alicloud-cpi ${BOSH_COMPILE_TARGET}/go/src/
-# mv ${BOSH_COMPILE_TARGET}/github.com ${BOSH_COMPILE_TARGET}/go/src/
-
-export GOPATH=${BOSH_COMPILE_TARGET}/go
-
-# Copy BOSH Alicloud CPI package
 mkdir -p ${BOSH_INSTALL_TARGET}/bin
 
-cd ${BOSH_COMPILE_TARGET}/go
-make
-
-## TODO replace with a single command
-## EXECUTABLE=bin/alicloud_cpi
-## go build -v -a -o ${EXECUTABLE} $(MAINFILE)
-
-cp ${BOSH_COMPILE_TARGET}/go/bin/alicloud_cpi ${BOSH_INSTALL_TARGET}/bin/
-
+# Build BOSH alicloud CPI package
+mkdir -p ${BOSH_COMPILE_TARGET}/go/src
+mv ${BOSH_COMPILE_TARGET}/bosh-alicloud-cpi ${BOSH_COMPILE_TARGET}/go/src/
+cd ${BOSH_COMPILE_TARGET}/go/src/bosh-alicloud-cpi
+export GOPATH=${BOSH_COMPILE_TARGET}/go
+go build -o ${BOSH_INSTALL_TARGET}/bin/alicloud_cpi bosh-alicloud-cpi/main
