@@ -15,7 +15,7 @@ configure_bosh_cli
 configure_aliyun_cli() {
   local cli_input="$(realpath aliyun-cli/aliyun-cli-* 2>/dev/null || true)"
   if [[ -n "${cli_input}" ]]; then
-    tar -xzf aliyun-cli/aliyun-cli-linux-amd64.tar.gz -C /usr/bin
+    tar -xzf aliyun-cli/aliyun-cli-linux-*.tgz -C /usr/bin
   fi
 }
 configure_aliyun_cli

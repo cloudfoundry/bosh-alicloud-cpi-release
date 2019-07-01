@@ -2,6 +2,12 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
+## 23.0.0 (Unreleased)
+
+BUG FIXES
+
+- Add retry to fix OperationConflict error when JoinSecurityGroup ([#82](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/82))
+
 ## [r22]
 
 IMPROVEMENTS

@@ -203,6 +203,7 @@ func (a NetworkManagerImpl) JoinSecurityGroup(region, instanceId, groupId string
 		return err
 	}
 	invoker := NewInvoker()
+	invoker.AddCatcher(Catcher{"OperationConflict", 30, 1})
 
 	args := ecs.CreateJoinSecurityGroupRequest()
 	args.InstanceId = instanceId
