@@ -85,7 +85,7 @@ jobs:
         - {get: version-semver, trigger: false, params: {bump: patch}}
         - {get: bosh-cli,       trigger: false}
       - put: version-semver
-        params: {file: version-semver/number}
+        params: {file: version-semver/number, bump: major}
       - task: build
         file: bosh-cpi-src/ci/tasks/build-candidate.yml
       - put: bosh-cpi-dev-artifacts
@@ -99,7 +99,7 @@ jobs:
         - {get: bosh-cpi-src,     trigger: false, resource: bosh-cpi-src-in, passed: [build-candidate]}
         - {get: stemcell,         trigger: false, resource: ubuntu-xenial-stemcell}
         - {get: aliyun-cli,       trigger: false, resource: aliyun-cli}
-        - {get: jq-blob,         trigger: false}
+        - {get: jq-blob,          trigger: false}
         - {get: 24h,              trigger: false}
       - <<: *put-environment
         params:

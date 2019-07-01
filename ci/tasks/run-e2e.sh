@@ -14,7 +14,7 @@ METADATA_FILE=$CURRENT_PATH/environment/metadata
 # when e2e-test-release/config/final set to remote storage, this code can be removed
 function addBlobs {
    bosh add-blob ${JQ_BLOB_PATH}/jq-linux64 jq/jq-linux64
-   bosh add-blob ${ALIYUN_CLI_PATH}/aliyun-cli-linux-amd64.tar.gz aliyuncli/aliyun-cli-linux-amd64.tar.gz
+   bosh add-blob ${ALIYUN_CLI_PATH}/aliyun-cli-linux-*.tgz aliyuncli/aliyun-cli-linux-amd64.tgz
 }
 
 # CREATE TEST RELEASE
