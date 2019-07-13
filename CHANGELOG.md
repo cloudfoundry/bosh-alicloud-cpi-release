@@ -4,6 +4,11 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
 ## 24.0.0 (Unreleased)
 
+IMPROVEMENTS
+
+- Improve CI terraform and to support remote state ([#86](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/86))
+- support darwin golang; allow any golang version ([#81](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/81))
+
 ## 23.0.0 (July 02, 2019)
 
 BUG FIXES

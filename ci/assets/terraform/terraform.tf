@@ -4,6 +4,10 @@ variable "region" {}
 variable "env_name" {}
 variable "public_key" {}
 
+terraform {
+  backend "oss" {}
+}
+
 provider "alicloud" {
   access_key = "${var.access_key}"
   secret_key = "${var.secret_key}"
@@ -159,9 +163,24 @@ resource "alicloud_key_pair" "director" {
 
 resource "alicloud_ram_role" "role" {
   name        = "${var.env_name}"
-  services    = ["ecs.aliyuncs.com"]
   description = "a role for bosh integration test"
   force       = true
+  document = <<EOF
+  {
+    "Statement": [
+      {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {
+          "Service": [
+            "ecs.aliyuncs.com"
+          ]
+        }
+      }
+    ],
+    "Version": "1"
+  }
+  EOF
 }
 
 output "vpc_id" {

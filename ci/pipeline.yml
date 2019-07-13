@@ -1,6 +1,6 @@
 ---
 groups:
-  - name: bosh-alicloud-cpi-go
+  - name: bosh-alicloud-cpi
     jobs:
 #      - test-unit
       - build-candidate
@@ -45,11 +45,11 @@ shared:
       access_key: {{alicloud_access_key__primary}}
       secret_key: {{alicloud_secret_key__primary}}
       region:     {{alicloud_region__primary}}
-      access_key_id:     {{terraform_alicloud_access_key}}
-      secret_access_key: {{terraform_alicloud_secret_key}}
-      bucket:            {{terraform_bucket}}
-      region_name:       {{terraform_bucket_region}}
-      bucket_path: "state"
+      remote_state_access_key: {terraform_backend_access_key}}
+      remote_state_secret_key: {{terraform_backend_secret_key}}
+      remote_state_bucket:     {{terraform_backend_bucket}}
+      remote_state_region:     {{terraform_backend_region}}
+      remote_state_file_path:  "bosh-alicloud-cpi-state"
       public_key: ((PUBLIC_KEY))
 
   - &ensure-terminated
@@ -106,7 +106,6 @@ jobs:
           <<: *put-environment-params
           env_name: bosh-alicloud-cpi-integration
           delete_on_failure: true
-          generate_random_name: true
           terraform_source: bosh-cpi-src/ci/assets/terraform
       - task: test
         file: bosh-cpi-src/ci/tasks/run-integration.yml
@@ -144,7 +143,6 @@ jobs:
           <<: *put-environment-params
           env_name: bosh-alicloud-cpi-bats
           delete_on_failure: true
-          generate_random_name: true
           terraform_source: bosh-cpi-src/ci/assets/terraform
       - do:
         - <<: *prepare-director
@@ -190,7 +188,6 @@ jobs:
           <<: *put-environment-params
           env_name: bosh-alicloud-cpi-end-2-end
           delete_on_failure: true
-          generate_random_name: true
           terraform_source: bosh-cpi-src/ci/assets/terraform
       - do:
         - <<: *prepare-director
