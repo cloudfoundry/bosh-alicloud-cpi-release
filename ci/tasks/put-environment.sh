@@ -20,8 +20,6 @@ set -e
 : ${remote_state_file_path:="terraform-state"}
 : ${remote_state_file_name:=""}
 
-source bosh-cpi-src/ci/tasks/utils.sh
-
 if [[ ${env_name} == "" ]]; then
     if [[ ${generate_random_name} = true ]]; then
         env_name="bosh-concourse-$(echo $RANDOM)"
