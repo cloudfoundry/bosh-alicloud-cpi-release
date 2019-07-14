@@ -6,6 +6,7 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
 IMPROVEMENTS
 
+- Remove the useless input in the ci/task/pub-environment ([#87](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/87))
 - Improve CI terraform and to support remote state ([#86](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/86))
 - support darwin golang; allow any golang version ([#81](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/81))
 
