@@ -22,7 +22,7 @@ var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated",
 var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 20, 10}
 
 const (
-	ChangeInstanceStatusTimeout       = time.Duration(300) * time.Second
+	ChangeInstanceStatusTimeout       = time.Duration(360) * time.Second
 	ChangeInstanceStatusSleepInterval = time.Duration(5) * time.Second
 )
 
