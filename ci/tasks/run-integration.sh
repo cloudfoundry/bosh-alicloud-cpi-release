@@ -6,7 +6,6 @@ source bosh-cpi-src/ci/tasks/utils.sh
 
 : ${ALICLOUD_ACCESS_KEY_ID:?}
 : ${ALICLOUD_ACCESS_KEY_SECRET:?}
-: ${CPI_STEMCELL_ID:?}
 : ${METADATA_FILE:=environment/metadata}
 
 # Stemcell stuff
@@ -35,8 +34,6 @@ exportMetadata2Env(){
 
 export CPI_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
 export CPI_ACCESS_KEY_SECRET=${ALICLOUD_ACCESS_KEY_SECRET}
-# todo: get stemcell id from STEMCELL.MF
-export CPI_STEMCELL_ID=${CPI_STEMCELL_ID}
 
 exportMetadata2Env CPI_REGION region
 exportMetadata2Env CPI_ZONE zone
