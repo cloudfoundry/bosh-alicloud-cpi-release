@@ -16,6 +16,7 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"time"
 )
 
 type InstanceChargeType string
@@ -213,7 +214,32 @@ func (a CreateVMMethod) CreateVM(
 	})
 
 	if err != nil {
-		return apiv1.VMCID{}, a.WrapErrorf(err, "wait %s to STOPPED failed", instCid)
+		var err2 error
+		for retry := 0; retry <10; retry++ {
+			err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
+				switch status {
+				case alicloud.Running:
+					return false, a.instances.StopInstance(instCid)
+				case alicloud.Stopped:
+					return false, a.instances.DeleteInstance(instCid)
+				case alicloud.Deleted:
+					return true, nil
+				case alicloud.Pending:
+					return false, nil
+				case alicloud.Creating:
+					return false, nil
+				case alicloud.Stopping:
+					return false, nil
+				default:
+					return false, fmt.Errorf("unexpect %s for DeleteInstance", status)
+				}
+			})
+			if err2 == nil {
+				return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "wait %s to STOPPED failed and the vm has been deleted.", instCid)
+			}
+			time.Sleep(5*time.Second)
+		}
+		return apiv1.VMCID{}, a.WrapErrorf(err, "wait %s to STOPPED failed and then delete it timeout: %v", instCid, err2)
 	}
 
 	agentSettings := registry.AgentSettings{
@@ -233,34 +259,30 @@ func (a CreateVMMethod) CreateVM(
 	// updateInstance
 	err = a.updateInstance(instCid, associatedDiskCIDs, instProps, networks, disks, agentSettings)
 
-	//
 	// for every error must free created vm before terminated
 	if err != nil {
-		err2 := a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
-			switch status {
-			case alicloud.Running:
-				return false, a.instances.StopInstance(instCid)
-			case alicloud.Stopped:
-				return false, a.instances.DeleteInstance(instCid)
-			case alicloud.Deleted:
-				return true, nil
-			case alicloud.Pending:
-				return false, nil
-			case alicloud.Creating:
-				return false, nil
-			case alicloud.Starting:
-				return false, nil
-			case alicloud.Stopping:
-				return false, nil
-			default:
-				return false, fmt.Errorf("unexpect %s for ReleaseInstance", status)
+		var err2 error
+		for retry := 0; retry <10; retry++ {
+			err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
+				switch status {
+				case alicloud.Running:
+					return false, a.instances.StopInstance(instCid)
+				case alicloud.Stopped:
+					return false, a.instances.DeleteInstance(instCid)
+				case alicloud.Deleted:
+					return true, nil
+				case alicloud.Stopping:
+					return false, nil
+				default:
+					return false, fmt.Errorf("unexpect %s for DeleteInstance", status)
+				}
+			})
+			if err2 == nil {
+				return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed and the vm has been deleted.", instCid)
 			}
-		})
-		if err2 == nil {
-			return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed vm deleted", instCid)
-		} else {
-			return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed delete failed %v", instCid, err2)
+			time.Sleep(5*time.Second)
 		}
+		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed and then delete it timeout: %v", instCid, err2)
 	}
 
 	return apiv1.NewVMCID(instCid), nil
@@ -305,14 +327,12 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 		disks.AssociatePersistentDisk(diskCid.AsString(), path)
 	}
 
-	//
 	// put agent settings.json to registry
 	err := a.UpdateAgentSettings(instCid, agentSettings)
 	if err != nil {
 		return a.WrapErrorf(err, "UpdateAgentSettings Failed %s")
 	}
 
-	//
 	// wait for instance to start
 	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Running, func(status alicloud.InstanceStatus) (bool, error) {
 		switch status {
