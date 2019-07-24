@@ -2,5 +2,4 @@
 name: golang
 
 files:
-- golang/go1.*.darwin-amd64.tar.gz  # from https://golang.org/dl/
-- golang/go1.*.linux-amd64.tar.gz  # from https://golang.org/dl/
+- go1.*.linux-amd64.tar.gz  # from https://golang.org/dl/

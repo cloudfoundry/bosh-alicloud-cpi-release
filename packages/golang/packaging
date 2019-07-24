@@ -7,7 +7,7 @@ set -u # report the usage of uninitialized variables
 PLATFORM=`uname | tr '[:upper:]' '[:lower:]'`
 
 # Extract Go Programming Language package
-tar xzvf ${BOSH_COMPILE_TARGET}/golang/go*.${PLATFORM}-amd64.tar.gz
+tar xzvf ${BOSH_COMPILE_TARGET}/go*.${PLATFORM}-amd64.tar.gz
 
 # Copy Go Programming Language package
 mkdir -p ${BOSH_INSTALL_TARGET}/bin

@@ -13,4 +13,3 @@ run:
 params:
   ALICLOUD_ACCESS_KEY_ID:     ""
   ALICLOUD_ACCESS_KEY_SECRET: ""
-  CPI_STEMCELL_ID:            ""
