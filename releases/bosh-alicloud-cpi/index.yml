@@ -5,6 +5,8 @@ builds:
     version: "8"
   41b85e73-4af1-4f84-5693-cb5ef67411e5:
     version: "6"
+  49d318f3-fd5e-4b5d-72a3-2732ea74e6b2:
+    version: 24.0.0
   4a4192a2-f74d-48b5-57d9-4c246b54aa6e:
     version: "17"
   56be6f3d-8b2e-478f-6040-17ec67e7814c:
