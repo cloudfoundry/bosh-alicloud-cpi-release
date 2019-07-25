@@ -11,6 +11,7 @@ src/gopkg.in
 .final_builds
 dev_releases
 ci/vars*.*
+ci/*develop*
 **/.terraform/*
 
 # .tfstate files
