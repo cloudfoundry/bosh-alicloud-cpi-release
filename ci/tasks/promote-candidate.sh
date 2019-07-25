@@ -9,9 +9,7 @@ source bosh-cpi-src/ci/tasks/utils.sh
 source /etc/profile.d/chruby.sh
 chruby 2.4.4
 
-# Creates an integer version number from the semantic version format
-# May be changed when we decide to fully use semantic versions for releases
-integer_version=`cut -d "." -f1 release-version-semver/number`
+integer_version=`cut -f1 release-version-semver/number`
 echo $integer_version > promoted/integer_version
 
 cp -r bosh-cpi-src promoted/repo

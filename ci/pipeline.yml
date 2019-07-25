@@ -231,40 +231,43 @@ resources:
     type: s3
     source:
       regexp: bosh-alicloud-cpi-(\d+\.\d+\.\d+)\.tgz
-      bucket: {{oss_alicloud_cpi_pipeline_bucket}}
-      region_name: {{oss_alicloud_cpi_pipeline_bucket_region}}
-      access_key_id: {{alicloud_access_key__primary}}
-      secret_access_key: {{alicloud_secret_key__primary}}
-      endpoint:          oss-((oss_alicloud_cpi_pipeline_bucket_region)).aliyuncs.com
+      bucket:            {{bosh_cpi_release_bucket}}
+      region:            {{bosh_cpi_release_region}}
+      access_key_id:     {{bosh_cpi_release_access_key}}
+      secret_access_key: {{bosh_cpi_release_secret_key}}
+      endpoint:          oss-((bosh_cpi_release_region)).aliyuncs.com
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release.git
       branch: master
+      ignore_paths:
+        - .final_builds/**/*.yml
+        - releases/**/*.yml
   - name: bosh-cpi-src-out
     type: git
     source:
-      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      uri: git@github.com:cloudfoundry-incubator/bosh-alicloud-cpi-release.git
       branch: master
       private_key: {{github_bosh-alicloud-cpi-release_private-key}}
   - name: version-semver
     type: semver
     source:
       key:               current-version
-      bucket: {{oss_alicloud_cpi_pipeline_bucket}}
-      region: {{oss_alicloud_cpi_pipeline_bucket_region}}
-      access_key_id: {{alicloud_access_key__primary}}
-      secret_access_key: {{alicloud_secret_key__primary}}
-      endpoint:          oss-((oss_alicloud_cpi_pipeline_bucket_region)).aliyuncs.com
+      bucket:            {{bosh_cpi_release_bucket}}
+      region:            {{bosh_cpi_release_region}}
+      access_key_id:     {{bosh_cpi_release_access_key}}
+      secret_access_key: {{bosh_cpi_release_secret_key}}
+      endpoint:          oss-((bosh_cpi_release_region)).aliyuncs.com
   - name: release-version-semver
     type: semver
     source:
       key:               release-current-version
-      bucket:            {{oss_alicloud_cpi_pipeline_bucket}}
-      access_key_id:     {{alicloud_access_key__primary}}
-      secret_access_key: {{alicloud_secret_key__primary}}
-      region: {{oss_alicloud_cpi_pipeline_bucket_region}}
-      endpoint:          oss-((oss_alicloud_cpi_pipeline_bucket_region)).aliyuncs.com
+      bucket:            {{bosh_cpi_release_bucket}}
+      region:            {{bosh_cpi_release_region}}
+      access_key_id:     {{bosh_cpi_release_access_key}}
+      secret_access_key: {{bosh_cpi_release_secret_key}}
+      endpoint:          oss-((bosh_cpi_release_region)).aliyuncs.com
   - name: bosh-cli
     type: s3
     source:
@@ -277,13 +280,6 @@ resources:
     source:
       uri: https://github.com/aliyun/bosh-cpi-certification
       branch: xiaozhu
-  # Remember to update these every once in a while
-#  - name: precompiled-bosh-release
-#    type: github-release
-#    source:
-#      owner: demonwy
-#      repository: bosh-release
-#      tag: 262.3
   - name: precompiled-bosh-releases
     type: s3
     source:

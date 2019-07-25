@@ -1,260 +1,220 @@
 ---
 groups:
-  - name: bosh-alicloud-cpi-go
-    jobs:
-      - test-unit
-      - build-candidate
-      - integration
-      - bats
-      - end-2-end
-#      - delivery
-      - promote-candidate
+- name: bosh-alicloud-cpi
+  jobs:
+  - build-candidate
+  - integration
+  - bats
+  - end-2-end
+  - promote-candidate
 
 shared:
-  - &prepare-director
-    task: prepare-director
-    file: pipelines/shared/tasks/prepare-director.yml
-    params: &prepare-director-params
-      INFRASTRUCTURE:             alicloud
-      DIRECTOR_VARS_FILE:         {{alicloud_director_vars_file}}
+- &prepare-director
+  task: prepare-director
+  file: pipelines/shared/tasks/prepare-director.yml
+  params: &prepare-director-params
+    INFRASTRUCTURE:     alicloud
+    DIRECTOR_VARS_FILE: {{alicloud_director_vars_file}}
 
-  - &deploy-director
-    task: deploy-director
-    file: pipelines/shared/tasks/deploy-director.yml
+- &deploy-director
+  task: deploy-director
+  file: pipelines/shared/tasks/deploy-director.yml
 
-  - &run-bats
-    task: run-bats
-    file: pipelines/shared/tasks/run-bats.yml
+- &run-bats
+  task: run-bats
+  file: pipelines/shared/tasks/run-bats.yml
+  params:
+    INFRASTRUCTURE:     alicloud
+    STEMCELL_NAME:      bosh-alicloud-kvm-ubuntu-xenial-go_agent
+    BAT_INFRASTRUCTURE: alicloud
+    BAT_NETWORKING:     manual
+    BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~raw_ephemeral_storage --tag ~persistent_disk"
+
+- &run-end-2-end
+  task: run-e2e
+  file: bosh-cpi-src/ci/tasks/run-e2e.yml
+  params:
+    ALICLOUD_ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
+    ALICLOUD_SECRET_ACCESS_KEY:          {{alicloud_secret_key__primary}}
+
+- &put-environment
+  task: put-environment
+  file: bosh-cpi-src/ci/tasks/put-environment.yml
+  params: &put-environment-params
+    access_key: {{alicloud_access_key__primary}}
+    secret_key: {{alicloud_secret_key__primary}}
+    region:     {{alicloud_region__primary}}
+    remote_state_access_key: {{terraform_backend_access_key}}
+    remote_state_secret_key: {{terraform_backend_secret_key}}
+    remote_state_bucket:     {{terraform_backend_bucket}}
+    remote_state_region:     {{terraform_backend_region}}
+    remote_state_file_path:  "bosh-alicloud-cpi-state"
+    public_key: ((PUBLIC_KEY))
+
+- &ensure-terminated
+  task: ensure-terminated
+  file: bosh-cpi-src/ci/tasks/ensure-terminated.yml
+  params:
+    ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
+    ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
+    ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
+
+- &teardown
+  task: teardown
+  file: pipelines/shared/tasks/teardown.yml
+
+jobs:
+- name: build-candidate
+  serial: true
+  plan:
+  - aggregate:
+    - {get: bosh-cpi-src,   trigger: true,  resource: bosh-cpi-src-in}
+    - {get: version-semver, trigger: false, params: {bump: patch}}
+    - {get: bosh-cli,       trigger: false}
+  - put: version-semver
+    params: {file: version-semver/number}
+  - task: build
+    file: bosh-cpi-src/ci/tasks/build-candidate.yml
+  - put: bosh-cpi-dev-artifacts
+    params: {file: candidate/*.tgz}
+
+- name: integration
+  serial: true
+  plan:
+  - aggregate:
+    - {get: bosh-cpi-release, trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [build-candidate]}
+    - {get: bosh-cpi-src,     trigger: false, resource: bosh-cpi-src-in, passed: [build-candidate]}
+    - {get: stemcell,         trigger: false, resource: ubuntu-xenial-stemcell}
+    - {get: aliyun-cli,       trigger: false, resource: aliyun-cli}
+    - {get: jq-blob,          trigger: false}
+    - {get: 24h,              trigger: false}
+  - <<: *put-environment
     params:
-      INFRASTRUCTURE:     alicloud
-      STEMCELL_NAME:      bosh-alicloud-kvm-ubuntu-trusty-go_agent
-      BAT_INFRASTRUCTURE: alicloud
-      BAT_NETWORKING:     manual
-#      BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~root_partition"
-      BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~raw_ephemeral_storage --tag ~changing_static_ip"
-
-  - &run-end-2-end
-    task: run-e2e
-    file: bosh-cpi-src/ci/tasks/run-e2e.yml
-    params:
-      ALICLOUD_ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
-      ALICLOUD_SECRET_ACCESS_KEY:          {{alicloud_secret_key__primary}}
-
-  - &build-environment
-    task: build-environment
-    file: bosh-cpi-src/ci/tasks/build-environment.yml
-    params:
-      ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-      ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
-      ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-      DESTROY_ENVIRONMENT:        false
-      GIT_USER_EMAIL:             {{github_user_email}}
-      GIT_USER_NAME:              {{github_user_name}}
-      GIT_USER_ID:                {{github_user_id}}
-      GIT_USER_PASSWORD:          {{github_user_password}}
-      BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
-      BOSH_REPO_BRANCH:           concourse_ci_tmp
-      DEFAULT_KEY_NAME:           bosh
-      CPI_INTERNAL_GW:            172.16.0.1
-      CPI_INTERNAL_IP:            172.16.0.3
-
-  - &destroy-environment
-      task: destroy-environment
-      file: bosh-cpi-src/ci/tasks/destroy-environment.yml
-      params:
-        ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-        ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
-        ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-        DESTROY_ENVIRONMENT:        true
-        GIT_USER_EMAIL:             {{github_user_email}}
-        GIT_USER_NAME:              {{github_user_name}}
-        GIT_USER_ID:                {{github_user_id}}
-        GIT_USER_PASSWORD:          {{github_user_password}}
-        BOSH_REPO_HOST:             https://github.com/alibaba/bosh-alicloud-cpi-release.git
-        BOSH_REPO_BRANCH:           concourse_ci_tmp
-
-  - &ensure-terminated
-    task: ensure-terminated
-    file: bosh-cpi-src/ci/tasks/ensure-terminated.yml
+      <<: *put-environment-params
+      env_name: bosh-alicloud-cpi-integration-dev
+      delete_on_failure: true
+      terraform_source: bosh-cpi-src/ci/assets/terraform
+  - task: test
+    file: bosh-cpi-src/ci/tasks/run-integration.yml
     params:
       ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
       ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
-      ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-
-  - &teardown
-    task: teardown
-    file: pipelines/shared/tasks/teardown.yml
-
-jobs:
-  - name: test-unit
-    plan:
-      - aggregate:
-        - {trigger: false, get: bosh-cpi-src, resource: bosh-cpi-src-in}
-
-      - task: unit-tests
-        file: bosh-cpi-src/ci/tasks/unit-tests.yml
-        params:
-          ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-          ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
-          ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
-
-  - name: build-candidate
-    serial: true
-    plan:
-      - aggregate:
-        - {trigger: true, passed: [test-unit], get: bosh-cpi-src, resource: bosh-cpi-src-in}
-        - {trigger: false, get: bosh-cpi-dev-artifacts}
-        - {trigger: false, get: go-cpi-blobs}
-        - {trigger: false, get: version-semver, params: {bump: patch}}
-      - put: version-semver
-        params: {file: version-semver/number}
-      - task: build
-        file: bosh-cpi-src/ci/tasks/build-candidate.yml
-        params:
-          GIT_USER_EMAIL:     {{github_user_email}}
-          GIT_USER_NAME: {{github_user_name}}
-      - put: bosh-cpi-dev-artifacts
-        params: {repository: candidate/repo, rebase: true, force: true}
-
-  - name: integration
-    serial: true
-    plan:
-      - aggregate:
-        - {trigger: true,  passed: [build-candidate], get: bosh-cpi-release, resource: bosh-cpi-dev-artifacts}
-        - {trigger: false, passed: [build-candidate], get: bosh-cpi-src, resource: bosh-cpi-src-in}
-        - {trigger: false,  get: stemcell, resource: heavy-ubuntu-stemcell}
-        - {get: 2h,             trigger: true}
-      - <<: *destroy-environment
-      - put: environment
-        params: {repository: environment, rebase: true, force: true}
-      - <<: *build-environment
-      - put: environment
-        params: {repository: environment, rebase: true, force: true}
-      - task: test
-        file: bosh-cpi-src/ci/tasks/run-integration.yml
-        params:
-          ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-          ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
-          CPI_STEMCELL_ID:            {{alicloud__cpi_stemcell_id}}
-        ensure:
-          do:
-            - <<: *destroy-environment
-            - put: environment
-              params: {repository: environment, rebase: true, force: true}
-
-  - name: bats
-    serial: true
-    plan:
-      - aggregate:
-        - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [integration]}
-        - {get: bosh-release,    trigger: false, resource: precompiled-bosh-release}
-        - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [integration]}
-        - {get: stemcell,        trigger: false, resource: precompiled-stemcell}
-        - {get: bosh-deployment, trigger: false}
-        - {get: pipelines,       trigger: false}
-        - {get: bosh-cli,        trigger: false}
-        - {get: bats,            trigger: false}
-        - {get: 2h,              trigger: true}
-      - do:
-        - <<: *destroy-environment
-        - put: environment
-          params: {repository: environment, rebase: true, force: true}
-        - <<: *build-environment
-        - put: environment
-          params: {repository: environment, rebase: true, force: true}
-        - <<: *prepare-director
+    ensure:
+      do:
+        - <<: *ensure-terminated
+        - <<: *put-environment
           params:
-            <<: *prepare-director-params
-            OPTIONAL_OPS_FILE:  |
-              -o pipelines/shared/assets/ops/remove-hm.yml
-              -o bosh-deployment/external-ip-with-registry-not-recommended.yml
-        - do:
-            - <<: *deploy-director
-            - <<: *run-bats
-          ensure:
-            do:
-              - <<: *teardown
-#              - <<: *ensure-terminated
-        ensure:
-          do:
-            - <<: *destroy-environment
-            - put: environment
-              params: {repository: environment, rebase: true, force: true}
+            <<: *put-environment-params
+            env_name: bosh-alicloud-cpi-integration-dev
+            action: destroy
+            terraform_source: bosh-cpi-src/ci/assets/terraform
 
-  - name: end-2-end
-    serial: true
-    plan:
-      - aggregate:
-        - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [bats]}
-        - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [bats]}
-        - {get: bosh-release,    trigger: false, resource: precompiled-bosh-release}
-        - {get: stemcell,        trigger: false, resource: precompiled-stemcell}
-        - {get: heavy-stemcell,  trigger: false, resource: heavy-ubuntu-stemcell}
-        - {get: bosh-deployment, trigger: false}
-        - {get: pipelines,       trigger: false}
-        - {get: bosh-cli,        trigger: false}
-        - {get: 2h,              trigger: true}
-        - {get: jq-blob,         trigger: false}
-        - {get: libffi-blob,     trigger: false}
-        - {get: libpqxx-blob,    trigger: false}
-        - {get: pip-blob,        trigger: false}
-        - {get: python-blob,     trigger: false}
-        - {get: python-setup-tools-blob,     trigger: false}
-        - {get: pycrypto-blob,     trigger: false}
-        - {get: core-blob,       trigger: false}
-        - {get: slb-blob,        trigger: false}
-      - <<: *destroy-environment
-      - put: environment
-        params: {repository: environment, rebase: true, force: true}
-      - <<: *build-environment
-      - put: environment
-        params: {repository: environment, rebase: true, force: true}
-      - do:
-        - <<: *prepare-director
+- name: bats
+  serial: true
+  plan:
+  - aggregate:
+    - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [build-candidate]}
+    - {get: bosh-release,    trigger: false, resource: precompiled-bosh-releases}
+    - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [build-candidate]}
+    - {get: stemcell,        trigger: false, resource: ubuntu-xenial-stemcell}
+    - {get: bosh-deployment, trigger: false}
+    - {get: pipelines,       trigger: false}
+    - {get: bosh-cli,        trigger: false}
+    - {get: bats,            trigger: false}
+    - {get: 24h,             trigger: false}
+    - {get: jq-blob,         trigger: false}
+    - {get: aliyun-cli,      trigger: false, resource: aliyun-cli}
+  - <<: *put-environment
+    params:
+      <<: *put-environment-params
+      env_name: bosh-alicloud-cpi-bats-dev
+      delete_on_failure: true
+      terraform_source: bosh-cpi-src/ci/assets/terraform
+  - do:
+    - <<: *prepare-director
+      params:
+        <<: *prepare-director-params
+        OPTIONAL_OPS_FILE:  |
+          -o pipelines/shared/assets/ops/remove-hm.yml
+          -o bosh-deployment/external-ip-with-registry-not-recommended.yml
+          -o pipelines/shared/assets/ops/remove-provider-cert.yml
+    - do:
+        - <<: *deploy-director
+        - <<: *run-bats
+      ensure:
+        do:
+          - <<: *teardown
+          - <<: *ensure-terminated
+    ensure:
+      do:
+        - <<: *put-environment
           params:
-            <<: *prepare-director-params
-            OPTIONAL_OPS_FILE:  |
-              -o bosh-deployment/external-ip-with-registry-not-recommended.yml
-              -o pipelines/shared/assets/ops/remove-provider-cert.yml
+            <<: *put-environment-params
+            env_name: bosh-alicloud-cpi-bats-dev
+            action: destroy
+            terraform_source: bosh-cpi-src/ci/assets/terraform
+
+- name: end-2-end
+  serial: true
+  plan:
+  - aggregate:
+    - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts,   passed: [build-candidate]}
+    - {get: bosh-release,    trigger: false, resource: precompiled-bosh-releases}
+    - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in,          passed: [build-candidate]}
+    - {get: stemcell,        trigger: false, resource: ubuntu-xenial-stemcell}
+    - {get: heavy-stemcell,  trigger: false, resource: ubuntu-xenial-stemcell}
+    - {get: bosh-deployment, trigger: false}
+    - {get: pipelines,       trigger: false}
+    - {get: bosh-cli,        trigger: false}
+    - {get: 24h,             trigger: false}
+    - {get: jq-blob,         trigger: false}
+    - {get: aliyun-cli,      trigger: false, resource: aliyun-cli}
+  - <<: *put-environment
+    params:
+      <<: *put-environment-params
+      env_name: bosh-alicloud-cpi-end-2-end-dev
+      delete_on_failure: true
+      terraform_source: bosh-cpi-src/ci/assets/terraform
+  - do:
+    - <<: *prepare-director
+      params:
+        <<: *prepare-director-params
+        OPTIONAL_OPS_FILE:  |
+          -o bosh-deployment/external-ip-with-registry-not-recommended.yml
+          -o pipelines/shared/assets/ops/remove-provider-cert.yml
 #              -o pipelines/alicloud/assets/ops/ram-instance-profile-ops-file.yml
-        - do:
-            - <<: *deploy-director
-            - <<: *run-end-2-end
-          ensure:
-            do:
-              - <<: *teardown
-#              - <<: *ensure-terminated
-        ensure:
-          do:
-            - <<: *destroy-environment
-            - put: environment
-              params: {repository: environment, rebase: true, force: true}
+    - do:
+        - <<: *deploy-director
+        - <<: *run-end-2-end
+      ensure:
+        do:
+          - <<: *teardown
+          - <<: *ensure-terminated
+    ensure:
+      do:
+        - <<: *put-environment
+          params:
+            <<: *put-environment-params
+            env_name: bosh-alicloud-cpi-end-2-end-dev
+            action: destroy
+            terraform_source: bosh-cpi-src/ci/assets/terraform
 
-#  - name: delivery
-#    plan:
-#      - aggregate:
-#        - {get: bosh-cpi-release,  trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [end-2-end, bats, integration]}
-#        - {get: bosh-cpi-src, trigger: false, resource: bosh-cpi-src-in, passed: [end-2-end, bats, integration]}
-#      - put: tracker-output
-#        params:
-#          repos:
-#          - bosh-cpi-src
-
-  - name: promote-candidate
-    plan:
-      - aggregate:
-        - {get: bosh-cpi-release,  trigger: false, resource: bosh-cpi-dev-artifacts, passed: [end-2-end, bats, integration]}
-        - {get: bosh-cpi-src, trigger: false, resource: bosh-cpi-src-in, passed: [end-2-end, bats, integration]}
-        - {trigger: false, get: release-version-semver, params: {bump: major}}
-      - task: promote
-        file: bosh-cpi-src/ci/tasks/promote-candidate.yml
-        params:
-          ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-          ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
-      - put: bosh-cpi-src-out
-        params: {repository: promoted/repo, rebase: true, force: true}
-      - put: release-version-semver
-        params: {file: release-version-semver/number}
+- name: promote-candidate
+  plan:
+  - aggregate:
+    - {get: bosh-cpi-release,       trigger: false, resource: bosh-cpi-dev-artifacts, passed: [end-2-end, bats, integration]}
+    - {get: bosh-cpi-src,           trigger: false, resource: bosh-cpi-src-in,        passed: [end-2-end, bats, integration]}
+    - {get: release-version-semver, trigger: false, params: {bump: major}}
+    - {get: bosh-cli,               trigger: false}
+  - task: promote
+    file: bosh-cpi-src/ci/tasks/promote-candidate.yml
+    params:
+      ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
+      ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
+  - put: bosh-cpi-src-out
+    params: {repository: promoted/repo, rebase: true, tag_prefix: "v", tag: promoted/integer_version}
+  - put: release-version-semver
+    params: {file: release-version-semver/number}
 
 
 resource_types:
@@ -264,82 +224,85 @@ resource_types:
       repository: ljfranklin/terraform-resource
 
 resources:
-  - name: 2h
+  - name: 24h
     type: time
     source: {interval: 24h}
   - name: bosh-cpi-dev-artifacts
-    type: git
+    type: s3
     source:
-      uri: git@gitlab.com:demonwy/bosh-alicloud-cpi-dev-release.git
-      branch: master
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      regexp: bosh-alicloud-cpi-(\d+\.\d+\.\d+)\.tgz
+      bucket:            {{bosh_cpi_release_bucket}}
+      region:            {{bosh_cpi_release_region}}
+      access_key_id:     {{bosh_cpi_release_access_key}}
+      secret_access_key: {{bosh_cpi_release_secret_key}}
+      endpoint:          oss-((bosh_cpi_release_region)).aliyuncs.com
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-      branch: concourse_ci
-#      uri: git@github.com:aliyun/bosh-alicloud-cpi-release.git
-#      branch: concourse_ci
+      uri: https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
+      branch: master
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
-  - name: go-cpi-blobs
-    type: git
-    source:
-      uri: https://github.com/demonwy/go_alicloud_cpi_blobs.git
-      branch: master
   - name: bosh-cpi-src-out
     type: git
     source:
-      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-      branch: promote_release_artifacts
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
+      branch: master
+      private_key: {{github_bosh-alicloud-cpi-release_private-key}}
   - name: version-semver
     type: semver
     source:
-      driver: git
-      uri: git@github.com:demonwy/test-semver-version.git
-      branch: master
-      file: version
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      key:               current-version
+      bucket:            {{bosh_cpi_release_bucket}}
+      region:            {{bosh_cpi_release_region}}
+      access_key_id:     {{bosh_cpi_release_access_key}}
+      secret_access_key: {{bosh_cpi_release_secret_key}}
+      endpoint:          oss-((bosh_cpi_release_region)).aliyuncs.com
   - name: release-version-semver
     type: semver
     source:
-      driver: git
-      uri: git@github.com:demonwy/test-semver-version.git
-      branch: release
-      file: version
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      key:               release-current-version
+      bucket:            {{bosh_cpi_release_bucket}}
+      region:            {{bosh_cpi_release_region}}
+      access_key_id:     {{bosh_cpi_release_access_key}}
+      secret_access_key: {{bosh_cpi_release_secret_key}}
+      endpoint:          oss-((bosh_cpi_release_region)).aliyuncs.com
   - name: bosh-cli
-    type: git
+    type: s3
     source:
-      uri: https://github.com/demonwy/bosh-cli.git
-      branch: linux
+      regexp: bosh-cli-([0-9.]+)-linux-amd64
+      cloudfront_url: https://dulfnruy35dwq.cloudfront.net
+      bucket: bosh-cli-artifacts
+      region_name: us-east-1
   - name: pipelines
     type: git
     source:
-#      uri: git@github.com:alibaba/bosh-cpi-certification.git
-#      branch: ali-cpi-certify
-      uri: git@github.com:aliyun/bosh-cpi-certification.git
-      branch: alicloud
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
-  # Remember to update these every once in a while
-  - name: precompiled-bosh-release
-    type: github-release
+      uri: https://github.com/aliyun/bosh-cpi-certification
+      branch: xiaozhu
+  - name: precompiled-bosh-releases
+    type: s3
     source:
-      owner: demonwy
-      repository: bosh-release
-      tag: 262.3
-  - name: precompiled-stemcell
-    type: git
-    source:
-      uri: https://github.com/demonwy/light-bosh-stemcell.git
-      branch: ubuntu
-  - name: heavy-ubuntu-stemcell
+      bucket: bosh-compiled-release-tarballs
+      regexp: bosh-(\d+.\d+.\d+)-ubuntu-xenial-(250.\d+).*.tgz
+#  - name: precompiled-stemcell
+#    type: git
+#    source:
+#      uri: https://github.com/demonwy/light-bosh-stemcell.git
+#      branch: ubuntu
+#  - name: light-stemcell
+#    type: s3
+#    source:
+#      regexp: light-bosh-stemcell-(250.\d+)-alicloud-kvm-ubuntu-xenial-go_agent.tgz
+#      bucket: {{oss_alicloud_light_stemcell_bucket}}
+#      region_name: {{oss_alicloud_cpi_light_stemcell_bucket_region}}
+#      access_key_id: {{alicloud_access_key__primary}}
+#      secret_access_key: {{alicloud_secret_key__primary}}
+#      endpoint:          oss-((oss_alicloud_cpi_light_stemcell_bucket_region)).aliyuncs.com
+  - name: ubuntu-xenial-stemcell
     type: bosh-io-stemcell
     source:
-      name: bosh-google-kvm-ubuntu-trusty-go_agent
+      name: bosh-alicloud-kvm-ubuntu-xenial-go_agent
       force_regular: true
       tarball: true
   - name: bats
@@ -353,51 +316,16 @@ resources:
     type: git
     source:
       uri: https://github.com/archieves/jq-blob
-  - name: libffi-blob
-    type: git
-    source:
-      uri: https://github.com/archieves/libffi-devel-blob
-  - name: libpqxx-blob
-    type: git
-    source:
-      uri: https://github.com/archieves/libpqxx-devel-blob
-  - name: pip-blob
-    type: git
-    source:
-      uri: https://github.com/archieves/pip-blob
-  - name: python-blob
-    type: git
-    source:
-      uri: https://github.com/archieves/python-devel-blob
-  - name: python-setup-tools-blob
-    type: git
-    source:
-      uri: https://github.com/archieves/python-setup-tools-blob.git
-  - name: pycrypto-blob
-    type: git
-    source:
-      uri: https://github.com/archieves/pycrypto-blob.git
-  - name: core-blob
-    type: git
-    source:
-      uri: https://github.com/archieves/sdk-core-blob
-  - name: slb-blob
-    type: git
-    source:
-      uri: https://github.com/archieves/sdk-slb-blob
-  # end: repos for e2e bosh blobs
 
   - name: bosh-deployment
     type: git
     source:
-      uri: git@github.com:demonwy/bosh-deployment.git
-      branch: support_alicloud
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
+      uri: https://github.com/aliyun/bosh-deployment
+      branch: master
 
-  - name: environment
-    type: git
+
+  - name: aliyun-cli
+    type: github-release
     source:
-      uri: git@github.com:alibaba/bosh-alicloud-cpi-release.git
-      branch: concourse_ci_tmp
-      private_key: {{gitlab_bosh-alicloud-cpi-release_private-key}}
-
+      owner: aliyun
+      repository: aliyun-cli
