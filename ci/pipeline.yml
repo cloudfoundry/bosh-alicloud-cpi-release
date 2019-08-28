@@ -294,7 +294,7 @@ resources:
   - name: ubuntu-xenial-light-stemcell
     type: s3
     source:
-      regexp:            light-bosh-stemcell-(\d+\.\d+\.\d+)-alicloud-kvm-ubuntu-xenial-go_agent.tgz
+      regexp:            light-bosh-stemcell-(\d+\.\d+)-alicloud-kvm-ubuntu-xenial-go_agent.tgz
       bucket:            {{bosh_light_stemcell_bucket}}
       region:            {{bosh_light_stemcell_region}}
       access_key_id:     {{bosh_light_stemcell_access_key}}
