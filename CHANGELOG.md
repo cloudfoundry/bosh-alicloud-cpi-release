@@ -5,7 +5,7 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
 IMPROVEMENTS
 
-- use light stemcell to test bats and e2e; change downloading cli ways ([#92](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/92))
+- use light stemcell to test bats and e2e; change downloading cli ways ([#91](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/91))
 
 ## 24.0.0 (July 25, 2019)
 
