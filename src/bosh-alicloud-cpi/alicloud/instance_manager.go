@@ -18,8 +18,8 @@ import (
 
 var InstanceInvalidOperationConflictCatcher = Catcher{"InvalidOperation.Conflict", 20, 10}
 var DeleteInstanceCatcher = Catcher{"IncorrectInstanceStatus.Initializing", 20, 15}
-var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 20, 10}
-var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 20, 10}
+var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 30, 10}
+var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 30, 10}
 
 const (
 	ChangeInstanceStatusTimeout       = time.Duration(360) * time.Second
