@@ -1,7 +1,8 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 25.0.0 (Unreleased)
+## 26.0.0 (Unreleased)
+## 25.0.0 (August 29, 2019)
 
 IMPROVEMENTS
 
