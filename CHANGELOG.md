@@ -5,8 +5,9 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
 IMPROVEMENTS
 
-- update alibaba cloud go sdk to 1.60.132 and add the missing mock methods ([#95](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/95))
-- cleanup the left network interface after deleting the instance ([#94](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/94))
+- force delete instance and cleanup the network interface when deleting vm ([#97](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/97)) 
+- update alibaba cloud go sdk to 1.60.132 and add the missing mock methods ([#96](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/96))
+- cleanup the left network interface after deleting the instance ([#95](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/95))
 
 ## 25.0.0 (August 29, 2019)
 

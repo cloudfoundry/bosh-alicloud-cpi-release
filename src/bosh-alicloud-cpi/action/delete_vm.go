@@ -5,9 +5,7 @@ package action
 
 import (
 	"bosh-alicloud-cpi/alicloud"
-	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -32,31 +30,16 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 		return nil
 	}
 
-	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Stopped, func(status alicloud.InstanceStatus) (bool, error) {
-		switch status {
-		case alicloud.Stopped:
-			return true, nil
-		case alicloud.Running:
-			return false, a.instances.StopInstance(instCid)
-		case alicloud.Stopping:
-			return false, nil
-		default:
-			return false, fmt.Errorf("unexpect %s for StopInstance", status)
-		}
-	})
-
-	if err != nil {
-		return bosherr.WrapErrorf(err, "delete %s failed when stop it", instCid)
-	}
+	eniIds := a.instances.GetAttachedNetworkInterfaceIds(instCid)
 
 	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
 		switch status {
-		case alicloud.Stopped:
+		case alicloud.Running, alicloud.Stopped:
 			return false, a.instances.DeleteInstance(instCid)
 		case alicloud.Deleted:
-			return true, nil
+			return true, a.instances.CleanupInstanceNetworkInterfaces(instCid, eniIds)
 		default:
-			return false, fmt.Errorf("unexpect %s status %s for delete", instCid, status)
+			return false, nil
 		}
 	})
 
