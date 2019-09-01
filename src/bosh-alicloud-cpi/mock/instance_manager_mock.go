@@ -19,7 +19,7 @@ func NewInstanceManagerMock(mc TestContext) alicloud.InstanceManager {
 	return InstanceManagerMock{&mc}
 }
 
-func (a InstanceManagerMock) GetInstance(cid string) (*ecs.DescribeInstanceAttributeResponse, error) {
+func (a InstanceManagerMock) GetInstance(cid string) (*ecs.Instance, error) {
 	i, ok := a.mc.Instances[cid]
 	if !ok {
 		return nil, nil
@@ -162,4 +162,24 @@ func (a InstanceManagerMock) ChangeInstanceStatus(cid string, toStatus alicloud.
 	} else {
 		return fmt.Errorf("<MOCK> expect instance %s status is %s but get %s", cid, toStatus, status)
 	}
+}
+
+func (a InstanceManagerMock) GetAttachedNetworkInterfaceIds (cid string) []string {
+	inst, ok := a.mc.Instances[cid]
+	eniIds := make([]string, 1,1)
+	if !ok {
+		return eniIds
+	} else {
+		for _, eni := range inst.NetworkInterfaces.NetworkInterface {
+			eniIds = append(eniIds, eni.NetworkInterfaceId)
+		}
+	}
+	return eniIds
+}
+
+func (a InstanceManagerMock) CleanupInstanceNetworkInterfaces(cid string, eniIds []string) error  {
+	for _, id := range eniIds {
+		delete(a.mc.NetworkInterfaces, id)
+	}
+	return nil
 }

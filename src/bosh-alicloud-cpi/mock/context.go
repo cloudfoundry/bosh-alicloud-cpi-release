@@ -17,18 +17,19 @@ const (
 type TestContext struct {
 	config     alicloud.Config
 	Disks      map[string]*ecs.Disk
-	Instances  map[string]*ecs.DescribeInstanceAttributeResponse
+	Instances  map[string]*ecs.Instance
 	Stemcells  map[string]*ecs.Image
 	Buckets    map[string]*oss.Bucket
 	OssObjects map[string]string
 	Snapshots  map[string]string
+	NetworkInterfaces map[string]*ecs.NetworkInterface
 }
 
 func NewTestContext(config alicloud.Config) TestContext {
 	return TestContext{
 		config:     config,
 		Disks:      make(map[string]*ecs.Disk),
-		Instances:  make(map[string]*ecs.DescribeInstanceAttributeResponse),
+		Instances:  make(map[string]*ecs.Instance),
 		Stemcells:  make(map[string]*ecs.Image),
 		Buckets:    make(map[string]*oss.Bucket),
 		OssObjects: make(map[string]string),
@@ -50,13 +51,20 @@ func (c TestContext) NewDisk(instCid string) (string, *ecs.Disk) {
 	return d.DiskId, &d
 }
 
-func (c TestContext) NewInstance() (string, *ecs.DescribeInstanceAttributeResponse) {
-	i := ecs.DescribeInstanceAttributeResponse{
+func (c TestContext) NewNetworkInterface() (*ecs.NetworkInterface) {
+	return &ecs.NetworkInterface{
+		NetworkInterfaceId: NewNetworkInterfaceId(),
+	}
+}
+
+func (c TestContext) NewInstance() (string, *ecs.Instance) {
+	i := ecs.Instance{
 		InstanceId: NewInstanceId(),
 		RegionId:   c.config.OpenApi.GetRegion(""),
 		ZoneId:     c.config.OpenApi.GetAvailabilityZone(),
 		Status:     string(alicloud.Stopped),
 	}
+	i.NetworkInterfaces.NetworkInterface = []ecs.NetworkInterface{*c.NewNetworkInterface()}
 	c.Instances[i.InstanceId] = &i
 	return i.InstanceId, &i
 }

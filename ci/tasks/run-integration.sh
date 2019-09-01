@@ -50,7 +50,7 @@ export CIDR_NOTATION=$(getCidrNotation $CPI_INTERNAL_CIDR)
 export CPI_INTERNAL_NETMASK=$(cdr2mask $CIDR_NOTATION)
 
 echo "Uploading raw image ${stemcell_image_name} to ${CPI_STEMCELL_OSS_BUCKET}..."
-aliyun oss cp ${stemcell_image} oss://${CPI_STEMCELL_OSS_BUCKET}/${stemcell_image_name} --access-key-id ${CPI_ACCESS_KEY_ID} --access-key-secret ${CPI_ACCESS_KEY_SECRET} --region ${CPI_REGION}
+aliyun oss cp ${stemcell_image} oss://${CPI_STEMCELL_OSS_BUCKET}/${stemcell_image_name} --access-key-id ${CPI_ACCESS_KEY_ID} --access-key-secret ${CPI_ACCESS_KEY_SECRET} --region ${CPI_REGION} --force
 
 # Setup Go and run tests
 echo "set go path..."
