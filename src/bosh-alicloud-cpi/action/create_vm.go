@@ -217,9 +217,7 @@ func (a CreateVMMethod) CreateVM(
 		for retry := 0; retry <10; retry++ {
 			err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
 				switch status {
-				case alicloud.Running:
-					return false, a.instances.StopInstance(instCid)
-				case alicloud.Stopped:
+				case alicloud.Running, alicloud.Stopped:
 					return false, a.instances.DeleteInstance(instCid)
 				case alicloud.Deleted:
 					return true, a.instances.CleanupInstanceNetworkInterfaces(instCid, eniIds)
@@ -259,9 +257,7 @@ func (a CreateVMMethod) CreateVM(
 		for retry := 0; retry <10; retry++ {
 			err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
 				switch status {
-				case alicloud.Running:
-					return false, a.instances.StopInstance(instCid)
-				case alicloud.Stopped:
+				case alicloud.Running, alicloud.Stopped:
 					return false, a.instances.DeleteInstance(instCid)
 				case alicloud.Deleted:
 					return true, a.instances.CleanupInstanceNetworkInterfaces(instCid, eniIds)
