@@ -184,7 +184,7 @@ func (c Config) NewEcsClient(region string) (*ecs.Client, error) {
 	if endpoint != "" {
 		endpoints.AddEndpointMapping(c.OpenApi.Region, "ecs", endpoint)
 	}
-	client, err := ecs.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig(), c.getAuthCredential(true))
+	client, err := ecs.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig().WithTimeout(time.Duration(60)*time.Second), c.getAuthCredential(true))
 	client.AppendUserAgent(BoshCPI, BoshCPIVersion)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", c.OpenApi.GetRegion(region))

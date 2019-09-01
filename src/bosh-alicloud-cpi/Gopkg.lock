@@ -18,9 +18,9 @@
     "services/location",
     "services/slb"
   ]
-  revision = "23d39810132af317d6c3474cd9c8001a791b10fb"
+  revision = "7a807875136654e7ca7fcdd5511cd72b14cc25ba"
   source = "github.com/aliyun/alibaba-cloud-sdk-go"
-  version = "1.54.0"
+  version = "1.60.132"
 
 [[projects]]
   name = "github.com/aliyun/aliyun-oss-go-sdk"
@@ -75,8 +75,8 @@
 [[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
-  revision = "0ff49de124c6f76f8494e194af75bde0f1a49a29"
-  version = "v1.1.6"
+  revision = "27518f6661eba504be5a7a9a9f6d9460d892ade3"
+  version = "v1.1.7"
 
 [[projects]]
   name = "github.com/modern-go/concurrent"
@@ -139,16 +139,10 @@
   version = "v1.1.0"
 
 [[projects]]
-  name = "github.com/satori/go.uuid"
-  packages = ["."]
-  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
-  version = "v1.2.0"
-
-[[projects]]
   name = "gopkg.in/ini.v1"
   packages = ["."]
-  revision = "c85607071cf08ca1adaf48319cd1aa322e81d8c1"
-  version = "v1.42.0"
+  revision = "d4cae42d398bc0095297fc3315669590d29166ea"
+  version = "v1.46.0"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -159,6 +153,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d54f271fe8caa9c31c63415fee8877dfe04603cd385339096ea48157ad3e5243"
+  inputs-digest = "2db0efceacc17d686de37588ff89cdd60b207624d8753ca039230dc4b7dc2db5"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -78,21 +78,22 @@ type ModifyLoadBalancerInternetSpecRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 	AutoPay              requests.Boolean `position:"Query" name:"AutoPay"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	Bandwidth            requests.Integer `position:"Query" name:"Bandwidth"`
-	InternetChargeType   string           `position:"Query" name:"InternetChargeType"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
+	InternetChargeType   string           `position:"Query" name:"InternetChargeType"`
+	Ratio                requests.Integer `position:"Query" name:"Ratio"`
 }
 
 // ModifyLoadBalancerInternetSpecResponse is the response struct for api ModifyLoadBalancerInternetSpec
 type ModifyLoadBalancerInternetSpecResponse struct {
 	*responses.BaseResponse
 	RequestId string `json:"RequestId" xml:"RequestId"`
-	OrderId   int    `json:"OrderId" xml:"OrderId"`
+	OrderId   int64  `json:"OrderId" xml:"OrderId"`
 }
 
 // CreateModifyLoadBalancerInternetSpecRequest creates a request to invoke ModifyLoadBalancerInternetSpec API

@@ -44,3 +44,7 @@ func NewVswitchId() string {
 func NewSnapshotId() string {
 	return "s-" + RandomString(20)
 }
+
+func NewNetworkInterfaceId() string {
+	return "eni-" + RandomString(20)
+}
