@@ -27,6 +27,16 @@ blobstore:
     secret_access_key: $ALICLOUD_ACCESS_KEY_SECRET
 EOF
 
+  # update the changelog
+  changelog="CHANGELOG.md"
+  line_num=`cat -n $changelog |grep "(Unreleased)"|awk '{print $1}'`
+  bump_date=`env LANG=en_US.UTF-8 date '+%B %d, %Y'`
+  sed -i -e "s/(Unreleased)/($bump_date)/" $changelog
+
+  arr=(${integer_version//./ })
+  next_version="$((${arr[0]} + 1)).0.0"
+  sed -i -e "${line_num}i \#\# $next_version (Unreleased)" $changelog
+
   echo "finalizing CPI release..."
   bosh finalize-release ${dev_release} --version $integer_version --force
 
@@ -37,5 +47,5 @@ EOF
 
   git config --global user.email guimin.hgm@alibaba-inc.com
   git config --global user.name xiaozhu36
-  git commit -m "New final release v $integer_version"
+  git commit -m "Bump Alibaba Cloud cpi/$integer_version"
 popd
