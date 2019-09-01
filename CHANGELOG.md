@@ -2,6 +2,11 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 26.0.0 (Unreleased)
+
+IMPROVEMENTS
+
+- cleanup the left network interface after deleting the instance ([#94](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/94))
+
 ## 25.0.0 (August 29, 2019)
 
 IMPROVEMENTS

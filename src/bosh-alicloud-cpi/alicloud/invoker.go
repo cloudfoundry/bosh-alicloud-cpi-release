@@ -20,17 +20,16 @@ type Catcher struct {
 	RetryWaitSeconds int
 }
 
-var ClientErrorCatcher = Catcher{"AliyunGoClientFailure", 5, 3}
-var ServiceBusyCatcher = Catcher{"ServiceUnavailable", 5, 3}
-var CreateInstanceCatcher_TokenProcessing = Catcher{"LastTokenProcessing", 15, 5}
-var CreateInstanceCatcher_IdempotentProcessing = Catcher{"IdempotentProcessing", 15, 5}
+var ServiceBusyCatcher = Catcher{"ServiceUnavailable", 60, 5}
+var OperationConflictCatcher = Catcher{"OperationConflict", 60, 5}
+var InternalErrorCatcher = Catcher{"InternalError", 60, 5}
+
 
 func NewInvoker() Invoker {
 	i := Invoker{}
-	i.AddCatcher(ClientErrorCatcher)
 	i.AddCatcher(ServiceBusyCatcher)
-	i.AddCatcher(CreateInstanceCatcher_TokenProcessing)
-	i.AddCatcher(CreateInstanceCatcher_IdempotentProcessing)
+	i.AddCatcher(OperationConflictCatcher)
+	i.AddCatcher(InternalErrorCatcher)
 	return i
 }
 
