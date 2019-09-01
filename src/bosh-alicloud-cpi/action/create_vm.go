@@ -204,16 +204,15 @@ func (a CreateVMMethod) CreateVM(
 		switch status {
 		case alicloud.Stopped:
 			return true, nil
-		case alicloud.Creating:
-			return false, nil
-		case alicloud.Pending:
-			return false, nil
+		case alicloud.Running:
+			return false, a.instances.StopInstance(instCid)
 		default:
-			return false, fmt.Errorf("unexcepted status %s", status)
+			return false, nil
 		}
 	})
 
 	if err != nil {
+		eniIds := a.instances.GetAttachedNetworkInterfaceIds(instCid)
 		var err2 error
 		for retry := 0; retry <10; retry++ {
 			err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
@@ -223,15 +222,9 @@ func (a CreateVMMethod) CreateVM(
 				case alicloud.Stopped:
 					return false, a.instances.DeleteInstance(instCid)
 				case alicloud.Deleted:
-					return true, nil
-				case alicloud.Pending:
-					return false, nil
-				case alicloud.Creating:
-					return false, nil
-				case alicloud.Stopping:
-					return false, nil
+					return true, a.instances.CleanupInstanceNetworkInterfaces(instCid, eniIds)
 				default:
-					return false, fmt.Errorf("unexpect %s for DeleteInstance", status)
+					return false, nil
 				}
 			})
 			if err2 == nil {
@@ -261,6 +254,7 @@ func (a CreateVMMethod) CreateVM(
 
 	// for every error must free created vm before terminated
 	if err != nil {
+		eniIds := a.instances.GetAttachedNetworkInterfaceIds(instCid)
 		var err2 error
 		for retry := 0; retry <10; retry++ {
 			err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
@@ -270,11 +264,9 @@ func (a CreateVMMethod) CreateVM(
 				case alicloud.Stopped:
 					return false, a.instances.DeleteInstance(instCid)
 				case alicloud.Deleted:
-					return true, nil
-				case alicloud.Stopping:
-					return false, nil
+					return true, a.instances.CleanupInstanceNetworkInterfaces(instCid, eniIds)
 				default:
-					return false, fmt.Errorf("unexpect %s for DeleteInstance", status)
+					return false, nil
 				}
 			})
 			if err2 == nil {
@@ -338,14 +330,10 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 		switch status {
 		case alicloud.Stopped:
 			return false, a.instances.StartInstance(instCid)
-		case alicloud.Pending:
-			return false, nil
-		case alicloud.Starting:
-			return false, nil
 		case alicloud.Running:
 			return true, nil
 		default:
-			return false, fmt.Errorf("unexcepted status %s", status)
+			return false, nil
 		}
 	})
 

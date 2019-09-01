@@ -12,22 +12,25 @@ import (
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
+var CreateInstanceCatcher_TokenProcessing = Catcher{"LastTokenProcessing", 15, 5}
+var CreateInstanceCatcher_IdempotentProcessing = Catcher{"IdempotentProcessing", 15, 5}
 var InstanceInvalidOperationConflictCatcher = Catcher{"InvalidOperation.Conflict", 20, 10}
 var DeleteInstanceCatcher = Catcher{"IncorrectInstanceStatus.Initializing", 20, 15}
+var IncorrectInstanceStatusCatcher = Catcher{"IncorrectInstanceStatus", 30, 10}
 var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 30, 10}
 var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 30, 10}
+var NetworkInterfaceInvalidOperationInvalidEniStateCacher = Catcher{"InvalidOperation.InvalidEniState", 60, 5}
 
 const (
-	ChangeInstanceStatusTimeout       = time.Duration(360) * time.Second
+	ChangeInstanceStatusTimeout       = time.Duration(600) * time.Second
 	ChangeInstanceStatusSleepInterval = time.Duration(5) * time.Second
 )
 
 type InstanceManager interface {
-	GetInstance(cid string) (*ecs.DescribeInstanceAttributeResponse, error)
+	GetInstance(cid string) (*ecs.Instance, error)
 
 	CreateInstance(region string, args *ecs.CreateInstanceRequest) (string, error)
 	ModifyInstanceAttribute(cid string, name string, description string) error
@@ -43,6 +46,10 @@ type InstanceManager interface {
 
 	// WaitForInstanceStatus(cid string, toStatus ecs.InstanceStatus) (ecs.InstanceStatus, error)
 	ChangeInstanceStatus(cid string, toStatus InstanceStatus, checkFunc func(status InstanceStatus) (bool, error)) error
+
+	// Cleanup the left network interfaces
+	GetAttachedNetworkInterfaceIds (cid string) []string
+	CleanupInstanceNetworkInterfaces(cid string, eniIds []string) error
 }
 
 type InstanceManagerImpl struct {
@@ -68,22 +75,25 @@ func (a InstanceManagerImpl) log(action string, err error, args interface{}, res
 	}
 }
 
-func (a InstanceManagerImpl) GetInstance(cid string) (inst *ecs.DescribeInstanceAttributeResponse, err error) {
+func (a InstanceManagerImpl) GetInstance(cid string) (inst *ecs.Instance, err error) {
 	client, err := a.config.NewEcsClient("")
 	if err != nil {
 		return nil, err
 	}
 
-	args := ecs.CreateDescribeInstanceAttributeRequest()
-	args.InstanceId = cid
+	args := ecs.CreateDescribeInstancesRequest()
+	args.RegionId = a.config.OpenApi.GetRegion("")
+	args.InstanceIds = fmt.Sprintf("[\"%s\"]", cid)
 
 	invoker := NewInvoker()
 	err = invoker.Run(func() error {
-		r, e := client.DescribeInstanceAttribute(args)
-		if e != nil && IsExceptedErrors(e, EcsInstanceNotFound) {
-			return nil
+		r, e := client.DescribeInstances(args)
+		if e != nil {
+			return e
 		}
-		inst = r
+		if len(r.Instances.Instance) > 0 {
+			inst = &r.Instances.Instance[0]
+		}
 		return e
 	})
 
@@ -97,6 +107,8 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 	}
 
 	invoker := NewInvoker()
+	invoker.AddCatcher(CreateInstanceCatcher_IdempotentProcessing)
+	invoker.AddCatcher(CreateInstanceCatcher_TokenProcessing)
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed)
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
 
@@ -141,9 +153,11 @@ func (a InstanceManagerImpl) DeleteInstance(cid string) error {
 	invoker := NewInvoker()
 	invoker.AddCatcher(DeleteInstanceCatcher)
 	invoker.AddCatcher(InstanceInvalidOperationConflictCatcher)
+	invoker.AddCatcher(IncorrectInstanceStatusCatcher)
 
 	args := ecs.CreateDeleteInstanceRequest()
 	args.InstanceId = cid
+	args.Force = requests.NewBoolean(true)
 
 	return invoker.Run(func() error {
 		_, e := client.DeleteInstance(args)
@@ -258,28 +272,6 @@ func (a InstanceManagerImpl) GetInstanceStatus(cid string) (InstanceStatus, erro
 	return InstanceStatus(inst.Status), nil
 }
 
-func (a InstanceManagerImpl) WaitForInstanceStatus(cid string, toStatus InstanceStatus) (InstanceStatus, error) {
-	invoker := NewInvoker()
-
-	var status InstanceStatus
-
-	ok, err := invoker.RunUntil(WaitTimeout, WaitInterval, func() (bool, error) {
-		status, e := a.GetInstanceStatus(cid)
-		a.logger.Info("InstanceManager", "Waiting Instance %s from %s to %s", cid, status, toStatus)
-		return status == toStatus, e
-	})
-
-	if err != nil {
-		return status, err
-	}
-
-	if !ok {
-		return status, bosherr.Errorf("WaitForInstance %s to %s timeout", cid, toStatus)
-	}
-
-	return status, nil
-}
-
 func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus InstanceStatus, checkFunc func(status InstanceStatus) (bool, error)) error {
 	timeout := ChangeInstanceStatusTimeout
 	for {
@@ -308,6 +300,44 @@ func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus InstanceS
 			return fmt.Errorf("change instance %s to %s timeout", cid, toStatus)
 		}
 	}
+}
+
+func (a InstanceManagerImpl) GetAttachedNetworkInterfaceIds (cid string) []string{
+	inst, _ := a.GetInstance(cid)
+	eniIds := []string{}
+	if inst != nil {
+		for _, eni := range inst.NetworkInterfaces.NetworkInterface {
+			eniIds = append(eniIds, eni.NetworkInterfaceId)
+		}
+	}
+	return eniIds
+}
+func (a InstanceManagerImpl) CleanupInstanceNetworkInterfaces(cid string, eniIds []string) error {
+	if len(eniIds) > 0 {
+		return nil
+	}
+	client, err := a.config.NewEcsClient("")
+	if err != nil {
+		return err
+	}
+	invoker := NewInvoker()
+	invoker.AddCatcher(NetworkInterfaceInvalidOperationInvalidEniStateCacher)
+
+	req := ecs.CreateDeleteNetworkInterfaceRequest()
+	req.RegionId = a.config.OpenApi.GetRegion("")
+
+	for _, id := range eniIds {
+		req.NetworkInterfaceId = id
+		err = invoker.Run(func() error {
+			_, err := client.DeleteNetworkInterface(req)
+			a.log("DeleteNetworkInterface", err, id, "ok")
+			return err
+		})
+		if err != nil && !IsExceptedErrors(err, []string{"InvalidEniId.NotFound"}) {
+			return fmt.Errorf("After the instance %s is deleted, cleanup the network interface %s failed. Error:\n %#v.", cid, id, err)
+		}
+	}
+	return nil
 }
 
 func (a InstanceManagerImpl) GetInstanceUserData() {

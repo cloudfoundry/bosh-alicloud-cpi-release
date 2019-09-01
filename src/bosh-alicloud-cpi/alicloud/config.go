@@ -45,7 +45,7 @@ type Config struct {
 const (
 	UseForceStop = true
 
-	WaitTimeout  = time.Duration(180) * time.Second
+	WaitTimeout  = time.Duration(600) * time.Second
 	WaitInterval = time.Duration(5) * time.Second
 
 	DefaultEipWaitSeconds = 120
