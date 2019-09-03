@@ -240,17 +240,12 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: https://github.com/xiaozhu36/bosh-alicloud-cpi-release.git
-      branch: master
+      uri: https://github.com/((bosh-cpi-src-owner))/bosh-alicloud-cpi-release.git
+      branch: ((bosh-cpi-src-branch))
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
-#  - name: bosh-cpi-src-out
-#    type: git
-#    source:
-#      uri: git@github.com:xiaozhu36/bosh-alicloud-cpi-release.git
-#      branch: master
-#      private_key: {{github_bosh-alicloud-cpi-release_private-key}}
+        - CHANGELOG.md
   - name: version-semver
     type: semver
     source:
@@ -279,8 +274,8 @@ resources:
   - name: pipelines
     type: git
     source:
-      uri: https://github.com/aliyun/bosh-cpi-certification
-      branch: xiaozhu
+      uri: https://github.com/cloudfoundry-incubator/bosh-cpi-certification
+      branch: master
   - name: precompiled-bosh-releases
     type: s3
     source:
@@ -293,14 +288,9 @@ resources:
       force_regular: true
       tarball: true
   - name: ubuntu-xenial-light-stemcell
-    type: s3
+    type: bosh-io-stemcell
     source:
-      regexp:            light-bosh-stemcell-(\d+\.\d+)-alicloud-kvm-ubuntu-xenial-go_agent.tgz
-      bucket:            {{bosh_light_stemcell_bucket}}
-      region:            {{bosh_light_stemcell_region}}
-      access_key_id:     {{bosh_light_stemcell_access_key}}
-      secret_access_key: {{bosh_light_stemcell_secret_key}}
-      endpoint:          oss-((bosh_light_stemcell_region)).aliyuncs.com
+      name: bosh-alicloud-kvm-ubuntu-xenial-go_agent
   - name: bats
     type: git
     source:

@@ -2,6 +2,11 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 27.0.0 (Unreleased)
+
+IMPROVEMENTS
+
+- improve pipeline and download light stemcell from bosh.io ([#100](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/100))
+
 ## 26.0.0 (September 01, 2019)
 
 IMPROVEMENTS
