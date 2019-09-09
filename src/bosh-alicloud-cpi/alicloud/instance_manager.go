@@ -21,7 +21,7 @@ var InstanceInvalidOperationConflictCatcher = Catcher{"InvalidOperation.Conflict
 var DeleteInstanceCatcher = Catcher{"IncorrectInstanceStatus.Initializing", 20, 15}
 var IncorrectInstanceStatusCatcher = Catcher{"IncorrectInstanceStatus", 30, 10}
 var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 30, 10}
-var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 30, 10}
+var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 60, 10}
 var NetworkInterfaceInvalidOperationInvalidEniStateCacher = Catcher{"InvalidOperation.InvalidEniState", 60, 5}
 
 const (
@@ -115,13 +115,45 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 	args.ClientToken = buildClientToken(args.GetActionName())
 
 	var cid string
+	var existId string
 	err = invoker.Run(func() error {
 		resp, e := client.CreateInstance(args)
-		if resp != nil {
-			cid = resp.InstanceId
+		if e != nil {
+			if IsExceptedErrors(e, []string{"InvalidPrivateIpAddress.Duplicated"}) {
+				req := ecs.CreateDescribeInstancesRequest()
+				req.RegionId = region
+				req.VSwitchId = args.VSwitchId
+				newResp, err2 := client.DescribeInstances(req)
+				if err2 == nil {
+					for _,inst := range newResp.Instances.Instance {
+						if inst.VpcAttributes.PrivateIpAddress.IpAddress[0] == args.PrivateIpAddress {
+							existId = inst.InstanceId
+							break
+						}
+					}
+				}
+				req2 := ecs.CreateDescribeNetworkInterfacesRequest()
+				req2.RegionId = region
+				req2.VSwitchId = args.VSwitchId
+				newResp2, err3 := client.DescribeNetworkInterfaces(req2)
+				if err3 == nil {
+					for _,inst := range newResp2.NetworkInterfaceSets.NetworkInterfaceSet {
+						if inst.PrivateIpAddress == args.PrivateIpAddress {
+							existId = inst.InstanceId
+							break
+						}
+					}
+				}
+			}
+			return e
 		}
+		cid = resp.InstanceId
 		return e
 	})
+	if err != nil && existId != "" {
+		err = fmt.Errorf("CreateInstance failed with vswitchId %s and privateIp %s. But the private ip has been " +
+			"occupied by instance %s. Error: \n %s.", args.VSwitchId, args.PrivateIpAddress, existId, err.Error())
+	}
 	return cid, err
 }
 
