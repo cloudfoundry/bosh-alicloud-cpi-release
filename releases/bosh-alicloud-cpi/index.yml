@@ -41,6 +41,8 @@ builds:
     version: "14"
   c1346981-9fb3-45e9-4ac2-ca110b299a57:
     version: "4"
+  d3d3532a-124c-4e48-50da-6d8663adafd1:
+    version: 28.0.0
   e9e25de4-2cea-47fd-6b73-9d054f9e0ddc:
     version: "11"
 format-version: "2"
