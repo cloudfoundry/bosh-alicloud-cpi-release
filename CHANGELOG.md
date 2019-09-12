@@ -2,6 +2,11 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 28.0.0 (Unreleased)
+
+IMPROVEMENTS
+
+- fix InvalidIPAddress.AlreadyUsed issue by updating clienttoken ([#101](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/101))
+
 ## 27.0.0 (September 09, 2019)
 
 IMPROVEMENTS

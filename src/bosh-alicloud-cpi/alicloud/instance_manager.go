@@ -21,7 +21,7 @@ var InstanceInvalidOperationConflictCatcher = Catcher{"InvalidOperation.Conflict
 var DeleteInstanceCatcher = Catcher{"IncorrectInstanceStatus.Initializing", 20, 15}
 var IncorrectInstanceStatusCatcher = Catcher{"IncorrectInstanceStatus", 30, 10}
 var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 30, 10}
-var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 60, 10}
+var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 30, 10}
 var NetworkInterfaceInvalidOperationInvalidEniStateCacher = Catcher{"InvalidOperation.InvalidEniState", 60, 5}
 
 const (
@@ -119,7 +119,7 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 	err = invoker.Run(func() error {
 		resp, e := client.CreateInstance(args)
 		if e != nil {
-			if IsExceptedErrors(e, []string{"InvalidPrivateIpAddress.Duplicated"}) {
+			if IsExceptedErrors(e, []string{"InvalidPrivateIpAddress.Duplicated", "InvalidIPAddress.AlreadyUsed"}) {
 				req := ecs.CreateDescribeInstancesRequest()
 				req.RegionId = region
 				req.VSwitchId = args.VSwitchId
@@ -144,6 +144,8 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 						}
 					}
 				}
+				// If the error is not 5xx, the client token should be updated
+				args.ClientToken = buildClientToken(args.GetActionName())
 			}
 			return e
 		}
@@ -151,7 +153,7 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 		return e
 	})
 	if err != nil && existId != "" {
-		err = fmt.Errorf("CreateInstance failed with vswitchId %s and privateIp %s. But the private ip has been " +
+		err = fmt.Errorf("CreateInstance failed with vswitchId %s and privateIp %s. The private ip has been " +
 			"occupied by instance %s. Error: \n %s.", args.VSwitchId, args.PrivateIpAddress, existId, err.Error())
 	}
 	return cid, err
