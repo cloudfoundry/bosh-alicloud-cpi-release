@@ -119,12 +119,12 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 	err := cloudProps.As(&props)
 
 	if err != nil {
-		return apiv1.StemcellCID{}, a.WrapErrorf(err, "BadInput for CreateStemcell %s", cloudProps)
+		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "BadInput for CreateStemcell %s", cloudProps)
 	}
 
 	props, err = props.Validate()
 	if err != nil {
-		return apiv1.StemcellCID{}, a.WrapErrorf(err, "BadInput for CreateStemcell %3v", err)
+		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "BadInput for CreateStemcell %3v", err)
 	}
 
 	switch {
@@ -138,7 +138,7 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 	}
 
 	if err != nil {
-		return apiv1.StemcellCID{}, a.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
+		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
 	}
 
 	return apiv1.NewStemcellCID(stemcellId), nil
@@ -147,7 +147,7 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 func (a CreateStemcellMethod) CreateFromURL(props StemcellProps) (string, error) {
 	image, err := a.importImage(props)
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Creating Alicloud Image from URL")
+		return "", bosherr.WrapError(err, "Creating Alicloud Image from URL")
 	}
 
 	return image, nil
@@ -176,12 +176,12 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Creating Alicloud Image with params: %#v", args)
 	imageId, err := a.stemcells.ImportImage(args)
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to create Alicloud Image")
+		return "", bosherr.WrapError(err, "Failed to create Alicloud Image")
 	}
 
 	if err = a.stemcells.WaitForImageReady(imageId); err != nil {
 		a.cleanUp(imageId)
-		return "", bosherr.WrapErrorf(err, "Failed to create Alicloud Image")
+		return "", bosherr.WrapError(err, "Failed to create Alicloud Image")
 	}
 
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Create Alicloud Image %s success", imageId)
@@ -202,13 +202,13 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	defer a.osses.DeleteBucket(bucketName)
 
 	if err := a.osses.CreateBucket(bucketName, oss.ACL(oss.ACLPrivate)); err != nil {
-		return "", bosherr.WrapErrorf(err, "Creating Alicloud OSS Bucket")
+		return "", bosherr.WrapError(err, "Creating Alicloud OSS Bucket")
 	}
 
 	bucket, err := a.osses.GetBucket(bucketName)
 
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Geting oss bucket")
+		return "", bosherr.WrapError(err, "Geting oss bucket")
 	}
 
 	cmd := exec.Command("tar", "-xf", imagePath)
@@ -223,7 +223,7 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	// The root stemcell is 3 GB and using multipart uploading to avoid timeout error
 	err = a.osses.MultipartUploadFile(*bucket, imageName, fmt.Sprintf("%s/%s", path.Dir(imagePath), "root.img"), PART_SIZE, oss.Routines(5))
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Uploading stemcell image file to oss")
+		return "", bosherr.WrapError(err, "Uploading stemcell image file to oss")
 	}
 	defer a.osses.DeleteObject(*bucket, imageName)
 
@@ -231,7 +231,7 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	props.OSSObject = imageName
 	image, err := a.importImage(props)
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Creating Alicloud Image from Tarball")
+		return "", bosherr.WrapError(err, "Creating Alicloud Image from Tarball")
 	}
 
 	return image, err

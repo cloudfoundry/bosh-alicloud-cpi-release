@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -25,7 +26,7 @@ func (a SnapshotDiskMethod) SnapshotDisk(diskCID apiv1.DiskCID, meta apiv1.DiskM
 	// TODO, get snapshot name from meta
 	ssid, err := a.disks.CreateSnapshot(diskCid, "")
 	if err != nil {
-		return apiv1.SnapshotCID{}, a.WrapErrorf(err, "create snapshot for %s failed", diskCid)
+		return apiv1.SnapshotCID{}, bosherr.WrapErrorf(err, "create snapshot for %s failed", diskCid)
 	}
 
 	return apiv1.NewSnapshotCID(ssid), nil

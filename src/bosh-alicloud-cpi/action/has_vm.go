@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -25,7 +26,7 @@ func (a HasVMMethod) HasVM(cid apiv1.VMCID) (bool, error) {
 	inst, err := a.instances.GetInstance(instCid)
 
 	if err != nil {
-		return false, a.WrapErrorf(err, "Finding VM Failed '%s'", cid)
+		return false, bosherr.WrapErrorf(err, "Finding VM Failed '%s'", cid)
 	}
 
 	if inst != nil {

@@ -310,11 +310,8 @@ resources:
       branch: master
 
   - name: aliyun-cli
-    type: s3
+    type: github-release
     source:
-      regexp:            aliyun-cli-linux-3.0.(\d+)-amd64.tgz
-      bucket:            {{aliyun_cli_bucket}}
-      region:            {{aliyun_cli_region}}
-      access_key_id:     {{aliyun_cli_access_key}}
-      secret_access_key: {{aliyun_cli_secret_key}}
-      endpoint:          oss-((aliyun_cli_region)).aliyuncs.com
+      owner: aliyun
+      repository: aliyun-cli
+      insecure: true

@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -43,7 +44,7 @@ func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	})
 
 	if err != nil {
-		return a.WrapErrorf(err, "detach disk %s from %s failed", diskCid, instCid)
+		return bosherr.WrapErrorf(err, "detach disk %s from %s failed", diskCid, instCid)
 	}
 
 	registryClient := a.registry
@@ -51,7 +52,7 @@ func (a DetachDiskMethod) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	agentSettings.DetachPersistentDisk(diskCid)
 	err = registryClient.Update(instCid, agentSettings)
 	if err != nil {
-		return a.WrapErrorf(err, "DetachDisk update registry failed %s", diskCid)
+		return bosherr.WrapErrorf(err, "DetachDisk update registry failed %s", diskCid)
 	}
 
 	return err

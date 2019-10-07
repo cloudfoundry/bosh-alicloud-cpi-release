@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -22,7 +23,7 @@ func NewSetDiskMetadataMethod(cc CallContext, disks alicloud.DiskManager, instan
 func (a SetDiskMetadataMethod) SetDiskMetadata(diskCID apiv1.DiskCID, meta apiv1.DiskMeta) error {
 	md, err := convertMetaData(meta)
 	if err != nil {
-		return a.WrapErrorf(err, "convert meta %v failed", meta)
+		return bosherr.WrapErrorf(err, "convert meta %v failed", meta)
 	}
 
 	diskCid := diskCID.AsString()
@@ -39,7 +40,7 @@ func (a SetDiskMetadataMethod) SetDiskMetadata(diskCID apiv1.DiskCID, meta apiv1
 
 	err = a.instances.AddTags(diskCid, tags)
 	if err != nil {
-		return a.WrapErrorf(err, "AddTags %v to %s failed", tags, diskCid)
+		return bosherr.WrapErrorf(err, "AddTags %v to %s failed", tags, diskCid)
 	}
 	return nil
 }

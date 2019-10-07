@@ -7,6 +7,7 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"fmt"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -24,7 +25,7 @@ func (a RebootVMMethod) RebootVM(cid apiv1.VMCID) error {
 
 	err := a.instances.RebootInstance(instCid)
 	if err != nil {
-		return a.WrapErrorf(err, "RebootInstance failed cid=%s", instCid)
+		return bosherr.WrapErrorf(err, "RebootInstance failed cid=%s", instCid)
 	}
 
 	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Running, func(status alicloud.InstanceStatus) (bool, error) {
@@ -41,7 +42,7 @@ func (a RebootVMMethod) RebootVM(cid apiv1.VMCID) error {
 	})
 
 	if err != nil {
-		return a.WrapErrorf(err, "reboot %s failed", instCid)
+		return bosherr.WrapErrorf(err, "reboot %s failed", instCid)
 	}
 
 	return nil

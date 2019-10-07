@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -20,7 +21,7 @@ func NewDeleteStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager)
 
 func (a DeleteStemcellMethod) DeleteStemcell(cid apiv1.StemcellCID) error {
 	if err := a.stemcells.DeleteStemcell(cid.AsString()); err != nil {
-		return a.WrapErrorf(err, "Deleting stemcell '%s'", cid)
+		return bosherr.WrapErrorf(err, "Deleting stemcell '%s'", cid)
 	}
 
 	return nil

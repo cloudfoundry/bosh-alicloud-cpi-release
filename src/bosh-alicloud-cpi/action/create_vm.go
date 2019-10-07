@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"strings"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"encoding/base64"
@@ -88,24 +90,24 @@ func (a CreateVMMethod) CreateVM(
 	// convert registry env
 	registryEnv, err := registry.UnmarshalEnvSettings(env)
 	if err != nil {
-		return cid, a.WrapErrorf(err, "unmarshal EnvSettings failed %v", env)
+		return cid, bosherr.WrapErrorf(err, "unmarshal EnvSettings failed %v", env)
 	}
 
 	// convert CloudProps to alicloud dedicated Props
 	instProps := NewInstanceProps()
 	err = cloudProps.As(&instProps)
 	if err != nil {
-		return cid, a.WrapErrorf(err, "unmarshal instance cloud_properties failed %v", cloudProps)
+		return cid, bosherr.WrapErrorf(err, "unmarshal instance cloud_properties failed %v", cloudProps)
 	}
 
 	// if cross region deployment, bosh region and stemcell id must be specified
 	if strings.TrimSpace(instProps.Region) != "" && strings.TrimSpace(instProps.StemcellId) == "" {
-		return cid, a.Errorf("'stemcell_id' must be specified when self-defined region is specified.")
+		return cid, bosherr.Error("'stemcell_id' must be specified when self-defined region is specified.")
 	}
 	// parse networks from networkArgs
 	networks, err := NewNetworks(networkArgs)
 	if err != nil {
-		return cid, a.WrapErrorf(err, "parse network cloud_properties %v", networkArgs)
+		return cid, bosherr.WrapErrorf(err, "parse network cloud_properties %v", networkArgs)
 	}
 
 	//Security groups can be specified as follows, ordered by greatest precedence: vm_types, followed by networks.
@@ -115,7 +117,7 @@ func (a CreateVMMethod) CreateVM(
 
 	args := ecs.CreateCreateInstanceRequest()
 	if err := networks.FillCreateInstanceArgs(args); err != nil {
-		return cid, a.WrapErrorf(err, "fill instance network args failed and args: %v", networks.privateProps)
+		return cid, bosherr.WrapErrorf(err, "fill instance network args failed and args: %v", networks.privateProps)
 	}
 
 	if instProps.AvailabilityZone != "" {
@@ -124,18 +126,18 @@ func (a CreateVMMethod) CreateVM(
 		args.ZoneId = a.Config.OpenApi.GetAvailabilityZone()
 	}
 	if args.ZoneId == "" {
-		return cid, a.Errorf("can't get zone from availability_zone or cpi.config")
+		return cid, bosherr.Errorf("can't get zone from availability_zone or cpi.config")
 	}
 
 	// config instance_type
 	args.InstanceType = instProps.InstanceType
 	if args.InstanceType == "" {
-		return cid, a.Errorf("missing instance_type")
+		return cid, bosherr.Errorf("missing instance_type")
 	}
 
 	// spot props
 	if err := validateSpotProps(instProps); err != nil {
-		return apiv1.VMCID{}, a.WrapErrorf(err, "invalid spot properties ")
+		return apiv1.VMCID{}, bosherr.WrapError(err, "invalid spot properties ")
 	}
 
 	// config vm charge type
@@ -143,7 +145,7 @@ func (a CreateVMMethod) CreateVM(
 		args.InstanceChargeType = "PrePaid"
 		period, err := instProps.ChargePeriod.Int64()
 		if err != nil {
-			return cid, a.WrapErrorf(err, "parse charge_period %s failed when charge_type is `PrePaid`", instProps.ChargePeriod.String())
+			return cid, bosherr.WrapErrorf(err, "parse charge_period %s failed when charge_type is `PrePaid`", instProps.ChargePeriod.String())
 		}
 		args.Period = requests.NewInteger64(period)
 		args.PeriodUnit = instProps.ChargePeriodUnit
@@ -151,18 +153,18 @@ func (a CreateVMMethod) CreateVM(
 			args.AutoRenew = requests.NewBoolean(true)
 			period, err = instProps.AutoRenewPeriod.Int64()
 			if err != nil {
-				return cid, a.WrapErrorf(err, "parse charge_auto_renew_period %s failed when charge_auto_renew is `True`", instProps.AutoRenewPeriod.String())
+				return cid, bosherr.WrapErrorf(err, "parse charge_auto_renew_period %s failed when charge_auto_renew is `True`", instProps.AutoRenewPeriod.String())
 			}
 			args.AutoRenewPeriod = requests.NewInteger64(period)
 		} else if strings.EqualFold(instProps.AutoRenew, "False") || instProps.AutoRenew == "" {
 			args.AutoRenew = requests.NewBoolean(false)
 		} else {
-			return cid, a.Errorf("unexpected charge_auto_renew: %s", instProps.AutoRenew)
+			return cid, bosherr.Errorf("unexpected charge_auto_renew: %s", instProps.AutoRenew)
 		}
 	} else if instProps.ChargeType == "PostPaid" || instProps.ChargeType == "" {
 		args.InstanceChargeType = "PostPaid"
 	} else {
-		return cid, a.Errorf("unexpected charge type %s", instProps.ChargeType)
+		return cid, bosherr.Errorf("unexpected charge type %s", instProps.ChargeType)
 	}
 
 	// compare key pair or password
@@ -188,7 +190,7 @@ func (a CreateVMMethod) CreateVM(
 	// fill disks
 	disks, err := NewDisksWithProps(instProps.SystemDisk, instProps.EphemeralDisk)
 	if err != nil {
-		return cid, a.WrapErrorf(err, "bad disks format, %v", instProps)
+		return cid, bosherr.WrapErrorf(err, "bad disks format, %v", instProps)
 	}
 
 	disks.FillCreateInstanceArgs(a.Config.OpenApi.Encrypted, args)
@@ -197,7 +199,7 @@ func (a CreateVMMethod) CreateVM(
 	instCid, err := a.instances.CreateInstance(instProps.Region, args)
 	if err != nil {
 		req, _ := json.Marshal(args)
-		return apiv1.VMCID{}, a.WrapErrorf(err, "create instance failed with input=%s ", string(req))
+		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "create instance failed with input=%s ", string(req))
 	}
 
 	// Wait for the instance status to STOPPED
@@ -227,11 +229,11 @@ func (a CreateVMMethod) CreateVM(
 				}
 			})
 			if err2 == nil {
-				return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "wait %s to STOPPED failed and the vm has been deleted.", instCid)
+				return apiv1.NewVMCID(instCid), bosherr.WrapErrorf(err, "wait %s to STOPPED failed and the vm has been deleted.", instCid)
 			}
 			time.Sleep(5 * time.Second)
 		}
-		return apiv1.VMCID{}, a.WrapErrorf(err, "wait %s to STOPPED failed and then delete it timeout: %v", instCid, err2)
+		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "wait %s to STOPPED failed and then delete it timeout: %v", instCid, err2)
 	}
 
 	agentSettings := registry.AgentSettings{
@@ -267,11 +269,11 @@ func (a CreateVMMethod) CreateVM(
 				}
 			})
 			if err2 == nil {
-				return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed and the vm has been deleted.", instCid)
+				return apiv1.NewVMCID(instCid), bosherr.WrapErrorf(err, "update %s failed and the vm has been deleted.", instCid)
 			}
 			time.Sleep(5 * time.Second)
 		}
-		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed and then delete it timeout: %v", instCid, err2)
+		return apiv1.NewVMCID(instCid), bosherr.WrapErrorf(err, "update %s failed and then delete it timeout: %v", instCid, err2)
 	}
 
 	return apiv1.NewVMCID(instCid), nil
@@ -283,7 +285,7 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 	if len(networks.privateProps.SecurityGroupIds) > 0 {
 		inst, err := a.instances.GetInstance(instCid)
 		if err != nil {
-			return a.WrapErrorf(err, "GetInstance instanceId=%s falied.", instCid)
+			return bosherr.WrapErrorf(err, "GetInstance instanceId=%s falied.", instCid)
 		}
 		for _, group := range networks.privateProps.SecurityGroupIds {
 			find := false
@@ -295,7 +297,7 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 			}
 			if !find {
 				if err := a.networks.JoinSecurityGroup(instProps.Region, instCid, group); err != nil {
-					return a.WrapErrorf(err, "Instance %s JoinSecurityGroup %s failed.", instCid, group)
+					return bosherr.WrapErrorf(err, "Instance %s JoinSecurityGroup %s failed.", instCid, group)
 				}
 			}
 		}
@@ -306,12 +308,12 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 	for _, diskCid := range associatedDiskCIDs {
 		err := a.disks.AttachDisk(instCid, diskCid.AsString())
 		if err != nil {
-			return a.WrapErrorf(err, "associate Persistent Disk error diskCid=%s", diskCid)
+			return bosherr.WrapErrorf(err, "associate Persistent Disk error diskCid=%s", diskCid)
 		}
 
 		path, err := a.disks.WaitForDiskStatus(diskCid.AsString(), alicloud.DiskStatusInUse)
 		if err != nil {
-			return a.WrapErrorf(err, "associate and WaitForDiskStatus Failed diskCid=%s", diskCid)
+			return bosherr.WrapErrorf(err, "associate and WaitForDiskStatus Failed diskCid=%s", diskCid)
 		}
 		disks.AssociatePersistentDisk(diskCid.AsString(), path)
 	}
@@ -319,7 +321,7 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 	// put agent settings.json to registry
 	err := a.UpdateAgentSettings(instCid, agentSettings)
 	if err != nil {
-		return a.WrapErrorf(err, "UpdateAgentSettings Failed %s")
+		return bosherr.WrapError(err, "UpdateAgentSettings Failed.")
 	}
 
 	// wait for instance to start
@@ -335,13 +337,13 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 	})
 
 	if err != nil {
-		return a.WrapErrorf(err, "change %s to Running failed", instCid)
+		return bosherr.WrapErrorf(err, "change %s to Running failed", instCid)
 	}
 
 	for _, eip := range networks.GetVips() {
 		err := a.networks.BindEip(instProps.Region, instCid, eip)
 		if err != nil {
-			return a.WrapErrorf(err, "bind eip %s to %s failed", eip, instCid)
+			return bosherr.WrapErrorf(err, "bind eip %s to %s failed", eip, instCid)
 		}
 	}
 
@@ -355,7 +357,7 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 	for _, slb := range instProps.Slbs {
 		err := a.networks.BindSLB(instProps.Region, instCid, slb, int(slbWeight))
 		if err != nil {
-			return a.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
+			return bosherr.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
 		}
 	}
 	return nil
@@ -391,7 +393,7 @@ func (a CreateVMMethod) UpdateAgentSettings(instId string, agentSettings registr
 	if err != nil {
 		txt, _ := json.Marshal(agentSettings)
 		a.Logger.Error("create_vm", "UpdateAgentSettings to registry failed %s json:%s", txt)
-		return a.WrapErrorf(err, "UpdateAgentSettings failed %v %s", client, txt)
+		return bosherr.WrapErrorf(err, "UpdateAgentSettings failed %v %s", client, txt)
 	}
 
 	return nil

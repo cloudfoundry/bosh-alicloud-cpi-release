@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -24,7 +25,7 @@ func NewSetVMMetadataMethod(cc CallContext, instances alicloud.InstanceManager) 
 func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta) error {
 	md, err := convertMetaData(meta)
 	if err != nil {
-		return a.WrapErrorf(err, "convert meta data failed %v", meta)
+		return bosherr.WrapErrorf(err, "convert meta data failed %v", meta)
 	}
 
 	instCid := vmCID.AsString()
@@ -44,12 +45,12 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 
 	err = a.instances.ModifyInstanceAttribute(instCid, name, "")
 	if err != nil {
-		return a.WrapErrorf(err, "ModifyInstanceAttribute %s failed", instCid)
+		return bosherr.WrapErrorf(err, "ModifyInstanceAttribute %s failed", instCid)
 	}
 
 	err = a.instances.AddTags(instCid, tags)
 	if err != nil {
-		return a.WrapErrorf(err, "AddTags %v to %s failed", instCid, tags, instCid)
+		return bosherr.WrapErrorf(err, "AddTags %v to %s failed", instCid, tags, instCid)
 	}
 
 	return nil
