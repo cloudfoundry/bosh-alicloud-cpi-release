@@ -24,7 +24,6 @@ var ServiceBusyCatcher = Catcher{"ServiceUnavailable", 60, 5}
 var OperationConflictCatcher = Catcher{"OperationConflict", 60, 5}
 var InternalErrorCatcher = Catcher{"InternalError", 60, 5}
 
-
 func NewInvoker() Invoker {
 	i := Invoker{}
 	i.AddCatcher(ServiceBusyCatcher)

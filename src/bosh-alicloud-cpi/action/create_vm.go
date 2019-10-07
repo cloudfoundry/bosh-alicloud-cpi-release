@@ -14,9 +14,10 @@ import (
 
 	"encoding/base64"
 
+	"time"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
-	"time"
 )
 
 type InstanceChargeType string
@@ -214,7 +215,7 @@ func (a CreateVMMethod) CreateVM(
 	if err != nil {
 		eniIds := a.instances.GetAttachedNetworkInterfaceIds(instCid)
 		var err2 error
-		for retry := 0; retry <10; retry++ {
+		for retry := 0; retry < 10; retry++ {
 			err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
 				switch status {
 				case alicloud.Running, alicloud.Stopped:
@@ -228,7 +229,7 @@ func (a CreateVMMethod) CreateVM(
 			if err2 == nil {
 				return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "wait %s to STOPPED failed and the vm has been deleted.", instCid)
 			}
-			time.Sleep(5*time.Second)
+			time.Sleep(5 * time.Second)
 		}
 		return apiv1.VMCID{}, a.WrapErrorf(err, "wait %s to STOPPED failed and then delete it timeout: %v", instCid, err2)
 	}
@@ -254,7 +255,7 @@ func (a CreateVMMethod) CreateVM(
 	if err != nil {
 		eniIds := a.instances.GetAttachedNetworkInterfaceIds(instCid)
 		var err2 error
-		for retry := 0; retry <10; retry++ {
+		for retry := 0; retry < 10; retry++ {
 			err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
 				switch status {
 				case alicloud.Running, alicloud.Stopped:
@@ -268,7 +269,7 @@ func (a CreateVMMethod) CreateVM(
 			if err2 == nil {
 				return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed and the vm has been deleted.", instCid)
 			}
-			time.Sleep(5*time.Second)
+			time.Sleep(5 * time.Second)
 		}
 		return apiv1.NewVMCID(instCid), a.WrapErrorf(err, "update %s failed and then delete it timeout: %v", instCid, err2)
 	}

@@ -48,7 +48,7 @@ type InstanceManager interface {
 	ChangeInstanceStatus(cid string, toStatus InstanceStatus, checkFunc func(status InstanceStatus) (bool, error)) error
 
 	// Cleanup the left network interfaces
-	GetAttachedNetworkInterfaceIds (cid string) []string
+	GetAttachedNetworkInterfaceIds(cid string) []string
 	CleanupInstanceNetworkInterfaces(cid string, eniIds []string) error
 }
 
@@ -115,47 +115,14 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 	args.ClientToken = buildClientToken(args.GetActionName())
 
 	var cid string
-	var existId string
 	err = invoker.Run(func() error {
 		resp, e := client.CreateInstance(args)
 		if e != nil {
-			if IsExceptedErrors(e, []string{"InvalidPrivateIpAddress.Duplicated", "InvalidIPAddress.AlreadyUsed"}) {
-				req := ecs.CreateDescribeInstancesRequest()
-				req.RegionId = region
-				req.VSwitchId = args.VSwitchId
-				newResp, err2 := client.DescribeInstances(req)
-				if err2 == nil {
-					for _,inst := range newResp.Instances.Instance {
-						if inst.VpcAttributes.PrivateIpAddress.IpAddress[0] == args.PrivateIpAddress {
-							existId = inst.InstanceId
-							break
-						}
-					}
-				}
-				req2 := ecs.CreateDescribeNetworkInterfacesRequest()
-				req2.RegionId = region
-				req2.VSwitchId = args.VSwitchId
-				newResp2, err3 := client.DescribeNetworkInterfaces(req2)
-				if err3 == nil {
-					for _,inst := range newResp2.NetworkInterfaceSets.NetworkInterfaceSet {
-						if inst.PrivateIpAddress == args.PrivateIpAddress {
-							existId = inst.InstanceId
-							break
-						}
-					}
-				}
-				// If the error is not 5xx, the client token should be updated
-				args.ClientToken = buildClientToken(args.GetActionName())
-			}
 			return e
 		}
 		cid = resp.InstanceId
 		return e
 	})
-	if err != nil && existId != "" {
-		err = fmt.Errorf("CreateInstance failed with vswitchId %s and privateIp %s. The private ip has been " +
-			"occupied by instance %s. Error: \n %s.", args.VSwitchId, args.PrivateIpAddress, existId, err.Error())
-	}
 	return cid, err
 }
 
@@ -336,7 +303,7 @@ func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus InstanceS
 	}
 }
 
-func (a InstanceManagerImpl) GetAttachedNetworkInterfaceIds (cid string) []string{
+func (a InstanceManagerImpl) GetAttachedNetworkInterfaceIds(cid string) []string {
 	inst, _ := a.GetInstance(cid)
 	eniIds := []string{}
 	if inst != nil {
