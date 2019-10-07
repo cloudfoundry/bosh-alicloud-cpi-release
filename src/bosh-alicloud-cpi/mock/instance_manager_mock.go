@@ -164,9 +164,9 @@ func (a InstanceManagerMock) ChangeInstanceStatus(cid string, toStatus alicloud.
 	}
 }
 
-func (a InstanceManagerMock) GetAttachedNetworkInterfaceIds (cid string) []string {
+func (a InstanceManagerMock) GetAttachedNetworkInterfaceIds(cid string) []string {
 	inst, ok := a.mc.Instances[cid]
-	eniIds := make([]string, 1,1)
+	eniIds := make([]string, 1, 1)
 	if !ok {
 		return eniIds
 	} else {
@@ -177,7 +177,7 @@ func (a InstanceManagerMock) GetAttachedNetworkInterfaceIds (cid string) []strin
 	return eniIds
 }
 
-func (a InstanceManagerMock) CleanupInstanceNetworkInterfaces(cid string, eniIds []string) error  {
+func (a InstanceManagerMock) CleanupInstanceNetworkInterfaces(cid string, eniIds []string) error {
 	for _, id := range eniIds {
 		delete(a.mc.NetworkInterfaces, id)
 	}

@@ -2,6 +2,11 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 29.0.0 (Unreleased)
+
+IMPROVEMENTS
+
+- remove the updating clienttoken when creating vm failed ([#102](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/102))
+
 ## 28.0.0 (September 12, 2019)
 
 IMPROVEMENTS

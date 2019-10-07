@@ -15,13 +15,13 @@ const (
 )
 
 type TestContext struct {
-	config     alicloud.Config
-	Disks      map[string]*ecs.Disk
-	Instances  map[string]*ecs.Instance
-	Stemcells  map[string]*ecs.Image
-	Buckets    map[string]*oss.Bucket
-	OssObjects map[string]string
-	Snapshots  map[string]string
+	config            alicloud.Config
+	Disks             map[string]*ecs.Disk
+	Instances         map[string]*ecs.Instance
+	Stemcells         map[string]*ecs.Image
+	Buckets           map[string]*oss.Bucket
+	OssObjects        map[string]string
+	Snapshots         map[string]string
 	NetworkInterfaces map[string]*ecs.NetworkInterface
 }
 
@@ -51,7 +51,7 @@ func (c TestContext) NewDisk(instCid string) (string, *ecs.Disk) {
 	return d.DiskId, &d
 }
 
-func (c TestContext) NewNetworkInterface() (*ecs.NetworkInterface) {
+func (c TestContext) NewNetworkInterface() *ecs.NetworkInterface {
 	return &ecs.NetworkInterface{
 		NetworkInterfaceId: NewNetworkInterfaceId(),
 	}
