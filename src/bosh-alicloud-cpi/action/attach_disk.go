@@ -8,6 +8,8 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"fmt"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
@@ -43,7 +45,7 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 		})
 
 		if err != nil {
-			return a.WrapError(err, "stop instance failed")
+			return bosherr.WrapError(err, "stop instance failed")
 		}
 	}
 
@@ -62,7 +64,7 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	})
 
 	if err != nil {
-		return a.WrapErrorf(err, "attach disk %s to %s failed", diskCid, instCid)
+		return bosherr.WrapErrorf(err, "attach disk %s to %s failed", diskCid, instCid)
 	}
 
 	registryClient := a.registry
@@ -71,7 +73,7 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 
 	err = registryClient.Update(instCid, agentSettings)
 	if err != nil {
-		return a.WrapErrorf(err, "update registry failed %s %s", diskCid, instCid)
+		return bosherr.WrapErrorf(err, "update registry failed %s %s", diskCid, instCid)
 	}
 
 	if a.Config.Registry.IsEmpty() {
@@ -89,7 +91,7 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 		})
 
 		if err != nil {
-			return a.WrapError(err, "stop instance failed")
+			return bosherr.WrapError(err, "stop instance failed")
 		}
 	}
 

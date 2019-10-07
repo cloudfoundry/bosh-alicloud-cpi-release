@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -24,7 +25,7 @@ func (a DeleteSnapshotMethod) DeleteSnapshot(snapshotCID apiv1.SnapshotCID) erro
 	err := a.disks.DeleteSnapshot(cid)
 
 	if err != nil {
-		return a.WrapErrorf(err, "delete snapshot %s failed", cid)
+		return bosherr.WrapErrorf(err, "delete snapshot %s failed", cid)
 	}
 
 	return nil

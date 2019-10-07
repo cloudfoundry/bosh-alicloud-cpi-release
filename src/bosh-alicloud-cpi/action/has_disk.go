@@ -4,6 +4,7 @@
 package action
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"bosh-alicloud-cpi/alicloud"
@@ -24,7 +25,7 @@ func (a HasDiskMethod) HasDisk(diskCID apiv1.DiskCID) (bool, error) {
 	disk, err := a.disks.GetDisk(diskCid)
 
 	if err != nil {
-		return false, a.WrapErrorf(err, "DescribeDisks failed cid=%s", diskCid)
+		return false, bosherr.WrapErrorf(err, "DescribeDisks failed cid=%s", diskCid)
 	}
 
 	if disk == nil {

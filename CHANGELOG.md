@@ -5,7 +5,8 @@ All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 
 IMPROVEMENTS
 
-- remove the updating clienttoken when creating vm failed ([#102](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/102))
+- deprecate self-defined wraperror and use bosherr's instead ([#104](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/104))
+- remove the updating clienttoken when creating vm failed ([#103](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/103))
 
 ## 28.0.0 (September 12, 2019)
 

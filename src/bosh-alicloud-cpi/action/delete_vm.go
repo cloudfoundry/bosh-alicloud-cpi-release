@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -23,7 +24,7 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 	status, err := a.instances.GetInstanceStatus(instCid)
 
 	if err != nil {
-		return a.WrapErrorf(err, "delete %s get status failed", instCid)
+		return bosherr.WrapErrorf(err, "delete %s get status failed", instCid)
 	}
 
 	if status == alicloud.Deleted {
@@ -44,7 +45,7 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 	})
 
 	if err != nil {
-		return a.WrapErrorf(err, "delete %s failed", instCid)
+		return bosherr.WrapErrorf(err, "delete %s failed", instCid)
 	}
 
 	return nil

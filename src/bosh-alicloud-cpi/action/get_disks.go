@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -25,7 +26,7 @@ func (a GetDisksMethod) GetDisks(cid apiv1.VMCID) ([]apiv1.DiskCID, error) {
 	disks, err := a.disks.GetDisks(instCid)
 
 	if err != nil {
-		return nil, a.WrapErrorf(err, "DescribeDisks failed cid=%s", instCid)
+		return nil, bosherr.WrapErrorf(err, "DescribeDisks failed cid=%s", instCid)
 	}
 
 	var results []apiv1.DiskCID

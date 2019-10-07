@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
@@ -30,22 +31,22 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid
 	// it could be used to .optimize disk placement so that disk is located near the VM.
 	//
 	if vmCid == nil {
-		return cid, a.Errorf("create_disk must provide vmCid")
+		return cid, bosherr.Error("create_disk must provide vmCid")
 	}
 
 	inst, err := a.instances.GetInstance(vmCid.AsString())
 	if err != nil {
-		return cid, a.WrapErrorf(err, "create_disk GetInstance failed %s", vmCid.AsString())
+		return cid, bosherr.WrapErrorf(err, "create_disk GetInstance failed %s", vmCid.AsString())
 	}
 
 	if inst == nil {
-		return cid, a.Errorf("create_disk missing instance id=%s", vmCid.AsString())
+		return cid, bosherr.Errorf("create_disk missing instance id=%s", vmCid.AsString())
 	}
 
 	disk, err := NewDiskInfoWithSize(size, props)
 
 	if err != nil {
-		return cid, a.WrapErrorf(err, "create_disk check input failed %n, %v", size, props)
+		return cid, bosherr.WrapErrorf(err, "create_disk check input failed %n, %v", size, props)
 	}
 
 	args := ecs.CreateCreateDiskRequest()
@@ -62,7 +63,7 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid
 	diskCid, err := a.disks.CreateDisk(inst.RegionId, args)
 
 	if err != nil {
-		return cid, a.WrapError(err, "create_disk failed")
+		return cid, bosherr.WrapError(err, "create_disk failed")
 	}
 
 	cid = apiv1.NewDiskCID(diskCid)

@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -24,7 +25,7 @@ func (a DeleteDiskMethod) DeleteDisk(diskCID apiv1.DiskCID) error {
 
 	disk, err := a.disks.GetDisk(diskCid)
 	if err != nil {
-		return a.WrapErrorf(err, "DeleteDisk get disk %s failed", diskCid)
+		return bosherr.WrapErrorf(err, "DeleteDisk get disk %s failed", diskCid)
 	}
 
 	if disk == nil {
@@ -40,30 +41,30 @@ func (a DeleteDiskMethod) DeleteDisk(diskCID apiv1.DiskCID) error {
 		if instCid != "" {
 			inst, err := a.instances.GetInstance(instCid)
 			if err != nil {
-				return a.WrapErrorf(err, "DeleteDisk %s get host vm %s failed", diskCid, instCid)
+				return bosherr.WrapErrorf(err, "DeleteDisk %s get host vm %s failed", diskCid, instCid)
 			}
 			if inst != nil && alicloud.InstanceStatus(inst.Status) != alicloud.Deleted {
-				return a.WrapErrorf(err, "can't delete disk %s with a <%s> vm %s", diskCid, inst.Status, instCid)
+				return bosherr.WrapErrorf(err, "can't delete disk %s with a <%s> vm %s", diskCid, inst.Status, instCid)
 			}
 		}
 		_, err = a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable)
 		if err != nil {
-			return a.WrapErrorf(err, "DeleteDisk %s waiting status from %s to %s failed",
+			return bosherr.WrapErrorf(err, "DeleteDisk %s waiting status from %s to %s failed",
 				diskCid, disk.Status, alicloud.DiskStatusAvailable)
 		}
 	case alicloud.DiskStatusDetaching:
 		_, err = a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable)
 		if err != nil {
-			return a.WrapErrorf(err, "DeleteDisk %s waiting status from %s to %s failed",
+			return bosherr.WrapErrorf(err, "DeleteDisk %s waiting status from %s to %s failed",
 				diskCid, disk.Status, alicloud.DiskStatusAvailable)
 		}
 	default:
-		return a.Errorf("DeleteDisk %s unexpected status %s", diskCid, disk.Status)
+		return bosherr.Errorf("DeleteDisk %s unexpected status %s", diskCid, disk.Status)
 	}
 
 	err = a.disks.DeleteDisk(diskCid)
 	if err != nil {
-		return a.WrapErrorf(err, "delete_disk %s failed", diskCid)
+		return bosherr.WrapErrorf(err, "delete_disk %s failed", diskCid)
 	}
 
 	return nil

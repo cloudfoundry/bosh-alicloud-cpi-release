@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
@@ -22,7 +23,7 @@ func (a HasDiskMethod) ResizeDisk(diskCID apiv1.DiskCID, size int) error {
 	sizeGB := ConvertToGB(float64(size))
 	err := a.disks.ResizeDisk(diskCID.AsString(), sizeGB)
 	if err != nil {
-		return a.WrapErrorf(err, "ResizeDisk %s to %dMB failed", diskCID.AsString(), size)
+		return bosherr.WrapErrorf(err, "ResizeDisk %s to %dMB failed", diskCID.AsString(), size)
 	}
 	return nil
 }
