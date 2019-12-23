@@ -118,7 +118,11 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 	err = invoker.Run(func() error {
 		resp, e := client.CreateInstance(args)
 		if e != nil {
-			return e
+			if IsExceptedErrors(e, []string{"IdempotentFailed"}) {
+				// If the error is not 5xx, the client token should be updated
+				args.ClientToken = buildClientToken(args.GetActionName())
+			}
+				return e
 		}
 		cid = resp.InstanceId
 		return e

@@ -2,6 +2,11 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 30.0.0 (Unreleased)
+
+BUG FIXES
+
+- Update ClientToken to fix IdempotentFailed (issue: #105) ([#82](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/82))
+
 ## 29.0.0 (October 08, 2019)
 
 IMPROVEMENTS
