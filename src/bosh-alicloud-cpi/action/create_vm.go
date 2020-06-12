@@ -36,6 +36,7 @@ const (
 type InstanceProps struct {
 	EphemeralDisk DiskInfo `json:"ephemeral_disk"`
 	SystemDisk    DiskInfo `json:"system_disk"`
+	Tags           map[string]string   `json:"tags"`
 
 	Region           string                    `json:"region"`
 	AvailabilityZone string                    `json:"availability_zone"`
@@ -275,7 +276,11 @@ func (a CreateVMMethod) CreateVM(
 		}
 		return apiv1.NewVMCID(instCid), bosherr.WrapErrorf(err, "update %s failed and then delete it timeout: %v", instCid, err2)
 	}
-
+	//打标签
+	err = a.instances.AddTags(instCid, instProps.Tags)
+	if err!=nil{
+		return apiv1.NewVMCID(instCid),bosherr.WrapErrorf(err, "AddTags %v to %s failed", instProps.Tags, instCid)
+	}
 	return apiv1.NewVMCID(instCid), nil
 }
 

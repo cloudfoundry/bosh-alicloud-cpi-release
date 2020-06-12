@@ -1,3 +1,9 @@
+go1.8.1.linux-amd64.tar.gz:
+  size: 91277742
+  sha: sha256:a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994
 go1.11.5.linux-amd64.tar.gz:
   size: 140132627
   sha: b951c39500c4c85f57b7549ebc87281816d28f59
+go1.12.16.linux-amd64.tar.gz:
+  size: 126729437
+  sha: sha256:bf3a85d75658144c06ce986ba05e07ef08af4320089b74b1d41de3b0f340ea7e
