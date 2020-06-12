@@ -122,7 +122,7 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 				// If the error is not 5xx, the client token should be updated
 				args.ClientToken = buildClientToken(args.GetActionName())
 			}
-				return e
+			return e
 		}
 		cid = resp.InstanceId
 		return e
