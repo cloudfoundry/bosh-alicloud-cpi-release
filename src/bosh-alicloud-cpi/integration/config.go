@@ -42,6 +42,8 @@ var (
 
 	// ram
 	ramRoleName = envOrDefault("RAM_ROLE_NAME", "DirectorRole")
+	//tags
+	tags = envOrDefault("Tags", `{ "name": "boshTag", "foo": "bar" }`)
 
 	//
 	// registry

@@ -393,6 +393,76 @@ var _ = Describe("integration:vm", func() {
 		Expect(exists).To(BeFalse())
 	})
 
+	It("can run the instance lifecycle with tags", func() {
+		By("create instance with tags")
+		in := mock.NewBuilder(`{
+			"method": "create_vm",
+			"arguments": [
+				"be387a69-c5d5-4b94-86c2-978581354b50",
+				"${STEMCELL_ID}", {
+					"ephemeral_disk": {
+						"size": "40_960",
+						"category": "cloud_efficiency"
+					},
+					"instance_name": "bosh-test-cpi-integration-tags",
+					"instance_type": "ecs.n4.small",
+					"tags": ${Tags},
+					"system_disk": {
+						"size": "61_440",
+						"category": "cloud_efficiency"
+					}
+				}, {
+					"private": {
+						"type": "manual",
+						"ip": "${INTERNAL_IP}",
+						"netmask": "${INTERNAL_NETMASK}",
+						"cloud_properties": {
+							"security_group_ids": ["${SECURITY_GROUP_ID}"],
+							"vswitch_id": "${VSWITCH_ID}"
+						},
+						"default": [
+							"dns",
+							"gateway"
+						],
+						"dns": [
+							"8.8.8.8"
+						],
+						"gateway": "${INTERNAL_GW}"
+					}
+				},
+				[],
+				{}
+			],
+			"context": {
+				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
+			}
+		}`).
+			P("STEMCELL_ID", existingStemcell).
+			P("SECURITY_GROUP_ID", securityGroupId).
+			P("VSWITCH_ID", vswitchId).
+			P("INTERNAL_IP", internalIp).
+			P("INTERNAL_NETMASK", internalNetmask).
+			P("INTERNAL_GW", internalGw).
+			P("Tags", tags).
+			ToBytes()
+
+		r := caller.Run(in)
+		Expect(r.GetError()).NotTo(HaveOccurred())
+		cid := r.GetResultString()
+
+		By("sleep for awhile")
+		time.Sleep(time.Duration(90) * time.Second)
+
+		By("delete vm")
+		_, err := caller.Call("delete_vm", cid)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("vm should not exists")
+		exists, err := caller.CallGeneric("has_vm", cid)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(exists).To(BeFalse())
+	})
+
 	//It("can create vm with manual ip, and delete it", func() {})
 	//It("can create vm with dynamic ip, and delete it", func() {})
 	//It("can create vm with external ip, and delete it", func() {})
