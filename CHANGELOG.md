@@ -2,6 +2,16 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 31.0.0 (Unreleased)
+
+IMPROVEMENTS
+
+- add a given vm to a custom VServerGroup ([#112](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/112))
+- support setting tags for bosh vms ([#111](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/111))
+
+BUG FIXES
+
+- Update ClientToken to fix IdempotentFailed (issue: #105) ([#106](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/104))
+
 ## 30.0.0 (December 24, 2019)
 
 BUG FIXES
