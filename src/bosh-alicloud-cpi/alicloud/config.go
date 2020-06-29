@@ -52,6 +52,7 @@ const (
 	DefaultSlbWeight      = 100
 	BoshCPI               = "Bosh-Alicloud-Cpi"
 	BoshCPIVersion        = "1.0"
+	DefaultSlbServerGroupProt =33333
 )
 
 type OpenApi struct {

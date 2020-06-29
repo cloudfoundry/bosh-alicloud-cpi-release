@@ -45,6 +45,7 @@ exportMetadata2Env CPI_INTERNAL_GW internal_gw
 exportMetadata2Env CPI_EXTERNAL_IP external_ip
 exportMetadata2Env CPI_STEMCELL_OSS_BUCKET integration_bucket
 exportMetadata2Env CPI_SLB_ID slb
+exportMetadata2Env CPI_SLB_SERVER_GROUP_ID server_group_slb
 exportMetadata2Env RAM_ROLE_NAME ram_role
 export CIDR_NOTATION=$(getCidrNotation $CPI_INTERNAL_CIDR)
 export CPI_INTERNAL_NETMASK=$(cdr2mask $CIDR_NOTATION)

@@ -136,6 +136,11 @@ resource "alicloud_slb" "default" {
   address_type             = "internet"
 }
 
+
+resource "alicloud_slb_server_group" "default" {
+  load_balancer_id = alicloud_slb.default.id
+  name             = var.env_name
+}
 resource "alicloud_slb_listener" "http" {
   load_balancer_id = alicloud_slb.default.id
   backend_port     = 80
@@ -270,6 +275,10 @@ output "network_static_ip_2" {
 
 output "slb" {
   value = alicloud_slb.default.id
+}
+
+output "server_group_slb" {
+  value = alicloud_slb_server_group.default.id
 }
 
 output "blobstore_bucket" {
