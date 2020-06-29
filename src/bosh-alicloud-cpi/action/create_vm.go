@@ -8,6 +8,7 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -42,6 +43,8 @@ type InstanceProps struct {
 	AvailabilityZone string                    `json:"availability_zone"`
 	InstanceName     string                    `json:"instance_name"`
 	InstanceType     string                    `json:"instance_type"`
+	SlbServerGroupPort string	`json:"slb_server_group_port"`
+	SlbServerGroup     []string                    `json:"slb_server_group"`
 	Slbs             []string                  `json:"slbs"`
 	SlbWeight        json.Number               `json:"slb_weight"`
 	Password         string                    `json:"password"`
@@ -366,6 +369,18 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 		err := a.networks.BindSLB(instProps.Region, instCid, slb, int(slbWeight))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
+		}
+	}
+	slbServerGroupPort,err:=strconv.Atoi(instProps.SlbServerGroupPort)
+	if err!=nil{
+		slbServerGroupPort=alicloud.DefaultSlbServerGroupProt
+	}else if slbServerGroupPort==0{
+		slbServerGroupPort=alicloud.DefaultSlbServerGroupProt
+	}
+	for _,slbServerGroup:=range instProps.SlbServerGroup{
+		err := a.networks.BindSlbServerGroup(instProps.Region, instCid, slbServerGroup, int(slbWeight),slbServerGroupPort)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "bind %s to slbServerGroup %s failed,weight:%d,prot:%d ", instCid, slbServerGroup,int(slbWeight),slbServerGroupPort)
 		}
 	}
 	return nil
