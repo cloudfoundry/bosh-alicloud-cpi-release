@@ -35,30 +35,31 @@ const (
 // spot https://help.aliyun.com/knowledge_detail/48269.html
 // ram profile https://help.aliyun.com/document_detail/54579.html?spm=5176.doc25481.6.797.UVS7aB
 type InstanceProps struct {
-	EphemeralDisk DiskInfo `json:"ephemeral_disk"`
-	SystemDisk    DiskInfo `json:"system_disk"`
-	Tags           map[string]string   `json:"tags"`
+	EphemeralDisk DiskInfo          `json:"ephemeral_disk"`
+	SystemDisk    DiskInfo          `json:"system_disk"`
+	Tags          map[string]string `json:"tags"`
 
-	Region           string                    `json:"region"`
-	AvailabilityZone string                    `json:"availability_zone"`
-	InstanceName     string                    `json:"instance_name"`
-	InstanceType     string                    `json:"instance_type"`
-	SlbServerGroupPort string	`json:"slb_server_group_port"`
-	SlbServerGroup     []string                    `json:"slb_server_group"`
-	Slbs             []string                  `json:"slbs"`
-	SlbWeight        json.Number               `json:"slb_weight"`
-	Password         string                    `json:"password"`
-	KeyPairName      string                    `json:"key_pair_name"`
-	SecurityGroupIds []string                  `json:"security_group_ids"`
-	ChargeType       string                    `json:"charge_type"`
-	ChargePeriod     json.Number               `json:"charge_period"`
-	ChargePeriodUnit string                    `json:"charge_period_unit"`
-	AutoRenew        string                    `json:"auto_renew"`
-	AutoRenewPeriod  json.Number               `json:"auto_renew_period"`
-	SpotStrategy     alicloud.SpotStrategyType `json:"spot_strategy"`
-	SpotPriceLimit   float64                   `json:"spot_price_limit"`
-	RamRoleName      string                    `json:"ram_role_name"`
-	StemcellId       string                    `json:"stemcell_id"`
+	Region               string                    `json:"region"`
+	AvailabilityZone     string                    `json:"availability_zone"`
+	InstanceName         string                    `json:"instance_name"`
+	InstanceType         string                    `json:"instance_type"`
+	SlbServerGroupWeight string                    `json:"slb_server_group_weight"`
+	SlbServerGroupPort   string                    `json:"slb_server_group_port"`
+	SlbServerGroup       []string                  `json:"slb_server_group"`
+	Slbs                 []string                  `json:"slbs"`
+	SlbWeight            json.Number               `json:"slb_weight"`
+	Password             string                    `json:"password"`
+	KeyPairName          string                    `json:"key_pair_name"`
+	SecurityGroupIds     []string                  `json:"security_group_ids"`
+	ChargeType           string                    `json:"charge_type"`
+	ChargePeriod         json.Number               `json:"charge_period"`
+	ChargePeriodUnit     string                    `json:"charge_period_unit"`
+	AutoRenew            string                    `json:"auto_renew"`
+	AutoRenewPeriod      json.Number               `json:"auto_renew_period"`
+	SpotStrategy         alicloud.SpotStrategyType `json:"spot_strategy"`
+	SpotPriceLimit       float64                   `json:"spot_price_limit"`
+	RamRoleName          string                    `json:"ram_role_name"`
+	StemcellId           string                    `json:"stemcell_id"`
 }
 
 type CreateVMMethod struct {
@@ -280,10 +281,10 @@ func (a CreateVMMethod) CreateVM(
 		return apiv1.NewVMCID(instCid), bosherr.WrapErrorf(err, "update %s failed and then delete it timeout: %v", instCid, err2)
 	}
 	//打标签
-	if instProps.Tags!=nil{
+	if instProps.Tags != nil {
 		err = a.instances.AddTags(instCid, instProps.Tags)
-		if err!=nil{
-			return apiv1.NewVMCID(instCid),bosherr.WrapErrorf(err, "AddTags %v to %s failed", instProps.Tags, instCid)
+		if err != nil {
+			return apiv1.NewVMCID(instCid), bosherr.WrapErrorf(err, "AddTags %v to %s failed", instProps.Tags, instCid)
 		}
 	}
 
@@ -371,16 +372,18 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 			return bosherr.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
 		}
 	}
-	slbServerGroupPort,err:=strconv.Atoi(instProps.SlbServerGroupPort)
-	if err!=nil{
-		slbServerGroupPort=alicloud.DefaultSlbServerGroupProt
-	}else if slbServerGroupPort==0{
-		slbServerGroupPort=alicloud.DefaultSlbServerGroupProt
+	slbServerGroupPort, err := strconv.Atoi(instProps.SlbServerGroupPort)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Slbservergroupport failed to convert int, %s ", instProps.SlbServerGroupPort)
 	}
-	for _,slbServerGroup:=range instProps.SlbServerGroup{
-		err := a.networks.BindSlbServerGroup(instProps.Region, instCid, slbServerGroup, int(slbWeight),slbServerGroupPort)
+	slbServerGroupWeight, err := strconv.Atoi(instProps.SlbServerGroupWeight)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "SlbServerGroupWeight failed to convert int, %s", instProps.SlbServerGroupWeight)
+	}
+	for _, slbServerGroup := range instProps.SlbServerGroup {
+		err := a.networks.BindSlbServerGroup(instProps.Region, instCid, slbServerGroup, slbServerGroupWeight, slbServerGroupPort)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "bind %s to slbServerGroup %s failed,weight:%d,prot:%d ", instCid, slbServerGroup,int(slbWeight),slbServerGroupPort)
+			return bosherr.WrapErrorf(err, "bind %s to slbServerGroup %s failed,weight:%d,prot:%d ", instCid, slbServerGroup, slbServerGroupWeight, slbServerGroupPort)
 		}
 	}
 	return nil

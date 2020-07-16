@@ -28,7 +28,7 @@ func (a NetworkManagerMock) WaitForEipStatus(region, eip string, toStatus aliclo
 	return nil
 }
 
-func (a NetworkManagerMock) BindSlbServerGroup(region, instanceId, slbId string, weight int,port int) error {
+func (a NetworkManagerMock) BindSlbServerGroup(region, instanceId, slbId string, weight int, port int) error {
 	return nil
 }
 

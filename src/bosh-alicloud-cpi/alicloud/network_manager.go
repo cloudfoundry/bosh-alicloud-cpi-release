@@ -21,7 +21,7 @@ type NetworkManager interface {
 	WaitForEipStatus(region, eip string, toStatus EipStatus) error
 
 	BindSLB(region, instanceId, slbId string, weight int) error
-	BindSlbServerGroup(region, instanceId, slbId string, weight int,port int) error
+	BindSlbServerGroup(region, instanceId, slbId string, weight int, port int) error
 	DescribeSecurityGroupAttribute(region, groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error)
 	JoinSecurityGroup(region, instanceId, groupId string) error
 }
@@ -38,7 +38,7 @@ type BackendServerType struct {
 type SlbServerGroupBackendServerType struct {
 	ServerId string
 	Weight   int
-	Port int
+	Port     int
 }
 
 func NewNetworkManager(config Config, logger boshlog.Logger) NetworkManager {
@@ -145,21 +145,18 @@ func (a NetworkManagerImpl) WaitForEipStatus(region, eip string, toStatus EipSta
 	return nil
 }
 
-func (a NetworkManagerImpl) BindSlbServerGroup(region, instanceId string, slbServerGroupId string, weight int,port int) error {
-	client,err:=a.config.NewSlbClient(region)
-	if err!=nil{
+func (a NetworkManagerImpl) BindSlbServerGroup(region, instanceId string, slbServerGroupId string, weight int, port int) error {
+	client, err := a.config.NewSlbClient(region)
+	if err != nil {
 		return err
 	}
-	if weight == 0 {
-		weight = DefaultSlbWeight
-	}
 	bytes, _ := json.Marshal([]SlbServerGroupBackendServerType{
-		{ServerId: instanceId, Weight: weight,Port: port},
+		{ServerId: instanceId, Weight: weight, Port: port},
 	})
 	args := slb.CreateAddVServerGroupBackendServersRequest()
 	args.VServerGroupId = slbServerGroupId
 	args.BackendServers = string(bytes)
-	servers, err :=client.AddVServerGroupBackendServers(args)
+	servers, err := client.AddVServerGroupBackendServers(args)
 	if err != nil {
 		a.logger.Error("NetworkManager", "BindSlbServerGroup %s to %s failed %v", instanceId, slbServerGroupId, err)
 		return bosherr.WrapErrorf(err, "BindSlbServerGroup %s to %s failed", instanceId, slbServerGroupId)
@@ -168,6 +165,7 @@ func (a NetworkManagerImpl) BindSlbServerGroup(region, instanceId string, slbSer
 	a.logger.Info("NetworkManager", "BindSlbServerGroup %s to %s, after bind server=%v", instanceId, slbServerGroupId, servers)
 	return err
 }
+
 //
 // TODO: add retry
 func (a NetworkManagerImpl) BindSLB(region, instanceId string, slbId string, weight int) error {
