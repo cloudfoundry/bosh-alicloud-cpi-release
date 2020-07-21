@@ -174,10 +174,6 @@ func (a NetworkManagerImpl) BindSLB(region, instanceId string, slbId string, wei
 		return err
 	}
 
-	if weight == 0 {
-		weight = DefaultSlbWeight
-	}
-
 	bytes, _ := json.Marshal([]BackendServerType{
 		{ServerId: instanceId, Weight: weight},
 	})
