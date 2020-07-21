@@ -34,6 +34,7 @@ var (
 	internalNetmask      = envOrDefault("CPI_INTERNAL_NETMASK", "255.240.0.0")
 	internalGw           = envOrDefault("CPI_INTERNAL_GW", "172.16.0.1")
 	slbId                = envOrDefault("CPI_SLB_ID", "")
+	slbWeight            = envOrDefault("CPI_SLB_WEIGHT", "100")
 	slbServerGroupId     = envOrDefault("CPI_SLB_SERVER_GROUP_ID", "")
 	slbServerGroupPort   = envOrDefault("CPI_SLB_SERVER_GROUP_PORT", "33333")
 	slbServerGroupWeight = envOrDefault("CPI_SLB_SERVER_GROUP_WEIGHT", "100")

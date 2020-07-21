@@ -8,7 +8,6 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -43,11 +42,11 @@ type InstanceProps struct {
 	AvailabilityZone     string                    `json:"availability_zone"`
 	InstanceName         string                    `json:"instance_name"`
 	InstanceType         string                    `json:"instance_type"`
-	SlbServerGroupWeight string                    `json:"slb_server_group_weight"`
-	SlbServerGroupPort   string                    `json:"slb_server_group_port"`
+	SlbServerGroupWeight int                       `json:"slb_server_group_weight"`
+	SlbServerGroupPort   int                       `json:"slb_server_group_port"`
 	SlbServerGroup       []string                  `json:"slb_server_group"`
 	Slbs                 []string                  `json:"slbs"`
-	SlbWeight            json.Number               `json:"slb_weight"`
+	SlbWeight            int                       `json:"slb_weight"`
 	Password             string                    `json:"password"`
 	KeyPairName          string                    `json:"key_pair_name"`
 	SecurityGroupIds     []string                  `json:"security_group_ids"`
@@ -358,32 +357,16 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 			return bosherr.WrapErrorf(err, "bind eip %s to %s failed", eip, instCid)
 		}
 	}
-
-	slbWeight, err := instProps.SlbWeight.Int64()
-	if err != nil {
-		slbWeight = alicloud.DefaultSlbWeight
-	} else if slbWeight == 0 {
-		slbWeight = alicloud.DefaultSlbWeight
-	}
-
 	for _, slb := range instProps.Slbs {
-		err := a.networks.BindSLB(instProps.Region, instCid, slb, int(slbWeight))
+		err := a.networks.BindSLB(instProps.Region, instCid, slb, instProps.SlbWeight)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
 		}
 	}
-	slbServerGroupPort, err := strconv.Atoi(instProps.SlbServerGroupPort)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Slbservergroupport failed to convert int, %s ", instProps.SlbServerGroupPort)
-	}
-	slbServerGroupWeight, err := strconv.Atoi(instProps.SlbServerGroupWeight)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "SlbServerGroupWeight failed to convert int, %s", instProps.SlbServerGroupWeight)
-	}
 	for _, slbServerGroup := range instProps.SlbServerGroup {
-		err := a.networks.BindSlbServerGroup(instProps.Region, instCid, slbServerGroup, slbServerGroupWeight, slbServerGroupPort)
+		err := a.networks.BindSlbServerGroup(instProps.Region, instCid, slbServerGroup, instProps.SlbServerGroupWeight, instProps.SlbServerGroupPort)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "bind %s to slbServerGroup %s failed,weight:%d,prot:%d ", instCid, slbServerGroup, slbServerGroupWeight, slbServerGroupPort)
+			return bosherr.WrapErrorf(err, "bind %s to slbServerGroup %s failed,weight:%d,port:%d ", instCid, slbServerGroup, instProps.SlbServerGroupWeight, instProps.SlbServerGroupPort)
 		}
 	}
 	return nil
