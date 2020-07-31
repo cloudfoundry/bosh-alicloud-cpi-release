@@ -50,6 +50,14 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid
 	}
 
 	args := ecs.CreateCreateDiskRequest()
+	if disk.Tags != nil {
+		tags := make([]ecs.CreateDiskTag, 0, 3)
+		for k, v := range disk.Tags {
+			tags = append(tags, ecs.CreateDiskTag{Key: k, Value: v})
+		}
+		args.Tag = &tags
+
+	}
 	args.ZoneId = inst.ZoneId
 	args.Size = requests.NewInteger(disk.GetSizeGB())
 	args.DiskCategory = string(disk.GetCategory())
