@@ -30,10 +30,11 @@ type Disks struct {
 }
 
 type DiskInfo struct {
-	SizeRaw            interface{} `json:"size"`
-	Category           string      `json:"category"`
-	Encrypted          *bool       `json:"encrypted,omitempty"`
-	DeleteWithInstance *bool       `json:"delete_with_instance,omitempty"`
+	SizeRaw            interface{}       `json:"size"`
+	Category           string            `json:"category"`
+	Encrypted          *bool             `json:"encrypted,omitempty"`
+	DeleteWithInstance *bool             `json:"delete_with_instance,omitempty"`
+	Tags               map[string]string `json:"tags"`
 	sizeGB             int
 	path               string
 	ecsCategory        alicloud.DiskCategory

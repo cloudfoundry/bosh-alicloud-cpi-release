@@ -69,7 +69,7 @@ var _ = Describe("integration:disk", func() {
 		instCid := r.GetResultString()
 
 		By("create disk")
-		diskCid, err := caller.Call("create_disk", 1024, "{}", instCid)
+		diskCid, err := caller.Call("create_disk", 1024, `{"tags": {"tag1": "tag1", "tag2": "tag2"}}`, instCid)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("sleep for awhile")
