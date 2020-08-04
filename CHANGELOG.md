@@ -1,7 +1,16 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 31.0.0 (Unreleased)
+## 33.0.0 (Unreleased)
+## 32.0.0 (August 04, 2020)
+
+IMPROVEMENTS:
+
+- add tags for disk ([#116](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/116))
+- fix port and weight conversion issues ([#115](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/115))
+- Slbservergroup cancel weight and port defaults ([#114](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/114))
+
+## 31.0.0 (June 29, 2020)
 
 IMPROVEMENTS
 

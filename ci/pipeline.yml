@@ -299,8 +299,8 @@ resources:
   - name: bats
     type: git
     source:
-      uri: https://github.com/aliyun/bosh-acceptance-tests.git
-      branch: alicloud
+      uri: https://github.com/cloudfoundry/bosh-acceptance-tests
+      branch: master
 
   # begin: repos for e2e bosh blobs
   - name: jq-blob
