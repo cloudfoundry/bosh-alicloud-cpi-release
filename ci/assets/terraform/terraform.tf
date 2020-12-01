@@ -133,7 +133,8 @@ resource "alicloud_eip" "deployment" {
 resource "alicloud_slb" "default" {
   name                 = var.env_name
   internet_charge_type = "PayByTraffic"
-  address_type             = "internet"
+  address_type         = "internet"
+  specification        = "slb.s1.small"
 }
 
 
@@ -155,6 +156,7 @@ resource "alicloud_slb" "app" {
   name                 = var.env_name
   vswitch_id           = alicloud_vswitch.default.id
   internet_charge_type = "PayByTraffic"
+  specification        = "slb.s1.small"
 }
 
 resource "alicloud_slb_listener" "app-http" {
