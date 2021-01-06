@@ -150,6 +150,9 @@ func (a NetworkManagerImpl) BindSlbServerGroup(region, instanceId string, slbSer
 	if err != nil {
 		return err
 	}
+	if weight == 0 {
+		weight = DefaultSlbServerGroupWeight
+	}
 	bytes, _ := json.Marshal([]SlbServerGroupBackendServerType{
 		{ServerId: instanceId, Weight: weight, Port: port},
 	})
@@ -173,7 +176,9 @@ func (a NetworkManagerImpl) BindSLB(region, instanceId string, slbId string, wei
 	if err != nil {
 		return err
 	}
-
+	if weight == 0 {
+		weight = DefaultSlbWeight
+	}
 	bytes, _ := json.Marshal([]BackendServerType{
 		{ServerId: instanceId, Weight: weight},
 	})

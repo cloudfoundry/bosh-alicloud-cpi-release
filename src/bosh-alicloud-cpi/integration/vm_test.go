@@ -95,8 +95,6 @@ var _ = Describe("integration:vm", func() {
 					"instance_name": "bosh-test-cpi-integration",
 					"instance_type": "ecs.n4.small",
 					"slb_server_group": ["${SLB_SERVER_GROUP_ID}"],
-					"slb_server_group_port": ${SLB_SERVER_GROUP_PORT},
-					"slb_server_group_weight": ${SLB_SERVER_GROUP_WEIGHT},
 					"system_disk": {
 						"size": "61_440",
 						"category": "cloud_efficiency"
@@ -134,8 +132,6 @@ var _ = Describe("integration:vm", func() {
 			P("INTERNAL_NETMASK", internalNetmask).
 			P("INTERNAL_GW", internalGw).
 			P("SLB_SERVER_GROUP_ID", slbServerGroupId).
-			P("SLB_SERVER_GROUP_PORT", slbServerGroupPort).
-			P("SLB_SERVER_GROUP_WEIGHT", slbServerGroupWeight).
 			ToBytes()
 
 		r := caller.Run(in)
@@ -240,7 +236,6 @@ var _ = Describe("integration:vm", func() {
 					"instance_name": "bosh-test-cpi-integration",
 					"instance_type": "ecs.n4.small",
 					"slbs": ["${SLB_ID}"],
-					"slb_weight": ${SLB_WEIGHT},
 					"system_disk": {
 						"size": "61_440",
 						"category": "cloud_efficiency"
@@ -278,7 +273,6 @@ var _ = Describe("integration:vm", func() {
 			P("INTERNAL_NETMASK", internalNetmask).
 			P("INTERNAL_GW", internalGw).
 			P("SLB_ID", slbId).
-			P("SLB_WEIGHT", slbWeight).
 			ToBytes()
 
 		r := caller.Run(in)

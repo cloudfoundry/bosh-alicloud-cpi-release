@@ -48,9 +48,12 @@ const (
 	WaitTimeout  = time.Duration(600) * time.Second
 	WaitInterval = time.Duration(5) * time.Second
 
-	DefaultEipWaitSeconds = 120
-	BoshCPI               = "Bosh-Alicloud-Cpi"
-	BoshCPIVersion        = "1.0"
+	DefaultEipWaitSeconds       = 120
+	DefaultSlbWeight            = 100
+	BoshCPI                     = "Bosh-Alicloud-Cpi"
+	BoshCPIVersion              = "1.0"
+	DefaultSlbServerGroupPort   = 33333
+	DefaultSlbServerGroupWeight = 100
 )
 
 type OpenApi struct {

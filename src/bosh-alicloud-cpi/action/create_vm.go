@@ -42,11 +42,11 @@ type InstanceProps struct {
 	AvailabilityZone     string                    `json:"availability_zone"`
 	InstanceName         string                    `json:"instance_name"`
 	InstanceType         string                    `json:"instance_type"`
-	SlbServerGroupWeight int                       `json:"slb_server_group_weight"`
-	SlbServerGroupPort   int                       `json:"slb_server_group_port"`
+	SlbServerGroupWeight json.Number               `json:"slb_server_group_weight"`
+	SlbServerGroupPort   json.Number               `json:"slb_server_group_port"`
 	SlbServerGroup       []string                  `json:"slb_server_group"`
 	Slbs                 []string                  `json:"slbs"`
-	SlbWeight            int                       `json:"slb_weight"`
+	SlbWeight            json.Number               `json:"slb_weight"`
 	Password             string                    `json:"password"`
 	KeyPairName          string                    `json:"key_pair_name"`
 	SecurityGroupIds     []string                  `json:"security_group_ids"`
@@ -357,16 +357,34 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 			return bosherr.WrapErrorf(err, "bind eip %s to %s failed", eip, instCid)
 		}
 	}
+	slbWeight, err := instProps.SlbWeight.Int64()
+	if err != nil {
+		slbWeight = alicloud.DefaultSlbWeight
+	} else if slbWeight == 0 {
+		slbWeight = alicloud.DefaultSlbWeight
+	}
 	for _, slb := range instProps.Slbs {
-		err := a.networks.BindSLB(instProps.Region, instCid, slb, instProps.SlbWeight)
+		err := a.networks.BindSLB(instProps.Region, instCid, slb, int(slbWeight))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "bind %s to slb %s failed ", instCid, slb)
 		}
 	}
+	slbServerGroupPort, err := instProps.SlbServerGroupPort.Int64()
+	if err != nil {
+		slbServerGroupPort = alicloud.DefaultSlbServerGroupPort
+	} else if slbServerGroupPort == 0 {
+		slbServerGroupPort = alicloud.DefaultSlbServerGroupPort
+	}
+	slbServerGroupWeight, err := instProps.SlbServerGroupWeight.Int64()
+	if err != nil {
+		slbServerGroupWeight = alicloud.DefaultSlbServerGroupWeight
+	} else if slbServerGroupWeight == 0 {
+		slbServerGroupWeight = alicloud.DefaultSlbServerGroupWeight
+	}
 	for _, slbServerGroup := range instProps.SlbServerGroup {
-		err := a.networks.BindSlbServerGroup(instProps.Region, instCid, slbServerGroup, instProps.SlbServerGroupWeight, instProps.SlbServerGroupPort)
+		err := a.networks.BindSlbServerGroup(instProps.Region, instCid, slbServerGroup, int(slbServerGroupWeight), int(slbServerGroupPort))
 		if err != nil {
-			return bosherr.WrapErrorf(err, "bind %s to slbServerGroup %s failed,weight:%d,port:%d ", instCid, slbServerGroup, instProps.SlbServerGroupWeight, instProps.SlbServerGroupPort)
+			return bosherr.WrapErrorf(err, "bind %s to slbServerGroup %s failed,weight:%d,port:%d ", instCid, slbServerGroup, slbServerGroupWeight, slbServerGroupPort)
 		}
 	}
 	return nil
