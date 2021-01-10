@@ -114,7 +114,7 @@ jobs:
   plan:
   - aggregate:
     - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [build-candidate]}
-    - {get: bosh-release,    trigger: false, resource: precompiled-bosh-releases}
+    - {get: bosh-release,    trigger: false, resource: bosh-release}
     - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [build-candidate]}
     - {get: stemcell,        trigger: false, resource: ubuntu-xenial-light-stemcell}
     - {get: bosh-deployment, trigger: false}
@@ -159,7 +159,7 @@ jobs:
   plan:
   - aggregate:
     - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts,   passed: [build-candidate]}
-    - {get: bosh-release,    trigger: false, resource: precompiled-bosh-releases}
+    - {get: bosh-release,    trigger: false, resource: bosh-release}
     - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in,          passed: [build-candidate]}
     - {get: stemcell,        trigger: false, resource: ubuntu-xenial-light-stemcell}
     - {get: heavy-stemcell,  trigger: false, resource: ubuntu-xenial-stemcell}
@@ -281,11 +281,10 @@ resources:
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-cpi-certification
       branch: master
-  - name: precompiled-bosh-releases
-    type: s3
+  - name: bosh-release
+    type: bosh-io-release
     source:
-      bucket: bosh-compiled-release-tarballs
-      regexp: bosh-(\d+.\d+.\d+)-ubuntu-xenial-(250.\d+).*.tgz
+      repository: cloudfoundry/bosh
   - name: ubuntu-xenial-stemcell
     type: bosh-io-stemcell
     source:
