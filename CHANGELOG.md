@@ -3,6 +3,12 @@
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 34.0.0 (Unreleased)
 ## 33.0.0 (January 10, 2021)
+
+IMPROVEMENTS:
+
+- Modify the data type and restore the default value ([#120](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/120))
+- improve ci environment for alicloud_slb ([#118](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/118))
+
 ## 32.0.0 (August 04, 2020)
 
 IMPROVEMENTS:
