@@ -29,7 +29,7 @@ data "alicloud_zones" "default" {
 
 # Create a VPC to launch our instances into
 resource "alicloud_vpc" "default" {
-  name       = var.env_name
+  vpc_name   = var.env_name
   cidr_block = "172.16.0.0/16"
 }
 
@@ -71,24 +71,24 @@ resource "alicloud_snat_entry" "c" {
 }
 
 resource "alicloud_vswitch" "default" {
-  vpc_id            = alicloud_vpc.default.id
-  cidr_block        = cidrsubnet(alicloud_vpc.default.cidr_block, 8, 0)
-  availability_zone = data.alicloud_zones.default.zones[0].id
-  name              = var.env_name
+  vpc_id       = alicloud_vpc.default.id
+  cidr_block   = cidrsubnet(alicloud_vpc.default.cidr_block, 8, 0)
+  zone_id      = data.alicloud_zones.default.zones[0].id
+  vswitch_name = var.env_name
 }
 
 resource "alicloud_vswitch" "backup" {
-  vpc_id            = alicloud_vpc.default.id
-  cidr_block        = cidrsubnet(alicloud_vpc.default.cidr_block, 8, 2)
-  availability_zone = data.alicloud_zones.default.zones[1].id
-  name              = var.env_name
+  vpc_id       = alicloud_vpc.default.id
+  cidr_block   = cidrsubnet(alicloud_vpc.default.cidr_block, 8, 2)
+  zone_id      = data.alicloud_zones.default.zones[1].id
+  vswitch_name = var.env_name
 }
 
 resource "alicloud_vswitch" "manual" {
-  vpc_id            = alicloud_vpc.default.id
-  cidr_block        = cidrsubnet(alicloud_vpc.default.cidr_block, 8, 4)
-  availability_zone = data.alicloud_zones.default.zones[0].id
-  name              = var.env_name
+  vpc_id       = alicloud_vpc.default.id
+  cidr_block   = cidrsubnet(alicloud_vpc.default.cidr_block, 8, 4)
+  zone_id      = data.alicloud_zones.default.zones[0].id
+  vswitch_name = var.env_name
 }
 
 resource "alicloud_security_group" "default" {
@@ -178,8 +178,8 @@ resource "alicloud_oss_bucket" "blobstore" {
 }
 
 resource "alicloud_key_pair" "director" {
-  key_name   = var.env_name
-  public_key = var.public_key
+  key_pair_name = var.env_name
+  public_key    = var.public_key
 }
 
 resource "alicloud_ram_role" "role" {
@@ -216,7 +216,7 @@ output "region" {
 
 # Used by bats
 output "key_pair_name" {
-  value = alicloud_key_pair.director.key_name
+  value = alicloud_key_pair.director.key_pair_name
 }
 
 output "security_group_id" {
@@ -228,7 +228,7 @@ output "external_ip" {
 }
 
 output "zone" {
-  value = alicloud_vswitch.default.availability_zone
+  value = alicloud_vswitch.default.zone_id
 }
 
 output "vswitch_id" {
