@@ -165,7 +165,12 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	args.Architecture = getValueOrDefault("Architecture", &props, alicloud.AlicloudDefaultImageArchitecture)
 	// OS type valid values: linux and windows
 	args.OSType = strings.ToLower(getValueOrDefault("OsType", &props, alicloud.AlicloudDefaultImageOSType))
-	args.Platform = formatImagePlatform(strings.ToLower(props.OsDistro))
+	// The bionic stemcell should using Other Linux to avoid opening ipv6 setting
+	if strings.Contains(props.Name, "-bionic-") {
+		args.Platform = "Others Linux"
+	}else {
+		args.Platform = formatImagePlatform(strings.ToLower(props.OsDistro))
+	}
 	args.Description = props.Description
 
 	devices := []ecs.ImportImageDiskDeviceMapping{
