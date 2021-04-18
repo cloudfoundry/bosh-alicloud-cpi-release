@@ -46,6 +46,15 @@ func (a StemcellManagerMock) ImportImage(args *ecs.ImportImageRequest) (string, 
 	return id, nil
 }
 
+func (a StemcellManagerMock) CopyImage(args *ecs.CopyImageRequest) (string, error) {
+	id, image := a.mc.NewStemcell()
+
+	image.ImageName = args.DestinationImageName
+	// ...
+
+	return id, nil
+}
+
 func (a StemcellManagerMock) OpenLocalFile(path string) (*os.File, error) {
 	return nil, nil
 }

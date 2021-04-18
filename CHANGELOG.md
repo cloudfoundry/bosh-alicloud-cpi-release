@@ -2,6 +2,12 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 34.0.0 (Unreleased)
+
+IMPROVEMENTS:
+
+- Supports to encrypt the system disk by copyImage when creating stemcell ([#125](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/125))
+- improves the create_stemcell to avoid opening ipv6 setting when building bionic stemcell ([#124](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/124))
+
 ## 33.0.0 (January 10, 2021)
 
 IMPROVEMENTS:
