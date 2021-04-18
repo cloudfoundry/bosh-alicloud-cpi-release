@@ -28,6 +28,7 @@ type StemcellManager interface {
 	FindStemcellById(id string) (*ecs.Image, error)
 	DeleteStemcell(id string) error
 	ImportImage(args *ecs.ImportImageRequest) (string, error)
+	CopyImage(args *ecs.CopyImageRequest) (string, error)
 	OpenLocalFile(path string) (*os.File, error)
 	WaitForImageReady(id string) error
 }
@@ -125,6 +126,28 @@ func (a StemcellManagerImpl) ImportImage(args *ecs.ImportImageRequest) (string, 
 		return "", bosherr.WrapErrorf(err, "Failed to import Alicloud Image in '%s' and ImportImage result is '%#v'.", args.RegionId, resp)
 	}
 	a.log("Importing Image", err, args, resp.ImageId)
+	return resp.ImageId, err
+}
+
+func (a StemcellManagerImpl) CopyImage(args *ecs.CopyImageRequest) (string, error) {
+	client, err := a.config.NewEcsClient("")
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.CopyImage(args)
+	if err != nil {
+		//if e, ok := err.(*aliclouderr.ServerError); ok && e.ErrorCode() == ImageIsImporting {
+		//	if resp != nil {
+		//		return resp.ImageId, nil
+		//	}
+		//}
+		return "", bosherr.WrapErrorf(err, "Failed to copy Alicloud Image in '%s'.", args.RegionId)
+	}
+	if resp == nil {
+		return "", bosherr.WrapErrorf(err, "Failed to copy Alicloud Image in '%s' and CopyImage result is '%#v'.", args.RegionId, resp)
+	}
+	a.log("Copying Image", err, args, resp.ImageId)
 	return resp.ImageId, err
 }
 

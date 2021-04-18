@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+
 	"bytes"
 	"os/exec"
 	"path"
@@ -41,11 +43,11 @@ type StemcellProps struct {
 	//RootDeviceName string 	`json:"root_device_name"`
 	SourceUrl string `json:"source_url"`
 	//SourceSha1    string `json:"raw_disk_sha1,omitempty"`
-	OSSBucket   string `json:"oss_bucket"`
-	OSSObject   string `json:"oss_object"`
-	Description string `json:"description,omitempty"`
-	//	Version string 			`json:"version"`		TODO  sometimes string, and sometimes int
-	Images map[string]interface{} `json:"image_id"`
+	OSSBucket   string                 `json:"oss_bucket"`
+	OSSObject   string                 `json:"oss_object"`
+	Description string                 `json:"description,omitempty"`
+	Version     string                 `json:"version"`
+	Images      map[string]interface{} `json:"image_id"`
 }
 
 type CreateStemcellMethod struct {
@@ -141,6 +143,10 @@ func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.
 		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "Importing stemcell from '%s'", imagePath)
 	}
 
+	stemcellId, err = a.copyImage(stemcellId, props)
+	if err != nil {
+		return apiv1.StemcellCID{}, bosherr.WrapErrorf(err, "Copying stemcell from '%s'", imagePath)
+	}
 	return apiv1.NewStemcellCID(stemcellId), nil
 }
 
@@ -168,7 +174,7 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	// The bionic stemcell should using Other Linux to avoid opening ipv6 setting
 	if strings.Contains(props.Name, "-bionic-") {
 		args.Platform = "Others Linux"
-	}else {
+	} else {
 		args.Platform = formatImagePlatform(strings.ToLower(props.OsDistro))
 	}
 	args.Description = props.Description
@@ -190,6 +196,36 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	}
 
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Create Alicloud Image %s success", imageId)
+	return imageId, nil
+}
+
+func (a CreateStemcellMethod) copyImage(stemcellId string, props StemcellProps) (string, error) {
+	encryptImage := a.Config.OpenApi.Encrypted
+	if encryptImage == nil || !*encryptImage || a.Config.OpenApi.KmsKeyId != "" {
+		return stemcellId, nil
+	}
+	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Copying Alicloud Image with kms key id %s to encrypt the image.", a.Config.OpenApi.KmsKeyId)
+
+	args := ecs.CreateCopyImageRequest()
+	args.ImageId = stemcellId
+	args.RegionId = a.Config.OpenApi.GetRegion("")
+	args.DestinationRegionId = a.Config.OpenApi.GetRegion("")
+	imageNames := strings.Split(props.Name, "-")
+	args.DestinationImageName = fmt.Sprintf("copied-bosh-stemcell-%s-%s.tgz", props.Version, strings.Join(imageNames[1:], "-"))
+	args.Encrypted = requests.NewBoolean(true)
+	args.KMSKeyId = a.Config.OpenApi.KmsKeyId
+
+	imageId, err := a.stemcells.CopyImage(args)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Failed to create Alicloud Image")
+	}
+
+	if err = a.stemcells.WaitForImageReady(imageId); err != nil {
+		a.cleanUp(imageId)
+		return "", bosherr.WrapError(err, "Failed to copy Alicloud Image")
+	}
+
+	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Copy Alicloud Image %s success", imageId)
 	return imageId, nil
 }
 
