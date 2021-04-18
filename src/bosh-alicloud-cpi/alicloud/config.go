@@ -64,6 +64,7 @@ type OpenApi struct {
 	AccessKeySecret  string `json:"access_key_secret"`
 	SecurityToken    string `json:"security_token"`
 	Encrypted        *bool  `json:"encrypted,omitempty"`
+	KmsKeyId         string `json:"kms_key_id"`
 	EcsEndpoint      string `json:"ecs_endpoint"`
 	SlbEndpoint      string `json:"slb_endpoint"`
 	OssEndpoint      string `json:"oss_endpoint"`
