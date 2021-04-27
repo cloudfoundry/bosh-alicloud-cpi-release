@@ -201,19 +201,24 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 
 func (a CreateStemcellMethod) copyImage(stemcellId string, props StemcellProps) (string, error) {
 	encryptImage := a.Config.OpenApi.Encrypted
-	if encryptImage == nil || !*encryptImage || a.Config.OpenApi.KmsKeyId != "" {
+	if encryptImage == nil || !*encryptImage {
 		return stemcellId, nil
 	}
-	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Copying Alicloud Image with kms key id %s to encrypt the image.", a.Config.OpenApi.KmsKeyId)
+	kmsKeyId := a.Config.OpenApi.KmsKeyId
+	if kmsKeyId != "" {
+		a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Copying Alicloud Image with kms key id %s to encrypt the image.", kmsKeyId)
+	} else {
+		a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Copying Alicloud Image with default kms key to encrypt the image.")
+	}
 
 	args := ecs.CreateCopyImageRequest()
 	args.ImageId = stemcellId
 	args.RegionId = a.Config.OpenApi.GetRegion("")
 	args.DestinationRegionId = a.Config.OpenApi.GetRegion("")
-	imageNames := strings.Split(props.Name, "-")
-	args.DestinationImageName = fmt.Sprintf("copied-bosh-stemcell-%s-%s.tgz", props.Version, strings.Join(imageNames[1:], "-"))
+	args.DestinationImageName = fmt.Sprintf("bosh-stemcell-%s-%s", props.Version, uuid.New().String())
+	args.DestinationDescription = fmt.Sprintf("Copied from stemcell %s:%s", props.Name, props.Version)
 	args.Encrypted = requests.NewBoolean(true)
-	args.KMSKeyId = a.Config.OpenApi.KmsKeyId
+	args.KMSKeyId = kmsKeyId
 
 	imageId, err := a.stemcells.CopyImage(args)
 	if err != nil {
