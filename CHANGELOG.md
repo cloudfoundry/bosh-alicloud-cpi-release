@@ -1,7 +1,14 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 35.0.0 (Unreleased)
+## 36.0.0 (Unreleased)
+## 35.0.0 (April 27, 2021)
+
+IMPROVEMENTS:
+
+- Delete ram image when there has copied image ([#128](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/128))
+- Fixes the InvalidImageName.Duplicated issue when copyImage ([#127](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/127))
+
 ## 34.0.0 (April 18, 2021)
 
 IMPROVEMENTS:
