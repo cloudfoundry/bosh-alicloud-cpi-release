@@ -50,7 +50,7 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 	cpi := CPI{
 		NewInfoMethod(),
 
-		NewCreateStemcellMethod(cc, ss.Stemcells, ss.Osses),
+		NewCreateStemcellMethod(cc, ss.Stemcells, ss.Instances, ss.Osses),
 		NewDeleteStemcellMethod(cc, ss.Stemcells),
 
 		NewCreateVMMethod(cc, ss.Stemcells, ss.Instances, ss.Disks, ss.Networks, ss.Registry),

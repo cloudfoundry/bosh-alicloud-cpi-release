@@ -371,6 +371,8 @@ func getTagsRequest(cid string, tags map[string]string) *ecs.AddTagsRequest {
 		args.ResourceType = string(TagResourceInstance)
 	} else if strings.HasPrefix(cid, "d-") {
 		args.ResourceType = string(TagResourceDisk)
+	} else if strings.HasPrefix(cid, "m-") {
+		args.ResourceType = string(TagResourceImage)
 	}
 	return args
 

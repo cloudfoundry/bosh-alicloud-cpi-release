@@ -53,11 +53,12 @@ type StemcellProps struct {
 type CreateStemcellMethod struct {
 	CallContext
 	stemcells alicloud.StemcellManager
+	instances alicloud.InstanceManager
 	osses     alicloud.OssManager
 }
 
-func NewCreateStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager, osses alicloud.OssManager) CreateStemcellMethod {
-	return CreateStemcellMethod{cc, stemcells, osses}
+func NewCreateStemcellMethod(cc CallContext, stemcells alicloud.StemcellManager, instances alicloud.InstanceManager, osses alicloud.OssManager) CreateStemcellMethod {
+	return CreateStemcellMethod{cc, stemcells, instances, osses}
 }
 
 func (a StemcellProps) Validate() (StemcellProps, error) {
@@ -229,13 +230,20 @@ func (a CreateStemcellMethod) copyImage(stemcellId string, props StemcellProps) 
 		a.cleanUp(imageId)
 		return "", bosherr.WrapError(err, "Failed to copy Alicloud Image")
 	}
-
+	//打标签
+	imageTags := map[string]string{
+		"Copied": props.OSSObject,
+	}
+	err = a.instances.AddTags(imageId, imageTags)
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "Failed to add tags %v to %s", imageTags, imageId)
+	}
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Copy Alicloud Image %s success", imageId)
 	return imageId, nil
 }
 
 func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props StemcellProps) (string, error) {
-	imageName := fmt.Sprintf("%s-%s.raw", AlicloudImageNamePrefix, a.getUUIDName(props))
+	imageName := fmt.Sprintf("%s-%s-%s-%s.raw", AlicloudImageNamePrefix, props.Name, props.Version, uuid.New().String())
 	bucketName := fmt.Sprintf("%s-%s", alicloud.AlicloudDefaultImageName, uuid.New().String())
 
 	if len(bucketName) > OSS_BUCKET_NAME_MAX_LENGTH {
@@ -281,14 +289,6 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	}
 
 	return image, err
-}
-
-// image name should be unique and it comes from full stemcell and random suffix length
-func (a CreateStemcellMethod) getUUIDName(props StemcellProps) string {
-	uuidStr := uuid.New().String()
-	name := getValueOrDefault("Name", &props, alicloud.AlicloudDefaultImageName)
-	imageName := fmt.Sprintf("%s-%s", name, uuidStr)
-	return imageName
 }
 
 func getValueOrDefault(key string, v *StemcellProps, defaultVal string) (val string) {

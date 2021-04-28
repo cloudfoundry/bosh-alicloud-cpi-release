@@ -79,6 +79,29 @@ func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.Image, error) {
 	return &images.Images.Image[0], nil
 }
 
+func (a StemcellManagerImpl) FindStemcellByName(name string) (*ecs.Image, error) {
+	client, err := a.config.NewEcsClient("")
+	if err != nil {
+		return nil, err
+	}
+
+	args := ecs.CreateDescribeImagesRequest()
+	args.ImageName = name
+
+	images, err := client.DescribeImages(args)
+	a.logger.Debug(AlicloudImageServiceTag, "Find Alicloud Images '%#v'", images)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if images == nil || len(images.Images.Image) <= 0 {
+		return nil, GetNotFoundErrorFromString(GetNotFoundMessage("ECS image", name))
+	}
+
+	return &images.Images.Image[0], nil
+}
+
 func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 	image, err := a.FindStemcellById(id)
 	if err != nil {
@@ -98,10 +121,26 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 	}
 	args := ecs.CreateDeleteImageRequest()
 	args.ImageId = id
-	_, err = client.DeleteImage(args)
-
-	if err != nil {
+	if _, err := client.DeleteImage(args); err != nil {
 		return bosherr.WrapErrorf(err, "Failed to delete Alicloud Image '%s'", id)
+	}
+
+	// Remove the raw image when this stemcell is copied.
+	if len(image.Tags.Tag) > 0 {
+		for _, tag := range image.Tags.Tag {
+			if tag.TagKey == "Copied" {
+				image, err := a.FindStemcellByName(tag.TagValue)
+				if err != nil {
+					a.logger.Debug(AlicloudImageServiceTag, "Describing Alicloud Image by using name '%s' got an error: %s.", tag.TagValue, err)
+					break
+				}
+				args.ImageId = image.ImageId
+				if _, err := client.DeleteImage(args); err != nil {
+					a.logger.Debug(AlicloudImageServiceTag, "Deleting Alicloud Image by using name '%s' got an error: %s.", image.ImageId, err)
+				}
+				break
+			}
+		}
 	}
 
 	return nil
