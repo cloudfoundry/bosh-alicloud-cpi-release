@@ -1,7 +1,13 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 36.0.0 (Unreleased)
+## 37.0.0 (Unreleased)
+## 36.0.0 (May 8, 2021)
+
+BUG FIXES：
+
+- Fixes the addTags bug when copy image ([#129](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/129))
+
 ## 35.0.0 (April 28, 2021)
 
 IMPROVEMENTS:
