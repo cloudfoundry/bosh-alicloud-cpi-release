@@ -28,6 +28,9 @@ properties:
   alicloud.encrypted:
     description: "Whether to encrypt alibaba cloud disk. Default to `false`."
     default: false
+  alicloud.kms_key_id:
+    description: "Using a KMS Key ID to encrypt Alibaba Cloud disk. It is valid when encrypted is true. If not set, a default KMS key will be created and used."
+    default: ""
   alicloud.ecs_endpoint:
     description: "Alibaba Cloud self-defined endpoint to access ECS services. Default to `ECS_ENDPOINT`"
     default: ""
