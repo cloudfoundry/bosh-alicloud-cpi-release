@@ -1,7 +1,13 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 37.0.0 (Unreleased)
+## 38.0.0 (Unreleased)
+## 37.0.0 ((May 20, 2021)
+
+BUG FIXES：
+
+- Fixes the deleteing full stemcell failed bug when setting the encrypted is true ([#130](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/130))
+
 ## 36.0.0 (May 8, 2021)
 
 BUG FIXES：
