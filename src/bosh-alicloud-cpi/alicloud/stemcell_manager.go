@@ -125,24 +125,6 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 		return bosherr.WrapErrorf(err, "Failed to delete Alicloud Image '%s'", id)
 	}
 
-	// Remove the raw image when this stemcell is copied.
-	if len(image.Tags.Tag) > 0 {
-		for _, tag := range image.Tags.Tag {
-			if tag.TagKey == "Copied" {
-				image, err := a.FindStemcellByName(tag.TagValue)
-				if err != nil {
-					a.logger.Debug(AlicloudImageServiceTag, "Describing Alicloud Image by using name '%s' got an error: %s.", tag.TagValue, err)
-					break
-				}
-				args.ImageId = image.ImageId
-				if _, err := client.DeleteImage(args); err != nil {
-					a.logger.Debug(AlicloudImageServiceTag, "Deleting Alicloud Image by using name '%s' got an error: %s.", image.ImageId, err)
-				}
-				break
-			}
-		}
-	}
-
 	return nil
 }
 

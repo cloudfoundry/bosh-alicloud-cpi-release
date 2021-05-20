@@ -230,17 +230,15 @@ func (a CreateStemcellMethod) copyImage(stemcellId string, props StemcellProps) 
 		a.cleanUp(imageId)
 		return "", bosherr.WrapError(err, "Failed to copy Alicloud Image")
 	}
-	//打标签，用于后续删除 full stemcell
-	if props.OSSObject != "" {
-		imageTags := map[string]string{
-			"Copied": props.OSSObject,
-		}
-		err = a.instances.AddTags(imageId, imageTags)
-		if err != nil {
-			return "", bosherr.WrapErrorf(err, "Failed to add tags %v to %s", imageTags, imageId)
-		}
-	}
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Copy Alicloud Image %s success", imageId)
+
+	// If the full stemcell, the raw image should be deleted after copied
+	if _, err := a.stemcells.FindStemcellById(stemcellId); err != nil {
+		a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Failed to find the full stemcell %s and there is no need to clean up it. Error: %#v", stemcellId, err)
+		return imageId, nil
+	}
+	a.cleanUp(stemcellId)
+
 	return imageId, nil
 }
 
