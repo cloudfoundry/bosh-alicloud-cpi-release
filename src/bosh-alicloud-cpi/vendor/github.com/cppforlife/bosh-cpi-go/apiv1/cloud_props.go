@@ -2,7 +2,6 @@ package apiv1
 
 import (
 	"encoding/json"
-	"errors"
 )
 
 type CloudPropsImpl struct {
@@ -11,12 +10,12 @@ type CloudPropsImpl struct {
 
 var _ json.Marshaler = CloudPropsImpl{}
 
-func (p CloudPropsImpl) As(val interface{}) error {
-	return json.Unmarshal([]byte(p.RawMessage), val)
+func (c CloudPropsImpl) As(val interface{}) error {
+	return json.Unmarshal([]byte(c.RawMessage), val)
 }
 
 func (c CloudPropsImpl) MarshalJSON() ([]byte, error) {
-	return nil, errors.New("Expected to not marshal CloudPropsImpl as JSON")
+	return json.Marshal(c.RawMessage)
 }
 
 func (c CloudPropsImpl) _final() {}

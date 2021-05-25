@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"encoding/json"
+	"fmt"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
@@ -9,9 +10,10 @@ import (
 )
 
 type Request struct {
-	Method    string               `json:"method"`
-	Arguments []interface{}        `json:"arguments"`
-	Context   apiv1.CloudPropsImpl `json:"context"`
+	Method     string               `json:"method"`
+	Arguments  []interface{}        `json:"arguments"`
+	Context    apiv1.CloudPropsImpl `json:"context"`
+	APIVersion int                  `json:"api_version"`
 }
 
 type Response struct {
@@ -64,9 +66,9 @@ func (c JSONDispatcher) Dispatch(reqBytes []byte) []byte {
 		return c.cpiError("Must provide 'arguments' key")
 	}
 
-	action, err := c.actionFactory.Create(req.Method, req.Context)
+	action, err := c.actionFactory.Create(req.Method, req.APIVersion, req.Context)
 	if err != nil {
-		return c.notImplementedError()
+		return c.notImplementedError(err)
 	}
 
 	result, err := c.caller.Call(action, req.Arguments)
@@ -135,11 +137,11 @@ func (c JSONDispatcher) cpiError(message string) []byte {
 	return respErrBytes
 }
 
-func (c JSONDispatcher) notImplementedError() []byte {
+func (c JSONDispatcher) notImplementedError(err error) []byte {
 	respErr := Response{
 		Error: &ResponseError{
 			Type:    "Bosh::Clouds::NotImplemented",
-			Message: "Must call implemented method",
+			Message: fmt.Sprintf("Must call implemented method: %s", err),
 		},
 	}
 

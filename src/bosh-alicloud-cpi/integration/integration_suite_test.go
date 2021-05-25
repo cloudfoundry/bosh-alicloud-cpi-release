@@ -72,7 +72,7 @@ var _ = BeforeSuite(func() {
 		Instances: alicloud.NewInstanceManager(config, logger),
 		Disks:     alicloud.NewDiskManager(config, logger),
 		Networks:  alicloud.NewNetworkManager(config, logger),
-		Registry:  mock.NewRegistryMock(),
+		Registry:  alicloud.NewRegistryManager(config, logger),
 	}
 
 	caller = action.NewCallerWithServices(config, logger, services)

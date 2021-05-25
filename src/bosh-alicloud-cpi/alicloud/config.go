@@ -215,12 +215,12 @@ func (c Config) NewSlbClient(region string) (*slb.Client, error) {
 	return client, nil
 }
 
-func (c Config) GetRegistryClient(logger boshlog.Logger) registry.Client {
-	if !c.Registry.IsEmpty() {
-		return c.GetHttpRegistryClient(logger)
-	} else {
-		return NewRegistryManager(c, logger)
-	}
+func (c Config) GetRegistryClient(logger boshlog.Logger) RegistryManager {
+	//if !c.Registry.IsEmpty() {
+	//	return c.GetHttpRegistryClient(logger)
+	//} else {
+	return NewRegistryManager(c, logger)
+	//}
 }
 
 func (c Config) NewOssClient(region string) (*oss.Client, error) {

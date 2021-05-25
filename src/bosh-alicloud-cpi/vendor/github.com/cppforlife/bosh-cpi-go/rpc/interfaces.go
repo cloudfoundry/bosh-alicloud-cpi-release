@@ -5,7 +5,7 @@ import (
 )
 
 type ActionFactory interface {
-	Create(string, apiv1.CallContext) (interface{}, error)
+	Create(method string, apiVersion int, context apiv1.CallContext) (interface{}, error)
 }
 
 type Dispatcher interface {

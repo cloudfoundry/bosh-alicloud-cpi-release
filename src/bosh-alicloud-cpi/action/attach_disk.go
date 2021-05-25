@@ -26,6 +26,19 @@ func NewAttachDiskMethod(cc CallContext, disks alicloud.DiskManager, instances a
 }
 
 func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
+	_, err := a.attach(vmCID, diskCID)
+	return err
+}
+
+func (a AttachDiskMethod) AttachDiskV2(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (apiv1.DiskHint, error) {
+	diskPath, err := a.attach(vmCID, diskCID)
+	if err != nil {
+		return apiv1.DiskHint{}, err
+	}
+	return apiv1.NewDiskHintFromString(fmt.Sprintf("%s", diskPath)), nil
+}
+
+func (a AttachDiskMethod) attach(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (interface{}, error) {
 	instCid := vmCID.AsString()
 	diskCid := diskCID.AsString()
 	device := ""
@@ -45,7 +58,7 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 		})
 
 		if err != nil {
-			return bosherr.WrapError(err, "stop instance failed")
+			return device, bosherr.WrapError(err, "stop instance failed")
 		}
 	}
 
@@ -64,7 +77,7 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 	})
 
 	if err != nil {
-		return bosherr.WrapErrorf(err, "attach disk %s to %s failed", diskCid, instCid)
+		return device, bosherr.WrapErrorf(err, "attach disk %s to %s failed", diskCid, instCid)
 	}
 
 	registryClient := a.registry
@@ -73,7 +86,7 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 
 	err = registryClient.Update(instCid, agentSettings)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "update registry failed %s %s", diskCid, instCid)
+		return device, bosherr.WrapErrorf(err, "update registry failed %s %s", diskCid, instCid)
 	}
 
 	if a.Config.Registry.IsEmpty() {
@@ -91,9 +104,9 @@ func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) e
 		})
 
 		if err != nil {
-			return bosherr.WrapError(err, "stop instance failed")
+			return device, bosherr.WrapError(err, "stop instance failed")
 		}
 	}
 
-	return nil
+	return device, nil
 }

@@ -10,6 +10,8 @@ import (
 
 type Networks map[string]Network
 
+var _ json.Unmarshaler = &Networks{}
+
 type Network interface {
 	Type() string
 
@@ -45,15 +47,17 @@ type NetworkImpl struct {
 	preconfigured bool
 }
 
+var _ json.Marshaler = NetworkImpl{}
+
 type networkSpec2 struct {
-	Type string
+	Type string `json:"type"`
 
-	IP      string
-	Netmask string
-	Gateway string
+	IP      string `json:"ip,omitempty"`
+	Netmask string `json:"netmask,omitempty"`
+	Gateway string `json:"gateway,omitempty"`
 
-	DNS     []string
-	Default []string
+	DNS     []string `json:"dns"`
+	Default []string `json:"default"`
 
 	CloudProps CloudPropsImpl `json:"cloud_properties"`
 }
@@ -102,6 +106,10 @@ func (n *NetworkImpl) SetPreconfigured()           { n.preconfigured = true }
 func (n NetworkImpl) CloudProps() NetworkCloudProps { return n.spec.CloudProps }
 
 func (n *NetworkImpl) _final() {}
+
+func (n NetworkImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(n.spec)
+}
 
 func (ns *Networks) UnmarshalJSON(data []byte) error {
 	var newNets map[string]networkSpec2
