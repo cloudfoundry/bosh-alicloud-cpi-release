@@ -16,7 +16,7 @@ required = ["github.com/onsi/ginkgo/ginkgo"]
 [[constraint]]
   branch = "master"
   name = "github.com/cppforlife/bosh-cpi-go"
-  source = "github.com/aliyun/bosh-cpi-go"
+#   source = "github.com/aliyun/bosh-cpi-go"
 
 [[constraint]]
   name = "github.com/google/uuid"

@@ -42,26 +42,26 @@ func (r JSONCaller) Call(action interface{}, args []interface{}) (value interfac
 	}
 
 	values := runMethodValue.Call(methodArgs)
-	return r.extractReturns(values)
+	return r.extractReturns(runMethodType, values)
 }
 
 func (r JSONCaller) invalidReturnTypes(methodType reflect.Type) (valid bool) {
-	if methodType.NumOut() != 2 {
+	if methodType.NumOut() == 0 {
 		return true
 	}
 
-	secondReturnType := methodType.Out(1)
-	if secondReturnType.Kind() != reflect.Interface {
+	lastReturnType := methodType.Out(methodType.NumOut() - 1)
+	if lastReturnType.Kind() != reflect.Interface {
 		return true
 	}
 
 	errorType := reflect.TypeOf(bosherr.Error(""))
-	secondReturnIsError := errorType.Implements(secondReturnType)
+	secondReturnIsError := errorType.Implements(lastReturnType)
 	if !secondReturnIsError {
 		return true
 	}
 
-	return
+	return false
 }
 
 func (r JSONCaller) extractMethodArgs(runMethodType reflect.Type, args []interface{}) (methodArgs []reflect.Value, err error) {
@@ -120,12 +120,24 @@ func (r JSONCaller) getMethodArgType(methodType reflect.Type, index int) (argTyp
 	}
 }
 
-func (r JSONCaller) extractReturns(values []reflect.Value) (value interface{}, err error) {
-	errValue := values[1]
+func (r JSONCaller) extractReturns(methodType reflect.Type, values []reflect.Value) (interface{}, error) {
+	var err error
+
+	errValue := values[methodType.NumOut()-1]
 	if !errValue.IsNil() {
 		err = errValue.Interface().(error)
 	}
 
-	value = values[0].Interface()
-	return
+	switch {
+	case methodType.NumOut() == 1:
+		return nil, err
+	case methodType.NumOut() == 2:
+		return values[0].Interface(), err
+	default:
+		returnValues := []interface{}{}
+		for i := 0; i < methodType.NumOut()-1; i++ {
+			returnValues = append(returnValues, values[i].Interface())
+		}
+		return returnValues, err
+	}
 }

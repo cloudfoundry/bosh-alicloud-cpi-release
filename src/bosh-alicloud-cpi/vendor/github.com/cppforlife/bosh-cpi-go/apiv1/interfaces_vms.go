@@ -1,6 +1,6 @@
 package apiv1
 
-type VMs interface {
+type VMsV1 interface {
 	CreateVM(AgentID, StemcellCID, VMCloudProps, Networks, []DiskCID, VMEnv) (VMCID, error)
 	DeleteVM(VMCID) error
 
@@ -11,6 +11,10 @@ type VMs interface {
 
 	RebootVM(VMCID) error
 	GetDisks(VMCID) ([]DiskCID, error)
+}
+
+type VMsV2Additions interface {
+	CreateVMV2(AgentID, StemcellCID, VMCloudProps, Networks, []DiskCID, VMEnv) (VMCID, Networks, error)
 }
 
 type VMCloudProps interface {

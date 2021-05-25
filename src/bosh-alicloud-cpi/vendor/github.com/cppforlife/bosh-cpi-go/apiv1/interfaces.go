@@ -10,12 +10,23 @@ type CallContext interface {
 
 type CPI interface {
 	Info() (Info, error)
-	Stemcells
-	VMs
-	Disks
-	Snapshots
+	CPIV1
+	CPIV2Additions
+}
+
+type CPIV1 interface {
+	StemcellsV1
+	VMsV1
+	DisksV1
+	SnapshotsV1
+}
+
+type CPIV2Additions interface {
+	VMsV2Additions
+	DisksV2Additions
 }
 
 type Info struct {
+	APIVersion      int      `json:"api_version"` // filled automatically
 	StemcellFormats []string `json:"stemcell_formats"`
 }

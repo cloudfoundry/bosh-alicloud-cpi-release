@@ -1,6 +1,6 @@
 package apiv1
 
-type Snapshots interface {
+type SnapshotsV1 interface {
 	SnapshotDisk(DiskCID, DiskMeta) (SnapshotCID, error)
 	DeleteSnapshot(SnapshotCID) error
 }
