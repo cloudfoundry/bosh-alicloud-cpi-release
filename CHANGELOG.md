@@ -1,8 +1,14 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 38.0.0 (Unreleased)
-## 37.0.0 ((May 20, 2021)
+## 39.0.0 (Unreleased)
+## 38.0.0 (May 25, 2021)
+
+IMPROVEMENTS:
+
+- add support for cpi api v2 ([#131](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/131))
+
+## 37.0.0 (May 20, 2021)
 
 BUG FIXES：
 
