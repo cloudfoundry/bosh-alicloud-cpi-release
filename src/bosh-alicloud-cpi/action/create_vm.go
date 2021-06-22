@@ -213,6 +213,16 @@ func (a CreateVMMethod) createVM(
 
 	disks.FillCreateInstanceArgs(a.Config.OpenApi.Encrypted, args)
 
+	//打标签
+	tags := make([]ecs.CreateInstanceTag, 0)
+	for k, v := range instProps.Tags {
+		tags = append(tags, ecs.CreateInstanceTag{
+			Key:   k,
+			Value: v,
+		})
+	}
+	args.Tag = &tags
+
 	// do CreateInstance !!!
 	instCid, err := a.instances.CreateInstance(instProps.Region, args)
 	if err != nil {
@@ -292,13 +302,6 @@ func (a CreateVMMethod) createVM(
 			time.Sleep(5 * time.Second)
 		}
 		return apiv1.NewVMCID(instCid), nil, bosherr.WrapErrorf(err, "update %s failed and then delete it timeout: %v", instCid, err2)
-	}
-	//打标签
-	if instProps.Tags != nil {
-		err = a.instances.AddTags(instCid, instProps.Tags)
-		if err != nil {
-			return apiv1.NewVMCID(instCid), nil, bosherr.WrapErrorf(err, "AddTags %v to %s failed", instProps.Tags, instCid)
-		}
 	}
 
 	return apiv1.NewVMCID(instCid), networkArgs, nil
