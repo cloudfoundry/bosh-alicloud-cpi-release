@@ -1,7 +1,15 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 39.0.0 (Unreleased)
+## 40.0.0 (Unreleased)
+## 39.0.0 (June 24, 2021)
+
+IMPROVEMENTS:
+
+- Changing the adding tags action to Create ([#135](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/135))
+- specify terraform provider source ([#134](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/134))
+- Add blobstores field to BoshEnv struct ([#133](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/133))
+
 ## 38.0.0 (May 25, 2021)
 
 IMPROVEMENTS:
