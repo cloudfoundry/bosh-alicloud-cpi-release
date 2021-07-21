@@ -16,11 +16,11 @@ variable "public_key" {
 terraform {
   backend "oss" {
   }
-    required_providers {
-      alicloud = {
-        source  = "aliyun/alicloud"
-      }
+  required_providers {
+    alicloud = {
+      source = "aliyun/alicloud"
     }
+  }
 }
 
 provider "alicloud" {
@@ -40,8 +40,10 @@ resource "alicloud_vpc" "default" {
 
 # Create an nat gateway to give our vswitch access to the outside world
 resource "alicloud_nat_gateway" "default" {
-  vpc_id = alicloud_vpc.default.id
-  name   = var.env_name
+  vpc_id     = alicloud_vpc.default.id
+  name       = var.env_name
+  vswitch_id = alicloud_vswitch.default.id
+  nat_type   = "Enhanced"
 }
 
 resource "alicloud_eip" "default" {
