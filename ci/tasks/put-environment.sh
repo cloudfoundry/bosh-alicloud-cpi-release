@@ -41,7 +41,7 @@ output_path=${CURRENT_PATH}/environment
 TERRAFORM_VERSION=0.12.31
 
 wget -qN https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-sudo apt-get install unzip
+apt-get install unzip
 unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/bin
 
 pushd ${terraform_source}
