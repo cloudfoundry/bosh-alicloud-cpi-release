@@ -26,39 +26,42 @@ func NewAttachDiskMethod(cc CallContext, disks alicloud.DiskManager, instances a
 }
 
 func (a AttachDiskMethod) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
-	_, err := a.attach(vmCID, diskCID)
+	_, err := a.attach(vmCID, diskCID, "v1")
 	return err
 }
 
 func (a AttachDiskMethod) AttachDiskV2(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (apiv1.DiskHint, error) {
-	diskPath, err := a.attach(vmCID, diskCID)
+	diskPath, err := a.attach(vmCID, diskCID, "v2")
 	if err != nil {
 		return apiv1.DiskHint{}, err
 	}
 	return apiv1.NewDiskHintFromString(fmt.Sprintf("%s", diskPath)), nil
 }
 
-func (a AttachDiskMethod) attach(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (interface{}, error) {
+func (a AttachDiskMethod) attach(vmCID apiv1.VMCID, diskCID apiv1.DiskCID, cpiVersion string) (interface{}, error) {
 	instCid := vmCID.AsString()
 	diskCid := diskCID.AsString()
 	device := ""
 
-	if a.Config.Registry.IsEmpty() {
-		err := a.instances.ChangeInstanceStatus(instCid, alicloud.Stopped, func(status alicloud.InstanceStatus) (bool, error) {
-			switch status {
-			case alicloud.Stopped:
-				return true, nil
-			case alicloud.Running:
-				return false, a.instances.StopInstance(instCid)
-			case alicloud.Stopping:
-				return false, nil
-			default:
-				return false, fmt.Errorf("unexpect %s for StopInstance", status)
-			}
-		})
+	// The registry has been deprecated from the CPI V2, so it is always empty when V2
+	if cpiVersion == "v1" {
+		if a.Config.Registry.IsEmpty() {
+			err := a.instances.ChangeInstanceStatus(instCid, alicloud.Stopped, func(status alicloud.InstanceStatus) (bool, error) {
+				switch status {
+				case alicloud.Stopped:
+					return true, nil
+				case alicloud.Running:
+					return false, a.instances.StopInstance(instCid)
+				case alicloud.Stopping:
+					return false, nil
+				default:
+					return false, fmt.Errorf("unexpect %s for StopInstance", status)
+				}
+			})
 
-		if err != nil {
-			return device, bosherr.WrapError(err, "stop instance failed")
+			if err != nil {
+				return device, bosherr.WrapError(err, "stop instance failed")
+			}
 		}
 	}
 
