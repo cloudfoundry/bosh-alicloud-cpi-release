@@ -1,7 +1,13 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 40.0.0 (Unreleased)
+## 41.0.0 (Unreleased)
+## 40.0.0 (August 01, 2021)
+
+BUG FIXES：
+
+Fixes the reboot instance bug when attrching disk with cpi verison v2 ([#141](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/141))
+
 ## 39.0.0 (June 24, 2021)
 
 IMPROVEMENTS:
