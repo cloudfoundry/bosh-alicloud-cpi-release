@@ -6,6 +6,8 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/registry"
+
+	//"github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/src/bosh-alicloud-cpi/registry"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -215,6 +217,29 @@ func (a CreateVMMethod) createVM(
 
 	//打标签
 	tags := make([]ecs.CreateInstanceTag, 0)
+	// 首先获取registry中的tag
+	for k, v := range registryEnv.Bosh.Tags {
+		tags = append(tags, ecs.CreateInstanceTag{
+			Key:   k,
+			Value: fmt.Sprint(v),
+		})
+	}
+	// 如果没有拿到系统tag，那么为了支持CR，此处需要显示设置上系统Tag
+	if len(tags) < 1 {
+		preDefineTags := map[string]string{
+			"deployment": "bosh",
+			"director":"bosh-init",
+			"instance_group":"bosh",
+			"job":"bosh",
+		}
+		for key, value := range preDefineTags {
+			tags = append(tags, ecs.CreateInstanceTag{
+				Key: key,
+				Value: value,
+			})
+		}
+	}
+	// 接下来获取manifest中的tag
 	for k, v := range instProps.Tags {
 		tags = append(tags, ecs.CreateInstanceTag{
 			Key:   k,
