@@ -82,15 +82,16 @@ type Env struct {
 }
 
 type BoshEnv struct {
-	Password              string              `json:"password"`
-	KeepRootPassword      bool                `json:"keep_root_password"`
-	RemoveDevTools        bool                `json:"remove_dev_tools"`
-	RemoveStaticLibraries bool                `json:"remove_static_libraries"`
-	AuthorizedKeys        []string            `json:"authorized_keys"`
-	SwapSizeInMB          *uint64             `json:"swap_size"`
-	Mbus                  MBus                `json:"mbus"`
-	IPv6                  IPv6                `json:"ipv6"`
-	Blobstores            []BlobstoreSettings `json:"blobstores"`
+	Password              string                 `json:"password"`
+	KeepRootPassword      bool                   `json:"keep_root_password"`
+	RemoveDevTools        bool                   `json:"remove_dev_tools"`
+	RemoveStaticLibraries bool                   `json:"remove_static_libraries"`
+	AuthorizedKeys        []string               `json:"authorized_keys"`
+	SwapSizeInMB          *uint64                `json:"swap_size"`
+	Mbus                  MBus                   `json:"mbus"`
+	IPv6                  IPv6                   `json:"ipv6"`
+	Blobstores            []BlobstoreSettings    `json:"blobstores"`
+	Tags                  map[string]interface{} `json:"tags"`
 }
 
 type MBus struct {
