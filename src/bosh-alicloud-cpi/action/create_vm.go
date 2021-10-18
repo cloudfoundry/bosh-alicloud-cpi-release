@@ -224,21 +224,6 @@ func (a CreateVMMethod) createVM(
 			Value: fmt.Sprint(v),
 		})
 	}
-	// 如果没有拿到系统tag，那么为了支持CR，此处需要显示设置上系统Tag
-	if len(tags) < 1 {
-		preDefineTags := map[string]string{
-			"deployment": "bosh",
-			"director":"bosh-init",
-			"instance_group":"bosh",
-			"job":"bosh",
-		}
-		for key, value := range preDefineTags {
-			tags = append(tags, ecs.CreateInstanceTag{
-				Key: key,
-				Value: value,
-			})
-		}
-	}
 	// 接下来获取manifest中的tag
 	for k, v := range instProps.Tags {
 		tags = append(tags, ecs.CreateInstanceTag{

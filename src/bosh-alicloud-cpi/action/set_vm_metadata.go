@@ -35,11 +35,15 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 	for k, v := range md {
 		if k == "name" {
 			name = normalizeName(v.(string), "i_")
-		} else if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job" {
-			tk := normalizeTag(k)
-			if tk != "" {
-				tags[tk] = normalizeTag(v.(string))
-			}
+		}
+		// There should support manifest tags feature: https://bosh.io/docs/manifest-v2/#tags
+		//} else if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job" {
+		//	tk := normalizeTag(k)
+		//	if tk != "" {
+		//		tags[tk] = normalizeTag(v.(string))
+		//	}
+		if normalizeTag(k) != "" {
+			tags[normalizeTag(k)] = normalizeTag(v.(string))
 		}
 	}
 

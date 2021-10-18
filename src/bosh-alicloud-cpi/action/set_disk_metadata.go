@@ -30,11 +30,15 @@ func (a SetDiskMetadataMethod) SetDiskMetadata(diskCID apiv1.DiskCID, meta apiv1
 
 	tags := make(map[string]string)
 	for k, v := range md {
-		if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job" {
-			tk := normalizeTag(k)
-			if tk != "" {
-				tags[tk] = normalizeTag(v.(string))
-			}
+		// There should support manifest tags feature: https://bosh.io/docs/manifest-v2/#tags
+		//if k == "deployment" || k == "director" || k == "index" || k == "instance_group" || k == "job" {
+		//	tk := normalizeTag(k)
+		//	if tk != "" {
+		//		tags[tk] = normalizeTag(v.(string))
+		//	}
+		//}
+		if normalizeTag(k) != "" {
+			tags[normalizeTag(k)] = normalizeTag(v.(string))
 		}
 	}
 
