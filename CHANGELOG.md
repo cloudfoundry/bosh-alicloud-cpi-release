@@ -2,10 +2,11 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 42.0.0 (Unreleased)
-## 41.0.0 (September 24, 2021)
+## 41.0.0 (October 18, 2021)
 
 IMPROVEMENTS:
 
+- support to setting tags in which the manifest file ([#145](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/145))
 - Supports getting tags from registry ([#143](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/143))
 
 ## 40.0.0 (August 01, 2021)
