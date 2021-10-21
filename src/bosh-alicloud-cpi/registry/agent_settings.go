@@ -92,6 +92,7 @@ type BoshEnv struct {
 	IPv6                  IPv6                   `json:"ipv6"`
 	Blobstores            []BlobstoreSettings    `json:"blobstores"`
 	Tags                  map[string]interface{} `json:"tags"`
+	Group                 string                 `json:"group"`
 }
 
 type MBus struct {
