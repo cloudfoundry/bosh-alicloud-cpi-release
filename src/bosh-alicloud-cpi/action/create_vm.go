@@ -225,18 +225,20 @@ func (a CreateVMMethod) createVM(
 		})
 	}
 	// 为了支持CR，tag中添加创建时获取的director和deployment。 获取registryEnv.Bosh.Group , 格式：<director-name>-<deployment-name>-<job-name> 解析出 director-name 和 deployment-name
-	group_items := strings.Split(registryEnv.Bosh.Group, "-")
-	if len(group_items) > 1 {
-		director_name := group_items[0]
-		deployment_name := group_items[1]
-		tags = append(tags, ecs.CreateInstanceTag{
-			Key: "bootstrap-director",
-			Value: director_name,
-		})
-		tags = append(tags, ecs.CreateInstanceTag{
-			Key: "bootstrap-deployment",
-			Value: deployment_name,
-		})
+	if registryEnv.Bosh.Group != nil && registryEnv.Bosh.Group != "" {
+		groupItems := strings.Split(registryEnv.Bosh.Group, "-")
+		if len(groupItems) > 1 {
+			directorName := groupItems[0]
+			deploymentName := groupItems[1]
+			tags = append(tags, ecs.CreateInstanceTag{
+				Key: "director",
+				Value: directorName,
+			})
+			tags = append(tags, ecs.CreateInstanceTag{
+				Key: "deployment",
+				Value: deploymentName,
+			})
+		}
 	}
 	// 接下来获取manifest中的tag
 	for k, v := range instProps.Tags {
