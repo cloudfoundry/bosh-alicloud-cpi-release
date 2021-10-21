@@ -224,17 +224,17 @@ func (a CreateVMMethod) createVM(
 			Value: fmt.Sprint(v),
 		})
 	}
-	// 为了支持CR，此处需要显示设置上系统Tag。 获取registryEnv.Bosh.Group , 格式：<director-name>-<deployment-name>-<job-name> 解析出 director-name 和 deployment-name
+	// 为了支持CR，tag中添加创建时获取的director和deployment。 获取registryEnv.Bosh.Group , 格式：<director-name>-<deployment-name>-<job-name> 解析出 director-name 和 deployment-name
 	group_items := strings.Split(registryEnv.Bosh.Group, "-")
 	if len(group_items) > 1 {
 		director_name := group_items[0]
 		deployment_name := group_items[1]
 		tags = append(tags, ecs.CreateInstanceTag{
-			Key: "director",
+			Key: "bootstrap-director",
 			Value: director_name,
 		})
 		tags = append(tags, ecs.CreateInstanceTag{
-			Key: "deployment",
+			Key: "bootstrap-deployment",
 			Value: deployment_name,
 		})
 	}
