@@ -225,7 +225,7 @@ func (a CreateVMMethod) createVM(
 		})
 	}
 	// 为了支持CR，tag中添加创建时获取的director和deployment。 获取registryEnv.Bosh.Group , 格式：<director-name>-<deployment-name>-<job-name> 解析出 director-name 和 deployment-name
-	if registryEnv.Bosh.Group != nil && registryEnv.Bosh.Group != "" {
+	if registryEnv.Bosh.Group != "" {
 		groupItems := strings.Split(registryEnv.Bosh.Group, "-")
 		if len(groupItems) > 1 {
 			directorName := groupItems[0]
