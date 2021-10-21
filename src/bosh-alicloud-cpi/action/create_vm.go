@@ -224,6 +224,22 @@ func (a CreateVMMethod) createVM(
 			Value: fmt.Sprint(v),
 		})
 	}
+	// 为了支持CR，此处需要显示设置上系统Tag。 获取registryEnv.Bosh.Group , 格式：<director-name>-<deployment-name>-<job-name> 解析出 director-name 和 deployment-name
+	group_items := strings.Split(registryEnv.Bosh.Group, "-")
+	if len(group_items) > 1 {
+		director-name := group_items[0]
+		deployment-name := group_items[1]
+		preDefineTags := map[string]string{
+			"deployment": deployment-name,
+			"director":director-name,
+		}
+		for key, value := range preDefineTags {
+			tags = append(tags, ecs.CreateInstanceTag{
+				Key: key,
+				Value: value,
+			})
+		}
+	}
 	// 接下来获取manifest中的tag
 	for k, v := range instProps.Tags {
 		tags = append(tags, ecs.CreateInstanceTag{
