@@ -2,6 +2,10 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 42.0.0 (Unreleased)
+## 41.0.1 (October 21, 2021)
+
+Publish a new tag same as the version 41.0.0
+
 ## 41.0.0 (October 18, 2021)
 
 IMPROVEMENTS:
