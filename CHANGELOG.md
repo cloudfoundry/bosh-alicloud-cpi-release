@@ -1,7 +1,13 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 42.0.0 (Unreleased)
+## 43.0.0 (Unreleased)
+## 42.0.0 (October 22, 2021)
+
+IMPROVEMENTS:
+
+- Add CR required bosh tag when create vm ([#146](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/146))
+
 ## 41.0.1 (October 21, 2021)
 
 Publish a new tag same as the version 41.0.0
