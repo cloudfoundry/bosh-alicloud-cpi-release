@@ -224,21 +224,12 @@ func (a CreateVMMethod) createVM(
 			Value: fmt.Sprint(v),
 		})
 	}
-	// 为了支持CR，tag中添加创建时获取的director和deployment。 获取registryEnv.Bosh.Group , 格式：<director-name>-<deployment-name>-<job-name> 解析出 director-name 和 deployment-name
+	// 为了支持CR，tag中添加创建时获取的env.bosh.group参数
 	if registryEnv.Bosh.Group != "" {
-		groupItems := strings.Split(registryEnv.Bosh.Group, "-")
-		if len(groupItems) > 1 {
-			directorName := groupItems[0]
-			deploymentName := groupItems[1]
-			tags = append(tags, ecs.CreateInstanceTag{
-				Key: "director",
-				Value: directorName,
-			})
-			tags = append(tags, ecs.CreateInstanceTag{
-				Key: "deployment",
-				Value: deploymentName,
-			})
-		}
+		tags = append(tags, ecs.CreateInstanceTag{
+			Key: "environment_bosh_group",
+			Value: registryEnv.Bosh.Group,
+		})
 	}
 	// 接下来获取manifest中的tag
 	for k, v := range instProps.Tags {
