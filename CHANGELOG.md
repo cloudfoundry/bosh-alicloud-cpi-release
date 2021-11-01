@@ -1,7 +1,13 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 43.0.0 (Unreleased)
+## 44.0.0 (Unreleased)
+## 43.0.0 (November 01, 2021)
+
+IMPROVEMENTS:
+
+- use env bosh group as cr required tag ([#147](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/147))
+
 ## 42.0.0 (October 22, 2021)
 
 IMPROVEMENTS:
