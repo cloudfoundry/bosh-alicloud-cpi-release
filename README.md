@@ -144,6 +144,17 @@ bosh create-env bosh-deployment/bosh.yml \
  -v dns_recursor_ip=8.8.8.8
 ```
 
+### Running ERB job templates unit tests
+
+The ERB templates rendered by the jobs of this Bosh Release have unit tests
+using Ruby. The required Ruby version is specified in `.ruby-version` as per
+convention with `chruby` or similar tools. A script will help you to install
+the correct Ruby version if necessary and run the ERB unit tests:
+
+```
+./scripts/test-unit-erb
+```
+
 ### Run Unit Test
 
 Run following commands
