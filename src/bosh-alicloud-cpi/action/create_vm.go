@@ -227,8 +227,8 @@ func (a CreateVMMethod) createVM(
 	// 为了支持CR，tag中添加创建时获取的env.bosh.group参数
 	if registryEnv.Bosh.Group != "" {
 		tags = append(tags, ecs.CreateInstanceTag{
-			Key: "environment_bosh_group",
-			Value: registryEnv.Bosh.Group,
+			Key: "environment_bosh_group_for_using_capacity_reservation_in_alicloud_iaas",
+			Value: registryEnv.Bosh.Group[:120],
 		})
 	}
 	// 接下来获取manifest中的tag
