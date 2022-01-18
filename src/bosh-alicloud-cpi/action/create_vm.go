@@ -226,9 +226,13 @@ func (a CreateVMMethod) createVM(
 	}
 	// 为了支持CR，tag中添加创建时获取的env.bosh.group参数
 	if registryEnv.Bosh.Group != "" {
+		group_tag_value := registryEnv.Bosh.Group
+		if len(registryEnv.Bosh.Group) > 120 {
+			group_tag_value := registryEnv.Bosh.Group[:120]
+		}
 		tags = append(tags, ecs.CreateInstanceTag{
 			Key: "environment_bosh_group_for_using_capacity_reservation_in_alicloud_iaas",
-			Value: registryEnv.Bosh.Group[:120],
+			Value: group_tag_value,
 		})
 	}
 	// 接下来获取manifest中的tag
