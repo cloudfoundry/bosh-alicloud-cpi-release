@@ -1,7 +1,15 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 44.0.0 (Unreleased)
+## 45.0.0 (Unreleased)
+## 44.0.0 (January 19, 2021)
+
+IMPROVEMENTS:
+
+- fix the groupTagValue bug and format the code ([#151](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/151))
+- Update for issue #149 ([#150](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/150)) 
+- Make agent credentials optional for accessing blobstore with signed URLs enabled ([#148](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/148))
+
 ## 43.0.0 (November 01, 2021)
 
 IMPROVEMENTS:
