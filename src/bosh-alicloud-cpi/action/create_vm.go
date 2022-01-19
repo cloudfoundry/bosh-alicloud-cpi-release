@@ -228,10 +228,10 @@ func (a CreateVMMethod) createVM(
 	if registryEnv.Bosh.Group != "" {
 		groupTagValue := registryEnv.Bosh.Group
 		if len(registryEnv.Bosh.Group) > 128 {
-			groupTagValue := registryEnv.Bosh.Group[:128]
+			groupTagValue = registryEnv.Bosh.Group[:128]
 		}
 		tags = append(tags, ecs.CreateInstanceTag{
-			Key: "environment_bosh_group_for_using_capacity_reservation_in_alicloud_iaas",
+			Key:   "environment_bosh_group_for_using_capacity_reservation_in_alicloud_iaas",
 			Value: groupTagValue,
 		})
 	}
