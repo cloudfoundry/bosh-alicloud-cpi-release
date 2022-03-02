@@ -91,6 +91,7 @@ type BoshEnv struct {
 	Mbus                  MBus                   `json:"mbus"`
 	IPv6                  IPv6                   `json:"ipv6"`
 	Blobstores            []BlobstoreSettings    `json:"blobstores"`
+	NTP                   []string               `json:"ntp"`
 	Tags                  map[string]interface{} `json:"tags"`
 	Group                 string                 `json:"group"`
 }
