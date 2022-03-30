@@ -1,7 +1,13 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 45.0.0 (Unreleased)
+## 46.0.0 (Unreleased)
+## 45.0.0 (March 30, 2022)
+
+IMPROVEMENTS:
+
+- Add NTP field to BoshEnv struct ([#152](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/152))
+
 ## 44.0.0 (January 19, 2021)
 
 IMPROVEMENTS:
