@@ -18,7 +18,7 @@ terraform {
   }
   required_providers {
     alicloud = {
-      source = "aliyun/alicloud"
+      source = "hashicorp/alicloud"
     }
   }
 }
