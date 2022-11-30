@@ -38,7 +38,7 @@ ls -l ${CURRENT_PATH}
 SOURCE_PATH=$CURRENT_PATH/bosh-alicloud-cpi-release
 TERRAFORM_METADATA=$CURRENT_PATH/environment
 output_path=${CURRENT_PATH}/environment
-TERRAFORM_VERSION=0.12.31
+TERRAFORM_VERSION=1.3.3
 
 wget -qN https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 apt-get install unzip
