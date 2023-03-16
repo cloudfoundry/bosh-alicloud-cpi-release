@@ -59,7 +59,7 @@ pushd ${terraform_source}
 
     if [[ ${action} == "destroy" ]]; then
         echo -e "******** Try to delete environment ********\n"
-        terraform destroy -force -var access_key=${access_key} -var secret_key=${secret_key} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}"
+        terraform apply -destroy -auto-approve -var access_key=${access_key} -var secret_key=${secret_key} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}"
     else
         echo -e "******** Try to build environment ********\n"
         terraform apply --auto-approve -var access_key=${access_key} -var secret_key=${secret_key} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}"
@@ -72,7 +72,7 @@ pushd ${terraform_source}
             echo "}" >> ${output_path}/${output_module}
         elif [[ ${delete_on_failure} = true ]]; then
             echo -e "******** Destroy terraform environment... ******** \n"
-            terraform destroy -force -var access_key=${access_key} -var secret_key=${secret_key} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}"
+            terraform apply -destroy -auto-approve -var access_key=${access_key} -var secret_key=${secret_key} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}"
         fi
     fi
 
