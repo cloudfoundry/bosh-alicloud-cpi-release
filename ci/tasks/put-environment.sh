@@ -68,7 +68,7 @@ pushd ${terraform_source}
             ls -al
             echo "{" > ${output_path}/${output_module}
             terraform output >> ${output_path}/${output_module}
-            sed -i '2,$s/^/"/g; 2, $s/$/",/g; $s/,//g; 2,$s/ = /": "/g' ${output_path}/${output_module}
+            sed -i '2,$s/^/"/g; 2, $s/$/,/g; $s/,//g; 2,$s/ = /": /g' ${output_path}/${output_module}
             echo "}" >> ${output_path}/${output_module}
         elif [[ ${delete_on_failure} = true ]]; then
             echo -e "******** Destroy terraform environment... ******** \n"
