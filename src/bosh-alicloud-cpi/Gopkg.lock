@@ -2,6 +2,51 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:95a5d3b703c5a42a670bae2643f87f9d1009051cf8657b628945fb4022ab4de0"
+  name = "github.com/alibabacloud-go/debug"
+  packages = ["debug"]
+  pruneopts = "NUT"
+  revision = "9472017b5c6804c66e5d873fabd2a2a937b31e0b"
+
+[[projects]]
+  digest = "1:82a8710850743f334f23d34a1ab39d1dce3244cb1f3b31562dde585b0d221f44"
+  name = "github.com/alibabacloud-go/tea"
+  packages = [
+    "tea",
+    "utils",
+  ]
+  pruneopts = "NUT"
+  revision = "b9ace42a5b69b64bf72f59cd6ae47f6dcac56775"
+  version = "v1.1.20"
+
+[[projects]]
+  digest = "1:8e4e98827de318f109e2f2c9dedfbacd772adc1e1d81039c06b203e5a4a2add4"
+  name = "github.com/alibabacloud-go/tea-rpc"
+  packages = ["client"]
+  pruneopts = "NUT"
+  revision = "8cb3984c53799fcb54f7ecff81571035fd4bc1e9"
+  source = "github.com/alibabacloud-go/tea-rpc"
+  version = "v1.3.3"
+
+[[projects]]
+  digest = "1:8c8b742fd910741087d85a41a9df7035be9cb6a272d579a686b709d70d8c3110"
+  name = "github.com/alibabacloud-go/tea-rpc-utils"
+  packages = ["service"]
+  pruneopts = "NUT"
+  revision = "0d46694d60567d7a8f08d88e98269b7883518c7c"
+  version = "v1.1.2"
+
+[[projects]]
+  digest = "1:71d6de643f7e30f6bfa833be70778297887f90d8feec62c5289138f33df9da5a"
+  name = "github.com/alibabacloud-go/tea-utils"
+  packages = ["service"]
+  pruneopts = "NUT"
+  revision = "c386a6961e5e59700cd33d47df60144f1b77f6d7"
+  source = "github.com/alibabacloud-go/tea-utils"
+  version = "v1.4.5"
+
+[[projects]]
   digest = "1:68054fba1a6f137834f5c591ef5372431200c43c86f44bc995380be32c8ce4dc"
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
   packages = [
@@ -31,6 +76,20 @@
   pruneopts = "NUT"
   revision = "c6838fdc33edd68aca9fed3a805f4303ca330b0c"
   version = "1.9.2"
+
+[[projects]]
+  digest = "1:a4090b8061801921c37b800473b58a359993a196c41fff61ae51dbcc812508ba"
+  name = "github.com/aliyun/credentials-go"
+  packages = [
+    "credentials",
+    "credentials/request",
+    "credentials/response",
+    "credentials/utils",
+  ]
+  pruneopts = "NUT"
+  revision = "ca9459be0b717a68819192000cf1ec41324f93b7"
+  source = "github.com/aliyun/credentials-go"
+  version = "v1.2.7"
 
 [[projects]]
   digest = "1:69b95d47eef70cba62af2aa3d33bd5f9ffe9fa0be66d79d79150c38796c6eac1"
@@ -164,6 +223,17 @@
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:2477c8e82584d24309ee7c48043976505469f45bd67d2574921818064a8b56f2"
+  name = "golang.org/x/net"
+  packages = [
+    "internal/socks",
+    "proxy",
+  ]
+  pruneopts = "NUT"
+  revision = "dfa2b5dffd96fb2ae13e7d182501f0bce044a0a4"
+  version = "v0.8.0"
+
+[[projects]]
   digest = "1:643f6cb49dfafd006d393831dbc82df9b5ae09feb1ca2209c4905d200414c29d"
   name = "gopkg.in/ini.v1"
   packages = ["."]
@@ -183,6 +253,9 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/alibabacloud-go/tea-rpc/client",
+    "github.com/alibabacloud-go/tea-utils/service",
+    "github.com/alibabacloud-go/tea/tea",
     "github.com/aliyun/alibaba-cloud-sdk-go/sdk",
     "github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth",
     "github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials",
@@ -193,6 +266,7 @@
     "github.com/aliyun/alibaba-cloud-sdk-go/services/location",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/slb",
     "github.com/aliyun/aliyun-oss-go-sdk/oss",
+    "github.com/aliyun/credentials-go/credentials",
     "github.com/cloudfoundry/bosh-utils/errors",
     "github.com/cloudfoundry/bosh-utils/logger",
     "github.com/cloudfoundry/bosh-utils/system",

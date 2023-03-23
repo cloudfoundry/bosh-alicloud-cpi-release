@@ -10,6 +10,21 @@ required = ["github.com/onsi/ginkgo/ginkgo"]
   source = "github.com/aliyun/alibaba-cloud-sdk-go"
 
 [[constraint]]
+  name = "github.com/alibabacloud-go/tea-rpc"
+  version = "v1.2.0"
+  source = "github.com/alibabacloud-go/tea-rpc"
+
+[[constraint]]
+  name = "github.com/aliyun/credentials-go"
+  version = "v1.1.2"
+  source = "github.com/aliyun/credentials-go"
+
+[[constraint]]
+  name = "github.com/alibabacloud-go/tea-utils"
+  version = "v1.4.5"
+  source = "github.com/alibabacloud-go/tea-utils"
+
+[[constraint]]
   branch = "master"
   name = "github.com/cloudfoundry/bosh-utils"
 

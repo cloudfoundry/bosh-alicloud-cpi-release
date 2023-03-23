@@ -12,6 +12,9 @@ import (
 	"sync"
 	"time"
 
+	rpc "github.com/alibabacloud-go/tea-rpc/client"
+	credential "github.com/aliyun/credentials-go/credentials"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -195,6 +198,40 @@ func (c Config) NewEcsClient(region string) (*ecs.Client, error) {
 	return client, nil
 }
 
+func (c Config) EcsTeaClient(region string) (*rpc.Client, error) {
+	var mutex = sync.RWMutex{}
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if region == "" {
+		region = c.OpenApi.Region
+	}
+	endpoint := strings.TrimSpace(c.OpenApi.EcsEndpoint)
+	if endpoint == "" {
+		endpoint = strings.TrimSpace(os.Getenv("ECS_ENDPOINT"))
+	}
+
+	if endpoint == "" {
+		endpoint = "ecs.aliyuncs.com"
+		if region != "cn-hangzhou" {
+			endpoint = fmt.Sprintf("ecs.%s.aliyuncs.com", region)
+		}
+	}
+
+	sdkConfig, err := c.getTeaDslSdkConfig(true)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
+	}
+	sdkConfig.SetEndpoint(endpoint).SetReadTimeout(60000)
+
+	conn, err := rpc.NewClient(&sdkConfig)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
+	}
+
+	return conn, nil
+}
+
 func (c Config) NewSlbClient(region string) (*slb.Client, error) {
 	var mutex = sync.RWMutex{}
 	mutex.Lock()
@@ -290,6 +327,24 @@ func (c Config) getAuthCredential(stsSupported bool) auth.Credential {
 	}
 
 	return credentials.NewAccessKeyCredential(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+}
+
+func (c Config) getCredentialConfig(stsSupported bool) *credential.Config {
+	credentialType := ""
+	credentialConfig := &credential.Config{}
+	if c.OpenApi.AccessKeyId != "" && c.OpenApi.AccessKeySecret != "" {
+		credentialType = "access_key"
+		credentialConfig.AccessKeyId = &c.OpenApi.AccessKeyId         // AccessKeyId
+		credentialConfig.AccessKeySecret = &c.OpenApi.AccessKeySecret // AccessKeySecret
+
+		if stsSupported && c.OpenApi.SecurityToken != "" {
+			credentialType = "sts"
+			credentialConfig.SecurityToken = &c.OpenApi.SecurityToken // STS Token
+		}
+	}
+
+	credentialConfig.Type = &credentialType
+	return credentialConfig
 }
 
 func (c Config) GetInstanceRegion(instanceId string) (region string, err error) {

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/alibabacloud-go/tea/tea"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
@@ -95,6 +97,16 @@ func IsExceptedErrors(err error, expectCodes []string) bool {
 
 		if e, ok := err.(oss.ServiceError); ok && (e.Code == code || strings.Contains(e.Message, code)) {
 			return true
+		}
+
+		if e, ok := err.(*tea.SDKError); ok {
+			for _, code := range expectCodes {
+				// The second statement aims to match the tea sdk history bug
+				if *e.Code == code || strings.HasPrefix(code, *e.Code) || strings.Contains(*e.Data, code) {
+					return true
+				}
+			}
+			return false
 		}
 	}
 	return false
