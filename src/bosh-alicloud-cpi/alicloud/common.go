@@ -11,7 +11,10 @@ import (
 	"strings"
 	"time"
 
+	rpc "github.com/alibabacloud-go/tea-rpc/client"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
+	credential "github.com/aliyun/credentials-go/credentials"
+
 	"github.com/google/uuid"
 )
 
@@ -94,6 +97,20 @@ func getSdkConfig() *sdk.Config {
 		WithDebug(false).
 		WithHttpTransport(getTransport()).
 		WithScheme("HTTPS")
+}
+
+func (c *Config) getTeaDslSdkConfig(stsSupported bool) (config rpc.Config, err error) {
+	config.SetRegionId(c.OpenApi.Region)
+	config.SetUserAgent(fmt.Sprintf("%s/%s", BoshCPI, BoshCPIVersion))
+	credential, err := credential.NewCredential(c.getCredentialConfig(stsSupported))
+	config.SetCredential(credential).
+		SetRegionId(c.OpenApi.Region).
+		SetProtocol("HTTPS").
+		SetReadTimeout(60000).
+		SetConnectTimeout(60000).
+		SetMaxIdleConns(500)
+
+	return
 }
 
 func getTransport() *http.Transport {

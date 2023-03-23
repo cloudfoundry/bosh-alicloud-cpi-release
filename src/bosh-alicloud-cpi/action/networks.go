@@ -7,7 +7,6 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"fmt"
 
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
@@ -72,7 +71,7 @@ func (a Networks) HasVip() bool {
 	return len(a.vips) > 0
 }
 
-func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceRequest) error {
+func (a Networks) FillCreateInstanceArgs(request map[string]interface{}) error {
 	props := a.privateProps
 
 	if props.VSwitchId == "" {
@@ -83,23 +82,23 @@ func (a Networks) FillCreateInstanceArgs(args *ecs.CreateInstanceRequest) error 
 	}
 
 	if props.SecurityGroupId != "" {
-		args.SecurityGroupId = props.SecurityGroupId
+		request["SecurityGroupId"] = props.SecurityGroupId
 	} else {
-		args.SecurityGroupId = props.SecurityGroupIds[0]
+		request["SecurityGroupId"] = props.SecurityGroupIds[0]
 	}
-	args.VSwitchId = props.VSwitchId
-	// args.InternetChargeType = common.InternetChargeType(props.InternetChargeType)
+	request["VSwitchId"] = props.VSwitchId
+	// request["InternetChargeType = common.InternetChargeType(props.InternetChargeType)
 
 	// TODO no need to add
-	// args.InternetMaxBandwidthIn = a.GetInternetMaxBandwidthIn()
-	// args.InternetMaxBandwidthOut = a.GetInternetMaxBandwidthOut()
+	// request["InternetMaxBandwidthIn"] = a.GetInternetMaxBandwidthIn()
+	// request["InternetMaxBandwidthOut"] = a.GetInternetMaxBandwidthOut()
 
 	private := a.private
 	if private.Type() == NetworkTypeManual {
 		if private.IsDynamic() {
 			return fmt.Errorf("confilct! manual Network IsDynamic")
 		}
-		args.PrivateIpAddress = a.private.IP()
+		request["PrivateIpAddress"] = a.private.IP()
 	} else if private.Type() == NetworkTypeDynamic {
 		if !private.IsDynamic() {
 			return fmt.Errorf("confilct! dynamic Network IsDynamic=false")

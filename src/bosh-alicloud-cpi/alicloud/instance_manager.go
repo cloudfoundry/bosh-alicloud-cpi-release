@@ -4,12 +4,14 @@
 package alicloud
 
 import (
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
-
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+
+	util "github.com/alibabacloud-go/tea-utils/service"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -32,7 +34,7 @@ const (
 type InstanceManager interface {
 	GetInstance(cid string) (*ecs.Instance, error)
 
-	CreateInstance(region string, args *ecs.CreateInstanceRequest) (string, error)
+	CreateInstance(region string, request map[string]interface{}) (string, error)
 	ModifyInstanceAttribute(cid string, name string, description string) error
 	AddTags(cid string, tags map[string]string) error
 
@@ -100,8 +102,8 @@ func (a InstanceManagerImpl) GetInstance(cid string) (inst *ecs.Instance, err er
 	return
 }
 
-func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInstanceRequest) (string, error) {
-	client, err := a.config.NewEcsClient(region)
+func (a InstanceManagerImpl) CreateInstance(region string, request map[string]interface{}) (string, error) {
+	conn, err := a.config.EcsTeaClient(region)
 	if err != nil {
 		return "", err
 	}
@@ -112,19 +114,21 @@ func (a InstanceManagerImpl) CreateInstance(region string, args *ecs.CreateInsta
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed)
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
 
-	args.ClientToken = buildClientToken(args.GetActionName())
-
+	action := "CreateInstance"
+	request["ClientToken"] = buildClientToken(action)
+	runtime := util.RuntimeOptions{}
+	runtime.SetAutoretry(true)
 	var cid string
 	err = invoker.Run(func() error {
-		resp, e := client.CreateInstance(args)
+		resp, e := conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2014-05-26"), StringPointer("AK"), nil, request, &runtime)
 		if e != nil {
 			if IsExceptedErrors(e, []string{"IdempotentFailed"}) {
 				// If the error is not 5xx, the client token should be updated
-				args.ClientToken = buildClientToken(args.GetActionName())
+				request["ClientToken"] = buildClientToken(action)
 			}
 			return e
 		}
-		cid = resp.InstanceId
+		cid = fmt.Sprint(resp["InstanceId"])
 		return e
 	})
 	return cid, err
@@ -376,4 +380,8 @@ func getTagsRequest(cid string, tags map[string]string) *ecs.AddTagsRequest {
 	}
 	return args
 
+}
+
+func StringPointer(s string) *string {
+	return &s
 }

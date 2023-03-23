@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
 type InstanceChargeType string
@@ -135,23 +134,29 @@ func (a CreateVMMethod) createVM(
 		networks.privateProps.SecurityGroupIds = instProps.SecurityGroupIds
 	}
 
-	args := ecs.CreateCreateInstanceRequest()
-	if err := networks.FillCreateInstanceArgs(args); err != nil {
+	createInstanceRequest := make(map[string]interface{})
+	if err := networks.FillCreateInstanceArgs(createInstanceRequest); err != nil {
 		return cid, nil, bosherr.WrapErrorf(err, "fill instance network args failed and args: %v", networks.privateProps)
 	}
 
-	if instProps.AvailabilityZone != "" {
-		args.ZoneId = instProps.AvailabilityZone
+	if instProps.Region != "" {
+		createInstanceRequest["RegionId"] = instProps.Region
 	} else {
-		args.ZoneId = a.Config.OpenApi.GetAvailabilityZone()
+		createInstanceRequest["RegionId"] = a.Config.OpenApi.Region
 	}
-	if args.ZoneId == "" {
+
+	if instProps.AvailabilityZone != "" {
+		createInstanceRequest["ZoneId"] = instProps.AvailabilityZone
+	} else {
+		createInstanceRequest["ZoneId"] = a.Config.OpenApi.GetAvailabilityZone()
+	}
+	if createInstanceRequest["ZoneId"] == "" {
 		return cid, nil, bosherr.Errorf("can't get zone from availability_zone or cpi.config")
 	}
 
 	// config instance_type
-	args.InstanceType = instProps.InstanceType
-	if args.InstanceType == "" {
+	createInstanceRequest["InstanceType"] = instProps.InstanceType
+	if createInstanceRequest["InstanceType"] == "" {
 		return cid, nil, bosherr.Errorf("missing instance_type")
 	}
 
@@ -162,50 +167,50 @@ func (a CreateVMMethod) createVM(
 
 	// config vm charge type
 	if instProps.ChargeType == "PrePaid" {
-		args.InstanceChargeType = "PrePaid"
+		createInstanceRequest["InstanceChargeType"] = "PrePaid"
 		period, err := instProps.ChargePeriod.Int64()
 		if err != nil {
 			return cid, nil, bosherr.WrapErrorf(err, "parse charge_period %s failed when charge_type is `PrePaid`", instProps.ChargePeriod.String())
 		}
-		args.Period = requests.NewInteger64(period)
-		args.PeriodUnit = instProps.ChargePeriodUnit
+		createInstanceRequest["Period"] = requests.NewInteger64(period)
+		createInstanceRequest["PeriodUnit"] = instProps.ChargePeriodUnit
 		if strings.EqualFold(instProps.AutoRenew, "True") {
-			args.AutoRenew = requests.NewBoolean(true)
+			createInstanceRequest["AutoRenew"] = requests.NewBoolean(true)
 			period, err = instProps.AutoRenewPeriod.Int64()
 			if err != nil {
 				return cid, nil, bosherr.WrapErrorf(err, "parse charge_auto_renew_period %s failed when charge_auto_renew is `True`", instProps.AutoRenewPeriod.String())
 			}
-			args.AutoRenewPeriod = requests.NewInteger64(period)
+			createInstanceRequest["AutoRenewPeriod"] = requests.NewInteger64(period)
 		} else if strings.EqualFold(instProps.AutoRenew, "False") || instProps.AutoRenew == "" {
-			args.AutoRenew = requests.NewBoolean(false)
+			createInstanceRequest["AutoRenew"] = requests.NewBoolean(false)
 		} else {
 			return cid, nil, bosherr.Errorf("unexpected charge_auto_renew: %s", instProps.AutoRenew)
 		}
 	} else if instProps.ChargeType == "PostPaid" || instProps.ChargeType == "" {
-		args.InstanceChargeType = "PostPaid"
+		createInstanceRequest["InstanceChargeType"] = "PostPaid"
 	} else {
 		return cid, nil, bosherr.Errorf("unexpected charge type %s", instProps.ChargeType)
 	}
 
 	// compare key pair or password
 	if len(strings.TrimSpace(instProps.KeyPairName)) > 0 {
-		args.KeyPairName = instProps.KeyPairName
+		createInstanceRequest["KeyPairName"] = instProps.KeyPairName
 	} else if len(strings.TrimSpace(instProps.Password)) > 0 {
-		args.Password = instProps.Password
+		createInstanceRequest["Password"] = instProps.Password
 	}
 
-	args.ImageId = stemcellCID.AsString()
+	createInstanceRequest["ImageId"] = stemcellCID.AsString()
 	if instProps.StemcellId != "" {
-		args.ImageId = instProps.StemcellId
+		createInstanceRequest["ImageId"] = instProps.StemcellId
 	}
-	args.InstanceName = instProps.InstanceName
-	args.IoOptimized = "optimized"
+	createInstanceRequest["InstanceName"] = instProps.InstanceName
+	createInstanceRequest["IoOptimized"] = "optimized"
 	if a.Config.Registry.ToInstanceUserData() != "" {
-		args.UserData = base64.StdEncoding.EncodeToString([]byte(a.Config.Registry.ToInstanceUserData()))
+		createInstanceRequest["UserData"] = base64.StdEncoding.EncodeToString([]byte(a.Config.Registry.ToInstanceUserData()))
 	}
-	args.SpotStrategy = string(instProps.SpotStrategy)
-	args.SpotPriceLimit = requests.NewFloat(instProps.SpotPriceLimit)
-	args.RamRoleName = instProps.RamRoleName
+	createInstanceRequest["SpotStrategy"] = string(instProps.SpotStrategy)
+	createInstanceRequest["SpotPriceLimit"] = requests.NewFloat(instProps.SpotPriceLimit)
+	createInstanceRequest["RamRoleName"] = instProps.RamRoleName
 
 	// fill disks
 	disks, err := NewDisksWithProps(instProps.SystemDisk, instProps.EphemeralDisk)
@@ -213,16 +218,14 @@ func (a CreateVMMethod) createVM(
 		return cid, nil, bosherr.WrapErrorf(err, "bad disks format, %v", instProps)
 	}
 
-	disks.FillCreateInstanceArgs(a.Config.OpenApi.Encrypted, args)
+	disks.FillCreateInstanceArgs(a.Config.OpenApi.Encrypted, createInstanceRequest)
 
 	//打标签
-	tags := make([]ecs.CreateInstanceTag, 0)
 	// 首先获取registry中的tag
+	tags := make(map[string]interface{})
+
 	for k, v := range registryEnv.Bosh.Tags {
-		tags = append(tags, ecs.CreateInstanceTag{
-			Key:   k,
-			Value: fmt.Sprint(v),
-		})
+		tags[k] = fmt.Sprint(v)
 	}
 	// 为了支持CR，tag中添加创建时获取的env.bosh.group参数
 	if registryEnv.Bosh.Group != "" {
@@ -230,25 +233,23 @@ func (a CreateVMMethod) createVM(
 		if len(registryEnv.Bosh.Group) > 128 {
 			groupTagValue = registryEnv.Bosh.Group[:128]
 		}
-		tags = append(tags, ecs.CreateInstanceTag{
-			Key:   "environment_bosh_group_for_using_capacity_reservation_in_alicloud_iaas",
-			Value: groupTagValue,
-		})
+		tags["environment_bosh_group_for_using_capacity_reservation_in_alicloud_iaas"] = groupTagValue
 	}
 	// 接下来获取manifest中的tag
 	for k, v := range instProps.Tags {
-		tags = append(tags, ecs.CreateInstanceTag{
-			Key:   k,
-			Value: v,
-		})
+		tags[k] = v
 	}
-	args.Tag = &tags
+	count := 1
+	for key, value := range tags {
+		createInstanceRequest[fmt.Sprintf("Tag.%d.Key", count)] = key
+		createInstanceRequest[fmt.Sprintf("Tag.%d.Value", count)] = value
+		count++
+	}
 
 	// do CreateInstance !!!
-	instCid, err := a.instances.CreateInstance(instProps.Region, args)
+	instCid, err := a.instances.CreateInstance(instProps.Region, createInstanceRequest)
 	if err != nil {
-		req, _ := json.Marshal(args)
-		return apiv1.VMCID{}, nil, bosherr.WrapErrorf(err, "create instance failed with input=%s ", string(req))
+		return apiv1.VMCID{}, nil, bosherr.WrapErrorf(err, "create instance failed with input=%s ", createInstanceRequest)
 	}
 
 	// Wait for the instance status to STOPPED
