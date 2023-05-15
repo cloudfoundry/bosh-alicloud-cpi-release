@@ -68,7 +68,12 @@ func (a AttachDiskMethod) attach(vmCID apiv1.VMCID, diskCID apiv1.DiskCID, cpiVe
 	err := a.disks.ChangeDiskStatus(diskCid, alicloud.DiskStatusInUse, func(disk *ecs.Disk) (bool, error) {
 		switch alicloud.DiskStatus(disk.Status) {
 		case alicloud.DiskStatusInUse:
-			device = alicloud.AmendDiskPath(disk.Device, alicloud.DiskCategory(disk.Category))
+			inst, er := a.instances.GetInstance(instCid)
+			if er == nil {
+				device = a.disks.GetDiskPath(disk.Device, diskCid, inst.InstanceType, alicloud.DiskCategory(disk.Category))
+			} else {
+				device = a.disks.GetDiskPath(disk.Device, diskCid, "", alicloud.DiskCategory(disk.Category))
+			}
 			return true, nil
 		case alicloud.DiskStatusAvailable:
 			return false, a.disks.AttachDisk(instCid, diskCid)
