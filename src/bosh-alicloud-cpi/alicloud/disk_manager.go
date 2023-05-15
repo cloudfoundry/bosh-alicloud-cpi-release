@@ -4,6 +4,9 @@
 package alicloud
 
 import (
+	"strings"
+
+	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
 	"encoding/json"
@@ -38,6 +41,8 @@ type DiskManager interface {
 
 	WaitForDiskStatus(diskCid string, toStatus DiskStatus) (string, error)
 	ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error)) error
+
+	GetDiskPath(path, diskId, instanceType string, category DiskCategory) string
 }
 
 type DiskManagerImpl struct {
@@ -360,6 +365,53 @@ func AmendDiskPath(path string, category DiskCategory) string {
 	}
 
 	return path
+}
+
+func (a DiskManagerImpl) GetDiskPath(path, diskId, instanceType string, category DiskCategory) string {
+	amendPath := AmendDiskPath(path, category)
+
+	if instanceType == "" || diskId == "" {
+		return amendPath
+	}
+
+	conn, err := a.config.EcsTeaClient("")
+	if err != nil {
+		a.log("EcsTeaClient", err, nil, "")
+		return amendPath
+	}
+
+	invoker := NewInvoker()
+	invoker.AddCatcher(CreateInstanceCatcher_IdempotentProcessing)
+	invoker.AddCatcher(CreateInstanceCatcher_TokenProcessing)
+	invoker.AddCatcher(CreateInstanceCatcher_IpUsed)
+	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
+
+	action := "DescribeInstanceTypes"
+	request := map[string]interface{}{
+		"InstanceTypes.1": instanceType,
+		"NvmeSupport":     "required",
+	}
+	runtime := util.RuntimeOptions{}
+	runtime.SetAutoretry(true)
+	err = invoker.Run(func() error {
+		resp, e := conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2014-05-26"), StringPointer("AK"), nil, request, &runtime)
+		if e != nil {
+			return e
+		}
+		if resp["InstanceTypes"] != nil &&
+			resp["InstanceTypes"].(map[string]interface{})["InstanceType"] != nil &&
+			len(resp["InstanceTypes"].(map[string]interface{})["InstanceType"].([]interface{})) > 0 {
+			amendPath = "/dev/disk/by-id/nvme-Alibaba_Cloud_Elastic_Block_Storage_" + strings.Split(diskId, "-")[1]
+		} else {
+			amendPath = "/dev/disk/by-id/virtio-" + strings.Split(diskId, "-")[1]
+		}
+		return e
+	})
+	if err != nil {
+		a.log(action, err, request, "")
+	}
+
+	return amendPath
 }
 
 func DescribeDisks(client *ecs.Client, diskId string) (disk *ecs.Disk, err error) {
