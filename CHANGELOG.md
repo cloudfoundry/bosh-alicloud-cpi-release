@@ -1,7 +1,19 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 46.0.0 (Unreleased)
+## 47.0.0 (Unreleased)
+## 46.0.0 (May 22, 2023)
+
+IMPROVEMENTS:
+
+- Fixes the disk device diff bug after attching it to instance ([#161](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/161))
+- fixes the empty tag value bug when creating vm instance ([#160](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/160))
+- fixes the parsing terraform output error before prepare-director ([#159](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/159))
+- fixes the terraform destroy failed ([#158](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/158))
+- ci: setting provider version ([#157](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/157))
+- ci: Improves the terraform template ([#156](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/156))
+- ci: upgrade terraform version ([#155](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/155))
+
 ## 45.0.0 (March 30, 2022)
 
 IMPROVEMENTS:
