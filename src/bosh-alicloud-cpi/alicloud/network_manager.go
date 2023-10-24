@@ -6,6 +6,7 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
+	util "github.com/alibabacloud-go/tea-utils/service"
 	"strings"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
@@ -22,6 +23,7 @@ type NetworkManager interface {
 
 	BindSLB(region, instanceId, slbId string, weight int) error
 	BindSlbServerGroup(region, instanceId, slbId string, weight int, port int) error
+	BindNlbServerGroup(region, instanceId, nlbServerGroupId string, weight int, port int) error
 	DescribeSecurityGroupAttribute(region, groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error)
 	JoinSecurityGroup(region, instanceId, groupId string) error
 }
@@ -169,6 +171,33 @@ func (a NetworkManagerImpl) BindSlbServerGroup(region, instanceId string, slbSer
 	return err
 }
 
+func (a NetworkManagerImpl) BindNlbServerGroup(region, instanceId string, nlbServerGroupId string, weight int, port int) error {
+	conn, err := a.config.NlbTeaClient(region)
+	if err != nil {
+		return err
+	}
+	request := map[string]interface{}{
+		"Servers.1.Port": port,
+		"ServerGroupId": nlbServerGroupId,
+		"Servers.1.ServerId": instanceId,
+		"Servers.1.ServerType": "Ecs",
+		"ClientToken": buildClientToken("AddServersToServerGroup"),
+	}
+	if weight != 0 {
+		request["Servers.1.Weight"] = weight
+	}
+	action := "AddServersToServerGroup"
+	invoker := NewInvoker()
+	invoker.AddCatcher(NlbBindServerCatcher_Conflict_Lock)
+	runtime := util.RuntimeOptions{}
+	runtime.SetAutoretry(true)
+	err = invoker.Run(func() error {
+		_, e := conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2022-04-30"), StringPointer("AK"), nil, request, &runtime)
+		a.logger.Error("NetworkManager", "BindNlbServerGroup %s to %s failed %v. Retry...", instanceId, nlbServerGroupId, err)
+		return e
+	})
+	return err
+}
 //
 // TODO: add retry
 func (a NetworkManagerImpl) BindSLB(region, instanceId string, slbId string, weight int) error {
