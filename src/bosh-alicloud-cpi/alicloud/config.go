@@ -57,6 +57,7 @@ const (
 	BoshCPIVersion              = "1.0"
 	DefaultSlbServerGroupPort   = 33333
 	DefaultSlbServerGroupWeight = 100
+	DefaultNlbServerGroupWeight = 100
 )
 
 type OpenApi struct {
@@ -70,6 +71,7 @@ type OpenApi struct {
 	KmsKeyId         string `json:"kms_key_id"`
 	EcsEndpoint      string `json:"ecs_endpoint"`
 	SlbEndpoint      string `json:"slb_endpoint"`
+	NlbEndpoint      string `json:"nlb_endpoint"`
 	OssEndpoint      string `json:"oss_endpoint"`
 	LocationEndpoint string `json:"location_endpoint"`
 }
@@ -250,6 +252,37 @@ func (c Config) NewSlbClient(region string) (*slb.Client, error) {
 		return nil, bosherr.WrapErrorf(err, "Initiating SLB Client in '%s' got an error.", c.OpenApi.GetRegion(region))
 	}
 	return client, nil
+}
+
+func (c Config) NlbTeaClient(region string) (*rpc.Client, error) {
+	var mutex = sync.RWMutex{}
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if region == "" {
+		region = c.OpenApi.Region
+	}
+	endpoint := strings.TrimSpace(c.OpenApi.NlbEndpoint)
+	if endpoint == "" {
+		endpoint = strings.TrimSpace(os.Getenv("NLB_ENDPOINT"))
+	}
+
+	if endpoint == "" {
+		endpoint = fmt.Sprintf("nlb.%s.aliyuncs.com", region)
+	}
+
+	sdkConfig, err := c.getTeaDslSdkConfig(true)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Initiating NLB Client in '%s' got an error.", c.OpenApi.GetRegion(region))
+	}
+	sdkConfig.SetEndpoint(endpoint).SetReadTimeout(60000)
+
+	conn, err := rpc.NewClient(&sdkConfig)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Initiating NLB Client in '%s' got an error.", c.OpenApi.GetRegion(region))
+	}
+
+	return conn, nil
 }
 
 func (c Config) GetRegistryClient(logger boshlog.Logger) RegistryManager {

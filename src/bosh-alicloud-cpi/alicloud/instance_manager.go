@@ -25,6 +25,8 @@ var IncorrectInstanceStatusCatcher = Catcher{"IncorrectInstanceStatus", 30, 10}
 var CreateInstanceCatcher_IpUsed = Catcher{"InvalidPrivateIpAddress.Duplicated", 30, 10}
 var CreateInstanceCatcher_IpUsed2 = Catcher{"InvalidIPAddress.AlreadyUsed", 30, 10}
 var NetworkInterfaceInvalidOperationInvalidEniStateCacher = Catcher{"InvalidOperation.InvalidEniState", 60, 5}
+var NlbBindServerCatcher_Conflict_Lock = Catcher{"Conflict.Lock", 15, 3}
+
 
 const (
 	ChangeInstanceStatusTimeout       = time.Duration(600) * time.Second
