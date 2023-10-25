@@ -1,7 +1,14 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 47.0.0 (Unreleased)
+## 48.0.0 (Unreleased)
+## 47.0.0 (October 25, 2023)
+
+IMPROVEMENTS:
+
+- adds new instance properties: nlb_server_group_weight, nlb_server_group_port and nlb_server_group_ids to support binding vm with nlb ([#163](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/163))
+- upgrade go version to 1.20; upgrade bosh-utils version to v0.0.407 ([#164](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/164))
+
 ## 46.0.0 (May 22, 2023)
 
 IMPROVEMENTS:
