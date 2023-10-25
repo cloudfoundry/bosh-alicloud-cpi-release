@@ -1,3 +1,5 @@
+// untested sections: 5
+
 package matchers
 
 import (
@@ -50,5 +52,5 @@ func (matcher *BeARegularFileMatcher) FailureMessage(actual interface{}) (messag
 }
 
 func (matcher *BeARegularFileMatcher) NegatedFailureMessage(actual interface{}) (message string) {
-	return format.Message(actual, fmt.Sprintf("not be a regular file"))
+	return format.Message(actual, "not be a regular file")
 }

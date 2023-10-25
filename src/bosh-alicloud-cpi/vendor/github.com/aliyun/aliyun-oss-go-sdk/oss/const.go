@@ -103,6 +103,7 @@ const (
 	HTTPHeaderOssObjectACL                   = "X-Oss-Object-Acl"
 	HTTPHeaderOssSecurityToken               = "X-Oss-Security-Token"
 	HTTPHeaderOssServerSideEncryption        = "X-Oss-Server-Side-Encryption"
+	HTTPHeaderOssServerSideEncryptionKeyID   = "X-Oss-Server-Side-Encryption-Key-Id"
 	HTTPHeaderOssCopySource                  = "X-Oss-Copy-Source"
 	HTTPHeaderOssCopySourceRange             = "X-Oss-Copy-Source-Range"
 	HTTPHeaderOssCopySourceIfMatch           = "X-Oss-Copy-Source-If-Match"
@@ -126,6 +127,7 @@ const (
 	HTTPParamAccessKeyID   = "OSSAccessKeyId"
 	HTTPParamSignature     = "Signature"
 	HTTPParamSecurityToken = "security-token"
+	HTTPParamPlaylistName  = "playlistName"
 )
 
 // Other constants
@@ -140,5 +142,5 @@ const (
 
 	CheckpointFileSuffix = ".cp" // Checkpoint file suffix
 
-	Version = "1.9.2" // Go SDK version
+	Version = "1.9.5" // Go SDK version
 )
