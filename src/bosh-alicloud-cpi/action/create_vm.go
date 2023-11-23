@@ -30,7 +30,6 @@ const (
 	PostPaid = InstanceChargeType("PostPaid")
 )
 
-//
 // Instance properties: ref to docs/bosh/alicloud-cpi.md
 // spot https://help.aliyun.com/knowledge_detail/48269.html
 // ram profile https://help.aliyun.com/document_detail/54579.html?spm=5176.doc25481.6.797.UVS7aB
