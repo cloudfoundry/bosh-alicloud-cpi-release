@@ -78,7 +78,6 @@ func convertMetaData(input MetaInput) (MetaData, error) {
 	return r, nil
 }
 
-//
 // InstanceName ref https://help.aliyun.com/document_detail/25503.html
 func normalizeName(s string, prefix string) string {
 	r := ""
@@ -110,7 +109,6 @@ func normalizeName(s string, prefix string) string {
 	return r
 }
 
-//
 // Tag.Key Tag.Name
 // ref https://help.aliyun.com/document_detail/25616.html
 func normalizeTag(s string) string {

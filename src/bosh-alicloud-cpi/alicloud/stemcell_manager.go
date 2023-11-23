@@ -183,7 +183,7 @@ func (a StemcellManagerImpl) WaitForImageReady(id string) error {
 	return a.WaitForImage(region, id, WaitForImageReadyTimeout)
 }
 
-//Wait Image ready
+// Wait Image ready
 func (a StemcellManagerImpl) WaitForImage(regionId, imageId string, timeout int) error {
 	if timeout <= 0 {
 		timeout = DefaultWaitForImageReadyTimeout

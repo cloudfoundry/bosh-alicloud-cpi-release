@@ -6,8 +6,9 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
-	util "github.com/alibabacloud-go/tea-utils/service"
 	"strings"
+
+	util "github.com/alibabacloud-go/tea-utils/service"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
@@ -177,11 +178,11 @@ func (a NetworkManagerImpl) BindNlbServerGroup(region, instanceId string, nlbSer
 		return err
 	}
 	request := map[string]interface{}{
-		"Servers.1.Port": port,
-		"ServerGroupId": nlbServerGroupId,
-		"Servers.1.ServerId": instanceId,
+		"Servers.1.Port":       port,
+		"ServerGroupId":        nlbServerGroupId,
+		"Servers.1.ServerId":   instanceId,
 		"Servers.1.ServerType": "Ecs",
-		"ClientToken": buildClientToken("AddServersToServerGroup"),
+		"ClientToken":          buildClientToken("AddServersToServerGroup"),
 	}
 	if weight != 0 {
 		request["Servers.1.Weight"] = weight
@@ -198,7 +199,7 @@ func (a NetworkManagerImpl) BindNlbServerGroup(region, instanceId string, nlbSer
 	})
 	return err
 }
-//
+
 // TODO: add retry
 func (a NetworkManagerImpl) BindSLB(region, instanceId string, slbId string, weight int) error {
 	client, err := a.config.NewSlbClient(region)

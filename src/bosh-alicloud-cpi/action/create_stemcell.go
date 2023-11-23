@@ -111,11 +111,11 @@ func (a StemcellProps) GetDiskGB() int {
 }
 
 // create stemcell policy:
-// 1. stemcell metadate set in cloudProps
-// 2. we provide three ways to create stemcell
-//    2.1 region-imageId format, return Stemcell directly
-//    2.2 source URL, put the raw image on OSS, then create image by the oss url
-//    2.3 local tarball, upload the tarball on OSS, the create image by the oss url
+//  1. stemcell metadate set in cloudProps
+//  2. we provide three ways to create stemcell
+//     2.1 region-imageId format, return Stemcell directly
+//     2.2 source URL, put the raw image on OSS, then create image by the oss url
+//     2.3 local tarball, upload the tarball on OSS, the create image by the oss url
 func (a CreateStemcellMethod) CreateStemcell(imagePath string, cloudProps apiv1.StemcellCloudProps) (apiv1.StemcellCID, error) {
 	var props StemcellProps
 	var stemcellId string
