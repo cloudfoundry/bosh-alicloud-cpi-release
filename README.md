@@ -9,7 +9,7 @@ This is a [BOSH](http://bosh.io) release for the BOSH Alibaba Cloud CPI.
 - Clone this repo
 - Install golang and export $GOROOT
 - Install bosh-cli
-- Download `go1.8.1.linux-amd64.tar.gz` from https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz
+- Download `go1.20.10.linux-amd64.tar.gz` from https://storage.googleapis.com/golang/go1.20.10.linux-amd64.tar.gz
 - Add blob and create release
 - Configure golang env and make
 - Create bosh release
@@ -18,7 +18,7 @@ This is a [BOSH](http://bosh.io) release for the BOSH Alibaba Cloud CPI.
 $ git clone https://github.com/aliyun/bosh-alicloud-cpi-release.git
 $ cd bosh-alicloud-cpi-release
 $ mkdir blobs
-$ bosh add-blob ~/Downloads/go1.8.1.linux-amd64.tar.gz go1.8.1.linux-amd64.tar.gz
+$ bosh add-blob ~/Downloads/go1.20.10.linux-amd64.tar.gz go1.20.10.linux-amd64.tar.gz
 $ source .envrc
 $ make
 $ bosh create-release --force --tarball=../bosh-alicloud-cpi.tgz
