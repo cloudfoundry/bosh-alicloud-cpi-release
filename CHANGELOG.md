@@ -1,7 +1,12 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 48.0.0 (Unreleased)
+## 49.0.0 (Unreleased)
+## 48.0.0 (December 26, 2023)
+
+- Update Documentation ([#166](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/166))
+- update dependencies ([#165](https://github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/pull/165))
+
 ## 47.0.0 (October 25, 2023)
 
 IMPROVEMENTS:
