@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeBandwidthPackages invokes the ecs.DescribeBandwidthPackages API synchronously
-// api document: https://help.aliyun.com/api/ecs/describebandwidthpackages.html
 func (client *Client) DescribeBandwidthPackages(request *DescribeBandwidthPackagesRequest) (response *DescribeBandwidthPackagesResponse, err error) {
 	response = CreateDescribeBandwidthPackagesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeBandwidthPackages(request *DescribeBandwidthPackag
 }
 
 // DescribeBandwidthPackagesWithChan invokes the ecs.DescribeBandwidthPackages API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describebandwidthpackages.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeBandwidthPackagesWithChan(request *DescribeBandwidthPackagesRequest) (<-chan *DescribeBandwidthPackagesResponse, <-chan error) {
 	responseChan := make(chan *DescribeBandwidthPackagesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeBandwidthPackagesWithChan(request *DescribeBandwid
 }
 
 // DescribeBandwidthPackagesWithCallback invokes the ecs.DescribeBandwidthPackages API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describebandwidthpackages.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeBandwidthPackagesWithCallback(request *DescribeBandwidthPackagesRequest, callback func(response *DescribeBandwidthPackagesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,22 +72,22 @@ func (client *Client) DescribeBandwidthPackagesWithCallback(request *DescribeBan
 type DescribeBandwidthPackagesRequest struct {
 	*requests.RpcRequest
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	PageNumber           requests.Integer `position:"Query" name:"PageNumber"`
+	PageSize             requests.Integer `position:"Query" name:"PageSize"`
+	NatGatewayId         string           `position:"Query" name:"NatGatewayId"`
 	BandwidthPackageId   string           `position:"Query" name:"BandwidthPackageId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	PageSize             requests.Integer `position:"Query" name:"PageSize"`
-	NatGatewayId         string           `position:"Query" name:"NatGatewayId"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	PageNumber           requests.Integer `position:"Query" name:"PageNumber"`
 }
 
 // DescribeBandwidthPackagesResponse is the response struct for api DescribeBandwidthPackages
 type DescribeBandwidthPackagesResponse struct {
 	*responses.BaseResponse
-	RequestId         string            `json:"RequestId" xml:"RequestId"`
-	TotalCount        int               `json:"TotalCount" xml:"TotalCount"`
-	PageNumber        int               `json:"PageNumber" xml:"PageNumber"`
 	PageSize          int               `json:"PageSize" xml:"PageSize"`
+	RequestId         string            `json:"RequestId" xml:"RequestId"`
+	PageNumber        int               `json:"PageNumber" xml:"PageNumber"`
+	TotalCount        int               `json:"TotalCount" xml:"TotalCount"`
 	BandwidthPackages BandwidthPackages `json:"BandwidthPackages" xml:"BandwidthPackages"`
 }
 
@@ -102,6 +97,7 @@ func CreateDescribeBandwidthPackagesRequest() (request *DescribeBandwidthPackage
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "DescribeBandwidthPackages", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

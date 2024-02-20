@@ -21,7 +21,6 @@ import (
 )
 
 // UnassignPrivateIpAddresses invokes the ecs.UnassignPrivateIpAddresses API synchronously
-// api document: https://help.aliyun.com/api/ecs/unassignprivateipaddresses.html
 func (client *Client) UnassignPrivateIpAddresses(request *UnassignPrivateIpAddressesRequest) (response *UnassignPrivateIpAddressesResponse, err error) {
 	response = CreateUnassignPrivateIpAddressesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) UnassignPrivateIpAddresses(request *UnassignPrivateIpAddre
 }
 
 // UnassignPrivateIpAddressesWithChan invokes the ecs.UnassignPrivateIpAddresses API asynchronously
-// api document: https://help.aliyun.com/api/ecs/unassignprivateipaddresses.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) UnassignPrivateIpAddressesWithChan(request *UnassignPrivateIpAddressesRequest) (<-chan *UnassignPrivateIpAddressesResponse, <-chan error) {
 	responseChan := make(chan *UnassignPrivateIpAddressesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) UnassignPrivateIpAddressesWithChan(request *UnassignPrivat
 }
 
 // UnassignPrivateIpAddressesWithCallback invokes the ecs.UnassignPrivateIpAddresses API asynchronously
-// api document: https://help.aliyun.com/api/ecs/unassignprivateipaddresses.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) UnassignPrivateIpAddressesWithCallback(request *UnassignPrivateIpAddressesRequest, callback func(response *UnassignPrivateIpAddressesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,6 +72,7 @@ func (client *Client) UnassignPrivateIpAddressesWithCallback(request *UnassignPr
 type UnassignPrivateIpAddressesRequest struct {
 	*requests.RpcRequest
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	Ipv4Prefix           *[]string        `position:"Query" name:"Ipv4Prefix"  type:"Repeated"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
@@ -96,6 +92,7 @@ func CreateUnassignPrivateIpAddressesRequest() (request *UnassignPrivateIpAddres
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "UnassignPrivateIpAddresses", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

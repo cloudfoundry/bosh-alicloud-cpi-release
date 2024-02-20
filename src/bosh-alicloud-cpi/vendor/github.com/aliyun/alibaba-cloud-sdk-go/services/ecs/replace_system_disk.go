@@ -21,7 +21,6 @@ import (
 )
 
 // ReplaceSystemDisk invokes the ecs.ReplaceSystemDisk API synchronously
-// api document: https://help.aliyun.com/api/ecs/replacesystemdisk.html
 func (client *Client) ReplaceSystemDisk(request *ReplaceSystemDiskRequest) (response *ReplaceSystemDiskResponse, err error) {
 	response = CreateReplaceSystemDiskResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) ReplaceSystemDisk(request *ReplaceSystemDiskRequest) (resp
 }
 
 // ReplaceSystemDiskWithChan invokes the ecs.ReplaceSystemDisk API asynchronously
-// api document: https://help.aliyun.com/api/ecs/replacesystemdisk.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ReplaceSystemDiskWithChan(request *ReplaceSystemDiskRequest) (<-chan *ReplaceSystemDiskResponse, <-chan error) {
 	responseChan := make(chan *ReplaceSystemDiskResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) ReplaceSystemDiskWithChan(request *ReplaceSystemDiskReques
 }
 
 // ReplaceSystemDiskWithCallback invokes the ecs.ReplaceSystemDisk API asynchronously
-// api document: https://help.aliyun.com/api/ecs/replacesystemdisk.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ReplaceSystemDiskWithCallback(request *ReplaceSystemDiskRequest, callback func(response *ReplaceSystemDiskResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,29 +71,41 @@ func (client *Client) ReplaceSystemDiskWithCallback(request *ReplaceSystemDiskRe
 // ReplaceSystemDiskRequest is the request struct for api ReplaceSystemDisk
 type ReplaceSystemDiskRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId             requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	ImageId                     string           `position:"Query" name:"ImageId"`
-	ResourceOwnerAccount        string           `position:"Query" name:"ResourceOwnerAccount"`
-	ClientToken                 string           `position:"Query" name:"ClientToken"`
-	OwnerAccount                string           `position:"Query" name:"OwnerAccount"`
-	SecurityEnhancementStrategy string           `position:"Query" name:"SecurityEnhancementStrategy"`
-	KeyPairName                 string           `position:"Query" name:"KeyPairName"`
-	OwnerId                     requests.Integer `position:"Query" name:"OwnerId"`
-	Platform                    string           `position:"Query" name:"Platform"`
-	Password                    string           `position:"Query" name:"Password"`
-	InstanceId                  string           `position:"Query" name:"InstanceId"`
-	PasswordInherit             requests.Boolean `position:"Query" name:"PasswordInherit"`
-	SystemDiskSize              requests.Integer `position:"Query" name:"SystemDisk.Size"`
-	DiskId                      string           `position:"Query" name:"DiskId"`
-	UseAdditionalService        requests.Boolean `position:"Query" name:"UseAdditionalService"`
-	Architecture                string           `position:"Query" name:"Architecture"`
+	ResourceOwnerId             requests.Integer        `position:"Query" name:"ResourceOwnerId"`
+	ImageId                     string                  `position:"Query" name:"ImageId"`
+	ClientToken                 string                  `position:"Query" name:"ClientToken"`
+	EncryptAlgorithm            string                  `position:"Query" name:"EncryptAlgorithm"`
+	SecurityEnhancementStrategy string                  `position:"Query" name:"SecurityEnhancementStrategy"`
+	KeyPairName                 string                  `position:"Query" name:"KeyPairName"`
+	Platform                    string                  `position:"Query" name:"Platform"`
+	Password                    string                  `position:"Query" name:"Password"`
+	LoginAsNonRoot              requests.Boolean        `position:"Query" name:"LoginAsNonRoot"`
+	PasswordInherit             requests.Boolean        `position:"Query" name:"PasswordInherit"`
+	DiskId                      string                  `position:"Query" name:"DiskId"`
+	Arn                         *[]ReplaceSystemDiskArn `position:"Query" name:"Arn"  type:"Repeated"`
+	Architecture                string                  `position:"Query" name:"Architecture"`
+	ResourceOwnerAccount        string                  `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount                string                  `position:"Query" name:"OwnerAccount"`
+	OwnerId                     requests.Integer        `position:"Query" name:"OwnerId"`
+	InstanceId                  string                  `position:"Query" name:"InstanceId"`
+	SystemDiskSize              requests.Integer        `position:"Query" name:"SystemDisk.Size"`
+	Encrypted                   requests.Boolean        `position:"Query" name:"Encrypted"`
+	KMSKeyId                    string                  `position:"Query" name:"KMSKeyId"`
+	UseAdditionalService        requests.Boolean        `position:"Query" name:"UseAdditionalService"`
+}
+
+// ReplaceSystemDiskArn is a repeated param struct in ReplaceSystemDiskRequest
+type ReplaceSystemDiskArn struct {
+	Rolearn       string `name:"Rolearn"`
+	RoleType      string `name:"RoleType"`
+	AssumeRoleFor string `name:"AssumeRoleFor"`
 }
 
 // ReplaceSystemDiskResponse is the response struct for api ReplaceSystemDisk
 type ReplaceSystemDiskResponse struct {
 	*responses.BaseResponse
-	RequestId string `json:"RequestId" xml:"RequestId"`
 	DiskId    string `json:"DiskId" xml:"DiskId"`
+	RequestId string `json:"RequestId" xml:"RequestId"`
 }
 
 // CreateReplaceSystemDiskRequest creates a request to invoke ReplaceSystemDisk API
@@ -107,6 +114,7 @@ func CreateReplaceSystemDiskRequest() (request *ReplaceSystemDiskRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "ReplaceSystemDisk", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

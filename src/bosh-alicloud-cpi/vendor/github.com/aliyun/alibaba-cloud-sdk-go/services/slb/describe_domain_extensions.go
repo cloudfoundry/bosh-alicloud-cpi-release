@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeDomainExtensions invokes the slb.DescribeDomainExtensions API synchronously
-// api document: https://help.aliyun.com/api/slb/describedomainextensions.html
 func (client *Client) DescribeDomainExtensions(request *DescribeDomainExtensionsRequest) (response *DescribeDomainExtensionsResponse, err error) {
 	response = CreateDescribeDomainExtensionsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeDomainExtensions(request *DescribeDomainExtensions
 }
 
 // DescribeDomainExtensionsWithChan invokes the slb.DescribeDomainExtensions API asynchronously
-// api document: https://help.aliyun.com/api/slb/describedomainextensions.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainExtensionsWithChan(request *DescribeDomainExtensionsRequest) (<-chan *DescribeDomainExtensionsResponse, <-chan error) {
 	responseChan := make(chan *DescribeDomainExtensionsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeDomainExtensionsWithChan(request *DescribeDomainEx
 }
 
 // DescribeDomainExtensionsWithCallback invokes the slb.DescribeDomainExtensions API asynchronously
-// api document: https://help.aliyun.com/api/slb/describedomainextensions.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainExtensionsWithCallback(request *DescribeDomainExtensionsRequest, callback func(response *DescribeDomainExtensionsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,13 +73,13 @@ type DescribeDomainExtensionsRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	DomainExtensionId    string           `position:"Query" name:"DomainExtensionId"`
 	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	Tags                 string           `position:"Query" name:"Tags"`
-	DomainExtensionId    string           `position:"Query" name:"DomainExtensionId"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 }
 
 // DescribeDomainExtensionsResponse is the response struct for api DescribeDomainExtensions
@@ -100,6 +95,7 @@ func CreateDescribeDomainExtensionsRequest() (request *DescribeDomainExtensionsR
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DescribeDomainExtensions", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

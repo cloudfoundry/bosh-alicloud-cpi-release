@@ -21,7 +21,6 @@ import (
 )
 
 // DeleteInstances invokes the ecs.DeleteInstances API synchronously
-// api document: https://help.aliyun.com/api/ecs/deleteinstances.html
 func (client *Client) DeleteInstances(request *DeleteInstancesRequest) (response *DeleteInstancesResponse, err error) {
 	response = CreateDeleteInstancesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DeleteInstances(request *DeleteInstancesRequest) (response
 }
 
 // DeleteInstancesWithChan invokes the ecs.DeleteInstances API asynchronously
-// api document: https://help.aliyun.com/api/ecs/deleteinstances.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DeleteInstancesWithChan(request *DeleteInstancesRequest) (<-chan *DeleteInstancesResponse, <-chan error) {
 	responseChan := make(chan *DeleteInstancesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DeleteInstancesWithChan(request *DeleteInstancesRequest) (
 }
 
 // DeleteInstancesWithCallback invokes the ecs.DeleteInstances API asynchronously
-// api document: https://help.aliyun.com/api/ecs/deleteinstances.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DeleteInstancesWithCallback(request *DeleteInstancesRequest, callback func(response *DeleteInstancesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,14 +72,14 @@ func (client *Client) DeleteInstancesWithCallback(request *DeleteInstancesReques
 type DeleteInstancesRequest struct {
 	*requests.RpcRequest
 	ResourceOwnerId       requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	InstanceId            *[]string        `position:"Query" name:"InstanceId"  type:"Repeated"`
+	ClientToken           string           `position:"Query" name:"ClientToken"`
+	TerminateSubscription requests.Boolean `position:"Query" name:"TerminateSubscription"`
 	DryRun                requests.Boolean `position:"Query" name:"DryRun"`
 	ResourceOwnerAccount  string           `position:"Query" name:"ResourceOwnerAccount"`
-	ClientToken           string           `position:"Query" name:"ClientToken"`
 	OwnerAccount          string           `position:"Query" name:"OwnerAccount"`
-	TerminateSubscription requests.Boolean `position:"Query" name:"TerminateSubscription"`
-	Force                 requests.Boolean `position:"Query" name:"Force"`
 	OwnerId               requests.Integer `position:"Query" name:"OwnerId"`
+	InstanceId            *[]string        `position:"Query" name:"InstanceId"  type:"Repeated"`
+	Force                 requests.Boolean `position:"Query" name:"Force"`
 }
 
 // DeleteInstancesResponse is the response struct for api DeleteInstances
@@ -99,6 +94,7 @@ func CreateDeleteInstancesRequest() (request *DeleteInstancesRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "DeleteInstances", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

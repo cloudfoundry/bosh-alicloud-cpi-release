@@ -21,7 +21,6 @@ import (
 )
 
 // DeleteMasterSlaveServerGroup invokes the slb.DeleteMasterSlaveServerGroup API synchronously
-// api document: https://help.aliyun.com/api/slb/deletemasterslaveservergroup.html
 func (client *Client) DeleteMasterSlaveServerGroup(request *DeleteMasterSlaveServerGroupRequest) (response *DeleteMasterSlaveServerGroupResponse, err error) {
 	response = CreateDeleteMasterSlaveServerGroupResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DeleteMasterSlaveServerGroup(request *DeleteMasterSlaveSer
 }
 
 // DeleteMasterSlaveServerGroupWithChan invokes the slb.DeleteMasterSlaveServerGroup API asynchronously
-// api document: https://help.aliyun.com/api/slb/deletemasterslaveservergroup.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DeleteMasterSlaveServerGroupWithChan(request *DeleteMasterSlaveServerGroupRequest) (<-chan *DeleteMasterSlaveServerGroupResponse, <-chan error) {
 	responseChan := make(chan *DeleteMasterSlaveServerGroupResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DeleteMasterSlaveServerGroupWithChan(request *DeleteMaster
 }
 
 // DeleteMasterSlaveServerGroupWithCallback invokes the slb.DeleteMasterSlaveServerGroup API asynchronously
-// api document: https://help.aliyun.com/api/slb/deletemasterslaveservergroup.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DeleteMasterSlaveServerGroupWithCallback(request *DeleteMasterSlaveServerGroupRequest, callback func(response *DeleteMasterSlaveServerGroupResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,11 +73,11 @@ type DeleteMasterSlaveServerGroupRequest struct {
 	*requests.RpcRequest
 	AccessKeyId              string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId          requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	MasterSlaveServerGroupId string           `position:"Query" name:"MasterSlaveServerGroupId"`
 	ResourceOwnerAccount     string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount             string           `position:"Query" name:"OwnerAccount"`
 	OwnerId                  requests.Integer `position:"Query" name:"OwnerId"`
 	Tags                     string           `position:"Query" name:"Tags"`
+	MasterSlaveServerGroupId string           `position:"Query" name:"MasterSlaveServerGroupId"`
 }
 
 // DeleteMasterSlaveServerGroupResponse is the response struct for api DeleteMasterSlaveServerGroup
@@ -97,6 +92,7 @@ func CreateDeleteMasterSlaveServerGroupRequest() (request *DeleteMasterSlaveServ
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DeleteMasterSlaveServerGroup", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

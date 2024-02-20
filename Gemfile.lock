@@ -23,6 +23,7 @@ GEM
     semi_semantic (1.2.0)
 
 PLATFORMS
+  arm64-darwin-22
   x86_64-darwin-20
 
 DEPENDENCIES

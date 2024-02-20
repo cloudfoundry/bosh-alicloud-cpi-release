@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeInvocationResults invokes the ecs.DescribeInvocationResults API synchronously
-// api document: https://help.aliyun.com/api/ecs/describeinvocationresults.html
 func (client *Client) DescribeInvocationResults(request *DescribeInvocationResultsRequest) (response *DescribeInvocationResultsResponse, err error) {
 	response = CreateDescribeInvocationResultsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeInvocationResults(request *DescribeInvocationResul
 }
 
 // DescribeInvocationResultsWithChan invokes the ecs.DescribeInvocationResults API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describeinvocationresults.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeInvocationResultsWithChan(request *DescribeInvocationResultsRequest) (<-chan *DescribeInvocationResultsResponse, <-chan error) {
 	responseChan := make(chan *DescribeInvocationResultsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeInvocationResultsWithChan(request *DescribeInvocat
 }
 
 // DescribeInvocationResultsWithCallback invokes the ecs.DescribeInvocationResults API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describeinvocationresults.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeInvocationResultsWithCallback(request *DescribeInvocationResultsRequest, callback func(response *DescribeInvocationResultsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,17 +71,28 @@ func (client *Client) DescribeInvocationResultsWithCallback(request *DescribeInv
 // DescribeInvocationResultsRequest is the request struct for api DescribeInvocationResults
 type DescribeInvocationResultsRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	CommandId            string           `position:"Query" name:"CommandId"`
-	PageNumber           requests.Integer `position:"Query" name:"PageNumber"`
-	PageSize             requests.Integer `position:"Query" name:"PageSize"`
-	InvokeId             string           `position:"Query" name:"InvokeId"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	InstanceId           string           `position:"Query" name:"InstanceId"`
-	InvokeRecordStatus   string           `position:"Query" name:"InvokeRecordStatus"`
-	IncludeHistory       requests.Boolean `position:"Query" name:"IncludeHistory"`
+	ResourceOwnerId      requests.Integer                `position:"Query" name:"ResourceOwnerId"`
+	CommandId            string                          `position:"Query" name:"CommandId"`
+	PageNumber           requests.Integer                `position:"Query" name:"PageNumber"`
+	ResourceGroupId      string                          `position:"Query" name:"ResourceGroupId"`
+	NextToken            string                          `position:"Query" name:"NextToken"`
+	ContentEncoding      string                          `position:"Query" name:"ContentEncoding"`
+	PageSize             requests.Integer                `position:"Query" name:"PageSize"`
+	Tag                  *[]DescribeInvocationResultsTag `position:"Query" name:"Tag"  type:"Repeated"`
+	InvokeId             string                          `position:"Query" name:"InvokeId"`
+	ResourceOwnerAccount string                          `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string                          `position:"Query" name:"OwnerAccount"`
+	OwnerId              requests.Integer                `position:"Query" name:"OwnerId"`
+	InstanceId           string                          `position:"Query" name:"InstanceId"`
+	InvokeRecordStatus   string                          `position:"Query" name:"InvokeRecordStatus"`
+	IncludeHistory       requests.Boolean                `position:"Query" name:"IncludeHistory"`
+	MaxResults           requests.Integer                `position:"Query" name:"MaxResults"`
+}
+
+// DescribeInvocationResultsTag is a repeated param struct in DescribeInvocationResultsRequest
+type DescribeInvocationResultsTag struct {
+	Key   string `name:"Key"`
+	Value string `name:"Value"`
 }
 
 // DescribeInvocationResultsResponse is the response struct for api DescribeInvocationResults
@@ -102,6 +108,7 @@ func CreateDescribeInvocationResultsRequest() (request *DescribeInvocationResult
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "DescribeInvocationResults", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

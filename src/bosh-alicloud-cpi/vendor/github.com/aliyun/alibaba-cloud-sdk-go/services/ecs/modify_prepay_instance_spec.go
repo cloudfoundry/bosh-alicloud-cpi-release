@@ -21,7 +21,6 @@ import (
 )
 
 // ModifyPrepayInstanceSpec invokes the ecs.ModifyPrepayInstanceSpec API synchronously
-// api document: https://help.aliyun.com/api/ecs/modifyprepayinstancespec.html
 func (client *Client) ModifyPrepayInstanceSpec(request *ModifyPrepayInstanceSpecRequest) (response *ModifyPrepayInstanceSpecResponse, err error) {
 	response = CreateModifyPrepayInstanceSpecResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) ModifyPrepayInstanceSpec(request *ModifyPrepayInstanceSpec
 }
 
 // ModifyPrepayInstanceSpecWithChan invokes the ecs.ModifyPrepayInstanceSpec API asynchronously
-// api document: https://help.aliyun.com/api/ecs/modifyprepayinstancespec.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifyPrepayInstanceSpecWithChan(request *ModifyPrepayInstanceSpecRequest) (<-chan *ModifyPrepayInstanceSpecResponse, <-chan error) {
 	responseChan := make(chan *ModifyPrepayInstanceSpecResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) ModifyPrepayInstanceSpecWithChan(request *ModifyPrepayInst
 }
 
 // ModifyPrepayInstanceSpecWithCallback invokes the ecs.ModifyPrepayInstanceSpec API asynchronously
-// api document: https://help.aliyun.com/api/ecs/modifyprepayinstancespec.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifyPrepayInstanceSpecWithCallback(request *ModifyPrepayInstanceSpecRequest, callback func(response *ModifyPrepayInstanceSpecResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,26 +71,43 @@ func (client *Client) ModifyPrepayInstanceSpecWithCallback(request *ModifyPrepay
 // ModifyPrepayInstanceSpecRequest is the request struct for api ModifyPrepayInstanceSpec
 type ModifyPrepayInstanceSpecRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	AutoPay              requests.Boolean `position:"Query" name:"AutoPay"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	ClientToken          string           `position:"Query" name:"ClientToken"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	EndTime              string           `position:"Query" name:"EndTime"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	OperatorType         string           `position:"Query" name:"OperatorType"`
-	SystemDiskCategory   string           `position:"Query" name:"SystemDisk.Category"`
-	RebootTime           string           `position:"Query" name:"RebootTime"`
-	InstanceId           string           `position:"Query" name:"InstanceId"`
-	MigrateAcrossZone    requests.Boolean `position:"Query" name:"MigrateAcrossZone"`
-	InstanceType         string           `position:"Query" name:"InstanceType"`
+	ResourceOwnerId      requests.Integer                         `position:"Query" name:"ResourceOwnerId"`
+	ClientToken          string                                   `position:"Query" name:"ClientToken"`
+	CouponNo             string                                   `position:"Query" name:"CouponNo"`
+	OperatorType         string                                   `position:"Query" name:"OperatorType"`
+	SystemDiskCategory   string                                   `position:"Query" name:"SystemDisk.Category"`
+	RebootTime           string                                   `position:"Query" name:"RebootTime"`
+	MigrateAcrossZone    requests.Boolean                         `position:"Query" name:"MigrateAcrossZone"`
+	InstanceType         string                                   `position:"Query" name:"InstanceType"`
+	ModifyMode           string                                   `position:"Query" name:"ModifyMode"`
+	AutoPay              requests.Boolean                         `position:"Query" name:"AutoPay"`
+	RebootWhenFinished   requests.Boolean                         `position:"Query" name:"RebootWhenFinished"`
+	ResourceOwnerAccount string                                   `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string                                   `position:"Query" name:"OwnerAccount"`
+	EndTime              string                                   `position:"Query" name:"EndTime"`
+	OwnerId              requests.Integer                         `position:"Query" name:"OwnerId"`
+	PromotionOptions     ModifyPrepayInstanceSpecPromotionOptions `position:"Query" name:"PromotionOptions"  type:"Struct"`
+	Disk                 *[]ModifyPrepayInstanceSpecDisk          `position:"Query" name:"Disk"  type:"Repeated"`
+	InstanceId           string                                   `position:"Query" name:"InstanceId"`
+}
+
+// ModifyPrepayInstanceSpecPromotionOptions is a repeated param struct in ModifyPrepayInstanceSpecRequest
+type ModifyPrepayInstanceSpecPromotionOptions struct {
+	CouponNo string `name:"CouponNo"`
+}
+
+// ModifyPrepayInstanceSpecDisk is a repeated param struct in ModifyPrepayInstanceSpecRequest
+type ModifyPrepayInstanceSpecDisk struct {
+	PerformanceLevel string `name:"PerformanceLevel"`
+	DiskId           string `name:"DiskId"`
+	Category         string `name:"Category"`
 }
 
 // ModifyPrepayInstanceSpecResponse is the response struct for api ModifyPrepayInstanceSpec
 type ModifyPrepayInstanceSpecResponse struct {
 	*responses.BaseResponse
-	RequestId string `json:"RequestId" xml:"RequestId"`
 	OrderId   string `json:"OrderId" xml:"OrderId"`
+	RequestId string `json:"RequestId" xml:"RequestId"`
 }
 
 // CreateModifyPrepayInstanceSpecRequest creates a request to invoke ModifyPrepayInstanceSpec API
@@ -104,6 +116,7 @@ func CreateModifyPrepayInstanceSpecRequest() (request *ModifyPrepayInstanceSpecR
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "ModifyPrepayInstanceSpec", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

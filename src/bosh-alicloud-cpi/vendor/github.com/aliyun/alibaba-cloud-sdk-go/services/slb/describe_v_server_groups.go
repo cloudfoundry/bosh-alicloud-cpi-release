@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeVServerGroups invokes the slb.DescribeVServerGroups API synchronously
-// api document: https://help.aliyun.com/api/slb/describevservergroups.html
 func (client *Client) DescribeVServerGroups(request *DescribeVServerGroupsRequest) (response *DescribeVServerGroupsResponse, err error) {
 	response = CreateDescribeVServerGroupsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeVServerGroups(request *DescribeVServerGroupsReques
 }
 
 // DescribeVServerGroupsWithChan invokes the slb.DescribeVServerGroups API asynchronously
-// api document: https://help.aliyun.com/api/slb/describevservergroups.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeVServerGroupsWithChan(request *DescribeVServerGroupsRequest) (<-chan *DescribeVServerGroupsResponse, <-chan error) {
 	responseChan := make(chan *DescribeVServerGroupsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeVServerGroupsWithChan(request *DescribeVServerGrou
 }
 
 // DescribeVServerGroupsWithCallback invokes the slb.DescribeVServerGroups API asynchronously
-// api document: https://help.aliyun.com/api/slb/describevservergroups.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeVServerGroupsWithCallback(request *DescribeVServerGroupsRequest, callback func(response *DescribeVServerGroupsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,15 +71,22 @@ func (client *Client) DescribeVServerGroupsWithCallback(request *DescribeVServer
 // DescribeVServerGroupsRequest is the request struct for api DescribeVServerGroups
 type DescribeVServerGroupsRequest struct {
 	*requests.RpcRequest
-	AccessKeyId          string           `position:"Query" name:"access_key_id"`
-	IncludeRule          requests.Boolean `position:"Query" name:"IncludeRule"`
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	IncludeListener      requests.Boolean `position:"Query" name:"IncludeListener"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	Tags                 string           `position:"Query" name:"Tags"`
+	AccessKeyId          string                      `position:"Query" name:"access_key_id"`
+	ResourceOwnerId      requests.Integer            `position:"Query" name:"ResourceOwnerId"`
+	IncludeListener      requests.Boolean            `position:"Query" name:"IncludeListener"`
+	IncludeRule          requests.Boolean            `position:"Query" name:"IncludeRule"`
+	Tag                  *[]DescribeVServerGroupsTag `position:"Query" name:"Tag"  type:"Repeated"`
+	ResourceOwnerAccount string                      `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string                      `position:"Query" name:"OwnerAccount"`
+	OwnerId              requests.Integer            `position:"Query" name:"OwnerId"`
+	Tags                 string                      `position:"Query" name:"Tags"`
+	LoadBalancerId       string                      `position:"Query" name:"LoadBalancerId"`
+}
+
+// DescribeVServerGroupsTag is a repeated param struct in DescribeVServerGroupsRequest
+type DescribeVServerGroupsTag struct {
+	Value string `name:"Value"`
+	Key   string `name:"Key"`
 }
 
 // DescribeVServerGroupsResponse is the response struct for api DescribeVServerGroups
@@ -100,6 +102,7 @@ func CreateDescribeVServerGroupsRequest() (request *DescribeVServerGroupsRequest
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DescribeVServerGroups", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

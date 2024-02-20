@@ -21,7 +21,6 @@ import (
 )
 
 // CreateImage invokes the ecs.CreateImage API synchronously
-// api document: https://help.aliyun.com/api/ecs/createimage.html
 func (client *Client) CreateImage(request *CreateImageRequest) (response *CreateImageResponse, err error) {
 	response = CreateCreateImageResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) CreateImage(request *CreateImageRequest) (response *Create
 }
 
 // CreateImageWithChan invokes the ecs.CreateImage API asynchronously
-// api document: https://help.aliyun.com/api/ecs/createimage.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateImageWithChan(request *CreateImageRequest) (<-chan *CreateImageResponse, <-chan error) {
 	responseChan := make(chan *CreateImageResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) CreateImageWithChan(request *CreateImageRequest) (<-chan *
 }
 
 // CreateImageWithCallback invokes the ecs.CreateImage API asynchronously
-// api document: https://help.aliyun.com/api/ecs/createimage.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateImageWithCallback(request *CreateImageRequest, callback func(response *CreateImageResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -79,18 +74,23 @@ type CreateImageRequest struct {
 	DiskDeviceMapping    *[]CreateImageDiskDeviceMapping `position:"Query" name:"DiskDeviceMapping"  type:"Repeated"`
 	ResourceOwnerId      requests.Integer                `position:"Query" name:"ResourceOwnerId"`
 	SnapshotId           string                          `position:"Query" name:"SnapshotId"`
-	ResourceOwnerAccount string                          `position:"Query" name:"ResourceOwnerAccount"`
 	ClientToken          string                          `position:"Query" name:"ClientToken"`
-	OwnerAccount         string                          `position:"Query" name:"OwnerAccount"`
+	SystemTag            *[]CreateImageSystemTag         `position:"Query" name:"SystemTag"  type:"Repeated"`
 	Description          string                          `position:"Query" name:"Description"`
-	OwnerId              requests.Integer                `position:"Query" name:"OwnerId"`
 	Platform             string                          `position:"Query" name:"Platform"`
 	ResourceGroupId      string                          `position:"Query" name:"ResourceGroupId"`
-	InstanceId           string                          `position:"Query" name:"InstanceId"`
+	BootMode             string                          `position:"Query" name:"BootMode"`
 	ImageName            string                          `position:"Query" name:"ImageName"`
-	ImageVersion         string                          `position:"Query" name:"ImageVersion"`
+	StorageLocationArn   string                          `position:"Query" name:"StorageLocationArn"`
 	Tag                  *[]CreateImageTag               `position:"Query" name:"Tag"  type:"Repeated"`
 	Architecture         string                          `position:"Query" name:"Architecture"`
+	DetectionStrategy    string                          `position:"Query" name:"DetectionStrategy"`
+	ResourceOwnerAccount string                          `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string                          `position:"Query" name:"OwnerAccount"`
+	OwnerId              requests.Integer                `position:"Query" name:"OwnerId"`
+	InstanceId           string                          `position:"Query" name:"InstanceId"`
+	ImageFamily          string                          `position:"Query" name:"ImageFamily"`
+	ImageVersion         string                          `position:"Query" name:"ImageVersion"`
 }
 
 // CreateImageDiskDeviceMapping is a repeated param struct in CreateImageRequest
@@ -99,6 +99,13 @@ type CreateImageDiskDeviceMapping struct {
 	Size       string `name:"Size"`
 	DiskType   string `name:"DiskType"`
 	Device     string `name:"Device"`
+}
+
+// CreateImageSystemTag is a repeated param struct in CreateImageRequest
+type CreateImageSystemTag struct {
+	Scope string `name:"Scope"`
+	Value string `name:"Value"`
+	Key   string `name:"Key"`
 }
 
 // CreateImageTag is a repeated param struct in CreateImageRequest
@@ -110,8 +117,8 @@ type CreateImageTag struct {
 // CreateImageResponse is the response struct for api CreateImage
 type CreateImageResponse struct {
 	*responses.BaseResponse
-	RequestId string `json:"RequestId" xml:"RequestId"`
 	ImageId   string `json:"ImageId" xml:"ImageId"`
+	RequestId string `json:"RequestId" xml:"RequestId"`
 }
 
 // CreateCreateImageRequest creates a request to invoke CreateImage API
@@ -120,6 +127,7 @@ func CreateCreateImageRequest() (request *CreateImageRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "CreateImage", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

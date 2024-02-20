@@ -21,7 +21,6 @@ import (
 )
 
 // UnassignIpv6Addresses invokes the ecs.UnassignIpv6Addresses API synchronously
-// api document: https://help.aliyun.com/api/ecs/unassignipv6addresses.html
 func (client *Client) UnassignIpv6Addresses(request *UnassignIpv6AddressesRequest) (response *UnassignIpv6AddressesResponse, err error) {
 	response = CreateUnassignIpv6AddressesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) UnassignIpv6Addresses(request *UnassignIpv6AddressesReques
 }
 
 // UnassignIpv6AddressesWithChan invokes the ecs.UnassignIpv6Addresses API asynchronously
-// api document: https://help.aliyun.com/api/ecs/unassignipv6addresses.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) UnassignIpv6AddressesWithChan(request *UnassignIpv6AddressesRequest) (<-chan *UnassignIpv6AddressesResponse, <-chan error) {
 	responseChan := make(chan *UnassignIpv6AddressesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) UnassignIpv6AddressesWithChan(request *UnassignIpv6Address
 }
 
 // UnassignIpv6AddressesWithCallback invokes the ecs.UnassignIpv6Addresses API asynchronously
-// api document: https://help.aliyun.com/api/ecs/unassignipv6addresses.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) UnassignIpv6AddressesWithCallback(request *UnassignIpv6AddressesRequest, callback func(response *UnassignIpv6AddressesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,6 +72,7 @@ func (client *Client) UnassignIpv6AddressesWithCallback(request *UnassignIpv6Add
 type UnassignIpv6AddressesRequest struct {
 	*requests.RpcRequest
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	Ipv6Prefix           *[]string        `position:"Query" name:"Ipv6Prefix"  type:"Repeated"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
@@ -96,6 +92,7 @@ func CreateUnassignIpv6AddressesRequest() (request *UnassignIpv6AddressesRequest
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "UnassignIpv6Addresses", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

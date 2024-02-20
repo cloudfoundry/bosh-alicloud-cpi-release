@@ -21,7 +21,6 @@ import (
 )
 
 // CreateSnapshot invokes the ecs.CreateSnapshot API synchronously
-// api document: https://help.aliyun.com/api/ecs/createsnapshot.html
 func (client *Client) CreateSnapshot(request *CreateSnapshotRequest) (response *CreateSnapshotResponse, err error) {
 	response = CreateCreateSnapshotResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) CreateSnapshot(request *CreateSnapshotRequest) (response *
 }
 
 // CreateSnapshotWithChan invokes the ecs.CreateSnapshot API asynchronously
-// api document: https://help.aliyun.com/api/ecs/createsnapshot.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateSnapshotWithChan(request *CreateSnapshotRequest) (<-chan *CreateSnapshotResponse, <-chan error) {
 	responseChan := make(chan *CreateSnapshotResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) CreateSnapshotWithChan(request *CreateSnapshotRequest) (<-
 }
 
 // CreateSnapshotWithCallback invokes the ecs.CreateSnapshot API asynchronously
-// api document: https://help.aliyun.com/api/ecs/createsnapshot.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateSnapshotWithCallback(request *CreateSnapshotRequest, callback func(response *CreateSnapshotResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,19 +71,29 @@ func (client *Client) CreateSnapshotWithCallback(request *CreateSnapshotRequest,
 // CreateSnapshotRequest is the request struct for api CreateSnapshot
 type CreateSnapshotRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId      requests.Integer     `position:"Query" name:"ResourceOwnerId"`
-	ResourceOwnerAccount string               `position:"Query" name:"ResourceOwnerAccount"`
-	ClientToken          string               `position:"Query" name:"ClientToken"`
-	OwnerAccount         string               `position:"Query" name:"OwnerAccount"`
-	Description          string               `position:"Query" name:"Description"`
-	SnapshotName         string               `position:"Query" name:"SnapshotName"`
-	OwnerId              requests.Integer     `position:"Query" name:"OwnerId"`
-	SourceSnapshotId     string               `position:"Query" name:"SourceSnapshotId"`
-	RemoveSourceSnapshot requests.Boolean     `position:"Query" name:"RemoveSourceSnapshot"`
-	DiskId               string               `position:"Query" name:"DiskId"`
-	RetentionDays        requests.Integer     `position:"Query" name:"RetentionDays"`
-	Tag                  *[]CreateSnapshotTag `position:"Query" name:"Tag"  type:"Repeated"`
-	Category             string               `position:"Query" name:"Category"`
+	ResourceOwnerId            requests.Integer           `position:"Query" name:"ResourceOwnerId"`
+	ClientToken                string                     `position:"Query" name:"ClientToken"`
+	InstantAccess              requests.Boolean           `position:"Query" name:"InstantAccess"`
+	SystemTag                  *[]CreateSnapshotSystemTag `position:"Query" name:"SystemTag"  type:"Repeated"`
+	Description                string                     `position:"Query" name:"Description"`
+	SnapshotName               string                     `position:"Query" name:"SnapshotName"`
+	ResourceGroupId            string                     `position:"Query" name:"ResourceGroupId"`
+	InstantAccessRetentionDays requests.Integer           `position:"Query" name:"InstantAccessRetentionDays"`
+	StorageLocationArn         string                     `position:"Query" name:"StorageLocationArn"`
+	DiskId                     string                     `position:"Query" name:"DiskId"`
+	Tag                        *[]CreateSnapshotTag       `position:"Query" name:"Tag"  type:"Repeated"`
+	ResourceOwnerAccount       string                     `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount               string                     `position:"Query" name:"OwnerAccount"`
+	OwnerId                    requests.Integer           `position:"Query" name:"OwnerId"`
+	RetentionDays              requests.Integer           `position:"Query" name:"RetentionDays"`
+	Category                   string                     `position:"Query" name:"Category"`
+}
+
+// CreateSnapshotSystemTag is a repeated param struct in CreateSnapshotRequest
+type CreateSnapshotSystemTag struct {
+	Scope string `name:"Scope"`
+	Value string `name:"Value"`
+	Key   string `name:"Key"`
 }
 
 // CreateSnapshotTag is a repeated param struct in CreateSnapshotRequest
@@ -100,8 +105,8 @@ type CreateSnapshotTag struct {
 // CreateSnapshotResponse is the response struct for api CreateSnapshot
 type CreateSnapshotResponse struct {
 	*responses.BaseResponse
-	RequestId  string `json:"RequestId" xml:"RequestId"`
 	SnapshotId string `json:"SnapshotId" xml:"SnapshotId"`
+	RequestId  string `json:"RequestId" xml:"RequestId"`
 }
 
 // CreateCreateSnapshotRequest creates a request to invoke CreateSnapshot API
@@ -110,6 +115,7 @@ func CreateCreateSnapshotRequest() (request *CreateSnapshotRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "CreateSnapshot", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

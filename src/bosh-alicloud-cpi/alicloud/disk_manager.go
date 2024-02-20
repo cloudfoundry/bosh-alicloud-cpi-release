@@ -6,7 +6,7 @@ package alicloud
 import (
 	"strings"
 
-	util "github.com/alibabacloud-go/tea-utils/service"
+	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
 	"encoding/json"

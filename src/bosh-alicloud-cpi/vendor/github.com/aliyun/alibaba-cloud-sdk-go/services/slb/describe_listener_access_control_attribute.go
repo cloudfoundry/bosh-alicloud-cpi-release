@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeListenerAccessControlAttribute invokes the slb.DescribeListenerAccessControlAttribute API synchronously
-// api document: https://help.aliyun.com/api/slb/describelisteneraccesscontrolattribute.html
 func (client *Client) DescribeListenerAccessControlAttribute(request *DescribeListenerAccessControlAttributeRequest) (response *DescribeListenerAccessControlAttributeResponse, err error) {
 	response = CreateDescribeListenerAccessControlAttributeResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeListenerAccessControlAttribute(request *DescribeLi
 }
 
 // DescribeListenerAccessControlAttributeWithChan invokes the slb.DescribeListenerAccessControlAttribute API asynchronously
-// api document: https://help.aliyun.com/api/slb/describelisteneraccesscontrolattribute.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeListenerAccessControlAttributeWithChan(request *DescribeListenerAccessControlAttributeRequest) (<-chan *DescribeListenerAccessControlAttributeResponse, <-chan error) {
 	responseChan := make(chan *DescribeListenerAccessControlAttributeResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeListenerAccessControlAttributeWithChan(request *De
 }
 
 // DescribeListenerAccessControlAttributeWithCallback invokes the slb.DescribeListenerAccessControlAttribute API asynchronously
-// api document: https://help.aliyun.com/api/slb/describelisteneraccesscontrolattribute.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeListenerAccessControlAttributeWithCallback(request *DescribeListenerAccessControlAttributeRequest, callback func(response *DescribeListenerAccessControlAttributeResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -79,20 +74,20 @@ type DescribeListenerAccessControlAttributeRequest struct {
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
 	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	ListenerProtocol     string           `position:"Query" name:"ListenerProtocol"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 }
 
 // DescribeListenerAccessControlAttributeResponse is the response struct for api DescribeListenerAccessControlAttribute
 type DescribeListenerAccessControlAttributeResponse struct {
 	*responses.BaseResponse
-	RequestId           string `json:"RequestId" xml:"RequestId"`
-	AccessControlStatus string `json:"AccessControlStatus" xml:"AccessControlStatus"`
 	SourceItems         string `json:"SourceItems" xml:"SourceItems"`
+	AccessControlStatus string `json:"AccessControlStatus" xml:"AccessControlStatus"`
+	RequestId           string `json:"RequestId" xml:"RequestId"`
 }
 
 // CreateDescribeListenerAccessControlAttributeRequest creates a request to invoke DescribeListenerAccessControlAttribute API
@@ -101,6 +96,7 @@ func CreateDescribeListenerAccessControlAttributeRequest() (request *DescribeLis
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DescribeListenerAccessControlAttribute", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 
