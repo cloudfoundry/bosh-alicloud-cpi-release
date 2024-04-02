@@ -115,7 +115,7 @@ func (a InstanceManagerImpl) CreateInstance(region string, request map[string]in
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed)
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
 
-	action := "CreateInstance"
+	action := "RunInstances"
 	request["ClientToken"] = buildClientToken(action)
 	runtime := util.RuntimeOptions{}
 	runtime.SetAutoretry(true)
@@ -129,7 +129,7 @@ func (a InstanceManagerImpl) CreateInstance(region string, request map[string]in
 			}
 			return e
 		}
-		cid = fmt.Sprint(resp["InstanceId"])
+		cid = fmt.Sprint(resp["InstanceIdSets"].(map[string]interface{})["InstanceIdSet"].([]interface{})[0])
 		return e
 	})
 	return cid, err
@@ -284,6 +284,8 @@ func (a InstanceManagerImpl) GetInstanceStatus(cid string) (InstanceStatus, erro
 
 func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus InstanceStatus, checkFunc func(status InstanceStatus) (bool, error)) error {
 	timeout := ChangeInstanceStatusTimeout
+	maxAttempts := 5
+	attempt := 0
 	for {
 		status, err := a.GetInstanceStatus(cid)
 		if err != nil {
@@ -294,7 +296,14 @@ func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus InstanceS
 
 		if err != nil {
 			a.logger.Error("InstanceManager", "change %s from %s to %s failed %s", cid, status, toStatus, err.Error())
-			return err
+			if strings.Contains(err.Error(), "IncorrectInstanceStatus") {
+				attempt++
+				if attempt > maxAttempts {
+					return err
+				}
+			} else {
+				return err
+			}
 		}
 
 		if ok {
