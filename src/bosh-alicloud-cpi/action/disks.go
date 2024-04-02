@@ -32,6 +32,7 @@ type DiskInfo struct {
 	SizeRaw            interface{}       `json:"size"`
 	Category           string            `json:"category"`
 	Encrypted          *bool             `json:"encrypted,omitempty"`
+	KMSKeyId           string            `json:"kms_key_id,omitempty"`
 	DeleteWithInstance *bool             `json:"delete_with_instance,omitempty"`
 	Tags               map[string]string `json:"tags"`
 	sizeGB             int
@@ -78,7 +79,7 @@ func NewDisksWithProps(systemDisk DiskInfo, ephemeralDisk DiskInfo) (Disks, erro
 	}
 
 	if r.EphemeralDisk.sizeGB > 0 {
-		r.EphemeralDisk.path = alicloud.AmendDiskPath("/dev/xvdb", r.EphemeralDisk.GetCategory())
+		r.EphemeralDisk.path = "/dev/vdb"
 	}
 
 	return r, nil
@@ -124,22 +125,14 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	}
 
 	if isSystem {
-		if c != alicloud.DiskCategoryCloudEfficiency && c != alicloud.DiskCategoryCloudSSD {
-			return a, fmt.Errorf("system disk only support: cloud_efficiency/cloud_ssd not %s", a.ecsCategory)
-		}
+		a.path = "/dev/vda"
 		if a.sizeGB == 0 {
 			a.sizeGB = DefaultSystemDiskSizeGB
 		}
-		a.path = "/dev/xvda"
 	} else {
-		if c != alicloud.DiskCategoryCloud && c != alicloud.DiskCategoryCloudEfficiency &&
-			c != alicloud.DiskCategoryCloudSSD && c != alicloud.DiskCategoryEphemeralSSD {
-			return a, fmt.Errorf("unsupported ephemeral disk type: %s", c)
-		}
-		a.path = "/dev/xvdb"
+		a.path = "/dev/vdb"
 	}
 	a.ecsCategory = c
-	a.path = alicloud.AmendDiskPath(a.path, a.ecsCategory)
 
 	//
 	// `Alibaba Cloud` supported disk size is a range for each category in GB
@@ -176,17 +169,27 @@ func (a DiskInfo) GetPath() string {
 	return a.path
 }
 
-func (a Disks) FillCreateInstanceArgs(golbalEncrypt *bool, request map[string]interface{}) {
-	request["SystemDiskSize"] = requests.NewInteger(a.SystemDisk.sizeGB)
-	request["SystemDiskCategory"] = string(a.SystemDisk.ecsCategory)
+func (a Disks) FillCreateInstanceArgs(globalEncrypt *bool, globalKmsKeyId string, request map[string]interface{}) {
+	request["SystemDisk.Size"] = requests.NewInteger(a.SystemDisk.sizeGB)
+	request["SystemDisk.Category"] = string(a.SystemDisk.ecsCategory)
+	if v := a.SystemDisk.Encrypted; v != nil {
+		request["SystemDisk.Encrypted"] = strconv.FormatBool(*v)
+	}
+	if v := a.SystemDisk.KMSKeyId; v != "" {
+		request["SystemDisk.KMSKeyId"] = v
+	}
 
 	encrypt := a.EphemeralDisk.Encrypted
 	if encrypt == nil {
-		encrypt = golbalEncrypt
+		encrypt = globalEncrypt
 		if encrypt == nil {
 			encrypt = new(bool)
 			*encrypt = false
 		}
+	}
+	kmsKeyId := a.EphemeralDisk.KMSKeyId
+	if kmsKeyId == "" {
+		kmsKeyId = globalKmsKeyId
 	}
 	deleteWithInstance := a.EphemeralDisk.DeleteWithInstance
 	if deleteWithInstance == nil {
@@ -198,6 +201,9 @@ func (a Disks) FillCreateInstanceArgs(golbalEncrypt *bool, request map[string]in
 		request["DataDisk.1.Category"] = string(a.EphemeralDisk.GetCategory())
 		request["DataDisk.1.Encrypted"] = strconv.FormatBool(*encrypt)
 		request["DataDisk.1.DeleteWithInstance"] = strconv.FormatBool(*deleteWithInstance)
+	}
+	if kmsKeyId != "" {
+		request["DataDisk.1.KMSKeyId"] = kmsKeyId
 	}
 }
 
