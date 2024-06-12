@@ -42,7 +42,7 @@ type DiskManager interface {
 	WaitForDiskStatus(diskCid string, toStatus DiskStatus) (string, error)
 	ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error)) error
 
-	GetDiskPath(path, diskId, instanceType string) string
+	GetDiskPath(path, diskId, instanceType string, category DiskCategory) string
 }
 
 type DiskManagerImpl struct {
@@ -350,8 +350,25 @@ func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus DiskStatus, check
 	}
 }
 
-func (a DiskManagerImpl) GetDiskPath(path, diskId, instanceType string) string {
-	amendPath := path
+func AmendDiskPath(path string, category DiskCategory) string {
+	//
+	// if not normal Cloud need trim first x, like: xvdc -> vdc
+	//
+	// cloud:
+	// cloud_efficiency:
+	// cloud_ssd:
+	// ephemeral_ssd:
+	if category == DiskCategoryCloudEfficiency || category == DiskCategoryCloudSSD {
+		if path[5] == 'x' {
+			path = "/dev/" + string(path[6:])
+		}
+	}
+
+	return path
+}
+
+func (a DiskManagerImpl) GetDiskPath(path, diskId, instanceType string, category DiskCategory) string {
+	amendPath := AmendDiskPath(path, category)
 
 	if instanceType == "" || diskId == "" {
 		return amendPath

@@ -21,7 +21,7 @@ $ mkdir blobs
 $ bosh add-blob ~/Downloads/go1.20.10.linux-amd64.tar.gz go1.20.10.linux-amd64.tar.gz
 $ source .envrc
 $ make
-$ bosh create-release --name bosh-alicloud-cpi --version 48.0.0 --force --tarball bosh-alicloud-cpi-release-48.0.0.tgz
+$ bosh create-release --force --tarball=../bosh-alicloud-cpi.tgz
 ```
 ### Latest Version (v18)
 

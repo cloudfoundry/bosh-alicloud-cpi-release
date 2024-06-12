@@ -136,29 +136,29 @@ func (a CreateVMMethod) createVM(
 		networks.privateProps.SecurityGroupIds = instProps.SecurityGroupIds
 	}
 
-	runInstancesRequest := make(map[string]interface{})
-	if err := networks.FillCreateInstanceArgs(runInstancesRequest); err != nil {
+	createInstanceRequest := make(map[string]interface{})
+	if err := networks.FillCreateInstanceArgs(createInstanceRequest); err != nil {
 		return cid, nil, bosherr.WrapErrorf(err, "fill instance network args failed and args: %v", networks.privateProps)
 	}
 
 	if instProps.Region != "" {
-		runInstancesRequest["RegionId"] = instProps.Region
+		createInstanceRequest["RegionId"] = instProps.Region
 	} else {
-		runInstancesRequest["RegionId"] = a.Config.OpenApi.Region
+		createInstanceRequest["RegionId"] = a.Config.OpenApi.Region
 	}
 
 	if instProps.AvailabilityZone != "" {
-		runInstancesRequest["ZoneId"] = instProps.AvailabilityZone
+		createInstanceRequest["ZoneId"] = instProps.AvailabilityZone
 	} else {
-		runInstancesRequest["ZoneId"] = a.Config.OpenApi.GetAvailabilityZone()
+		createInstanceRequest["ZoneId"] = a.Config.OpenApi.GetAvailabilityZone()
 	}
-	if runInstancesRequest["ZoneId"] == "" {
+	if createInstanceRequest["ZoneId"] == "" {
 		return cid, nil, bosherr.Errorf("can't get zone from availability_zone or cpi.config")
 	}
 
 	// config instance_type
-	runInstancesRequest["InstanceType"] = instProps.InstanceType
-	if runInstancesRequest["InstanceType"] == "" {
+	createInstanceRequest["InstanceType"] = instProps.InstanceType
+	if createInstanceRequest["InstanceType"] == "" {
 		return cid, nil, bosherr.Errorf("missing instance_type")
 	}
 
@@ -169,50 +169,50 @@ func (a CreateVMMethod) createVM(
 
 	// config vm charge type
 	if instProps.ChargeType == "PrePaid" {
-		runInstancesRequest["InstanceChargeType"] = "PrePaid"
+		createInstanceRequest["InstanceChargeType"] = "PrePaid"
 		period, err := instProps.ChargePeriod.Int64()
 		if err != nil {
 			return cid, nil, bosherr.WrapErrorf(err, "parse charge_period %s failed when charge_type is `PrePaid`", instProps.ChargePeriod.String())
 		}
-		runInstancesRequest["Period"] = requests.NewInteger64(period)
-		runInstancesRequest["PeriodUnit"] = instProps.ChargePeriodUnit
+		createInstanceRequest["Period"] = requests.NewInteger64(period)
+		createInstanceRequest["PeriodUnit"] = instProps.ChargePeriodUnit
 		if strings.EqualFold(instProps.AutoRenew, "True") {
-			runInstancesRequest["AutoRenew"] = requests.NewBoolean(true)
+			createInstanceRequest["AutoRenew"] = requests.NewBoolean(true)
 			period, err = instProps.AutoRenewPeriod.Int64()
 			if err != nil {
 				return cid, nil, bosherr.WrapErrorf(err, "parse charge_auto_renew_period %s failed when charge_auto_renew is `True`", instProps.AutoRenewPeriod.String())
 			}
-			runInstancesRequest["AutoRenewPeriod"] = requests.NewInteger64(period)
+			createInstanceRequest["AutoRenewPeriod"] = requests.NewInteger64(period)
 		} else if strings.EqualFold(instProps.AutoRenew, "False") || instProps.AutoRenew == "" {
-			runInstancesRequest["AutoRenew"] = requests.NewBoolean(false)
+			createInstanceRequest["AutoRenew"] = requests.NewBoolean(false)
 		} else {
 			return cid, nil, bosherr.Errorf("unexpected charge_auto_renew: %s", instProps.AutoRenew)
 		}
 	} else if instProps.ChargeType == "PostPaid" || instProps.ChargeType == "" {
-		runInstancesRequest["InstanceChargeType"] = "PostPaid"
+		createInstanceRequest["InstanceChargeType"] = "PostPaid"
 	} else {
 		return cid, nil, bosherr.Errorf("unexpected charge type %s", instProps.ChargeType)
 	}
 
 	// compare key pair or password
 	if len(strings.TrimSpace(instProps.KeyPairName)) > 0 {
-		runInstancesRequest["KeyPairName"] = instProps.KeyPairName
+		createInstanceRequest["KeyPairName"] = instProps.KeyPairName
 	} else if len(strings.TrimSpace(instProps.Password)) > 0 {
-		runInstancesRequest["Password"] = instProps.Password
+		createInstanceRequest["Password"] = instProps.Password
 	}
 
-	runInstancesRequest["ImageId"] = stemcellCID.AsString()
+	createInstanceRequest["ImageId"] = stemcellCID.AsString()
 	if instProps.StemcellId != "" {
-		runInstancesRequest["ImageId"] = instProps.StemcellId
+		createInstanceRequest["ImageId"] = instProps.StemcellId
 	}
-	runInstancesRequest["InstanceName"] = instProps.InstanceName
-	runInstancesRequest["IoOptimized"] = "optimized"
+	createInstanceRequest["InstanceName"] = instProps.InstanceName
+	createInstanceRequest["IoOptimized"] = "optimized"
 	if a.Config.Registry.ToInstanceUserData() != "" {
-		runInstancesRequest["UserData"] = base64.StdEncoding.EncodeToString([]byte(a.Config.Registry.ToInstanceUserData()))
+		createInstanceRequest["UserData"] = base64.StdEncoding.EncodeToString([]byte(a.Config.Registry.ToInstanceUserData()))
 	}
-	runInstancesRequest["SpotStrategy"] = string(instProps.SpotStrategy)
-	runInstancesRequest["SpotPriceLimit"] = requests.NewFloat(instProps.SpotPriceLimit)
-	runInstancesRequest["RamRoleName"] = instProps.RamRoleName
+	createInstanceRequest["SpotStrategy"] = string(instProps.SpotStrategy)
+	createInstanceRequest["SpotPriceLimit"] = requests.NewFloat(instProps.SpotPriceLimit)
+	createInstanceRequest["RamRoleName"] = instProps.RamRoleName
 
 	// fill disks
 	disks, err := NewDisksWithProps(instProps.SystemDisk, instProps.EphemeralDisk)
@@ -220,7 +220,7 @@ func (a CreateVMMethod) createVM(
 		return cid, nil, bosherr.WrapErrorf(err, "bad disks format, %v", instProps)
 	}
 
-	disks.FillCreateInstanceArgs(a.Config.OpenApi.Encrypted, a.Config.OpenApi.KmsKeyId, runInstancesRequest)
+	disks.FillCreateInstanceArgs(a.Config.OpenApi.Encrypted, createInstanceRequest)
 
 	//打标签
 	// 首先获取registry中的tag
@@ -243,19 +243,19 @@ func (a CreateVMMethod) createVM(
 	}
 	count := 1
 	for key, value := range tags {
-		runInstancesRequest[fmt.Sprintf("Tag.%d.Key", count)] = key
-		runInstancesRequest[fmt.Sprintf("Tag.%d.Value", count)] = value
+		createInstanceRequest[fmt.Sprintf("Tag.%d.Key", count)] = key
+		createInstanceRequest[fmt.Sprintf("Tag.%d.Value", count)] = value
 		count++
 	}
 
 	// do CreateInstance !!!
-	instCid, err := a.instances.CreateInstance(instProps.Region, runInstancesRequest)
+	instCid, err := a.instances.CreateInstance(instProps.Region, createInstanceRequest)
 	if err != nil {
-		return apiv1.VMCID{}, nil, bosherr.WrapErrorf(err, "create instance failed with input=%s ", runInstancesRequest)
+		return apiv1.VMCID{}, nil, bosherr.WrapErrorf(err, "create instance failed with input=%s ", createInstanceRequest)
 	}
 
 	// Wait for the instance status to STOPPED
-	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Running, func(status alicloud.InstanceStatus) (bool, error) {
+	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Stopped, func(status alicloud.InstanceStatus) (bool, error) {
 		switch status {
 		case alicloud.Stopped:
 			return true, nil
