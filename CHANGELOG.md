@@ -1,7 +1,11 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 50.0.0 (Unreleased)
+## 51.0.0 (Unreleased)
+## 50.0.0 (June 14, 2024)
+
+- Revert "supports to encrypt system disk" ([#171](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/171))
+
 ## 49.0.0 (April 10, 2024)
 
 - supports to encrypt system disk ([#169](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/169))
