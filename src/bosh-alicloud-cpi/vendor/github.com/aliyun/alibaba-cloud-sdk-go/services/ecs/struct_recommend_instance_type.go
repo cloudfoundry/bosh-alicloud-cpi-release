@@ -17,9 +17,14 @@ package ecs
 
 // RecommendInstanceType is a nested struct in ecs response
 type RecommendInstanceType struct {
-	RegionNo      string                               `json:"RegionNo" xml:"RegionNo"`
-	CommodityCode string                               `json:"CommodityCode" xml:"CommodityCode"`
-	Scene         string                               `json:"Scene" xml:"Scene"`
-	InstanceType  InstanceType                         `json:"InstanceType" xml:"InstanceType"`
-	Zones         ZonesInDescribeRecommendInstanceType `json:"Zones" xml:"Zones"`
+	CommodityCode      string                               `json:"CommodityCode" xml:"CommodityCode"`
+	ZoneId             string                               `json:"ZoneId" xml:"ZoneId"`
+	Priority           int                                  `json:"Priority" xml:"Priority"`
+	NetworkType        string                               `json:"NetworkType" xml:"NetworkType"`
+	Scene              string                               `json:"Scene" xml:"Scene"`
+	SpotStrategy       string                               `json:"SpotStrategy" xml:"SpotStrategy"`
+	RegionId           string                               `json:"RegionId" xml:"RegionId"`
+	InstanceChargeType string                               `json:"InstanceChargeType" xml:"InstanceChargeType"`
+	InstanceType       InstanceType                         `json:"InstanceType" xml:"InstanceType"`
+	Zones              ZonesInDescribeRecommendInstanceType `json:"Zones" xml:"Zones"`
 }

@@ -11,7 +11,7 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
-	util "github.com/alibabacloud-go/tea-utils/service"
+	util "github.com/alibabacloud-go/tea-utils/v2/service"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

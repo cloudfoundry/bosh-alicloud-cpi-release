@@ -21,7 +21,6 @@ import (
 )
 
 // RemoveBackendServers invokes the slb.RemoveBackendServers API synchronously
-// api document: https://help.aliyun.com/api/slb/removebackendservers.html
 func (client *Client) RemoveBackendServers(request *RemoveBackendServersRequest) (response *RemoveBackendServersResponse, err error) {
 	response = CreateRemoveBackendServersResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) RemoveBackendServers(request *RemoveBackendServersRequest)
 }
 
 // RemoveBackendServersWithChan invokes the slb.RemoveBackendServers API asynchronously
-// api document: https://help.aliyun.com/api/slb/removebackendservers.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) RemoveBackendServersWithChan(request *RemoveBackendServersRequest) (<-chan *RemoveBackendServersResponse, <-chan error) {
 	responseChan := make(chan *RemoveBackendServersResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) RemoveBackendServersWithChan(request *RemoveBackendServers
 }
 
 // RemoveBackendServersWithCallback invokes the slb.RemoveBackendServers API asynchronously
-// api document: https://help.aliyun.com/api/slb/removebackendservers.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) RemoveBackendServersWithCallback(request *RemoveBackendServersRequest, callback func(response *RemoveBackendServersResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,19 +73,19 @@ type RemoveBackendServersRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
+	BackendServers       string           `position:"Query" name:"BackendServers"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	BackendServers       string           `position:"Query" name:"BackendServers"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 }
 
 // RemoveBackendServersResponse is the response struct for api RemoveBackendServers
 type RemoveBackendServersResponse struct {
 	*responses.BaseResponse
-	RequestId      string                               `json:"RequestId" xml:"RequestId"`
 	LoadBalancerId string                               `json:"LoadBalancerId" xml:"LoadBalancerId"`
+	RequestId      string                               `json:"RequestId" xml:"RequestId"`
 	BackendServers BackendServersInRemoveBackendServers `json:"BackendServers" xml:"BackendServers"`
 }
 
@@ -100,6 +95,7 @@ func CreateRemoveBackendServersRequest() (request *RemoveBackendServersRequest) 
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "RemoveBackendServers", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

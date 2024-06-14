@@ -21,7 +21,6 @@ import (
 )
 
 // CreateLoadBalancerUDPListener invokes the slb.CreateLoadBalancerUDPListener API synchronously
-// api document: https://help.aliyun.com/api/slb/createloadbalancerudplistener.html
 func (client *Client) CreateLoadBalancerUDPListener(request *CreateLoadBalancerUDPListenerRequest) (response *CreateLoadBalancerUDPListenerResponse, err error) {
 	response = CreateCreateLoadBalancerUDPListenerResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) CreateLoadBalancerUDPListener(request *CreateLoadBalancerU
 }
 
 // CreateLoadBalancerUDPListenerWithChan invokes the slb.CreateLoadBalancerUDPListener API asynchronously
-// api document: https://help.aliyun.com/api/slb/createloadbalancerudplistener.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateLoadBalancerUDPListenerWithChan(request *CreateLoadBalancerUDPListenerRequest) (<-chan *CreateLoadBalancerUDPListenerResponse, <-chan error) {
 	responseChan := make(chan *CreateLoadBalancerUDPListenerResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) CreateLoadBalancerUDPListenerWithChan(request *CreateLoadB
 }
 
 // CreateLoadBalancerUDPListenerWithCallback invokes the slb.CreateLoadBalancerUDPListener API asynchronously
-// api document: https://help.aliyun.com/api/slb/createloadbalancerudplistener.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateLoadBalancerUDPListenerWithCallback(request *CreateLoadBalancerUDPListenerRequest, callback func(response *CreateLoadBalancerUDPListenerResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,33 +71,63 @@ func (client *Client) CreateLoadBalancerUDPListenerWithCallback(request *CreateL
 // CreateLoadBalancerUDPListenerRequest is the request struct for api CreateLoadBalancerUDPListener
 type CreateLoadBalancerUDPListenerRequest struct {
 	*requests.RpcRequest
-	AccessKeyId               string           `position:"Query" name:"access_key_id"`
-	HealthCheckConnectTimeout requests.Integer `position:"Query" name:"HealthCheckConnectTimeout"`
-	ResourceOwnerId           requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	Description               string           `position:"Query" name:"Description"`
-	UnhealthyThreshold        requests.Integer `position:"Query" name:"UnhealthyThreshold"`
-	HealthyThreshold          requests.Integer `position:"Query" name:"HealthyThreshold"`
-	AclStatus                 string           `position:"Query" name:"AclStatus"`
-	Scheduler                 string           `position:"Query" name:"Scheduler"`
-	AclType                   string           `position:"Query" name:"AclType"`
-	MaxConnection             requests.Integer `position:"Query" name:"MaxConnection"`
-	PersistenceTimeout        requests.Integer `position:"Query" name:"PersistenceTimeout"`
-	VpcIds                    string           `position:"Query" name:"VpcIds"`
-	VServerGroupId            string           `position:"Query" name:"VServerGroupId"`
-	AclId                     string           `position:"Query" name:"AclId"`
-	ListenerPort              requests.Integer `position:"Query" name:"ListenerPort"`
-	ResourceOwnerAccount      string           `position:"Query" name:"ResourceOwnerAccount"`
-	Bandwidth                 requests.Integer `position:"Query" name:"Bandwidth"`
-	OwnerAccount              string           `position:"Query" name:"OwnerAccount"`
-	OwnerId                   requests.Integer `position:"Query" name:"OwnerId"`
-	Tags                      string           `position:"Query" name:"Tags"`
-	LoadBalancerId            string           `position:"Query" name:"LoadBalancerId"`
-	MasterSlaveServerGroupId  string           `position:"Query" name:"MasterSlaveServerGroupId"`
-	HealthCheckReq            string           `position:"Query" name:"healthCheckReq"`
-	BackendServerPort         requests.Integer `position:"Query" name:"BackendServerPort"`
-	HealthCheckInterval       requests.Integer `position:"Query" name:"healthCheckInterval"`
-	HealthCheckExp            string           `position:"Query" name:"healthCheckExp"`
-	HealthCheckConnectPort    requests.Integer `position:"Query" name:"HealthCheckConnectPort"`
+	ResourceOwnerId           requests.Integer                          `position:"Query" name:"ResourceOwnerId"`
+	HealthCheckURI            string                                    `position:"Query" name:"HealthCheckURI"`
+	AclStatus                 string                                    `position:"Query" name:"AclStatus"`
+	FullNatEnabled            requests.Boolean                          `position:"Query" name:"FullNatEnabled"`
+	AclType                   string                                    `position:"Query" name:"AclType"`
+	FailoverStrategy          string                                    `position:"Query" name:"FailoverStrategy"`
+	PersistenceTimeout        requests.Integer                          `position:"Query" name:"PersistenceTimeout"`
+	VpcIds                    string                                    `position:"Query" name:"VpcIds"`
+	Tag                       *[]CreateLoadBalancerUDPListenerTag       `position:"Query" name:"Tag"  type:"Repeated"`
+	MasterSlaveModeEnabled    requests.Boolean                          `position:"Query" name:"MasterSlaveModeEnabled"`
+	VServerGroupId            string                                    `position:"Query" name:"VServerGroupId"`
+	AclId                     string                                    `position:"Query" name:"AclId"`
+	PortRange                 *[]CreateLoadBalancerUDPListenerPortRange `position:"Query" name:"PortRange"  type:"Repeated"`
+	HealthCheckMethod         string                                    `position:"Query" name:"HealthCheckMethod"`
+	HealthCheckDomain         string                                    `position:"Query" name:"HealthCheckDomain"`
+	OwnerId                   requests.Integer                          `position:"Query" name:"OwnerId"`
+	Tags                      string                                    `position:"Query" name:"Tags"`
+	LoadBalancerId            string                                    `position:"Query" name:"LoadBalancerId"`
+	MasterSlaveServerGroupId  string                                    `position:"Query" name:"MasterSlaveServerGroupId"`
+	HealthCheckReq            string                                    `position:"Query" name:"healthCheckReq"`
+	BackendServerPort         requests.Integer                          `position:"Query" name:"BackendServerPort"`
+	HealthCheckInterval       requests.Integer                          `position:"Query" name:"healthCheckInterval"`
+	HealthCheckExp            string                                    `position:"Query" name:"healthCheckExp"`
+	FailoverThreshold         requests.Integer                          `position:"Query" name:"FailoverThreshold"`
+	ProxyProtocolV2Enabled    requests.Boolean                          `position:"Query" name:"ProxyProtocolV2Enabled"`
+	ConnectionDrain           string                                    `position:"Query" name:"ConnectionDrain"`
+	HealthCheckSwitch         string                                    `position:"Query" name:"HealthCheckSwitch"`
+	AccessKeyId               string                                    `position:"Query" name:"access_key_id"`
+	HealthCheckConnectTimeout requests.Integer                          `position:"Query" name:"HealthCheckConnectTimeout"`
+	SlaveServerGroupId        string                                    `position:"Query" name:"SlaveServerGroupId"`
+	QuicVersion               string                                    `position:"Query" name:"QuicVersion"`
+	Description               string                                    `position:"Query" name:"Description"`
+	UnhealthyThreshold        requests.Integer                          `position:"Query" name:"UnhealthyThreshold"`
+	HealthyThreshold          requests.Integer                          `position:"Query" name:"HealthyThreshold"`
+	Scheduler                 string                                    `position:"Query" name:"Scheduler"`
+	MaxConnection             requests.Integer                          `position:"Query" name:"MaxConnection"`
+	MasterServerGroupId       string                                    `position:"Query" name:"MasterServerGroupId"`
+	ListenerPort              requests.Integer                          `position:"Query" name:"ListenerPort"`
+	HealthCheckType           string                                    `position:"Query" name:"HealthCheckType"`
+	ResourceOwnerAccount      string                                    `position:"Query" name:"ResourceOwnerAccount"`
+	Bandwidth                 requests.Integer                          `position:"Query" name:"Bandwidth"`
+	OwnerAccount              string                                    `position:"Query" name:"OwnerAccount"`
+	ConnectionDrainTimeout    requests.Integer                          `position:"Query" name:"ConnectionDrainTimeout"`
+	HealthCheckConnectPort    requests.Integer                          `position:"Query" name:"HealthCheckConnectPort"`
+	HealthCheckHttpCode       string                                    `position:"Query" name:"HealthCheckHttpCode"`
+}
+
+// CreateLoadBalancerUDPListenerTag is a repeated param struct in CreateLoadBalancerUDPListenerRequest
+type CreateLoadBalancerUDPListenerTag struct {
+	Value string `name:"Value"`
+	Key   string `name:"Key"`
+}
+
+// CreateLoadBalancerUDPListenerPortRange is a repeated param struct in CreateLoadBalancerUDPListenerRequest
+type CreateLoadBalancerUDPListenerPortRange struct {
+	StartPort string `name:"StartPort"`
+	EndPort   string `name:"EndPort"`
 }
 
 // CreateLoadBalancerUDPListenerResponse is the response struct for api CreateLoadBalancerUDPListener
@@ -117,6 +142,7 @@ func CreateCreateLoadBalancerUDPListenerRequest() (request *CreateLoadBalancerUD
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "CreateLoadBalancerUDPListener", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

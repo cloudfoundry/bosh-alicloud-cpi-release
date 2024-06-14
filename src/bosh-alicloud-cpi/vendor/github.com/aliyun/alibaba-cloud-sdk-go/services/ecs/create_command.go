@@ -21,7 +21,6 @@ import (
 )
 
 // CreateCommand invokes the ecs.CreateCommand API synchronously
-// api document: https://help.aliyun.com/api/ecs/createcommand.html
 func (client *Client) CreateCommand(request *CreateCommandRequest) (response *CreateCommandResponse, err error) {
 	response = CreateCreateCommandResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) CreateCommand(request *CreateCommandRequest) (response *Cr
 }
 
 // CreateCommandWithChan invokes the ecs.CreateCommand API asynchronously
-// api document: https://help.aliyun.com/api/ecs/createcommand.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateCommandWithChan(request *CreateCommandRequest) (<-chan *CreateCommandResponse, <-chan error) {
 	responseChan := make(chan *CreateCommandResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) CreateCommandWithChan(request *CreateCommandRequest) (<-ch
 }
 
 // CreateCommandWithCallback invokes the ecs.CreateCommand API asynchronously
-// api document: https://help.aliyun.com/api/ecs/createcommand.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateCommandWithCallback(request *CreateCommandRequest, callback func(response *CreateCommandResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,24 +71,41 @@ func (client *Client) CreateCommandWithCallback(request *CreateCommandRequest, c
 // CreateCommandRequest is the request struct for api CreateCommand
 type CreateCommandRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	WorkingDir           string           `position:"Query" name:"WorkingDir"`
-	Description          string           `position:"Query" name:"Description"`
-	Type                 string           `position:"Query" name:"Type"`
-	CommandContent       string           `position:"Query" name:"CommandContent"`
-	Timeout              requests.Integer `position:"Query" name:"Timeout"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	Name                 string           `position:"Query" name:"Name"`
-	EnableParameter      requests.Boolean `position:"Query" name:"EnableParameter"`
+	ResourceOwnerId      requests.Integer          `position:"Query" name:"ResourceOwnerId"`
+	SystemTag            *[]CreateCommandSystemTag `position:"Query" name:"SystemTag"  type:"Repeated"`
+	WorkingDir           string                    `position:"Query" name:"WorkingDir"`
+	Description          string                    `position:"Query" name:"Description"`
+	Type                 string                    `position:"Query" name:"Type"`
+	CommandContent       string                    `position:"Query" name:"CommandContent"`
+	Timeout              requests.Integer          `position:"Query" name:"Timeout"`
+	ResourceGroupId      string                    `position:"Query" name:"ResourceGroupId"`
+	ContentEncoding      string                    `position:"Query" name:"ContentEncoding"`
+	Tag                  *[]CreateCommandTag       `position:"Query" name:"Tag"  type:"Repeated"`
+	ResourceOwnerAccount string                    `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string                    `position:"Query" name:"OwnerAccount"`
+	OwnerId              requests.Integer          `position:"Query" name:"OwnerId"`
+	Name                 string                    `position:"Query" name:"Name"`
+	EnableParameter      requests.Boolean          `position:"Query" name:"EnableParameter"`
+}
+
+// CreateCommandSystemTag is a repeated param struct in CreateCommandRequest
+type CreateCommandSystemTag struct {
+	Key   string `name:"Key"`
+	Value string `name:"Value"`
+	Scope string `name:"Scope"`
+}
+
+// CreateCommandTag is a repeated param struct in CreateCommandRequest
+type CreateCommandTag struct {
+	Key   string `name:"Key"`
+	Value string `name:"Value"`
 }
 
 // CreateCommandResponse is the response struct for api CreateCommand
 type CreateCommandResponse struct {
 	*responses.BaseResponse
-	RequestId string `json:"RequestId" xml:"RequestId"`
 	CommandId string `json:"CommandId" xml:"CommandId"`
+	RequestId string `json:"RequestId" xml:"RequestId"`
 }
 
 // CreateCreateCommandRequest creates a request to invoke CreateCommand API
@@ -102,6 +114,7 @@ func CreateCreateCommandRequest() (request *CreateCommandRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "CreateCommand", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

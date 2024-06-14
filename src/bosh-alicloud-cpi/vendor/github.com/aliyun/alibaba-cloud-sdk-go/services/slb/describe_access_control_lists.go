@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeAccessControlLists invokes the slb.DescribeAccessControlLists API synchronously
-// api document: https://help.aliyun.com/api/slb/describeaccesscontrollists.html
 func (client *Client) DescribeAccessControlLists(request *DescribeAccessControlListsRequest) (response *DescribeAccessControlListsResponse, err error) {
 	response = CreateDescribeAccessControlListsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeAccessControlLists(request *DescribeAccessControlL
 }
 
 // DescribeAccessControlListsWithChan invokes the slb.DescribeAccessControlLists API asynchronously
-// api document: https://help.aliyun.com/api/slb/describeaccesscontrollists.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeAccessControlListsWithChan(request *DescribeAccessControlListsRequest) (<-chan *DescribeAccessControlListsResponse, <-chan error) {
 	responseChan := make(chan *DescribeAccessControlListsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeAccessControlListsWithChan(request *DescribeAccess
 }
 
 // DescribeAccessControlListsWithCallback invokes the slb.DescribeAccessControlLists API asynchronously
-// api document: https://help.aliyun.com/api/slb/describeaccesscontrollists.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeAccessControlListsWithCallback(request *DescribeAccessControlListsRequest, callback func(response *DescribeAccessControlListsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -79,15 +74,15 @@ type DescribeAccessControlListsRequest struct {
 	AccessKeyId          string                           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer                 `position:"Query" name:"ResourceOwnerId"`
 	AclName              string                           `position:"Query" name:"AclName"`
-	ResourceOwnerAccount string                           `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string                           `position:"Query" name:"OwnerAccount"`
-	OwnerId              requests.Integer                 `position:"Query" name:"OwnerId"`
 	AddressIPVersion     string                           `position:"Query" name:"AddressIPVersion"`
 	PageNumber           requests.Integer                 `position:"Query" name:"PageNumber"`
-	Tags                 string                           `position:"Query" name:"Tags"`
 	ResourceGroupId      string                           `position:"Query" name:"ResourceGroupId"`
 	PageSize             requests.Integer                 `position:"Query" name:"PageSize"`
 	Tag                  *[]DescribeAccessControlListsTag `position:"Query" name:"Tag"  type:"Repeated"`
+	ResourceOwnerAccount string                           `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string                           `position:"Query" name:"OwnerAccount"`
+	OwnerId              requests.Integer                 `position:"Query" name:"OwnerId"`
+	Tags                 string                           `position:"Query" name:"Tags"`
 }
 
 // DescribeAccessControlListsTag is a repeated param struct in DescribeAccessControlListsRequest
@@ -99,8 +94,12 @@ type DescribeAccessControlListsTag struct {
 // DescribeAccessControlListsResponse is the response struct for api DescribeAccessControlLists
 type DescribeAccessControlListsResponse struct {
 	*responses.BaseResponse
-	RequestId string `json:"RequestId" xml:"RequestId"`
-	Acls      Acls   `json:"Acls" xml:"Acls"`
+	PageNumber int    `json:"PageNumber" xml:"PageNumber"`
+	PageSize   int    `json:"PageSize" xml:"PageSize"`
+	RequestId  string `json:"RequestId" xml:"RequestId"`
+	TotalCount int    `json:"TotalCount" xml:"TotalCount"`
+	Count      int    `json:"Count" xml:"Count"`
+	Acls       Acls   `json:"Acls" xml:"Acls"`
 }
 
 // CreateDescribeAccessControlListsRequest creates a request to invoke DescribeAccessControlLists API
@@ -109,6 +108,7 @@ func CreateDescribeAccessControlListsRequest() (request *DescribeAccessControlLi
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DescribeAccessControlLists", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

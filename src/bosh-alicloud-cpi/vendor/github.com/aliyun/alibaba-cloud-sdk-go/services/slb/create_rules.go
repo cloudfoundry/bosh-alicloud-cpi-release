@@ -21,7 +21,6 @@ import (
 )
 
 // CreateRules invokes the slb.CreateRules API synchronously
-// api document: https://help.aliyun.com/api/slb/createrules.html
 func (client *Client) CreateRules(request *CreateRulesRequest) (response *CreateRulesResponse, err error) {
 	response = CreateCreateRulesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) CreateRules(request *CreateRulesRequest) (response *Create
 }
 
 // CreateRulesWithChan invokes the slb.CreateRules API asynchronously
-// api document: https://help.aliyun.com/api/slb/createrules.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateRulesWithChan(request *CreateRulesRequest) (<-chan *CreateRulesResponse, <-chan error) {
 	responseChan := make(chan *CreateRulesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) CreateRulesWithChan(request *CreateRulesRequest) (<-chan *
 }
 
 // CreateRulesWithCallback invokes the slb.CreateRules API asynchronously
-// api document: https://help.aliyun.com/api/slb/createrules.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) CreateRulesWithCallback(request *CreateRulesRequest, callback func(response *CreateRulesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,14 +73,14 @@ type CreateRulesRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	RuleList             string           `position:"Query" name:"RuleList"`
+	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
+	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	ListenerProtocol     string           `position:"Query" name:"ListenerProtocol"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 }
 
 // CreateRulesResponse is the response struct for api CreateRules
@@ -101,6 +96,7 @@ func CreateCreateRulesRequest() (request *CreateRulesRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "CreateRules", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

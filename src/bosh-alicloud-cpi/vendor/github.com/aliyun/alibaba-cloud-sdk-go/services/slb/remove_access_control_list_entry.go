@@ -21,7 +21,6 @@ import (
 )
 
 // RemoveAccessControlListEntry invokes the slb.RemoveAccessControlListEntry API synchronously
-// api document: https://help.aliyun.com/api/slb/removeaccesscontrollistentry.html
 func (client *Client) RemoveAccessControlListEntry(request *RemoveAccessControlListEntryRequest) (response *RemoveAccessControlListEntryResponse, err error) {
 	response = CreateRemoveAccessControlListEntryResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) RemoveAccessControlListEntry(request *RemoveAccessControlL
 }
 
 // RemoveAccessControlListEntryWithChan invokes the slb.RemoveAccessControlListEntry API asynchronously
-// api document: https://help.aliyun.com/api/slb/removeaccesscontrollistentry.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) RemoveAccessControlListEntryWithChan(request *RemoveAccessControlListEntryRequest) (<-chan *RemoveAccessControlListEntryResponse, <-chan error) {
 	responseChan := make(chan *RemoveAccessControlListEntryResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) RemoveAccessControlListEntryWithChan(request *RemoveAccess
 }
 
 // RemoveAccessControlListEntryWithCallback invokes the slb.RemoveAccessControlListEntry API asynchronously
-// api document: https://help.aliyun.com/api/slb/removeaccesscontrollistentry.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) RemoveAccessControlListEntryWithCallback(request *RemoveAccessControlListEntryRequest, callback func(response *RemoveAccessControlListEntryResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,11 +72,11 @@ func (client *Client) RemoveAccessControlListEntryWithCallback(request *RemoveAc
 type RemoveAccessControlListEntryRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
-	AclId                string           `position:"Query" name:"AclId"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	AclEntrys            string           `position:"Query" name:"AclEntrys"`
+	AclId                string           `position:"Query" name:"AclId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	AclEntrys            string           `position:"Query" name:"AclEntrys"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	Tags                 string           `position:"Query" name:"Tags"`
 }
@@ -98,6 +93,7 @@ func CreateRemoveAccessControlListEntryRequest() (request *RemoveAccessControlLi
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "RemoveAccessControlListEntry", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

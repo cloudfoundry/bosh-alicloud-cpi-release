@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeSecurityGroups invokes the ecs.DescribeSecurityGroups API synchronously
-// api document: https://help.aliyun.com/api/ecs/describesecuritygroups.html
 func (client *Client) DescribeSecurityGroups(request *DescribeSecurityGroupsRequest) (response *DescribeSecurityGroupsResponse, err error) {
 	response = CreateDescribeSecurityGroupsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeSecurityGroups(request *DescribeSecurityGroupsRequ
 }
 
 // DescribeSecurityGroupsWithChan invokes the ecs.DescribeSecurityGroups API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describesecuritygroups.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeSecurityGroupsWithChan(request *DescribeSecurityGroupsRequest) (<-chan *DescribeSecurityGroupsResponse, <-chan error) {
 	responseChan := make(chan *DescribeSecurityGroupsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeSecurityGroupsWithChan(request *DescribeSecurityGr
 }
 
 // DescribeSecurityGroupsWithCallback invokes the ecs.DescribeSecurityGroups API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describesecuritygroups.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeSecurityGroupsWithCallback(request *DescribeSecurityGroupsRequest, callback func(response *DescribeSecurityGroupsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,21 +72,25 @@ func (client *Client) DescribeSecurityGroupsWithCallback(request *DescribeSecuri
 type DescribeSecurityGroupsRequest struct {
 	*requests.RpcRequest
 	ResourceOwnerId      requests.Integer             `position:"Query" name:"ResourceOwnerId"`
-	DryRun               requests.Boolean             `position:"Query" name:"DryRun"`
 	FuzzyQuery           requests.Boolean             `position:"Query" name:"FuzzyQuery"`
-	ResourceOwnerAccount string                       `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string                       `position:"Query" name:"OwnerAccount"`
+	ServiceManaged       requests.Boolean             `position:"Query" name:"ServiceManaged"`
 	SecurityGroupId      string                       `position:"Query" name:"SecurityGroupId"`
 	IsQueryEcsCount      requests.Boolean             `position:"Query" name:"IsQueryEcsCount"`
 	NetworkType          string                       `position:"Query" name:"NetworkType"`
-	OwnerId              requests.Integer             `position:"Query" name:"OwnerId"`
-	SecurityGroupIds     string                       `position:"Query" name:"SecurityGroupIds"`
 	SecurityGroupName    string                       `position:"Query" name:"SecurityGroupName"`
 	PageNumber           requests.Integer             `position:"Query" name:"PageNumber"`
 	ResourceGroupId      string                       `position:"Query" name:"ResourceGroupId"`
-	VpcId                string                       `position:"Query" name:"VpcId"`
+	NextToken            string                       `position:"Query" name:"NextToken"`
 	PageSize             requests.Integer             `position:"Query" name:"PageSize"`
 	Tag                  *[]DescribeSecurityGroupsTag `position:"Query" name:"Tag"  type:"Repeated"`
+	DryRun               requests.Boolean             `position:"Query" name:"DryRun"`
+	ResourceOwnerAccount string                       `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string                       `position:"Query" name:"OwnerAccount"`
+	OwnerId              requests.Integer             `position:"Query" name:"OwnerId"`
+	SecurityGroupIds     string                       `position:"Query" name:"SecurityGroupIds"`
+	SecurityGroupType    string                       `position:"Query" name:"SecurityGroupType"`
+	VpcId                string                       `position:"Query" name:"VpcId"`
+	MaxResults           requests.Integer             `position:"Query" name:"MaxResults"`
 }
 
 // DescribeSecurityGroupsTag is a repeated param struct in DescribeSecurityGroupsRequest
@@ -105,6 +104,7 @@ type DescribeSecurityGroupsResponse struct {
 	*responses.BaseResponse
 	RequestId      string         `json:"RequestId" xml:"RequestId"`
 	RegionId       string         `json:"RegionId" xml:"RegionId"`
+	NextToken      string         `json:"NextToken" xml:"NextToken"`
 	TotalCount     int            `json:"TotalCount" xml:"TotalCount"`
 	PageNumber     int            `json:"PageNumber" xml:"PageNumber"`
 	PageSize       int            `json:"PageSize" xml:"PageSize"`
@@ -117,6 +117,7 @@ func CreateDescribeSecurityGroupsRequest() (request *DescribeSecurityGroupsReque
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "DescribeSecurityGroups", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

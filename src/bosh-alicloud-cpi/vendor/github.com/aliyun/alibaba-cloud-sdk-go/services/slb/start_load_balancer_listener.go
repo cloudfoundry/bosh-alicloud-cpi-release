@@ -21,7 +21,6 @@ import (
 )
 
 // StartLoadBalancerListener invokes the slb.StartLoadBalancerListener API synchronously
-// api document: https://help.aliyun.com/api/slb/startloadbalancerlistener.html
 func (client *Client) StartLoadBalancerListener(request *StartLoadBalancerListenerRequest) (response *StartLoadBalancerListenerResponse, err error) {
 	response = CreateStartLoadBalancerListenerResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) StartLoadBalancerListener(request *StartLoadBalancerListen
 }
 
 // StartLoadBalancerListenerWithChan invokes the slb.StartLoadBalancerListener API asynchronously
-// api document: https://help.aliyun.com/api/slb/startloadbalancerlistener.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) StartLoadBalancerListenerWithChan(request *StartLoadBalancerListenerRequest) (<-chan *StartLoadBalancerListenerResponse, <-chan error) {
 	responseChan := make(chan *StartLoadBalancerListenerResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) StartLoadBalancerListenerWithChan(request *StartLoadBalanc
 }
 
 // StartLoadBalancerListenerWithCallback invokes the slb.StartLoadBalancerListener API asynchronously
-// api document: https://help.aliyun.com/api/slb/startloadbalancerlistener.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) StartLoadBalancerListenerWithCallback(request *StartLoadBalancerListenerRequest, callback func(response *StartLoadBalancerListenerResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -79,12 +74,12 @@ type StartLoadBalancerListenerRequest struct {
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
 	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	ListenerProtocol     string           `position:"Query" name:"ListenerProtocol"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 }
 
 // StartLoadBalancerListenerResponse is the response struct for api StartLoadBalancerListener
@@ -99,6 +94,7 @@ func CreateStartLoadBalancerListenerRequest() (request *StartLoadBalancerListene
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "StartLoadBalancerListener", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

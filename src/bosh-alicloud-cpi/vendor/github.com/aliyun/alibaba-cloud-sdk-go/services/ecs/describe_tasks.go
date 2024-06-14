@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeTasks invokes the ecs.DescribeTasks API synchronously
-// api document: https://help.aliyun.com/api/ecs/describetasks.html
 func (client *Client) DescribeTasks(request *DescribeTasksRequest) (response *DescribeTasksResponse, err error) {
 	response = CreateDescribeTasksResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeTasks(request *DescribeTasksRequest) (response *De
 }
 
 // DescribeTasksWithChan invokes the ecs.DescribeTasks API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describetasks.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeTasksWithChan(request *DescribeTasksRequest) (<-chan *DescribeTasksResponse, <-chan error) {
 	responseChan := make(chan *DescribeTasksResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeTasksWithChan(request *DescribeTasksRequest) (<-ch
 }
 
 // DescribeTasksWithCallback invokes the ecs.DescribeTasks API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describetasks.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeTasksWithCallback(request *DescribeTasksRequest, callback func(response *DescribeTasksResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,26 +72,27 @@ func (client *Client) DescribeTasksWithCallback(request *DescribeTasksRequest, c
 type DescribeTasksRequest struct {
 	*requests.RpcRequest
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	EndTime              string           `position:"Query" name:"EndTime"`
 	StartTime            string           `position:"Query" name:"StartTime"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	TaskIds              string           `position:"Query" name:"TaskIds"`
 	PageNumber           requests.Integer `position:"Query" name:"PageNumber"`
 	TaskStatus           string           `position:"Query" name:"TaskStatus"`
 	PageSize             requests.Integer `position:"Query" name:"PageSize"`
+	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
+	EndTime              string           `position:"Query" name:"EndTime"`
+	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	TaskAction           string           `position:"Query" name:"TaskAction"`
+	ResourceIds          *[]string        `position:"Query" name:"ResourceIds"  type:"Repeated"`
 }
 
 // DescribeTasksResponse is the response struct for api DescribeTasks
 type DescribeTasksResponse struct {
 	*responses.BaseResponse
-	RequestId  string  `json:"RequestId" xml:"RequestId"`
-	RegionId   string  `json:"RegionId" xml:"RegionId"`
-	TotalCount int     `json:"TotalCount" xml:"TotalCount"`
-	PageNumber int     `json:"PageNumber" xml:"PageNumber"`
 	PageSize   int     `json:"PageSize" xml:"PageSize"`
+	PageNumber int     `json:"PageNumber" xml:"PageNumber"`
+	RequestId  string  `json:"RequestId" xml:"RequestId"`
+	TotalCount int     `json:"TotalCount" xml:"TotalCount"`
+	RegionId   string  `json:"RegionId" xml:"RegionId"`
 	TaskSet    TaskSet `json:"TaskSet" xml:"TaskSet"`
 }
 
@@ -106,6 +102,7 @@ func CreateDescribeTasksRequest() (request *DescribeTasksRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "DescribeTasks", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

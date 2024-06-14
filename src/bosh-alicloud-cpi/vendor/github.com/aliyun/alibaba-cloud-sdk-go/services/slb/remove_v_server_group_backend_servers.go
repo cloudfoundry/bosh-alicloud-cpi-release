@@ -21,7 +21,6 @@ import (
 )
 
 // RemoveVServerGroupBackendServers invokes the slb.RemoveVServerGroupBackendServers API synchronously
-// api document: https://help.aliyun.com/api/slb/removevservergroupbackendservers.html
 func (client *Client) RemoveVServerGroupBackendServers(request *RemoveVServerGroupBackendServersRequest) (response *RemoveVServerGroupBackendServersResponse, err error) {
 	response = CreateRemoveVServerGroupBackendServersResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) RemoveVServerGroupBackendServers(request *RemoveVServerGro
 }
 
 // RemoveVServerGroupBackendServersWithChan invokes the slb.RemoveVServerGroupBackendServers API asynchronously
-// api document: https://help.aliyun.com/api/slb/removevservergroupbackendservers.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) RemoveVServerGroupBackendServersWithChan(request *RemoveVServerGroupBackendServersRequest) (<-chan *RemoveVServerGroupBackendServersResponse, <-chan error) {
 	responseChan := make(chan *RemoveVServerGroupBackendServersResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) RemoveVServerGroupBackendServersWithChan(request *RemoveVS
 }
 
 // RemoveVServerGroupBackendServersWithCallback invokes the slb.RemoveVServerGroupBackendServers API asynchronously
-// api document: https://help.aliyun.com/api/slb/removevservergroupbackendservers.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) RemoveVServerGroupBackendServersWithCallback(request *RemoveVServerGroupBackendServersRequest, callback func(response *RemoveVServerGroupBackendServersResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,20 +72,20 @@ func (client *Client) RemoveVServerGroupBackendServersWithCallback(request *Remo
 type RemoveVServerGroupBackendServersRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
-	VServerGroupId       string           `position:"Query" name:"VServerGroupId"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	BackendServers       string           `position:"Query" name:"BackendServers"`
+	VServerGroupId       string           `position:"Query" name:"VServerGroupId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	BackendServers       string           `position:"Query" name:"BackendServers"`
 	Tags                 string           `position:"Query" name:"Tags"`
 }
 
 // RemoveVServerGroupBackendServersResponse is the response struct for api RemoveVServerGroupBackendServers
 type RemoveVServerGroupBackendServersResponse struct {
 	*responses.BaseResponse
-	RequestId      string                                           `json:"RequestId" xml:"RequestId"`
 	VServerGroupId string                                           `json:"VServerGroupId" xml:"VServerGroupId"`
+	RequestId      string                                           `json:"RequestId" xml:"RequestId"`
 	BackendServers BackendServersInRemoveVServerGroupBackendServers `json:"BackendServers" xml:"BackendServers"`
 }
 
@@ -100,6 +95,7 @@ func CreateRemoveVServerGroupBackendServersRequest() (request *RemoveVServerGrou
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "RemoveVServerGroupBackendServers", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

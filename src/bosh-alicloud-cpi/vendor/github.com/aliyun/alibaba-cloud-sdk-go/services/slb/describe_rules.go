@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeRules invokes the slb.DescribeRules API synchronously
-// api document: https://help.aliyun.com/api/slb/describerules.html
 func (client *Client) DescribeRules(request *DescribeRulesRequest) (response *DescribeRulesResponse, err error) {
 	response = CreateDescribeRulesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeRules(request *DescribeRulesRequest) (response *De
 }
 
 // DescribeRulesWithChan invokes the slb.DescribeRules API asynchronously
-// api document: https://help.aliyun.com/api/slb/describerules.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeRulesWithChan(request *DescribeRulesRequest) (<-chan *DescribeRulesResponse, <-chan error) {
 	responseChan := make(chan *DescribeRulesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeRulesWithChan(request *DescribeRulesRequest) (<-ch
 }
 
 // DescribeRulesWithCallback invokes the slb.DescribeRules API asynchronously
-// api document: https://help.aliyun.com/api/slb/describerules.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeRulesWithCallback(request *DescribeRulesRequest, callback func(response *DescribeRulesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -79,12 +74,12 @@ type DescribeRulesRequest struct {
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
 	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	ListenerProtocol     string           `position:"Query" name:"ListenerProtocol"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 }
 
 // DescribeRulesResponse is the response struct for api DescribeRules
@@ -100,6 +95,7 @@ func CreateDescribeRulesRequest() (request *DescribeRulesRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DescribeRules", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 
