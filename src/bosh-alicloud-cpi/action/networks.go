@@ -30,6 +30,11 @@ type NetworkProps struct {
 	VSwitchId          string   `json:"vswitch_id"`
 	InternetChargeType string   `json:"internet_charge_type,omitempty"`
 }
+type NlbServerGroupProps struct {
+	ServerGroupId string   `json:"server_group_id"`
+	Port          []string `json:"port"`
+	Weight        string   `json:"weight"`
+}
 
 func NewNetworks(args apiv1.Networks) (Networks, error) {
 	r := Networks{networks: args}

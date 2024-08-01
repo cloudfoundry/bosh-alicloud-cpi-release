@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeAutoProvisioningGroups invokes the ecs.DescribeAutoProvisioningGroups API synchronously
-// api document: https://help.aliyun.com/api/ecs/describeautoprovisioninggroups.html
 func (client *Client) DescribeAutoProvisioningGroups(request *DescribeAutoProvisioningGroupsRequest) (response *DescribeAutoProvisioningGroupsResponse, err error) {
 	response = CreateDescribeAutoProvisioningGroupsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeAutoProvisioningGroups(request *DescribeAutoProvis
 }
 
 // DescribeAutoProvisioningGroupsWithChan invokes the ecs.DescribeAutoProvisioningGroups API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describeautoprovisioninggroups.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeAutoProvisioningGroupsWithChan(request *DescribeAutoProvisioningGroupsRequest) (<-chan *DescribeAutoProvisioningGroupsResponse, <-chan error) {
 	responseChan := make(chan *DescribeAutoProvisioningGroupsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeAutoProvisioningGroupsWithChan(request *DescribeAu
 }
 
 // DescribeAutoProvisioningGroupsWithCallback invokes the ecs.DescribeAutoProvisioningGroups API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describeautoprovisioninggroups.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeAutoProvisioningGroupsWithCallback(request *DescribeAutoProvisioningGroupsRequest, callback func(response *DescribeAutoProvisioningGroupsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,6 +73,7 @@ type DescribeAutoProvisioningGroupsRequest struct {
 	*requests.RpcRequest
 	ResourceOwnerId             requests.Integer `position:"Query" name:"ResourceOwnerId"`
 	PageNumber                  requests.Integer `position:"Query" name:"PageNumber"`
+	ResourceGroupId             string           `position:"Query" name:"ResourceGroupId"`
 	PageSize                    requests.Integer `position:"Query" name:"PageSize"`
 	AutoProvisioningGroupStatus *[]string        `position:"Query" name:"AutoProvisioningGroupStatus"  type:"Repeated"`
 	ResourceOwnerAccount        string           `position:"Query" name:"ResourceOwnerAccount"`
@@ -90,10 +86,10 @@ type DescribeAutoProvisioningGroupsRequest struct {
 // DescribeAutoProvisioningGroupsResponse is the response struct for api DescribeAutoProvisioningGroups
 type DescribeAutoProvisioningGroupsResponse struct {
 	*responses.BaseResponse
-	RequestId              string                 `json:"RequestId" xml:"RequestId"`
-	TotalCount             int                    `json:"TotalCount" xml:"TotalCount"`
-	PageNumber             int                    `json:"PageNumber" xml:"PageNumber"`
 	PageSize               int                    `json:"PageSize" xml:"PageSize"`
+	RequestId              string                 `json:"RequestId" xml:"RequestId"`
+	PageNumber             int                    `json:"PageNumber" xml:"PageNumber"`
+	TotalCount             int                    `json:"TotalCount" xml:"TotalCount"`
 	AutoProvisioningGroups AutoProvisioningGroups `json:"AutoProvisioningGroups" xml:"AutoProvisioningGroups"`
 }
 
@@ -103,6 +99,7 @@ func CreateDescribeAutoProvisioningGroupsRequest() (request *DescribeAutoProvisi
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "DescribeAutoProvisioningGroups", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

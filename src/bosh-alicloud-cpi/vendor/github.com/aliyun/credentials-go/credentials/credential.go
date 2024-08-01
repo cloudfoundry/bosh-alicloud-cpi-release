@@ -30,6 +30,7 @@ type Credential interface {
 	GetSecurityToken() (*string, error)
 	GetBearerToken() *string
 	GetType() *string
+	GetCredential() (*CredentialModel, error)
 }
 
 // Config is important when call NewCredential
@@ -56,6 +57,7 @@ type Config struct {
 	InAdvanceScale        *float64 `json:"inAdvanceScale"`
 	Url                   *string  `json:"url"`
 	STSEndpoint           *string  `json:"sts_endpoint"`
+	ExternalId            *string  `json:"external_id"`
 }
 
 func (s Config) String() string {
@@ -234,7 +236,15 @@ func NewCredential(config *Config) (credential Credential, err error) {
 			ConnectTimeout: tea.IntValue(config.ConnectTimeout),
 			STSEndpoint:    tea.StringValue(config.STSEndpoint),
 		}
-		credential = newRAMRoleArnCredential(tea.StringValue(config.AccessKeyId), tea.StringValue(config.AccessKeySecret), tea.StringValue(config.RoleArn), tea.StringValue(config.RoleSessionName), tea.StringValue(config.Policy), tea.IntValue(config.RoleSessionExpiration), runtime)
+		credential = newRAMRoleArnWithExternalIdCredential(
+			tea.StringValue(config.AccessKeyId),
+			tea.StringValue(config.AccessKeySecret),
+			tea.StringValue(config.RoleArn),
+			tea.StringValue(config.RoleSessionName),
+			tea.StringValue(config.Policy),
+			tea.IntValue(config.RoleSessionExpiration),
+			tea.StringValue(config.ExternalId),
+			runtime)
 	case "rsa_key_pair":
 		err = checkRSAKeyPair(config)
 		if err != nil {

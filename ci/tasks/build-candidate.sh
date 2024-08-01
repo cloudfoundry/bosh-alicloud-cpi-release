@@ -20,7 +20,7 @@ pushd bosh-cpi-src
         if [[ ${LINE//:/} =~ ^go[0-9.]+linux-[a-z0-9]+.tar.gz$ ]]; then
             gorelease=${LINE//:/}
             echo "Downloading ${gorelease}..."
-            wget -q https://dl.google.com/go/${gorelease}
+            wget https://go.dev/dl/${gorelease}
             echo "Adding ${gorelease} to blob..."
             bosh add-blob ./${gorelease} ${gorelease}
             break

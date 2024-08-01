@@ -21,7 +21,6 @@ import (
 )
 
 // ModifySecurityGroupRule invokes the ecs.ModifySecurityGroupRule API synchronously
-// api document: https://help.aliyun.com/api/ecs/modifysecuritygrouprule.html
 func (client *Client) ModifySecurityGroupRule(request *ModifySecurityGroupRuleRequest) (response *ModifySecurityGroupRuleResponse, err error) {
 	response = CreateModifySecurityGroupRuleResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) ModifySecurityGroupRule(request *ModifySecurityGroupRuleRe
 }
 
 // ModifySecurityGroupRuleWithChan invokes the ecs.ModifySecurityGroupRule API asynchronously
-// api document: https://help.aliyun.com/api/ecs/modifysecuritygrouprule.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifySecurityGroupRuleWithChan(request *ModifySecurityGroupRuleRequest) (<-chan *ModifySecurityGroupRuleResponse, <-chan error) {
 	responseChan := make(chan *ModifySecurityGroupRuleResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) ModifySecurityGroupRuleWithChan(request *ModifySecurityGro
 }
 
 // ModifySecurityGroupRuleWithCallback invokes the ecs.ModifySecurityGroupRule API asynchronously
-// api document: https://help.aliyun.com/api/ecs/modifysecuritygrouprule.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifySecurityGroupRuleWithCallback(request *ModifySecurityGroupRuleRequest, callback func(response *ModifySecurityGroupRuleResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,15 +73,16 @@ type ModifySecurityGroupRuleRequest struct {
 	*requests.RpcRequest
 	NicType                 string           `position:"Query" name:"NicType"`
 	ResourceOwnerId         requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	SourcePrefixListId      string           `position:"Query" name:"SourcePrefixListId"`
 	SourcePortRange         string           `position:"Query" name:"SourcePortRange"`
 	ClientToken             string           `position:"Query" name:"ClientToken"`
 	SecurityGroupId         string           `position:"Query" name:"SecurityGroupId"`
 	Description             string           `position:"Query" name:"Description"`
 	SourceGroupOwnerId      requests.Integer `position:"Query" name:"SourceGroupOwnerId"`
 	SourceGroupOwnerAccount string           `position:"Query" name:"SourceGroupOwnerAccount"`
+	Policy                  string           `position:"Query" name:"Policy"`
 	Ipv6SourceCidrIp        string           `position:"Query" name:"Ipv6SourceCidrIp"`
 	Ipv6DestCidrIp          string           `position:"Query" name:"Ipv6DestCidrIp"`
-	Policy                  string           `position:"Query" name:"Policy"`
 	PortRange               string           `position:"Query" name:"PortRange"`
 	ResourceOwnerAccount    string           `position:"Query" name:"ResourceOwnerAccount"`
 	IpProtocol              string           `position:"Query" name:"IpProtocol"`
@@ -96,6 +92,7 @@ type ModifySecurityGroupRuleRequest struct {
 	Priority                string           `position:"Query" name:"Priority"`
 	DestCidrIp              string           `position:"Query" name:"DestCidrIp"`
 	SourceGroupId           string           `position:"Query" name:"SourceGroupId"`
+	SecurityGroupRuleId     string           `position:"Query" name:"SecurityGroupRuleId"`
 }
 
 // ModifySecurityGroupRuleResponse is the response struct for api ModifySecurityGroupRule
@@ -110,6 +107,7 @@ func CreateModifySecurityGroupRuleRequest() (request *ModifySecurityGroupRuleReq
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "ModifySecurityGroupRule", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

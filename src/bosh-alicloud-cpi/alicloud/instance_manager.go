@@ -6,12 +6,15 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
+	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+	openapiutil "github.com/alibabacloud-go/openapi-util/service"
+	"github.com/alibabacloud-go/tea/tea"
 	"strings"
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
-	util "github.com/alibabacloud-go/tea-utils/service"
+	util "github.com/alibabacloud-go/tea-utils/v2/service"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -103,7 +106,7 @@ func (a InstanceManagerImpl) GetInstance(cid string) (inst *ecs.Instance, err er
 	return
 }
 
-func (a InstanceManagerImpl) CreateInstance(region string, request map[string]interface{}) (string, error) {
+func (a InstanceManagerImpl) CreateInstance(region string, queries map[string]interface{}) (string, error) {
 	conn, err := a.config.EcsTeaClient(region)
 	if err != nil {
 		return "", err
@@ -116,20 +119,34 @@ func (a InstanceManagerImpl) CreateInstance(region string, request map[string]in
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
 
 	action := "CreateInstance"
-	request["ClientToken"] = buildClientToken(action)
-	runtime := util.RuntimeOptions{}
+	params := &openapi.Params{
+		Action:      tea.String(action),
+		Version:     tea.String("2014-05-26"),
+		Protocol:    tea.String("HTTPS"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		Pathname:    tea.String("/"),
+		ReqBodyType: tea.String("json"),
+		BodyType:    tea.String("json"),
+	}
+	queries["ClientToken"] = buildClientToken(action)
+	runtime := &util.RuntimeOptions{}
 	runtime.SetAutoretry(true)
+	request := &openapi.OpenApiRequest{
+		Query: openapiutil.Query(queries),
+	}
 	var cid string
 	err = invoker.Run(func() error {
-		resp, e := conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2014-05-26"), StringPointer("AK"), nil, request, &runtime)
+		resp, e := conn.CallApi(params, request, runtime)
 		if e != nil {
 			if IsExceptedErrors(e, []string{"IdempotentFailed"}) {
 				// If the error is not 5xx, the client token should be updated
-				request["ClientToken"] = buildClientToken(action)
+				queries["ClientToken"] = buildClientToken(action)
 			}
 			return e
 		}
-		cid = fmt.Sprint(resp["InstanceId"])
+		cid = fmt.Sprint(resp["body"].(map[string]interface{})["InstanceId"])
 		return e
 	})
 	return cid, err

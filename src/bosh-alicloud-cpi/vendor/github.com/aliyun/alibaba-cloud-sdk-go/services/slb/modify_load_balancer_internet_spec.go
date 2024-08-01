@@ -21,7 +21,6 @@ import (
 )
 
 // ModifyLoadBalancerInternetSpec invokes the slb.ModifyLoadBalancerInternetSpec API synchronously
-// api document: https://help.aliyun.com/api/slb/modifyloadbalancerinternetspec.html
 func (client *Client) ModifyLoadBalancerInternetSpec(request *ModifyLoadBalancerInternetSpecRequest) (response *ModifyLoadBalancerInternetSpecResponse, err error) {
 	response = CreateModifyLoadBalancerInternetSpecResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) ModifyLoadBalancerInternetSpec(request *ModifyLoadBalancer
 }
 
 // ModifyLoadBalancerInternetSpecWithChan invokes the slb.ModifyLoadBalancerInternetSpec API asynchronously
-// api document: https://help.aliyun.com/api/slb/modifyloadbalancerinternetspec.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifyLoadBalancerInternetSpecWithChan(request *ModifyLoadBalancerInternetSpecRequest) (<-chan *ModifyLoadBalancerInternetSpecResponse, <-chan error) {
 	responseChan := make(chan *ModifyLoadBalancerInternetSpecResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) ModifyLoadBalancerInternetSpecWithChan(request *ModifyLoad
 }
 
 // ModifyLoadBalancerInternetSpecWithCallback invokes the slb.ModifyLoadBalancerInternetSpec API asynchronously
-// api document: https://help.aliyun.com/api/slb/modifyloadbalancerinternetspec.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifyLoadBalancerInternetSpecWithCallback(request *ModifyLoadBalancerInternetSpecRequest, callback func(response *ModifyLoadBalancerInternetSpecResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -92,8 +87,8 @@ type ModifyLoadBalancerInternetSpecRequest struct {
 // ModifyLoadBalancerInternetSpecResponse is the response struct for api ModifyLoadBalancerInternetSpec
 type ModifyLoadBalancerInternetSpecResponse struct {
 	*responses.BaseResponse
-	RequestId string `json:"RequestId" xml:"RequestId"`
 	OrderId   int64  `json:"OrderId" xml:"OrderId"`
+	RequestId string `json:"RequestId" xml:"RequestId"`
 }
 
 // CreateModifyLoadBalancerInternetSpecRequest creates a request to invoke ModifyLoadBalancerInternetSpec API
@@ -102,6 +97,7 @@ func CreateModifyLoadBalancerInternetSpecRequest() (request *ModifyLoadBalancerI
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "ModifyLoadBalancerInternetSpec", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

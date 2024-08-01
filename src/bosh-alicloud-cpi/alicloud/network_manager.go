@@ -6,9 +6,11 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
+	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+	openapiutil "github.com/alibabacloud-go/openapi-util/service"
+	util "github.com/alibabacloud-go/tea-utils/v2/service"
+	"github.com/alibabacloud-go/tea/tea"
 	"strings"
-
-	util "github.com/alibabacloud-go/tea-utils/service"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
@@ -18,7 +20,7 @@ import (
 )
 
 type NetworkManager interface {
-	DescribeEip(region, eip string) (ecs.EipAddressInDescribeEipAddresses, error)
+	DescribeEip(region, eip string) (ecs.EipAddress, error)
 	BindEip(region, instanceId, eip string) error
 	WaitForEipStatus(region, eip string, toStatus EipStatus) error
 
@@ -60,7 +62,7 @@ func (a NetworkManagerImpl) log(action string, err error, args interface{}, resu
 	}
 }
 
-func (a NetworkManagerImpl) DescribeEip(region, eip string) (eipAddress ecs.EipAddressInDescribeEipAddresses, err error) {
+func (a NetworkManagerImpl) DescribeEip(region, eip string) (eipAddress ecs.EipAddress, err error) {
 	client, err := a.config.NewEcsClient(region)
 	if err != nil {
 		return
@@ -177,24 +179,43 @@ func (a NetworkManagerImpl) BindNlbServerGroup(region, instanceId string, nlbSer
 	if err != nil {
 		return err
 	}
-	request := map[string]interface{}{
+	action := "AddServersToServerGroup"
+	params := &openapi.Params{
+		Action:      tea.String(action),
+		Version:     tea.String("2022-04-30"),
+		Protocol:    tea.String("HTTPS"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		Pathname:    tea.String("/"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	queries := map[string]interface{}{
 		"Servers.1.Port":       port,
 		"ServerGroupId":        nlbServerGroupId,
 		"Servers.1.ServerId":   instanceId,
 		"Servers.1.ServerType": "Ecs",
 		"ClientToken":          buildClientToken("AddServersToServerGroup"),
+		"RegionId":             tea.String(a.config.OpenApi.Region),
 	}
 	if weight != 0 {
-		request["Servers.1.Weight"] = weight
+		queries["Servers.1.Weight"] = weight
 	}
-	action := "AddServersToServerGroup"
+	queries["ClientToken"] = buildClientToken(action)
+	request := &openapi.OpenApiRequest{
+		Query: openapiutil.Query(queries),
+	}
+	runtime := &util.RuntimeOptions{}
+	runtime.SetAutoretry(true)
 	invoker := NewInvoker()
 	invoker.AddCatcher(NlbBindServerCatcher_Conflict_Lock)
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
+
 	err = invoker.Run(func() error {
-		_, e := conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2022-04-30"), StringPointer("AK"), nil, request, &runtime)
-		a.logger.Error("NetworkManager", "BindNlbServerGroup %s to %s failed %v. Retry...", instanceId, nlbServerGroupId, err)
+		_, e := conn.CallApi(params, request, runtime)
+		if e != nil {
+			a.logger.Error("NetworkManager", "BindNlbServerGroup %s to %s failed %v. Retry...", instanceId, nlbServerGroupId, err)
+		}
 		return e
 	})
 	return err

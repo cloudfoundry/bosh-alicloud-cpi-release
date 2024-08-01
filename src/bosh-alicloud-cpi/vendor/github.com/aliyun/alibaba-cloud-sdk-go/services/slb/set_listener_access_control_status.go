@@ -21,7 +21,6 @@ import (
 )
 
 // SetListenerAccessControlStatus invokes the slb.SetListenerAccessControlStatus API synchronously
-// api document: https://help.aliyun.com/api/slb/setlisteneraccesscontrolstatus.html
 func (client *Client) SetListenerAccessControlStatus(request *SetListenerAccessControlStatusRequest) (response *SetListenerAccessControlStatusResponse, err error) {
 	response = CreateSetListenerAccessControlStatusResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) SetListenerAccessControlStatus(request *SetListenerAccessC
 }
 
 // SetListenerAccessControlStatusWithChan invokes the slb.SetListenerAccessControlStatus API asynchronously
-// api document: https://help.aliyun.com/api/slb/setlisteneraccesscontrolstatus.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) SetListenerAccessControlStatusWithChan(request *SetListenerAccessControlStatusRequest) (<-chan *SetListenerAccessControlStatusResponse, <-chan error) {
 	responseChan := make(chan *SetListenerAccessControlStatusResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) SetListenerAccessControlStatusWithChan(request *SetListene
 }
 
 // SetListenerAccessControlStatusWithCallback invokes the slb.SetListenerAccessControlStatus API asynchronously
-// api document: https://help.aliyun.com/api/slb/setlisteneraccesscontrolstatus.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) SetListenerAccessControlStatusWithCallback(request *SetListenerAccessControlStatusRequest, callback func(response *SetListenerAccessControlStatusResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,14 +73,14 @@ type SetListenerAccessControlStatusRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	AccessControlStatus  string           `position:"Query" name:"AccessControlStatus"`
 	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	AccessControlStatus  string           `position:"Query" name:"AccessControlStatus"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	ListenerProtocol     string           `position:"Query" name:"ListenerProtocol"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 }
 
 // SetListenerAccessControlStatusResponse is the response struct for api SetListenerAccessControlStatus
@@ -100,6 +95,7 @@ func CreateSetListenerAccessControlStatusRequest() (request *SetListenerAccessCo
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "SetListenerAccessControlStatus", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

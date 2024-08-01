@@ -21,7 +21,6 @@ import (
 )
 
 // ModifyInstanceNetworkSpec invokes the ecs.ModifyInstanceNetworkSpec API synchronously
-// api document: https://help.aliyun.com/api/ecs/modifyinstancenetworkspec.html
 func (client *Client) ModifyInstanceNetworkSpec(request *ModifyInstanceNetworkSpecRequest) (response *ModifyInstanceNetworkSpecResponse, err error) {
 	response = CreateModifyInstanceNetworkSpecResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) ModifyInstanceNetworkSpec(request *ModifyInstanceNetworkSp
 }
 
 // ModifyInstanceNetworkSpecWithChan invokes the ecs.ModifyInstanceNetworkSpec API asynchronously
-// api document: https://help.aliyun.com/api/ecs/modifyinstancenetworkspec.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifyInstanceNetworkSpecWithChan(request *ModifyInstanceNetworkSpecRequest) (<-chan *ModifyInstanceNetworkSpecResponse, <-chan error) {
 	responseChan := make(chan *ModifyInstanceNetworkSpecResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) ModifyInstanceNetworkSpecWithChan(request *ModifyInstanceN
 }
 
 // ModifyInstanceNetworkSpecWithCallback invokes the ecs.ModifyInstanceNetworkSpec API asynchronously
-// api document: https://help.aliyun.com/api/ecs/modifyinstancenetworkspec.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifyInstanceNetworkSpecWithCallback(request *ModifyInstanceNetworkSpecRequest, callback func(response *ModifyInstanceNetworkSpecResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,26 +71,33 @@ func (client *Client) ModifyInstanceNetworkSpecWithCallback(request *ModifyInsta
 // ModifyInstanceNetworkSpecRequest is the request struct for api ModifyInstanceNetworkSpec
 type ModifyInstanceNetworkSpecRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId         requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	AutoPay                 requests.Boolean `position:"Query" name:"AutoPay"`
-	ResourceOwnerAccount    string           `position:"Query" name:"ResourceOwnerAccount"`
-	ClientToken             string           `position:"Query" name:"ClientToken"`
-	OwnerAccount            string           `position:"Query" name:"OwnerAccount"`
-	InternetMaxBandwidthOut requests.Integer `position:"Query" name:"InternetMaxBandwidthOut"`
-	EndTime                 string           `position:"Query" name:"EndTime"`
-	StartTime               string           `position:"Query" name:"StartTime"`
-	OwnerId                 requests.Integer `position:"Query" name:"OwnerId"`
-	InstanceId              string           `position:"Query" name:"InstanceId"`
-	NetworkChargeType       string           `position:"Query" name:"NetworkChargeType"`
-	InternetMaxBandwidthIn  requests.Integer `position:"Query" name:"InternetMaxBandwidthIn"`
-	AllocatePublicIp        requests.Boolean `position:"Query" name:"AllocatePublicIp"`
+	ResourceOwnerId         requests.Integer                          `position:"Query" name:"ResourceOwnerId"`
+	ClientToken             string                                    `position:"Query" name:"ClientToken"`
+	ISP                     string                                    `position:"Query" name:"ISP"`
+	InternetMaxBandwidthOut requests.Integer                          `position:"Query" name:"InternetMaxBandwidthOut"`
+	StartTime               string                                    `position:"Query" name:"StartTime"`
+	AutoPay                 requests.Boolean                          `position:"Query" name:"AutoPay"`
+	ResourceOwnerAccount    string                                    `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount            string                                    `position:"Query" name:"OwnerAccount"`
+	EndTime                 string                                    `position:"Query" name:"EndTime"`
+	OwnerId                 requests.Integer                          `position:"Query" name:"OwnerId"`
+	PromotionOptions        ModifyInstanceNetworkSpecPromotionOptions `position:"Query" name:"PromotionOptions"  type:"Struct"`
+	InstanceId              string                                    `position:"Query" name:"InstanceId"`
+	NetworkChargeType       string                                    `position:"Query" name:"NetworkChargeType"`
+	InternetMaxBandwidthIn  requests.Integer                          `position:"Query" name:"InternetMaxBandwidthIn"`
+	AllocatePublicIp        requests.Boolean                          `position:"Query" name:"AllocatePublicIp"`
+}
+
+// ModifyInstanceNetworkSpecPromotionOptions is a repeated param struct in ModifyInstanceNetworkSpecRequest
+type ModifyInstanceNetworkSpecPromotionOptions struct {
+	CouponNo string `name:"CouponNo"`
 }
 
 // ModifyInstanceNetworkSpecResponse is the response struct for api ModifyInstanceNetworkSpec
 type ModifyInstanceNetworkSpecResponse struct {
 	*responses.BaseResponse
-	RequestId string `json:"RequestId" xml:"RequestId"`
 	OrderId   string `json:"OrderId" xml:"OrderId"`
+	RequestId string `json:"RequestId" xml:"RequestId"`
 }
 
 // CreateModifyInstanceNetworkSpecRequest creates a request to invoke ModifyInstanceNetworkSpec API
@@ -104,6 +106,7 @@ func CreateModifyInstanceNetworkSpecRequest() (request *ModifyInstanceNetworkSpe
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "ModifyInstanceNetworkSpec", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

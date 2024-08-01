@@ -1,4 +1,3 @@
-
 package endpoints
 
 import (
@@ -7,7 +6,7 @@ import (
 	"sync"
 )
 
-const endpointsJson =`{
+const endpointsJson = `{
 	"products": [
 		{
 			"code": "emr",
@@ -3006,6 +3005,30 @@ const endpointsJson =`{
 				{
 					"region": "cn-zhangjiakou",
 					"endpoint": "slb.cn-zhangjiakou.aliyuncs.com"
+				},
+				{
+					"region": "cn-wulanchabu",
+					"endpoint": "slb.cn-wulanchabu.aliyuncs.com"
+				},
+				{
+					"region": "cn-heyuan",
+					"endpoint": "slb.cn-heyuan.aliyuncs.com"
+				},
+				{
+					"region": "cn-guangzhou",
+					"endpoint": "slb.cn-guangzhou.aliyuncs.com"
+				},
+				{
+					"region": "cn-chengdu",
+					"endpoint": "slb.cn-chengdu.aliyuncs.com"
+				},
+				{
+					"region": "ap-southeast-6",
+					"endpoint": "slb.ap-southeast-6.aliyuncs.com"
+				},
+				{
+					"region": "eu-west-1",
+					"endpoint": "slb.eu-west-1.aliyuncs.com"
 				}
 			],
 			"global_endpoint": "slb.aliyuncs.com",
@@ -3618,10 +3641,6 @@ const endpointsJson =`{
 					"endpoint": "metrics.ap-southeast-3.aliyuncs.com"
 				},
 				{
-					"region": "cn-hongkong",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
 					"region": "ap-southeast-5",
 					"endpoint": "metrics.ap-southeast-5.aliyuncs.com"
 				},
@@ -3642,55 +3661,11 @@ const endpointsJson =`{
 					"endpoint": "metrics.cn-huhehaote.aliyuncs.com"
 				},
 				{
-					"region": "cn-shanghai",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
-					"region": "cn-shenzhen",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
-					"region": "ap-southeast-1",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
-					"region": "us-west-1",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
-					"region": "us-east-1",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
 					"region": "ap-northeast-1",
 					"endpoint": "metrics.ap-northeast-1.aliyuncs.com"
-				},
-				{
-					"region": "cn-qingdao",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
-					"region": "cn-beijing",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
-					"region": "cn-zhangjiakou",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
-					"region": "ap-southeast-2",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
-					"region": "eu-central-1",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
-				},
-				{
-					"region": "me-east-1",
-					"endpoint": "metrics.cn-hangzhou.aliyuncs.com"
 				}
 			],
-			"global_endpoint": "metrics.cn-hangzhou.aliyuncs.com",
+			"global_endpoint": "",
 			"regional_endpoint_pattern": ""
 		},
 		{
@@ -3824,6 +3799,10 @@ const endpointsJson =`{
 				{
 					"region": "ap-southeast-3",
 					"endpoint": "mongodb.ap-southeast-3.aliyuncs.com"
+				},
+				{
+					"region": "ap-southeast-7",
+					"endpoint": "mongodb.ap-southeast-7.aliyuncs.com"
 				},
 				{
 					"region": "ap-southeast-5",
@@ -4112,6 +4091,7 @@ const endpointsJson =`{
 		}
 	]
 }`
+
 var initOnce sync.Once
 var data interface{}
 

@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeLoadBalancerUDPListenerAttribute invokes the slb.DescribeLoadBalancerUDPListenerAttribute API synchronously
-// api document: https://help.aliyun.com/api/slb/describeloadbalancerudplistenerattribute.html
 func (client *Client) DescribeLoadBalancerUDPListenerAttribute(request *DescribeLoadBalancerUDPListenerAttributeRequest) (response *DescribeLoadBalancerUDPListenerAttributeResponse, err error) {
 	response = CreateDescribeLoadBalancerUDPListenerAttributeResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeLoadBalancerUDPListenerAttribute(request *Describe
 }
 
 // DescribeLoadBalancerUDPListenerAttributeWithChan invokes the slb.DescribeLoadBalancerUDPListenerAttribute API asynchronously
-// api document: https://help.aliyun.com/api/slb/describeloadbalancerudplistenerattribute.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeLoadBalancerUDPListenerAttributeWithChan(request *DescribeLoadBalancerUDPListenerAttributeRequest) (<-chan *DescribeLoadBalancerUDPListenerAttributeResponse, <-chan error) {
 	responseChan := make(chan *DescribeLoadBalancerUDPListenerAttributeResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeLoadBalancerUDPListenerAttributeWithChan(request *
 }
 
 // DescribeLoadBalancerUDPListenerAttributeWithCallback invokes the slb.DescribeLoadBalancerUDPListenerAttribute API asynchronously
-// api document: https://help.aliyun.com/api/slb/describeloadbalancerudplistenerattribute.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeLoadBalancerUDPListenerAttributeWithCallback(request *DescribeLoadBalancerUDPListenerAttributeRequest, callback func(response *DescribeLoadBalancerUDPListenerAttributeResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -79,39 +74,61 @@ type DescribeLoadBalancerUDPListenerAttributeRequest struct {
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
 	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 }
 
 // DescribeLoadBalancerUDPListenerAttributeResponse is the response struct for api DescribeLoadBalancerUDPListenerAttribute
 type DescribeLoadBalancerUDPListenerAttributeResponse struct {
 	*responses.BaseResponse
-	RequestId                 string `json:"RequestId" xml:"RequestId"`
-	ListenerPort              int    `json:"ListenerPort" xml:"ListenerPort"`
-	BackendServerPort         int    `json:"BackendServerPort" xml:"BackendServerPort"`
-	Status                    string `json:"Status" xml:"Status"`
-	Bandwidth                 int    `json:"Bandwidth" xml:"Bandwidth"`
-	Scheduler                 string `json:"Scheduler" xml:"Scheduler"`
-	PersistenceTimeout        int    `json:"PersistenceTimeout" xml:"PersistenceTimeout"`
-	HealthCheck               string `json:"HealthCheck" xml:"HealthCheck"`
-	HealthyThreshold          int    `json:"HealthyThreshold" xml:"HealthyThreshold"`
-	UnhealthyThreshold        int    `json:"UnhealthyThreshold" xml:"UnhealthyThreshold"`
-	HealthCheckConnectTimeout int    `json:"HealthCheckConnectTimeout" xml:"HealthCheckConnectTimeout"`
-	HealthCheckConnectPort    int    `json:"HealthCheckConnectPort" xml:"HealthCheckConnectPort"`
-	HealthCheckInterval       int    `json:"HealthCheckInterval" xml:"HealthCheckInterval"`
-	HealthCheckReq            string `json:"HealthCheckReq" xml:"HealthCheckReq"`
-	HealthCheckExp            string `json:"HealthCheckExp" xml:"HealthCheckExp"`
-	MaxConnection             int    `json:"MaxConnection" xml:"MaxConnection"`
-	VServerGroupId            string `json:"VServerGroupId" xml:"VServerGroupId"`
-	MasterSlaveServerGroupId  string `json:"MasterSlaveServerGroupId" xml:"MasterSlaveServerGroupId"`
-	AclId                     string `json:"AclId" xml:"AclId"`
-	AclType                   string `json:"AclType" xml:"AclType"`
-	AclStatus                 string `json:"AclStatus" xml:"AclStatus"`
-	VpcIds                    string `json:"VpcIds" xml:"VpcIds"`
-	Description               string `json:"Description" xml:"Description"`
+	VServerGroupId            string                                               `json:"VServerGroupId" xml:"VServerGroupId"`
+	Status                    string                                               `json:"Status" xml:"Status"`
+	AclType                   string                                               `json:"AclType" xml:"AclType"`
+	ConnectionDrainTimeout    int                                                  `json:"ConnectionDrainTimeout" xml:"ConnectionDrainTimeout"`
+	FailoverStrategy          string                                               `json:"FailoverStrategy" xml:"FailoverStrategy"`
+	WorkingServerGroupId      string                                               `json:"WorkingServerGroupId" xml:"WorkingServerGroupId"`
+	HealthCheckSwitch         string                                               `json:"HealthCheckSwitch" xml:"HealthCheckSwitch"`
+	FullNatEnabled            bool                                                 `json:"FullNatEnabled" xml:"FullNatEnabled"`
+	ServiceManagedMode        string                                               `json:"ServiceManagedMode" xml:"ServiceManagedMode"`
+	QuicVersion               string                                               `json:"QuicVersion" xml:"QuicVersion"`
+	RequestId                 string                                               `json:"RequestId" xml:"RequestId"`
+	HealthCheckConnectPort    int                                                  `json:"HealthCheckConnectPort" xml:"HealthCheckConnectPort"`
+	Description               string                                               `json:"Description" xml:"Description"`
+	Bandwidth                 int                                                  `json:"Bandwidth" xml:"Bandwidth"`
+	HealthCheckType           string                                               `json:"HealthCheckType" xml:"HealthCheckType"`
+	MasterSlaveServerGroupId  string                                               `json:"MasterSlaveServerGroupId" xml:"MasterSlaveServerGroupId"`
+	BackendServerPort         int                                                  `json:"BackendServerPort" xml:"BackendServerPort"`
+	AclStatus                 string                                               `json:"AclStatus" xml:"AclStatus"`
+	HealthCheckDomain         string                                               `json:"HealthCheckDomain" xml:"HealthCheckDomain"`
+	UnhealthyThreshold        int                                                  `json:"UnhealthyThreshold" xml:"UnhealthyThreshold"`
+	MasterServerGroupId       string                                               `json:"MasterServerGroupId" xml:"MasterServerGroupId"`
+	HealthCheckHttpCode       string                                               `json:"HealthCheckHttpCode" xml:"HealthCheckHttpCode"`
+	MaxConnection             int                                                  `json:"MaxConnection" xml:"MaxConnection"`
+	ProxyProtocolV2Enabled    bool                                                 `json:"ProxyProtocolV2Enabled" xml:"ProxyProtocolV2Enabled"`
+	SlaveServerGroupId        string                                               `json:"SlaveServerGroupId" xml:"SlaveServerGroupId"`
+	PersistenceTimeout        int                                                  `json:"PersistenceTimeout" xml:"PersistenceTimeout"`
+	ListenerPort              int                                                  `json:"ListenerPort" xml:"ListenerPort"`
+	HealthCheckInterval       int                                                  `json:"HealthCheckInterval" xml:"HealthCheckInterval"`
+	HealthCheckExp            string                                               `json:"HealthCheckExp" xml:"HealthCheckExp"`
+	HealthCheckURI            string                                               `json:"HealthCheckURI" xml:"HealthCheckURI"`
+	FailoverThreshold         int                                                  `json:"FailoverThreshold" xml:"FailoverThreshold"`
+	AclId                     string                                               `json:"AclId" xml:"AclId"`
+	Scheduler                 string                                               `json:"Scheduler" xml:"Scheduler"`
+	VpcIds                    string                                               `json:"VpcIds" xml:"VpcIds"`
+	HealthCheckConnectTimeout int                                                  `json:"HealthCheckConnectTimeout" xml:"HealthCheckConnectTimeout"`
+	MasterSlaveModeEnabled    bool                                                 `json:"MasterSlaveModeEnabled" xml:"MasterSlaveModeEnabled"`
+	HealthyThreshold          int                                                  `json:"HealthyThreshold" xml:"HealthyThreshold"`
+	ConnectionDrain           string                                               `json:"ConnectionDrain" xml:"ConnectionDrain"`
+	HealthCheckReq            string                                               `json:"HealthCheckReq" xml:"HealthCheckReq"`
+	HealthCheckMethod         string                                               `json:"HealthCheckMethod" xml:"HealthCheckMethod"`
+	HealthCheck               string                                               `json:"HealthCheck" xml:"HealthCheck"`
+	LoadBalancerId            string                                               `json:"LoadBalancerId" xml:"LoadBalancerId"`
+	AclIds                    AclIdsInDescribeLoadBalancerUDPListenerAttribute     `json:"AclIds" xml:"AclIds"`
+	PortRanges                PortRangesInDescribeLoadBalancerUDPListenerAttribute `json:"PortRanges" xml:"PortRanges"`
+	Tags                      TagsInDescribeLoadBalancerUDPListenerAttribute       `json:"Tags" xml:"Tags"`
 }
 
 // CreateDescribeLoadBalancerUDPListenerAttributeRequest creates a request to invoke DescribeLoadBalancerUDPListenerAttribute API
@@ -120,6 +137,7 @@ func CreateDescribeLoadBalancerUDPListenerAttributeRequest() (request *DescribeL
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DescribeLoadBalancerUDPListenerAttribute", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

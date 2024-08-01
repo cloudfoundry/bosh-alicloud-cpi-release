@@ -1,21 +1,27 @@
-# github.com/alibabacloud-go/debug v0.0.0-20190504072949-9472017b5c68
-## explicit
+# github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.4
+## explicit; go 1.14
+github.com/alibabacloud-go/alibabacloud-gateway-spi/client
+# github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.8
+## explicit; go 1.14
+github.com/alibabacloud-go/darabonba-openapi/v2/client
+# github.com/alibabacloud-go/debug v1.0.0
+## explicit; go 1.18
 github.com/alibabacloud-go/debug/debug
-# github.com/alibabacloud-go/tea v1.2.1
+# github.com/alibabacloud-go/openapi-util v0.1.1
+## explicit; go 1.14
+github.com/alibabacloud-go/openapi-util/service
+# github.com/alibabacloud-go/tea v1.2.2
 ## explicit; go 1.14
 github.com/alibabacloud-go/tea/tea
 github.com/alibabacloud-go/tea/utils
-# github.com/alibabacloud-go/tea-rpc v1.3.3 => github.com/alibabacloud-go/tea-rpc v1.3.3
+# github.com/alibabacloud-go/tea-utils/v2 v2.0.6
 ## explicit; go 1.14
-github.com/alibabacloud-go/tea-rpc/client
-# github.com/alibabacloud-go/tea-rpc-utils v1.1.2
+github.com/alibabacloud-go/tea-utils/v2/service
+# github.com/alibabacloud-go/tea-xml v1.1.3
 ## explicit; go 1.14
-github.com/alibabacloud-go/tea-rpc-utils/service
-# github.com/alibabacloud-go/tea-utils v1.4.5 => github.com/alibabacloud-go/tea-utils v1.4.5
-## explicit; go 1.14
-github.com/alibabacloud-go/tea-utils/service
-# github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190830085952-7a8078751366 => github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190830085952-7a8078751366
-## explicit
+github.com/alibabacloud-go/tea-xml/service
+# github.com/aliyun/alibaba-cloud-sdk-go v1.62.676
+## explicit; go 1.13
 github.com/aliyun/alibaba-cloud-sdk-go/sdk
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials
@@ -32,7 +38,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/services/slb
 # github.com/aliyun/aliyun-oss-go-sdk v3.0.1+incompatible
 ## explicit
 github.com/aliyun/aliyun-oss-go-sdk/oss
-# github.com/aliyun/credentials-go v1.2.7 => github.com/aliyun/credentials-go v1.2.7
+# github.com/aliyun/credentials-go v1.3.2
 ## explicit; go 1.14
 github.com/aliyun/credentials-go/credentials
 github.com/aliyun/credentials-go/credentials/request
@@ -44,6 +50,9 @@ github.com/bmatcuk/doublestar
 # github.com/charlievieth/fs v0.0.3
 ## explicit; go 1.18
 github.com/charlievieth/fs
+# github.com/clbanning/mxj/v2 v2.5.5
+## explicit; go 1.15
+github.com/clbanning/mxj/v2
 # github.com/cloudfoundry/bosh-utils v0.0.407
 ## explicit; go 1.21
 github.com/cloudfoundry/bosh-utils/errors
@@ -104,15 +113,23 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# golang.org/x/net v0.17.0
-## explicit; go 1.17
+# github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b
+## explicit; go 1.14
+github.com/opentracing/opentracing-go
+github.com/opentracing/opentracing-go/ext
+github.com/opentracing/opentracing-go/log
+# github.com/tjfoc/gmsm v1.4.1
+## explicit; go 1.14
+github.com/tjfoc/gmsm/sm3
+# golang.org/x/net v0.20.0
+## explicit; go 1.18
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/html/charset
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/text v0.13.0
-## explicit; go 1.17
+# golang.org/x/text v0.14.0
+## explicit; go 1.18
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
 golang.org/x/text/encoding/htmlindex
