@@ -50,6 +50,7 @@ type InstanceProps struct {
 	NlbServerGroupWeight json.Number               `json:"nlb_server_group_weight"`
 	NlbServerGroupPort   json.Number               `json:"nlb_server_group_port"`
 	NlbServerGroupIds    []string                  `json:"nlb_server_group_ids"`
+	NlbServerGroups      []NlbServerGroupProps     `json:"nlb_server_groups"`
 	Password             string                    `json:"password"`
 	KeyPairName          string                    `json:"key_pair_name"`
 	SecurityGroupIds     []string                  `json:"security_group_ids"`

@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeMasterSlaveServerGroups invokes the slb.DescribeMasterSlaveServerGroups API synchronously
-// api document: https://help.aliyun.com/api/slb/describemasterslaveservergroups.html
 func (client *Client) DescribeMasterSlaveServerGroups(request *DescribeMasterSlaveServerGroupsRequest) (response *DescribeMasterSlaveServerGroupsResponse, err error) {
 	response = CreateDescribeMasterSlaveServerGroupsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeMasterSlaveServerGroups(request *DescribeMasterSla
 }
 
 // DescribeMasterSlaveServerGroupsWithChan invokes the slb.DescribeMasterSlaveServerGroups API asynchronously
-// api document: https://help.aliyun.com/api/slb/describemasterslaveservergroups.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeMasterSlaveServerGroupsWithChan(request *DescribeMasterSlaveServerGroupsRequest) (<-chan *DescribeMasterSlaveServerGroupsResponse, <-chan error) {
 	responseChan := make(chan *DescribeMasterSlaveServerGroupsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeMasterSlaveServerGroupsWithChan(request *DescribeM
 }
 
 // DescribeMasterSlaveServerGroupsWithCallback invokes the slb.DescribeMasterSlaveServerGroups API asynchronously
-// api document: https://help.aliyun.com/api/slb/describemasterslaveservergroups.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeMasterSlaveServerGroupsWithCallback(request *DescribeMasterSlaveServerGroupsRequest, callback func(response *DescribeMasterSlaveServerGroupsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,14 +71,21 @@ func (client *Client) DescribeMasterSlaveServerGroupsWithCallback(request *Descr
 // DescribeMasterSlaveServerGroupsRequest is the request struct for api DescribeMasterSlaveServerGroups
 type DescribeMasterSlaveServerGroupsRequest struct {
 	*requests.RpcRequest
-	AccessKeyId          string           `position:"Query" name:"access_key_id"`
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	IncludeListener      requests.Boolean `position:"Query" name:"IncludeListener"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	Tags                 string           `position:"Query" name:"Tags"`
+	AccessKeyId          string                                `position:"Query" name:"access_key_id"`
+	ResourceOwnerId      requests.Integer                      `position:"Query" name:"ResourceOwnerId"`
+	IncludeListener      requests.Boolean                      `position:"Query" name:"IncludeListener"`
+	Tag                  *[]DescribeMasterSlaveServerGroupsTag `position:"Query" name:"Tag"  type:"Repeated"`
+	ResourceOwnerAccount string                                `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string                                `position:"Query" name:"OwnerAccount"`
+	OwnerId              requests.Integer                      `position:"Query" name:"OwnerId"`
+	Tags                 string                                `position:"Query" name:"Tags"`
+	LoadBalancerId       string                                `position:"Query" name:"LoadBalancerId"`
+}
+
+// DescribeMasterSlaveServerGroupsTag is a repeated param struct in DescribeMasterSlaveServerGroupsRequest
+type DescribeMasterSlaveServerGroupsTag struct {
+	Value string `name:"Value"`
+	Key   string `name:"Key"`
 }
 
 // DescribeMasterSlaveServerGroupsResponse is the response struct for api DescribeMasterSlaveServerGroups
@@ -99,6 +101,7 @@ func CreateDescribeMasterSlaveServerGroupsRequest() (request *DescribeMasterSlav
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DescribeMasterSlaveServerGroups", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

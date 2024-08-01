@@ -21,7 +21,6 @@ import (
 )
 
 // AuthorizeSecurityGroupEgress invokes the ecs.AuthorizeSecurityGroupEgress API synchronously
-// api document: https://help.aliyun.com/api/ecs/authorizesecuritygroupegress.html
 func (client *Client) AuthorizeSecurityGroupEgress(request *AuthorizeSecurityGroupEgressRequest) (response *AuthorizeSecurityGroupEgressResponse, err error) {
 	response = CreateAuthorizeSecurityGroupEgressResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) AuthorizeSecurityGroupEgress(request *AuthorizeSecurityGro
 }
 
 // AuthorizeSecurityGroupEgressWithChan invokes the ecs.AuthorizeSecurityGroupEgress API asynchronously
-// api document: https://help.aliyun.com/api/ecs/authorizesecuritygroupegress.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AuthorizeSecurityGroupEgressWithChan(request *AuthorizeSecurityGroupEgressRequest) (<-chan *AuthorizeSecurityGroupEgressResponse, <-chan error) {
 	responseChan := make(chan *AuthorizeSecurityGroupEgressResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) AuthorizeSecurityGroupEgressWithChan(request *AuthorizeSec
 }
 
 // AuthorizeSecurityGroupEgressWithCallback invokes the ecs.AuthorizeSecurityGroupEgress API asynchronously
-// api document: https://help.aliyun.com/api/ecs/authorizesecuritygroupegress.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AuthorizeSecurityGroupEgressWithCallback(request *AuthorizeSecurityGroupEgressRequest, callback func(response *AuthorizeSecurityGroupEgressResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,26 +71,47 @@ func (client *Client) AuthorizeSecurityGroupEgressWithCallback(request *Authoriz
 // AuthorizeSecurityGroupEgressRequest is the request struct for api AuthorizeSecurityGroupEgress
 type AuthorizeSecurityGroupEgressRequest struct {
 	*requests.RpcRequest
-	NicType               string           `position:"Query" name:"NicType"`
-	ResourceOwnerId       requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	SourcePortRange       string           `position:"Query" name:"SourcePortRange"`
-	ClientToken           string           `position:"Query" name:"ClientToken"`
-	SecurityGroupId       string           `position:"Query" name:"SecurityGroupId"`
-	Description           string           `position:"Query" name:"Description"`
-	Ipv6DestCidrIp        string           `position:"Query" name:"Ipv6DestCidrIp"`
-	Ipv6SourceCidrIp      string           `position:"Query" name:"Ipv6SourceCidrIp"`
-	Policy                string           `position:"Query" name:"Policy"`
-	PortRange             string           `position:"Query" name:"PortRange"`
-	ResourceOwnerAccount  string           `position:"Query" name:"ResourceOwnerAccount"`
-	IpProtocol            string           `position:"Query" name:"IpProtocol"`
-	OwnerAccount          string           `position:"Query" name:"OwnerAccount"`
-	SourceCidrIp          string           `position:"Query" name:"SourceCidrIp"`
-	DestGroupId           string           `position:"Query" name:"DestGroupId"`
-	OwnerId               requests.Integer `position:"Query" name:"OwnerId"`
-	DestGroupOwnerAccount string           `position:"Query" name:"DestGroupOwnerAccount"`
-	Priority              string           `position:"Query" name:"Priority"`
-	DestCidrIp            string           `position:"Query" name:"DestCidrIp"`
-	DestGroupOwnerId      requests.Integer `position:"Query" name:"DestGroupOwnerId"`
+	NicType               string                                     `position:"Query" name:"NicType"`
+	ResourceOwnerId       requests.Integer                           `position:"Query" name:"ResourceOwnerId"`
+	SourcePortRange       string                                     `position:"Query" name:"SourcePortRange"`
+	ClientToken           string                                     `position:"Query" name:"ClientToken"`
+	DestPrefixListId      string                                     `position:"Query" name:"DestPrefixListId"`
+	SecurityGroupId       string                                     `position:"Query" name:"SecurityGroupId"`
+	Description           string                                     `position:"Query" name:"Description"`
+	Permissions           *[]AuthorizeSecurityGroupEgressPermissions `position:"Query" name:"Permissions"  type:"Repeated"`
+	Policy                string                                     `position:"Query" name:"Policy"`
+	Ipv6DestCidrIp        string                                     `position:"Query" name:"Ipv6DestCidrIp"`
+	Ipv6SourceCidrIp      string                                     `position:"Query" name:"Ipv6SourceCidrIp"`
+	PortRange             string                                     `position:"Query" name:"PortRange"`
+	ResourceOwnerAccount  string                                     `position:"Query" name:"ResourceOwnerAccount"`
+	IpProtocol            string                                     `position:"Query" name:"IpProtocol"`
+	OwnerAccount          string                                     `position:"Query" name:"OwnerAccount"`
+	SourceCidrIp          string                                     `position:"Query" name:"SourceCidrIp"`
+	DestGroupId           string                                     `position:"Query" name:"DestGroupId"`
+	OwnerId               requests.Integer                           `position:"Query" name:"OwnerId"`
+	Priority              string                                     `position:"Query" name:"Priority"`
+	DestGroupOwnerAccount string                                     `position:"Query" name:"DestGroupOwnerAccount"`
+	DestCidrIp            string                                     `position:"Query" name:"DestCidrIp"`
+	DestGroupOwnerId      requests.Integer                           `position:"Query" name:"DestGroupOwnerId"`
+}
+
+// AuthorizeSecurityGroupEgressPermissions is a repeated param struct in AuthorizeSecurityGroupEgressRequest
+type AuthorizeSecurityGroupEgressPermissions struct {
+	Policy                string `name:"Policy"`
+	Priority              string `name:"Priority"`
+	IpProtocol            string `name:"IpProtocol"`
+	DestCidrIp            string `name:"DestCidrIp"`
+	Ipv6DestCidrIp        string `name:"Ipv6DestCidrIp"`
+	DestGroupId           string `name:"DestGroupId"`
+	DestPrefixListId      string `name:"DestPrefixListId"`
+	PortRange             string `name:"PortRange"`
+	SourceCidrIp          string `name:"SourceCidrIp"`
+	Ipv6SourceCidrIp      string `name:"Ipv6SourceCidrIp"`
+	SourcePortRange       string `name:"SourcePortRange"`
+	DestGroupOwnerAccount string `name:"DestGroupOwnerAccount"`
+	DestGroupOwnerId      string `name:"DestGroupOwnerId"`
+	NicType               string `name:"NicType"`
+	Description           string `name:"Description"`
 }
 
 // AuthorizeSecurityGroupEgressResponse is the response struct for api AuthorizeSecurityGroupEgress
@@ -110,6 +126,7 @@ func CreateAuthorizeSecurityGroupEgressRequest() (request *AuthorizeSecurityGrou
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "AuthorizeSecurityGroupEgress", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

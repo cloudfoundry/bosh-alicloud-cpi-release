@@ -7,13 +7,13 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"encoding/json"
 	"fmt"
+	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+	"github.com/alibabacloud-go/tea/tea"
+	credential "github.com/aliyun/credentials-go/credentials"
 	"os"
 	"strings"
 	"sync"
 	"time"
-
-	rpc "github.com/alibabacloud-go/tea-rpc/client"
-	credential "github.com/aliyun/credentials-go/credentials"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -200,7 +200,7 @@ func (c Config) NewEcsClient(region string) (*ecs.Client, error) {
 	return client, nil
 }
 
-func (c Config) EcsTeaClient(region string) (*rpc.Client, error) {
+func (c Config) EcsTeaClient(region string) (*openapi.Client, error) {
 	var mutex = sync.RWMutex{}
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -220,18 +220,9 @@ func (c Config) EcsTeaClient(region string) (*rpc.Client, error) {
 		}
 	}
 
-	sdkConfig, err := c.getTeaDslSdkConfig(true)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
-	}
-	sdkConfig.SetEndpoint(endpoint).SetReadTimeout(60000)
-
-	conn, err := rpc.NewClient(&sdkConfig)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
-	}
-
-	return conn, nil
+	config := c.getTeaSdkConfig()
+	config.SetEndpoint(endpoint)
+	return openapi.NewClient(config)
 }
 
 func (c Config) NewSlbClient(region string) (*slb.Client, error) {
@@ -254,7 +245,7 @@ func (c Config) NewSlbClient(region string) (*slb.Client, error) {
 	return client, nil
 }
 
-func (c Config) NlbTeaClient(region string) (*rpc.Client, error) {
+func (c Config) NlbTeaClient(region string) (*openapi.Client, error) {
 	var mutex = sync.RWMutex{}
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -271,20 +262,29 @@ func (c Config) NlbTeaClient(region string) (*rpc.Client, error) {
 		endpoint = fmt.Sprintf("nlb.%s.aliyuncs.com", region)
 	}
 
-	sdkConfig, err := c.getTeaDslSdkConfig(true)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Initiating NLB Client in '%s' got an error.", c.OpenApi.GetRegion(region))
-	}
-	sdkConfig.SetEndpoint(endpoint).SetReadTimeout(60000)
-
-	conn, err := rpc.NewClient(&sdkConfig)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Initiating NLB Client in '%s' got an error.", c.OpenApi.GetRegion(region))
-	}
-
-	return conn, nil
+	config := c.getTeaSdkConfig()
+	config.SetEndpoint(endpoint)
+	return openapi.NewClient(config)
 }
 
+func (c Config) getTeaSdkConfig() *openapi.Config {
+	config := &openapi.Config{
+		RegionId:        tea.String(c.OpenApi.Region),
+		AccessKeyId:     tea.String(c.OpenApi.AccessKeyId),
+		AccessKeySecret: tea.String(c.OpenApi.AccessKeySecret),
+		ReadTimeout:     tea.Int(60000),
+		UserAgent:       tea.String(fmt.Sprintf("%s/%s", BoshCPI, BoshCPIVersion)),
+		MaxIdleConns:    tea.Int(500),
+		Protocol:        tea.String("HTTPS"),
+		HttpProxy:       tea.String(os.Getenv("HTTP_PROXY")),
+		HttpsProxy:      tea.String(os.Getenv("HTTPS_PROXY")),
+		NoProxy:         tea.String(os.Getenv("NO_PROXY")),
+	}
+	if c.OpenApi.SecurityToken != "" {
+		config.SecurityToken = tea.String(c.OpenApi.SecurityToken)
+	}
+	return config
+}
 func (c Config) GetRegistryClient(logger boshlog.Logger) RegistryManager {
 	//if !c.Registry.IsEmpty() {
 	//	return c.GetHttpRegistryClient(logger)

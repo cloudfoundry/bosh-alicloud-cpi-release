@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeCACertificates invokes the slb.DescribeCACertificates API synchronously
-// api document: https://help.aliyun.com/api/slb/describecacertificates.html
 func (client *Client) DescribeCACertificates(request *DescribeCACertificatesRequest) (response *DescribeCACertificatesResponse, err error) {
 	response = CreateDescribeCACertificatesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeCACertificates(request *DescribeCACertificatesRequ
 }
 
 // DescribeCACertificatesWithChan invokes the slb.DescribeCACertificates API asynchronously
-// api document: https://help.aliyun.com/api/slb/describecacertificates.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeCACertificatesWithChan(request *DescribeCACertificatesRequest) (<-chan *DescribeCACertificatesResponse, <-chan error) {
 	responseChan := make(chan *DescribeCACertificatesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeCACertificatesWithChan(request *DescribeCACertific
 }
 
 // DescribeCACertificatesWithCallback invokes the slb.DescribeCACertificates API asynchronously
-// api document: https://help.aliyun.com/api/slb/describecacertificates.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeCACertificatesWithCallback(request *DescribeCACertificatesRequest, callback func(response *DescribeCACertificatesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,11 +72,11 @@ func (client *Client) DescribeCACertificatesWithCallback(request *DescribeCACert
 type DescribeCACertificatesRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string                       `position:"Query" name:"access_key_id"`
-	ResourceGroupId      string                       `position:"Query" name:"ResourceGroupId"`
 	ResourceOwnerId      requests.Integer             `position:"Query" name:"ResourceOwnerId"`
+	ResourceGroupId      string                       `position:"Query" name:"ResourceGroupId"`
+	Tag                  *[]DescribeCACertificatesTag `position:"Query" name:"Tag"  type:"Repeated"`
 	ResourceOwnerAccount string                       `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string                       `position:"Query" name:"OwnerAccount"`
-	Tag                  *[]DescribeCACertificatesTag `position:"Query" name:"Tag"  type:"Repeated"`
 	OwnerId              requests.Integer             `position:"Query" name:"OwnerId"`
 	CACertificateId      string                       `position:"Query" name:"CACertificateId"`
 }
@@ -105,6 +100,7 @@ func CreateDescribeCACertificatesRequest() (request *DescribeCACertificatesReque
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DescribeCACertificates", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

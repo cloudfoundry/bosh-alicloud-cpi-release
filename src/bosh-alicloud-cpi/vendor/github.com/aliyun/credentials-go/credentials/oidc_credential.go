@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -53,6 +54,22 @@ func newOIDCRoleArnCredential(accessKeyId, accessKeySecret, roleArn, OIDCProvide
 		credentialUpdater:     new(credentialUpdater),
 		runtime:               runtime,
 	}
+}
+
+func (e *OIDCCredential) GetCredential() (*CredentialModel, error) {
+	if e.sessionCredential == nil || e.needUpdateCredential() {
+		err := e.updateCredential()
+		if err != nil {
+			return nil, err
+		}
+	}
+	credential := &CredentialModel{
+		AccessKeyId:     tea.String(e.sessionCredential.AccessKeyId),
+		AccessKeySecret: tea.String(e.sessionCredential.AccessKeySecret),
+		SecurityToken:   tea.String(e.sessionCredential.SecurityToken),
+		Type:            tea.String("oidc_role_arn"),
+	}
+	return credential, nil
 }
 
 // GetAccessKeyId reutrns OIDCCredential's AccessKeyId
@@ -137,6 +154,9 @@ func (r *OIDCCredential) updateCredential() (err error) {
 	request.BodyParams["OIDCToken"] = tea.StringValue(token)
 	if r.Policy != "" {
 		request.QueryParams["Policy"] = r.Policy
+	}
+	if r.RoleSessionExpiration > 0 {
+		request.QueryParams["DurationSeconds"] = strconv.Itoa(r.RoleSessionExpiration)
 	}
 	request.QueryParams["RoleSessionName"] = r.RoleSessionName
 	request.QueryParams["Version"] = "2015-04-01"

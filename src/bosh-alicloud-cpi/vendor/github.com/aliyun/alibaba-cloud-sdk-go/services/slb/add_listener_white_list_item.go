@@ -21,7 +21,6 @@ import (
 )
 
 // AddListenerWhiteListItem invokes the slb.AddListenerWhiteListItem API synchronously
-// api document: https://help.aliyun.com/api/slb/addlistenerwhitelistitem.html
 func (client *Client) AddListenerWhiteListItem(request *AddListenerWhiteListItemRequest) (response *AddListenerWhiteListItemResponse, err error) {
 	response = CreateAddListenerWhiteListItemResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) AddListenerWhiteListItem(request *AddListenerWhiteListItem
 }
 
 // AddListenerWhiteListItemWithChan invokes the slb.AddListenerWhiteListItem API asynchronously
-// api document: https://help.aliyun.com/api/slb/addlistenerwhitelistitem.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddListenerWhiteListItemWithChan(request *AddListenerWhiteListItemRequest) (<-chan *AddListenerWhiteListItemResponse, <-chan error) {
 	responseChan := make(chan *AddListenerWhiteListItemResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) AddListenerWhiteListItemWithChan(request *AddListenerWhite
 }
 
 // AddListenerWhiteListItemWithCallback invokes the slb.AddListenerWhiteListItem API asynchronously
-// api document: https://help.aliyun.com/api/slb/addlistenerwhitelistitem.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddListenerWhiteListItemWithCallback(request *AddListenerWhiteListItemRequest, callback func(response *AddListenerWhiteListItemResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,14 +73,14 @@ type AddListenerWhiteListItemRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
-	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 	SourceItems          string           `position:"Query" name:"SourceItems"`
+	ListenerPort         requests.Integer `position:"Query" name:"ListenerPort"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	ListenerProtocol     string           `position:"Query" name:"ListenerProtocol"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	LoadBalancerId       string           `position:"Query" name:"LoadBalancerId"`
 }
 
 // AddListenerWhiteListItemResponse is the response struct for api AddListenerWhiteListItem
@@ -100,6 +95,7 @@ func CreateAddListenerWhiteListItemRequest() (request *AddListenerWhiteListItemR
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "AddListenerWhiteListItem", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

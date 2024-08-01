@@ -21,7 +21,6 @@ import (
 )
 
 // ModifyVServerGroupBackendServers invokes the slb.ModifyVServerGroupBackendServers API synchronously
-// api document: https://help.aliyun.com/api/slb/modifyvservergroupbackendservers.html
 func (client *Client) ModifyVServerGroupBackendServers(request *ModifyVServerGroupBackendServersRequest) (response *ModifyVServerGroupBackendServersResponse, err error) {
 	response = CreateModifyVServerGroupBackendServersResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) ModifyVServerGroupBackendServers(request *ModifyVServerGro
 }
 
 // ModifyVServerGroupBackendServersWithChan invokes the slb.ModifyVServerGroupBackendServers API asynchronously
-// api document: https://help.aliyun.com/api/slb/modifyvservergroupbackendservers.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifyVServerGroupBackendServersWithChan(request *ModifyVServerGroupBackendServersRequest) (<-chan *ModifyVServerGroupBackendServersResponse, <-chan error) {
 	responseChan := make(chan *ModifyVServerGroupBackendServersResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) ModifyVServerGroupBackendServersWithChan(request *ModifyVS
 }
 
 // ModifyVServerGroupBackendServersWithCallback invokes the slb.ModifyVServerGroupBackendServers API asynchronously
-// api document: https://help.aliyun.com/api/slb/modifyvservergroupbackendservers.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ModifyVServerGroupBackendServersWithCallback(request *ModifyVServerGroupBackendServersRequest, callback func(response *ModifyVServerGroupBackendServersResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,21 +72,21 @@ func (client *Client) ModifyVServerGroupBackendServersWithCallback(request *Modi
 type ModifyVServerGroupBackendServersRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
-	VServerGroupId       string           `position:"Query" name:"VServerGroupId"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	OldBackendServers    string           `position:"Query" name:"OldBackendServers"`
+	VServerGroupId       string           `position:"Query" name:"VServerGroupId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	NewBackendServers    string           `position:"Query" name:"NewBackendServers"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
 	Tags                 string           `position:"Query" name:"Tags"`
+	OldBackendServers    string           `position:"Query" name:"OldBackendServers"`
 }
 
 // ModifyVServerGroupBackendServersResponse is the response struct for api ModifyVServerGroupBackendServers
 type ModifyVServerGroupBackendServersResponse struct {
 	*responses.BaseResponse
-	RequestId      string                                           `json:"RequestId" xml:"RequestId"`
 	VServerGroupId string                                           `json:"VServerGroupId" xml:"VServerGroupId"`
+	RequestId      string                                           `json:"RequestId" xml:"RequestId"`
 	BackendServers BackendServersInModifyVServerGroupBackendServers `json:"BackendServers" xml:"BackendServers"`
 }
 
@@ -101,6 +96,7 @@ func CreateModifyVServerGroupBackendServersRequest() (request *ModifyVServerGrou
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "ModifyVServerGroupBackendServers", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

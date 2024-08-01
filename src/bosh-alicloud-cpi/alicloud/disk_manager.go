@@ -4,9 +4,12 @@
 package alicloud
 
 import (
+	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+	openapiutil "github.com/alibabacloud-go/openapi-util/service"
+	"github.com/alibabacloud-go/tea/tea"
 	"strings"
 
-	util "github.com/alibabacloud-go/tea-utils/service"
+	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
 	"encoding/json"
@@ -387,20 +390,37 @@ func (a DiskManagerImpl) GetDiskPath(path, diskId, instanceType string, category
 	invoker.AddCatcher(CreateInstanceCatcher_IpUsed2)
 
 	action := "DescribeInstanceTypes"
-	request := map[string]interface{}{
+	queries := map[string]interface{}{
 		"InstanceTypes.1": instanceType,
 		"NvmeSupport":     "required",
 	}
-	runtime := util.RuntimeOptions{}
+	params := &openapi.Params{
+		Action:      tea.String(action),
+		Version:     tea.String("2014-05-26"),
+		Protocol:    tea.String("HTTPS"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		Pathname:    tea.String("/"),
+		ReqBodyType: tea.String("json"),
+		BodyType:    tea.String("json"),
+	}
+	runtime := &util.RuntimeOptions{}
 	runtime.SetAutoretry(true)
+	request := &openapi.OpenApiRequest{
+		Query: openapiutil.Query(queries),
+	}
 	err = invoker.Run(func() error {
-		resp, e := conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2014-05-26"), StringPointer("AK"), nil, request, &runtime)
+		resp, e := conn.CallApi(params, request, runtime)
 		if e != nil {
 			return e
 		}
-		if resp["InstanceTypes"] != nil &&
-			resp["InstanceTypes"].(map[string]interface{})["InstanceType"] != nil &&
-			len(resp["InstanceTypes"].(map[string]interface{})["InstanceType"].([]interface{})) > 0 {
+		if resp["body"] == nil {
+			return fmt.Errorf("invoking DescribeInstanceTypes got an empty response: %v", resp)
+		}
+		instanceTypes := resp["body"].(map[string]interface{})["InstanceTypes"]
+		if instanceTypes != nil && instanceTypes.(map[string]interface{})["InstanceType"] != nil &&
+			len(instanceTypes.(map[string]interface{})["InstanceType"].([]interface{})) > 0 {
 			amendPath = "/dev/disk/by-id/nvme-Alibaba_Cloud_Elastic_Block_Storage_" + strings.Split(diskId, "-")[1]
 		} else {
 			amendPath = "/dev/disk/by-id/virtio-" + strings.Split(diskId, "-")[1]
@@ -408,7 +428,7 @@ func (a DiskManagerImpl) GetDiskPath(path, diskId, instanceType string, category
 		return e
 	})
 	if err != nil {
-		a.log(action, err, request, "")
+		a.log(action, err, queries, "")
 	}
 
 	return amendPath

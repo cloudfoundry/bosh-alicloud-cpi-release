@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeVServerGroupAttribute invokes the slb.DescribeVServerGroupAttribute API synchronously
-// api document: https://help.aliyun.com/api/slb/describevservergroupattribute.html
 func (client *Client) DescribeVServerGroupAttribute(request *DescribeVServerGroupAttributeRequest) (response *DescribeVServerGroupAttributeResponse, err error) {
 	response = CreateDescribeVServerGroupAttributeResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeVServerGroupAttribute(request *DescribeVServerGrou
 }
 
 // DescribeVServerGroupAttributeWithChan invokes the slb.DescribeVServerGroupAttribute API asynchronously
-// api document: https://help.aliyun.com/api/slb/describevservergroupattribute.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeVServerGroupAttributeWithChan(request *DescribeVServerGroupAttributeRequest) (<-chan *DescribeVServerGroupAttributeResponse, <-chan error) {
 	responseChan := make(chan *DescribeVServerGroupAttributeResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeVServerGroupAttributeWithChan(request *DescribeVSe
 }
 
 // DescribeVServerGroupAttributeWithCallback invokes the slb.DescribeVServerGroupAttribute API asynchronously
-// api document: https://help.aliyun.com/api/slb/describevservergroupattribute.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeVServerGroupAttributeWithCallback(request *DescribeVServerGroupAttributeRequest, callback func(response *DescribeVServerGroupAttributeResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,8 +72,8 @@ func (client *Client) DescribeVServerGroupAttributeWithCallback(request *Describ
 type DescribeVServerGroupAttributeRequest struct {
 	*requests.RpcRequest
 	AccessKeyId          string           `position:"Query" name:"access_key_id"`
-	VServerGroupId       string           `position:"Query" name:"VServerGroupId"`
 	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	VServerGroupId       string           `position:"Query" name:"VServerGroupId"`
 	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
 	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
 	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
@@ -88,11 +83,14 @@ type DescribeVServerGroupAttributeRequest struct {
 // DescribeVServerGroupAttributeResponse is the response struct for api DescribeVServerGroupAttribute
 type DescribeVServerGroupAttributeResponse struct {
 	*responses.BaseResponse
-	RequestId        string                                        `json:"RequestId" xml:"RequestId"`
-	VServerGroupId   string                                        `json:"VServerGroupId" xml:"VServerGroupId"`
-	VServerGroupName string                                        `json:"VServerGroupName" xml:"VServerGroupName"`
-	LoadBalancerId   string                                        `json:"LoadBalancerId" xml:"LoadBalancerId"`
-	BackendServers   BackendServersInDescribeVServerGroupAttribute `json:"BackendServers" xml:"BackendServers"`
+	ServiceManagedMode string                                        `json:"ServiceManagedMode" xml:"ServiceManagedMode"`
+	VServerGroupId     string                                        `json:"VServerGroupId" xml:"VServerGroupId"`
+	VServerGroupName   string                                        `json:"VServerGroupName" xml:"VServerGroupName"`
+	RequestId          string                                        `json:"RequestId" xml:"RequestId"`
+	LoadBalancerId     string                                        `json:"LoadBalancerId" xml:"LoadBalancerId"`
+	CreateTime         string                                        `json:"CreateTime" xml:"CreateTime"`
+	BackendServers     BackendServersInDescribeVServerGroupAttribute `json:"BackendServers" xml:"BackendServers"`
+	Tags               TagsInDescribeVServerGroupAttribute           `json:"Tags" xml:"Tags"`
 }
 
 // CreateDescribeVServerGroupAttributeRequest creates a request to invoke DescribeVServerGroupAttribute API
@@ -101,6 +99,7 @@ func CreateDescribeVServerGroupAttributeRequest() (request *DescribeVServerGroup
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Slb", "2014-05-15", "DescribeVServerGroupAttribute", "slb", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

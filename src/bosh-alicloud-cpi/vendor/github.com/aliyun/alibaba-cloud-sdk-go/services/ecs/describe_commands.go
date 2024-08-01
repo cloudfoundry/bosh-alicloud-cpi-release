@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeCommands invokes the ecs.DescribeCommands API synchronously
-// api document: https://help.aliyun.com/api/ecs/describecommands.html
 func (client *Client) DescribeCommands(request *DescribeCommandsRequest) (response *DescribeCommandsResponse, err error) {
 	response = CreateDescribeCommandsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeCommands(request *DescribeCommandsRequest) (respon
 }
 
 // DescribeCommandsWithChan invokes the ecs.DescribeCommands API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describecommands.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeCommandsWithChan(request *DescribeCommandsRequest) (<-chan *DescribeCommandsResponse, <-chan error) {
 	responseChan := make(chan *DescribeCommandsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeCommandsWithChan(request *DescribeCommandsRequest)
 }
 
 // DescribeCommandsWithCallback invokes the ecs.DescribeCommands API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describecommands.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeCommandsWithCallback(request *DescribeCommandsRequest, callback func(response *DescribeCommandsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,25 +71,39 @@ func (client *Client) DescribeCommandsWithCallback(request *DescribeCommandsRequ
 // DescribeCommandsRequest is the request struct for api DescribeCommands
 type DescribeCommandsRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	Description          string           `position:"Query" name:"Description"`
-	Type                 string           `position:"Query" name:"Type"`
-	CommandId            string           `position:"Query" name:"CommandId"`
-	PageNumber           requests.Integer `position:"Query" name:"PageNumber"`
-	PageSize             requests.Integer `position:"Query" name:"PageSize"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
-	Name                 string           `position:"Query" name:"Name"`
+	ResourceOwnerId      requests.Integer       `position:"Query" name:"ResourceOwnerId"`
+	Description          string                 `position:"Query" name:"Description"`
+	Type                 string                 `position:"Query" name:"Type"`
+	CommandId            string                 `position:"Query" name:"CommandId"`
+	PageNumber           requests.Integer       `position:"Query" name:"PageNumber"`
+	ResourceGroupId      string                 `position:"Query" name:"ResourceGroupId"`
+	Provider             string                 `position:"Query" name:"Provider"`
+	NextToken            string                 `position:"Query" name:"NextToken"`
+	ContentEncoding      string                 `position:"Query" name:"ContentEncoding"`
+	PageSize             requests.Integer       `position:"Query" name:"PageSize"`
+	Tag                  *[]DescribeCommandsTag `position:"Query" name:"Tag"  type:"Repeated"`
+	Latest               requests.Boolean       `position:"Query" name:"Latest"`
+	ResourceOwnerAccount string                 `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount         string                 `position:"Query" name:"OwnerAccount"`
+	OwnerId              requests.Integer       `position:"Query" name:"OwnerId"`
+	Name                 string                 `position:"Query" name:"Name"`
+	MaxResults           requests.Integer       `position:"Query" name:"MaxResults"`
+}
+
+// DescribeCommandsTag is a repeated param struct in DescribeCommandsRequest
+type DescribeCommandsTag struct {
+	Key   string `name:"Key"`
+	Value string `name:"Value"`
 }
 
 // DescribeCommandsResponse is the response struct for api DescribeCommands
 type DescribeCommandsResponse struct {
 	*responses.BaseResponse
-	RequestId  string   `json:"RequestId" xml:"RequestId"`
-	TotalCount int64    `json:"TotalCount" xml:"TotalCount"`
-	PageNumber int64    `json:"PageNumber" xml:"PageNumber"`
 	PageSize   int64    `json:"PageSize" xml:"PageSize"`
+	RequestId  string   `json:"RequestId" xml:"RequestId"`
+	PageNumber int64    `json:"PageNumber" xml:"PageNumber"`
+	TotalCount int64    `json:"TotalCount" xml:"TotalCount"`
+	NextToken  string   `json:"NextToken" xml:"NextToken"`
 	Commands   Commands `json:"Commands" xml:"Commands"`
 }
 
@@ -104,6 +113,7 @@ func CreateDescribeCommandsRequest() (request *DescribeCommandsRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "DescribeCommands", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

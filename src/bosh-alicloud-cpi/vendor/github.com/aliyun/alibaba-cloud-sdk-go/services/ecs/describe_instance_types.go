@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeInstanceTypes invokes the ecs.DescribeInstanceTypes API synchronously
-// api document: https://help.aliyun.com/api/ecs/describeinstancetypes.html
 func (client *Client) DescribeInstanceTypes(request *DescribeInstanceTypesRequest) (response *DescribeInstanceTypesResponse, err error) {
 	response = CreateDescribeInstanceTypesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeInstanceTypes(request *DescribeInstanceTypesReques
 }
 
 // DescribeInstanceTypesWithChan invokes the ecs.DescribeInstanceTypes API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describeinstancetypes.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeInstanceTypesWithChan(request *DescribeInstanceTypesRequest) (<-chan *DescribeInstanceTypesResponse, <-chan error) {
 	responseChan := make(chan *DescribeInstanceTypesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeInstanceTypesWithChan(request *DescribeInstanceTyp
 }
 
 // DescribeInstanceTypesWithCallback invokes the ecs.DescribeInstanceTypes API asynchronously
-// api document: https://help.aliyun.com/api/ecs/describeinstancetypes.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeInstanceTypesWithCallback(request *DescribeInstanceTypesRequest, callback func(response *DescribeInstanceTypesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,17 +71,54 @@ func (client *Client) DescribeInstanceTypesWithCallback(request *DescribeInstanc
 // DescribeInstanceTypesRequest is the request struct for api DescribeInstanceTypes
 type DescribeInstanceTypesRequest struct {
 	*requests.RpcRequest
-	ResourceOwnerId      requests.Integer `position:"Query" name:"ResourceOwnerId"`
-	ResourceOwnerAccount string           `position:"Query" name:"ResourceOwnerAccount"`
-	OwnerAccount         string           `position:"Query" name:"OwnerAccount"`
-	InstanceTypeFamily   string           `position:"Query" name:"InstanceTypeFamily"`
-	OwnerId              requests.Integer `position:"Query" name:"OwnerId"`
+	GPUSpec                            string           `position:"Query" name:"GPUSpec"`
+	ResourceOwnerId                    requests.Integer `position:"Query" name:"ResourceOwnerId"`
+	MaximumCpuCoreCount                requests.Integer `position:"Query" name:"MaximumCpuCoreCount"`
+	MaximumGPUAmount                   requests.Integer `position:"Query" name:"MaximumGPUAmount"`
+	LocalStorageCategory               string           `position:"Query" name:"LocalStorageCategory"`
+	MaximumMemorySize                  requests.Float   `position:"Query" name:"MaximumMemorySize"`
+	InstanceCategory                   string           `position:"Query" name:"InstanceCategory"`
+	MinimumInstancePpsTx               requests.Integer `position:"Query" name:"MinimumInstancePpsTx"`
+	MinimumCpuCoreCount                requests.Integer `position:"Query" name:"MinimumCpuCoreCount"`
+	MinimumPrimaryEniQueueNumber       requests.Integer `position:"Query" name:"MinimumPrimaryEniQueueNumber"`
+	MinimumBaselineCredit              requests.Integer `position:"Query" name:"MinimumBaselineCredit"`
+	MinimumSecondaryEniQueueNumber     requests.Integer `position:"Query" name:"MinimumSecondaryEniQueueNumber"`
+	MinimumInstanceBandwidthTx         requests.Integer `position:"Query" name:"MinimumInstanceBandwidthTx"`
+	MinimumGPUAmount                   requests.Integer `position:"Query" name:"MinimumGPUAmount"`
+	MaximumCpuSpeedFrequency           requests.Float   `position:"Query" name:"MaximumCpuSpeedFrequency"`
+	CpuArchitecture                    string           `position:"Query" name:"CpuArchitecture"`
+	OwnerId                            requests.Integer `position:"Query" name:"OwnerId"`
+	MinimumMemorySize                  requests.Float   `position:"Query" name:"MinimumMemorySize"`
+	MinimumEniQuantity                 requests.Integer `position:"Query" name:"MinimumEniQuantity"`
+	InstanceFamilyLevel                string           `position:"Query" name:"InstanceFamilyLevel"`
+	MinimumQueuePairNumber             requests.Integer `position:"Query" name:"MinimumQueuePairNumber"`
+	MinimumLocalStorageAmount          requests.Integer `position:"Query" name:"MinimumLocalStorageAmount"`
+	MaxResults                         requests.Integer `position:"Query" name:"MaxResults"`
+	PhysicalProcessorModel             string           `position:"Query" name:"PhysicalProcessorModel"`
+	MaximumCpuTurboFrequency           requests.Float   `position:"Query" name:"MaximumCpuTurboFrequency"`
+	InstanceTypes                      *[]string        `position:"Query" name:"InstanceTypes"  type:"Repeated"`
+	MinimumInstancePpsRx               requests.Integer `position:"Query" name:"MinimumInstancePpsRx"`
+	MinimumEniIpv6AddressQuantity      requests.Integer `position:"Query" name:"MinimumEniIpv6AddressQuantity"`
+	MinimumEriQuantity                 requests.Integer `position:"Query" name:"MinimumEriQuantity"`
+	MinimumDiskQuantity                requests.Integer `position:"Query" name:"MinimumDiskQuantity"`
+	MinimumCpuTurboFrequency           requests.Float   `position:"Query" name:"MinimumCpuTurboFrequency"`
+	NextToken                          string           `position:"Query" name:"NextToken"`
+	MinimumInstanceBandwidthRx         requests.Integer `position:"Query" name:"MinimumInstanceBandwidthRx"`
+	MinimumCpuSpeedFrequency           requests.Float   `position:"Query" name:"MinimumCpuSpeedFrequency"`
+	NvmeSupport                        string           `position:"Query" name:"NvmeSupport"`
+	ResourceOwnerAccount               string           `position:"Query" name:"ResourceOwnerAccount"`
+	OwnerAccount                       string           `position:"Query" name:"OwnerAccount"`
+	MinimumInitialCredit               requests.Integer `position:"Query" name:"MinimumInitialCredit"`
+	InstanceTypeFamily                 string           `position:"Query" name:"InstanceTypeFamily"`
+	MinimumEniPrivateIpAddressQuantity requests.Integer `position:"Query" name:"MinimumEniPrivateIpAddressQuantity"`
+	MinimumLocalStorageCapacity        requests.Integer `position:"Query" name:"MinimumLocalStorageCapacity"`
 }
 
 // DescribeInstanceTypesResponse is the response struct for api DescribeInstanceTypes
 type DescribeInstanceTypesResponse struct {
 	*responses.BaseResponse
 	RequestId     string                               `json:"RequestId" xml:"RequestId"`
+	NextToken     string                               `json:"NextToken" xml:"NextToken"`
 	InstanceTypes InstanceTypesInDescribeInstanceTypes `json:"InstanceTypes" xml:"InstanceTypes"`
 }
 
@@ -96,6 +128,7 @@ func CreateDescribeInstanceTypesRequest() (request *DescribeInstanceTypesRequest
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Ecs", "2014-05-26", "DescribeInstanceTypes", "ecs", "openAPI")
+	request.Method = requests.POST
 	return
 }
 
