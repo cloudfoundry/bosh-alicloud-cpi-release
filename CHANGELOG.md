@@ -1,7 +1,13 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 51.0.0 (Unreleased)
+## 52.0.0 (Unreleased)
+## 51.0.0 (September 05, 2024)
+
+- supports binding vm to nlb server groups by setting nlb_server_groups ([#173](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/173))
+- upgrades the alibaba cloud sdk verison and go version to 1.21 ([#172](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/172))
+
+
 ## 50.0.0 (June 14, 2024)
 
 - Revert "supports to encrypt system disk" ([#171](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/171))
