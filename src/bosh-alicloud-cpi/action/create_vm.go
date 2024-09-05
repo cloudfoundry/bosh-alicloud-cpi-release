@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/registry"
+	"strconv"
 
 	//"github.com/cloudfoundry-incubator/bosh-alicloud-cpi-release/src/bosh-alicloud-cpi/registry"
 	"encoding/json"
@@ -38,31 +39,32 @@ type InstanceProps struct {
 	SystemDisk    DiskInfo          `json:"system_disk"`
 	Tags          map[string]string `json:"tags"`
 
-	Region               string                    `json:"region"`
-	AvailabilityZone     string                    `json:"availability_zone"`
-	InstanceName         string                    `json:"instance_name"`
-	InstanceType         string                    `json:"instance_type"`
-	SlbServerGroupWeight json.Number               `json:"slb_server_group_weight"`
-	SlbServerGroupPort   json.Number               `json:"slb_server_group_port"`
-	SlbServerGroup       []string                  `json:"slb_server_group"`
-	Slbs                 []string                  `json:"slbs"`
-	SlbWeight            json.Number               `json:"slb_weight"`
-	NlbServerGroupWeight json.Number               `json:"nlb_server_group_weight"`
-	NlbServerGroupPort   json.Number               `json:"nlb_server_group_port"`
-	NlbServerGroupIds    []string                  `json:"nlb_server_group_ids"`
-	NlbServerGroups      []NlbServerGroupProps     `json:"nlb_server_groups"`
-	Password             string                    `json:"password"`
-	KeyPairName          string                    `json:"key_pair_name"`
-	SecurityGroupIds     []string                  `json:"security_group_ids"`
-	ChargeType           string                    `json:"charge_type"`
-	ChargePeriod         json.Number               `json:"charge_period"`
-	ChargePeriodUnit     string                    `json:"charge_period_unit"`
-	AutoRenew            string                    `json:"auto_renew"`
-	AutoRenewPeriod      json.Number               `json:"auto_renew_period"`
-	SpotStrategy         alicloud.SpotStrategyType `json:"spot_strategy"`
-	SpotPriceLimit       float64                   `json:"spot_price_limit"`
-	RamRoleName          string                    `json:"ram_role_name"`
-	StemcellId           string                    `json:"stemcell_id"`
+	Region               string      `json:"region"`
+	AvailabilityZone     string      `json:"availability_zone"`
+	InstanceName         string      `json:"instance_name"`
+	InstanceType         string      `json:"instance_type"`
+	SlbServerGroupWeight json.Number `json:"slb_server_group_weight"`
+	SlbServerGroupPort   json.Number `json:"slb_server_group_port"`
+	SlbServerGroup       []string    `json:"slb_server_group"`
+	Slbs                 []string    `json:"slbs"`
+	SlbWeight            json.Number `json:"slb_weight"`
+	// Deprecated: NlbServerGroupWeight, NlbServerGroupPort, NlbServerGroupIds has been deprecated
+	NlbServerGroupWeight json.Number                    `json:"nlb_server_group_weight"`
+	NlbServerGroupPort   json.Number                    `json:"nlb_server_group_port"`
+	NlbServerGroupIds    []string                       `json:"nlb_server_group_ids"`
+	NlbServerGroups      []alicloud.NlbServerGroupProps `json:"nlb_server_groups"`
+	Password             string                         `json:"password"`
+	KeyPairName          string                         `json:"key_pair_name"`
+	SecurityGroupIds     []string                       `json:"security_group_ids"`
+	ChargeType           string                         `json:"charge_type"`
+	ChargePeriod         json.Number                    `json:"charge_period"`
+	ChargePeriodUnit     string                         `json:"charge_period_unit"`
+	AutoRenew            string                         `json:"auto_renew"`
+	AutoRenewPeriod      json.Number                    `json:"auto_renew_period"`
+	SpotStrategy         alicloud.SpotStrategyType      `json:"spot_strategy"`
+	SpotPriceLimit       float64                        `json:"spot_price_limit"`
+	RamRoleName          string                         `json:"ram_role_name"`
+	StemcellId           string                         `json:"stemcell_id"`
 }
 
 type CreateVMMethod struct {
@@ -429,7 +431,15 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 			return bosherr.WrapErrorf(err, "bind %s to slbServerGroup %s failed,weight:%d,port:%d ", instCid, slbServerGroup, slbServerGroupWeight, slbServerGroupPort)
 		}
 	}
-	if len(instProps.NlbServerGroupIds) > 0 {
+	nlbGroups := make(map[string]alicloud.NlbServerGroupProps)
+	if len(instProps.NlbServerGroups) > 0 {
+		for _, group := range instProps.NlbServerGroups {
+			nlbGroups[group.ServerGroupId] = group
+		}
+		if err := a.networks.BindNlbServerGroups(instProps.Region, instCid, nlbGroups); err != nil {
+			return bosherr.WrapErrorf(err, "bind %s to nlbServerGroup failed.", instCid)
+		}
+	} else if len(instProps.NlbServerGroupIds) > 0 {
 		nlbServerGroupPort, err := instProps.NlbServerGroupPort.Int64()
 		if err != nil {
 			return bosherr.WrapErrorf(err, "invalid nlb_server_group_port: '%v'. Error", instProps.NlbServerGroupPort)
@@ -439,10 +449,14 @@ func (a CreateVMMethod) updateInstance(instCid string, associatedDiskCIDs []apiv
 			return bosherr.WrapErrorf(err, "invalid nlb_server_group_weight: '%v'. Error", instProps.NlbServerGroupWeight)
 		}
 		for _, nlbServerGroup := range instProps.NlbServerGroupIds {
-			err := a.networks.BindNlbServerGroup(instProps.Region, instCid, nlbServerGroup, int(nlbServerGroupWeight), int(nlbServerGroupPort))
-			if err != nil {
-				return bosherr.WrapErrorf(err, "bind %s to nlbServerGroup %s failed, weight: %d, port: %d.", instCid, nlbServerGroup, nlbServerGroupWeight, nlbServerGroupPort)
+			nlbGroups[nlbServerGroup] = alicloud.NlbServerGroupProps{
+				Port:          json.Number(strconv.FormatInt(nlbServerGroupPort, 10)),
+				ServerGroupId: nlbServerGroup,
+				Weight:        json.Number(strconv.FormatInt(nlbServerGroupWeight, 10)),
 			}
+		}
+		if err := a.networks.BindNlbServerGroups(instProps.Region, instCid, nlbGroups); err != nil {
+			return bosherr.WrapErrorf(err, "bind %s to nlbServerGroup failed.", instCid)
 		}
 	}
 	return nil

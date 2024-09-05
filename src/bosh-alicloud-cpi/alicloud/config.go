@@ -7,13 +7,14 @@ import (
 	"bosh-alicloud-cpi/registry"
 	"encoding/json"
 	"fmt"
-	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
-	"github.com/alibabacloud-go/tea/tea"
-	credential "github.com/aliyun/credentials-go/credentials"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+	"github.com/alibabacloud-go/tea/tea"
+	credential "github.com/aliyun/credentials-go/credentials"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

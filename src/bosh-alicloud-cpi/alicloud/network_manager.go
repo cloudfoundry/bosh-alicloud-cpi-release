@@ -6,11 +6,11 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
-	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
-	"strings"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
@@ -26,7 +26,7 @@ type NetworkManager interface {
 
 	BindSLB(region, instanceId, slbId string, weight int) error
 	BindSlbServerGroup(region, instanceId, slbId string, weight int, port int) error
-	BindNlbServerGroup(region, instanceId, nlbServerGroupId string, weight int, port int) error
+	BindNlbServerGroups(region, instanceId string, nlbServerGroups map[string]NlbServerGroupProps) error
 	DescribeSecurityGroupAttribute(region, groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error)
 	JoinSecurityGroup(region, instanceId, groupId string) error
 }
@@ -44,6 +44,12 @@ type SlbServerGroupBackendServerType struct {
 	ServerId string
 	Weight   int
 	Port     int
+}
+
+type NlbServerGroupProps struct {
+	ServerGroupId string      `json:"server_group_id"`
+	Port          json.Number `json:"port"`
+	Weight        json.Number `json:"weight"`
 }
 
 func NewNetworkManager(config Config, logger boshlog.Logger) NetworkManager {
@@ -174,7 +180,7 @@ func (a NetworkManagerImpl) BindSlbServerGroup(region, instanceId string, slbSer
 	return err
 }
 
-func (a NetworkManagerImpl) BindNlbServerGroup(region, instanceId string, nlbServerGroupId string, weight int, port int) error {
+func (a NetworkManagerImpl) BindNlbServerGroups(region, instanceId string, nlbServerGroups map[string]NlbServerGroupProps) error {
 	conn, err := a.config.NlbTeaClient(region)
 	if err != nil {
 		return err
@@ -191,33 +197,41 @@ func (a NetworkManagerImpl) BindNlbServerGroup(region, instanceId string, nlbSer
 		ReqBodyType: tea.String("formData"),
 		BodyType:    tea.String("json"),
 	}
-	queries := map[string]interface{}{
-		"Servers.1.Port":       port,
-		"ServerGroupId":        nlbServerGroupId,
-		"Servers.1.ServerId":   instanceId,
-		"Servers.1.ServerType": "Ecs",
-		"ClientToken":          buildClientToken("AddServersToServerGroup"),
-		"RegionId":             tea.String(a.config.OpenApi.Region),
-	}
-	if weight != 0 {
-		queries["Servers.1.Weight"] = weight
-	}
-	queries["ClientToken"] = buildClientToken(action)
-	request := &openapi.OpenApiRequest{
-		Query: openapiutil.Query(queries),
-	}
 	runtime := &util.RuntimeOptions{}
 	runtime.SetAutoretry(true)
 	invoker := NewInvoker()
 	invoker.AddCatcher(NlbBindServerCatcher_Conflict_Lock)
 
-	err = invoker.Run(func() error {
-		_, e := conn.CallApi(params, request, runtime)
-		if e != nil {
-			a.logger.Error("NetworkManager", "BindNlbServerGroup %s to %s failed %v. Retry...", instanceId, nlbServerGroupId, err)
+	for serverGroupId, serverGroup := range nlbServerGroups {
+		nlbServerGroupPort, err := serverGroup.Port.Int64()
+		if err != nil {
+			return bosherr.WrapErrorf(err, "invalid nlb_server_groups.port: '%v'. Error", serverGroup.Port)
 		}
-		return e
-	})
+		nlbServerGroupWeight, err := serverGroup.Weight.Int64()
+		if err != nil {
+			return bosherr.WrapErrorf(err, "invalid nlb_server_groups.weight: '%v'. Error", serverGroup.Weight)
+		}
+		body := map[string]interface{}{
+			"Servers.1.ServerId":   tea.String(instanceId),
+			"Servers.1.ServerType": tea.String("Ecs"),
+			"Servers.1.Port":       int(nlbServerGroupPort),
+			"Servers.1.Weight":     int(nlbServerGroupWeight),
+			"ServerGroupId":        tea.String(serverGroupId),
+			"RegionId":             tea.String(a.config.OpenApi.Region),
+			"ClientToken":          buildClientToken(action),
+		}
+
+		request := &openapi.OpenApiRequest{
+			Body: body,
+		}
+		err = invoker.Run(func() error {
+			_, e := conn.CallApi(params, request, runtime)
+			if e != nil {
+				a.logger.Error("NetworkManager", "%s %s failed %v. Retry...", action, instanceId, err)
+			}
+			return e
+		})
+	}
 	return err
 }
 
