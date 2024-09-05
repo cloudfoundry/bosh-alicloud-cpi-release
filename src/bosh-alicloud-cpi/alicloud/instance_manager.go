@@ -6,11 +6,13 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	"github.com/alibabacloud-go/tea/tea"
-	"strings"
-	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
@@ -56,6 +58,7 @@ type InstanceManager interface {
 	// Cleanup the left network interfaces
 	GetAttachedNetworkInterfaceIds(cid string) []string
 	CleanupInstanceNetworkInterfaces(cid string, eniIds []string) error
+	RemoveFromNlbServerGroups(cid string) error
 }
 
 type InstanceManagerImpl struct {
@@ -365,6 +368,90 @@ func (a InstanceManagerImpl) CleanupInstanceNetworkInterfaces(cid string, eniIds
 		}
 	}
 	return nil
+}
+
+func (a InstanceManagerImpl) RemoveFromNlbServerGroups(cid string) error {
+	conn, err := a.config.NlbTeaClient(a.config.OpenApi.Region)
+	if err != nil {
+		return err
+	}
+	params := &openapi.Params{
+		Version:     tea.String("2022-04-30"),
+		Protocol:    tea.String("HTTPS"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		Pathname:    tea.String("/"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	runtime := &util.RuntimeOptions{}
+	runtime.SetAutoretry(true)
+	invoker := NewInvoker()
+	invoker.AddCatcher(NlbBindServerCatcher_Conflict_Lock)
+
+	action := "ListServerGroupServers"
+	params.Action = tea.String(action)
+	body := map[string]interface{}{
+		"ServerIds.1": tea.String(cid),
+		"RegionId":    tea.String(a.config.OpenApi.Region),
+		"MaxResults":  tea.Int64(100),
+	}
+	request := &openapi.OpenApiRequest{
+		Body: body,
+	}
+
+	removed := make(map[string]int)
+	err = invoker.Run(func() error {
+		resp, e := conn.CallApi(params, request, runtime)
+		if e != nil {
+			a.logger.Error("InstanceManager", "%s %s failed %v. Retry...", action, cid, err)
+			return e
+		}
+		if resp != nil && resp["body"].(map[string]interface{})["Servers"] != nil {
+			for _, item := range resp["body"].(map[string]interface{})["Servers"].([]interface{}) {
+				server := item.(map[string]interface{})
+				if server["ServerGroupId"] != nil && fmt.Sprint(server["ServerGroupId"]) != "" {
+					if server["Port"] == nil {
+						removed[fmt.Sprint(server["ServerGroupId"])] = 0
+					} else {
+						port, err := strconv.Atoi(fmt.Sprint(server["Port"]))
+						if err != nil {
+							a.logger.Error("InstanceManager", "%s convert server port %s to int failed %v. Retry...", cid, server["Port"], err)
+							port = 0
+						}
+						removed[fmt.Sprint(server["ServerGroupId"])] = port
+					}
+				}
+			}
+		}
+		return nil
+	})
+
+	// remove servers
+	action = "RemoveServersFromServerGroup"
+	params.Action = tea.String(action)
+	for serverGroupId, port := range removed {
+		body = map[string]interface{}{
+			"Servers.1.ServerId":   tea.String(cid),
+			"Servers.1.ServerType": tea.String("Ecs"),
+			"Servers.1.Port":       tea.Int(port),
+			"ServerGroupId":        tea.String(serverGroupId),
+			"RegionId":             tea.String(a.config.OpenApi.Region),
+			"ClientToken":          buildClientToken(action),
+		}
+		request = &openapi.OpenApiRequest{
+			Body: body,
+		}
+		err = invoker.Run(func() error {
+			_, e := conn.CallApi(params, request, runtime)
+			if e != nil {
+				a.logger.Error("NetworkManager", "%s %s failed %v. Retry...", action, cid, err)
+			}
+			return e
+		})
+	}
+	return err
 }
 
 func (a InstanceManagerImpl) GetInstanceUserData() {

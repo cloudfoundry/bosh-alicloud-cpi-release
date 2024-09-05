@@ -31,6 +31,10 @@ func (a DeleteVMMethod) DeleteVM(cid apiv1.VMCID) error {
 		return nil
 	}
 
+	if err := a.instances.RemoveFromNlbServerGroups(instCid); err != nil {
+		a.Logger.Error("RemoveFromNlbServerGroups", "remove %s from nlbServerGroup failed. Error: %v", instCid, err)
+	}
+
 	eniIds := a.instances.GetAttachedNetworkInterfaceIds(instCid)
 
 	err = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
