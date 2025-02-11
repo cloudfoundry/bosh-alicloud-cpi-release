@@ -1,7 +1,12 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 52.0.0 (Unreleased)
+## 53.0.0 (Unreleased)
+## 52.0.0 (February 11, 2025)
+
+- throw running error when binding nlb server groups ([#177](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/177))
+- os agnostic bash path ([#176](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/176))
+
 ## 51.0.0 (September 05, 2024)
 
 - supports binding vm to nlb server groups by setting nlb_server_groups ([#173](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/173))
