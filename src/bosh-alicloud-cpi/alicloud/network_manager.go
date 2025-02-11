@@ -224,13 +224,15 @@ func (a NetworkManagerImpl) BindNlbServerGroups(region, instanceId string, nlbSe
 		request := &openapi.OpenApiRequest{
 			Body: body,
 		}
-		err = invoker.Run(func() error {
+		if err := invoker.Run(func() error {
 			_, e := conn.CallApi(params, request, runtime)
 			if e != nil {
 				a.logger.Error("NetworkManager", "%s %s failed %v. Retry...", action, instanceId, err)
 			}
 			return e
-		})
+		}); err != nil {
+			return bosherr.WrapErrorf(err, "bind nlb_server_groups failed. Error")
+		}
 	}
 	return err
 }
