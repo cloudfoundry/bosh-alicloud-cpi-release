@@ -184,8 +184,13 @@ resource "alicloud_slb_listener" "app-http" {
   health_check_connect_port = 20
 }
 
+resource "random_integer" "default" {
+  max = 99999
+  min = 10000
+}
+
 resource "alicloud_oss_bucket" "blobstore" {
-  bucket = "cpi-pipeline-blobstore-${var.env_name}"
+  bucket = "cpi-pipeline-blobstore-${var.env_name}-${random_integer.default.result}"
   acl    = "private"
 }
 
