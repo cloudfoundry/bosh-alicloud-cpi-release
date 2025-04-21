@@ -4,6 +4,9 @@ variable "access_key" {
 variable "secret_key" {
 }
 
+variable "security_token" {
+}
+
 variable "region" {
 }
 
@@ -25,9 +28,10 @@ terraform {
 }
 
 provider "alicloud" {
-  access_key = var.access_key
-  secret_key = var.secret_key
-  region     = var.region
+  access_key     = var.access_key
+  secret_key     = var.secret_key
+  security_token = var.security_token
+  region         = var.region
 }
 
 data "alicloud_zones" "default" {

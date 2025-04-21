@@ -44,6 +44,7 @@ shared:
     access_key: {{alicloud_access_key__primary}}
     secret_key: {{alicloud_secret_key__primary}}
     region:     {{alicloud_region__primary}}
+    terraform_role_arn: {{terraform_role_arn}}
     remote_state_access_key: {{terraform_backend_access_key}}
     remote_state_secret_key: {{terraform_backend_secret_key}}
     remote_state_bucket:     {{terraform_backend_bucket}}
