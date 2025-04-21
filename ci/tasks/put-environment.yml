@@ -2,8 +2,9 @@
 platform: linux
 
 image_resource:
-  type: docker-image
-  source: {repository: boshcpi/aws-cpi-release}
+  type: registry-image
+  source:
+    repository: foundationalinfrastructure/gce-cpi-release
 
 inputs:
   - name: bosh-cpi-src
@@ -22,6 +23,7 @@ params:
   delete_on_failure: false
   generate_random_name: false
   action: ""
+  terraform_role_arn: ""
   terraform_source: ""
   output_module: ""
   remote_state_access_key: ""

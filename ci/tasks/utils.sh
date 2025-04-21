@@ -20,6 +20,13 @@ configure_aliyun_cli() {
 }
 configure_aliyun_cli
 
+configure_jq() {
+  wget -q -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+  chmod +x ./jq
+  cp jq /usr/bin
+}
+configure_jq
+
 check_param() {
   local name=$1
   local value=$(eval echo '$'$name)
