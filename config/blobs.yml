@@ -1,3 +1,3 @@
-go1.21.4.linux-amd64.tar.gz:
-  size: 66615271
-  sha: sha256:73cac0215254d0c7d1241fa40837851f3b9a8a742d0b54714cbdfb3feaf8f0af
+go1.24.2.linux-amd64.tar.gz:
+  size: 78516109
+  sha: sha256:68097bd680839cbc9d464a0edce4f7c333975e27a90246890e9f1078c7e702ad

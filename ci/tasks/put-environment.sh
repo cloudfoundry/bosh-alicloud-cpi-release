@@ -2,8 +2,6 @@
 
 set -e
 
-source bosh-cpi-src/ci/tasks/utils.sh
-
 : ${access_key:?}
 : ${secret_key:?}
 : ${region:?}
@@ -47,8 +45,11 @@ wget -qN https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
 apt-get install unzip
 unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/bin
 
+wget -qN https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz
+tar -zxvf aliyun-cli-linux-latest-amd64.tgz -C /usr/bin
+
 # 调用 AssumeRole API 获取临时凭证
-response=$(aliyun sts AssumeRole --RoleArn ${terraform_role_arn} --RoleSessionName "bosh-cpi-e2e-test" --access-key-id ${access_key} --access-key-secret ${secret_key})
+response=$(aliyun sts AssumeRole --RoleArn ${terraform_role_arn} --RoleSessionName "bosh-cpi-e2e-test" --access-key-id ${access_key} --access-key-secret ${secret_key} --region=${region})
 
 # 解析返回结果中的 AccessKeyId, AccessKeySecret 和 SecurityToken
 ACCESS_KEY_ID=$(echo $response | jq -r '.Credentials.AccessKeyId')
