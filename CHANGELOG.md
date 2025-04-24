@@ -1,7 +1,12 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 53.0.0 (Unreleased)
+## 54.0.0 (Unreleased)
+## 53.0.0 (April 24, 2025)
+
+- upgrade go verison to 1.24.2 ([#179](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/179))
+- improves the ci test ([#178](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/178))
+
 ## 52.0.0 (February 11, 2025)
 
 - throw running error when binding nlb server groups ([#177](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/177))
