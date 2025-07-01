@@ -1,6 +1,6 @@
 module bosh-alicloud-cpi
 
-go 1.24.0
+go 1.24.2
 
 require (
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.8
