@@ -1,7 +1,12 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 54.0.0 (Unreleased)
+## 55.0.0 (Unreleased)
+## 54.0.0 (July 01, 2025)
+
+- update go version to a specified version ([#182](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/182))
+- go: download go1.24 for linux/amd64: toolchain not available ([#180](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/180))
+   
 ## 53.0.0 (April 24, 2025)
 
 - upgrade go verison to 1.24.2 ([#179](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/179))
