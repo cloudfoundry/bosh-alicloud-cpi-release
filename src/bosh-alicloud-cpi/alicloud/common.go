@@ -112,3 +112,21 @@ func buildClientToken(action string) string {
 	}
 	return token
 }
+
+func convertListToJsonString(configured []interface{}) string {
+	if len(configured) < 1 {
+		return ""
+	}
+	result := "["
+	for i, v := range configured {
+		if v == nil {
+			continue
+		}
+		result += "\"" + v.(string) + "\""
+		if i < len(configured)-1 {
+			result += ","
+		}
+	}
+	result += "]"
+	return result
+}

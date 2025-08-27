@@ -92,7 +92,7 @@ func (a InstanceManagerImpl) GetInstance(cid string) (inst *ecs.Instance, err er
 
 	args := ecs.CreateDescribeInstancesRequest()
 	args.RegionId = a.config.OpenApi.GetRegion("")
-	args.InstanceIds = fmt.Sprintf("[\"%s\"]", cid)
+	args.InstanceIds = convertListToJsonString([]interface{}{cid})
 
 	invoker := NewInvoker()
 	err = invoker.Run(func() error {
@@ -100,7 +100,7 @@ func (a InstanceManagerImpl) GetInstance(cid string) (inst *ecs.Instance, err er
 		if e != nil {
 			return e
 		}
-		if len(r.Instances.Instance) > 0 {
+		if len(r.Instances.Instance) == 1 && r.Instances.Instance[0].InstanceId == cid {
 			inst = &r.Instances.Instance[0]
 		}
 		return e
@@ -327,7 +327,7 @@ func (a InstanceManagerImpl) ChangeInstanceStatus(cid string, toStatus InstanceS
 		timeout -= ChangeInstanceStatusSleepInterval
 		time.Sleep(ChangeInstanceStatusSleepInterval)
 		if timeout < 0 {
-			return fmt.Errorf("change instance %s to %s timeout", cid, toStatus)
+			return fmt.Errorf("change instance %s to %s timeout, and current status is %s", cid, toStatus, status)
 		}
 	}
 }
