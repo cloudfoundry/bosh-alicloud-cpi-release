@@ -196,3 +196,7 @@ func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus alicloud.DiskStat
 		return fmt.Errorf("<MOCK> expect instance %s status is %s but get %s", cid, toStatus, status)
 	}
 }
+
+func (a DiskManagerMock) GetDiskPath(path, diskId, instanceType string, category alicloud.DiskCategory) string {
+	return path
+}
