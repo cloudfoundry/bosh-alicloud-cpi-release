@@ -1,0 +1,53 @@
+name: Security Vulnerability Scan
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  schedule:
+    # Run weekly on Monday at 08:00 UTC (before Dependabot at 09:00)
+    - cron: "0 8 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  govulncheck:
+    name: Go Vulnerability Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: src/bosh-alicloud-cpi/go.mod
+          cache-dependency-path: src/bosh-alicloud-cpi/go.sum
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run govulncheck
+        working-directory: src/bosh-alicloud-cpi
+        run: govulncheck ./...
+
+  nancy:
+    name: Dependency Audit (nancy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: src/bosh-alicloud-cpi/go.mod
+          cache-dependency-path: src/bosh-alicloud-cpi/go.sum
+
+      - name: Generate module list
+        working-directory: src/bosh-alicloud-cpi
+        run: go list -json -deps ./... > deps.json
+
+      - name: Run nancy
+        uses: sonatype-nexus-community/nancy-github-action@v1
+        with:
+          nancyCommand: sleuth --path src/bosh-alicloud-cpi/deps.json

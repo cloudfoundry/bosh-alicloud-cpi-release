@@ -25,7 +25,7 @@ shared:
   file: pipelines/shared/tasks/run-bats.yml
   params:
     INFRASTRUCTURE:     alicloud
-    STEMCELL_NAME:      bosh-alicloud-kvm-ubuntu-xenial-go_agent
+    STEMCELL_NAME:      bosh-alicloud-kvm-ubuntu-jammy-go_agent
     BAT_INFRASTRUCTURE: alicloud
     BAT_NETWORKING:     manual
     BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~raw_ephemeral_storage --tag ~persistent_disk"
@@ -68,7 +68,7 @@ jobs:
 - name: build-candidate
   serial: true
   plan:
-  - aggregate:
+  - in_parallel:
     - {get: bosh-cpi-src,   trigger: true,  resource: bosh-cpi-src-in}
     - {get: version-semver, trigger: false, params: {bump: patch}}
     - {get: bosh-cli,       trigger: false}
@@ -82,10 +82,10 @@ jobs:
 - name: integration
   serial: true
   plan:
-  - aggregate:
+  - in_parallel:
     - {get: bosh-cpi-release, trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [build-candidate]}
     - {get: bosh-cpi-src,     trigger: false, resource: bosh-cpi-src-in, passed: [build-candidate]}
-    - {get: stemcell,         trigger: false, resource: ubuntu-xenial-stemcell}
+    - {get: stemcell,         trigger: false, resource: ubuntu-jammy-stemcell}
     - {get: aliyun-cli,       trigger: false, resource: aliyun-cli}
     - {get: jq-blob,          trigger: false}
     - {get: 24h,              trigger: false}
@@ -113,11 +113,11 @@ jobs:
 - name: bats
   serial: true
   plan:
-  - aggregate:
+  - in_parallel:
     - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts, passed: [build-candidate]}
     - {get: bosh-release,    trigger: false, resource: bosh-release}
     - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in, passed: [build-candidate]}
-    - {get: stemcell,        trigger: false, resource: ubuntu-xenial-light-stemcell}
+    - {get: stemcell,        trigger: false, resource: ubuntu-jammy-light-stemcell}
     - {get: bosh-deployment, trigger: false}
     - {get: pipelines,       trigger: false}
     - {get: bosh-cli,        trigger: false}
@@ -158,12 +158,12 @@ jobs:
 - name: end-2-end
   serial: true
   plan:
-  - aggregate:
+  - in_parallel:
     - {get: cpi-release,     trigger: true,  resource: bosh-cpi-dev-artifacts,   passed: [build-candidate]}
     - {get: bosh-release,    trigger: false, resource: bosh-release}
     - {get: bosh-cpi-src,    trigger: false, resource: bosh-cpi-src-in,          passed: [build-candidate]}
-    - {get: stemcell,        trigger: false, resource: ubuntu-xenial-light-stemcell}
-    - {get: heavy-stemcell,  trigger: false, resource: ubuntu-xenial-stemcell}
+    - {get: stemcell,        trigger: false, resource: ubuntu-jammy-light-stemcell}
+    - {get: heavy-stemcell,  trigger: false, resource: ubuntu-jammy-stemcell}
     - {get: bosh-deployment, trigger: false}
     - {get: pipelines,       trigger: false}
     - {get: bosh-cli,        trigger: false}
@@ -202,7 +202,7 @@ jobs:
 
 - name: promote-candidate
   plan:
-  - aggregate:
+  - in_parallel:
     - {get: bosh-cpi-release,       trigger: false, resource: bosh-cpi-dev-artifacts, passed: [end-2-end, bats, integration]}
     - {get: bosh-cpi-src,           trigger: false, resource: bosh-cpi-src-in,        passed: [end-2-end, bats, integration]}
     - {get: release-version-semver, trigger: false, params: {bump: major}}
@@ -287,21 +287,21 @@ resources:
     type: bosh-io-release
     source:
       repository: cloudfoundry/bosh
-  - name: ubuntu-xenial-stemcell
+  - name: ubuntu-jammy-stemcell
     type: bosh-io-stemcell
     source:
-      name: bosh-alicloud-kvm-ubuntu-xenial-go_agent
+      name: bosh-alicloud-kvm-ubuntu-jammy-go_agent
       force_regular: true
       tarball: true
-  - name: ubuntu-xenial-light-stemcell
+  - name: ubuntu-jammy-light-stemcell
     type: bosh-io-stemcell
     source:
-      name: bosh-alicloud-kvm-ubuntu-xenial-go_agent
+      name: bosh-alicloud-kvm-ubuntu-jammy-go_agent
   - name: bats
     type: git
     source:
-      uri: https://github.com/cloudfoundry/bosh-acceptance-tests
-      branch: master
+      uri: https://github.com/aliyun/bosh-acceptance-tests
+      branch: alicloud
 
   # begin: repos for e2e bosh blobs
   - name: jq-blob
@@ -316,8 +316,11 @@ resources:
       branch: master
 
   - name: aliyun-cli
-    type: github-release
+    type: s3
     source:
-      owner: aliyun
-      repository: aliyun-cli
-      insecure: true
+      access_key_id: {{aliyun_cli_access_key}}
+      secret_access_key: {{aliyun_cli_secret_key}}
+      bucket: {{aliyun_cli_bucket}}
+      regexp: .*-cli-linux-3\.0\.(\d+)-amd64\.tgz
+      region_name: {{aliyun_cli_region}}
+      endpoint: oss-((aliyun_cli_region)).aliyuncs.com
