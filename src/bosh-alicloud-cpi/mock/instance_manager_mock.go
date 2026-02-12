@@ -28,11 +28,15 @@ func (a InstanceManagerMock) GetInstance(cid string) (*ecs.Instance, error) {
 	}
 }
 
-func (a InstanceManagerMock) CreateInstance(region string, args *ecs.CreateInstanceRequest) (string, error) {
+func (a InstanceManagerMock) CreateInstance(region string, args map[string]interface{}) (string, error) {
 	id, inst := a.mc.NewInstance()
 
-	inst.RegionId = args.RegionId
-	inst.ZoneId = args.ZoneId
+	if v, ok := args["RegionId"]; ok {
+		inst.RegionId = v.(string)
+	}
+	if v, ok := args["ZoneId"]; ok {
+		inst.ZoneId = v.(string)
+	}
 	// ...
 
 	return id, nil
@@ -181,5 +185,9 @@ func (a InstanceManagerMock) CleanupInstanceNetworkInterfaces(cid string, eniIds
 	for _, id := range eniIds {
 		delete(a.mc.NetworkInterfaces, id)
 	}
+	return nil
+}
+
+func (a InstanceManagerMock) RemoveFromNlbServerGroups(cid string) error {
 	return nil
 }

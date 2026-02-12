@@ -16,8 +16,8 @@ func NewNetworkManagerMock(context TestContext) alicloud.NetworkManager {
 type NetworkManagerMock struct {
 }
 
-func (a NetworkManagerMock) DescribeEip(region, eip string) (ecs.EipAddressInDescribeEipAddresses, error) {
-	return ecs.EipAddressInDescribeEipAddresses{}, nil
+func (a NetworkManagerMock) DescribeEip(region, eip string) (ecs.EipAddress, error) {
+	return ecs.EipAddress{}, nil
 }
 
 func (a NetworkManagerMock) BindEip(region string, instanceId string, eip string) error {
@@ -38,6 +38,10 @@ func (a NetworkManagerMock) BindSLB(region, instanceId, slbId string, weight int
 
 func (a NetworkManagerMock) DescribeSecurityGroupAttribute(region, groupId string) (ecs.DescribeSecurityGroupAttributeResponse, error) {
 	return ecs.DescribeSecurityGroupAttributeResponse{}, nil
+}
+
+func (a NetworkManagerMock) BindNlbServerGroups(region, instanceId string, nlbServerGroups map[string]alicloud.NlbServerGroupProps) error {
+	return nil
 }
 
 func (a NetworkManagerMock) JoinSecurityGroup(region, instanceId string, groupId string) error {
