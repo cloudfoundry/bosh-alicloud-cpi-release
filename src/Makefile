@@ -20,3 +20,9 @@ clean:
 build:
 	mkdir -p $(BINDIR)
 	go build $(GO_OPTIONS) $(BUILD_OPTIONS) -o ${EXECUTABLE} $(MAINFILE)
+
+update-deps:
+	cd $(MAINDIR) && go get -u ./... && go mod tidy
+
+update-deps-patch:
+	cd $(MAINDIR) && go get -u=patch ./... && go mod tidy
