@@ -1,0 +1,44 @@
+version: 2
+updates:
+  # Enable version updates for Go modules
+  - package-ecosystem: "gomod"
+    directory: "/src/bosh-alicloud-cpi"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ali-tkang"
+    labels:
+      - "dependencies"
+      - "go"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # Group updates to reduce PR noise
+    groups:
+      production-dependencies:
+        patterns:
+          - "github.com/cloudfoundry/bosh-utils"
+          - "github.com/cppforlife/bosh-cpi-go"
+          - "github.com/alibabacloud-go/*"
+          - "github.com/aliyun/*"
+      test-dependencies:
+        patterns:
+          - "github.com/onsi/*"
+      golang-org-dependencies:
+        patterns:
+          - "golang.org/x/*"
+      yaml-dependencies:
+        patterns:
+          - "gopkg.in/yaml.*"
+    # Ignore major version updates for stable dependencies
+    ignore:
+      # bosh-cpi-go is stable and rarely updated
+      - dependency-name: "github.com/cppforlife/bosh-cpi-go"
+        update-types: ["version-update:semver-major"]
+    # Allow security updates even if they're major versions
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"

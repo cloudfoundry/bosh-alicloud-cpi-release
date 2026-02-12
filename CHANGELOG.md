@@ -2,6 +2,19 @@
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 55.0.0 (Unreleased)
+
+SECURITY:
+
+- Upgraded bosh-utils v0.0.407 -> v0.0.590 ([#TBD](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/TBD))
+  - golang.org/x/crypto v0.18.0 -> v0.47.0 (fixes CVE-2024-45337)
+  - gopkg.in/yaml.v2 -> go.yaml.in/yaml/v3 (fixes CVE-2022-28948)
+- Upgraded gomega v1.27.10 -> v1.39.1
+  - golang.org/x/net v0.20.0 -> v0.49.0 (fixes CVE-2023-45288)
+
+IMPROVEMENTS:
+
+- Added Dependabot config for automated weekly dependency updates
+- Added GitHub Actions security scanning workflow (govulncheck + nancy)
 ## 54.0.0 (July 01, 2025)
 
 - update go version to a specified version ([#182](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/182))
