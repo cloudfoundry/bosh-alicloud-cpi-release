@@ -34,13 +34,13 @@ testdeps:
 	go install github.com/onsi/ginkgo/ginkgo@v1.16.5
 
 test: testdeps
-	ginkgo -r -skipPackage integration src/bosh-alicloud-cpi
+	cd src/bosh-alicloud-cpi && ginkgo -r -skipPackage integration .
 
 integration: testdeps
-	ginkgo -r src/bosh-alicloud-cpi/integration
+	cd src/bosh-alicloud-cpi && ginkgo -r integration
 
 testintci: testdeps
-	ginkgo src/bosh-alicloud-cpi/integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
+	cd src/bosh-alicloud-cpi && ginkgo integration -slowSpecThreshold=500 -progress -nodes=3 -randomizeAllSpecs -randomizeSuites $(GINKGO_ARGS) -v
 
 create-release: build
 	bosh create-release --force --tarball=bin/bosh-alicloud-cpi.tgz
