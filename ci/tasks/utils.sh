@@ -2,7 +2,12 @@
 
 # Oportunistically configure bosh for use
 configure_bosh_cli() {
-  local bosh_input="$(realpath bosh-cli/*bosh-cli-* 2>/dev/null || true)"
+  # Use find with head -1 to get exactly one file, preferring linux-amd64
+  local bosh_input="$(find bosh-cli -name '*bosh-cli-*linux-amd64' -type f 2>/dev/null | head -1)"
+  if [[ -z "${bosh_input}" ]]; then
+    # Fallback to any bosh-cli file if linux-amd64 not found
+    bosh_input="$(find bosh-cli -name '*bosh-cli-*' -type f 2>/dev/null | head -1)"
+  fi
   if [[ -n "${bosh_input}" ]]; then
     export bosh_cli="/usr/local/bin/bosh"
     cp "${bosh_input}" "${bosh_cli}"

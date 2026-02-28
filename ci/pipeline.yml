@@ -272,12 +272,13 @@ resources:
       secret_access_key: {{bosh_cpi_release_secret_key}}
       endpoint:          oss-((bosh_cpi_release_region)).aliyuncs.com
   - name: bosh-cli
-    type: s3
+    type: github-release
+    check_every: 1h
     source:
-      regexp: bosh-cli-([0-9.]+)-linux-amd64
-      cloudfront_url: https://dulfnruy35dwq.cloudfront.net
-      bucket: bosh-cli-artifacts
-      region_name: us-east-1
+      owner: cloudfoundry
+      repository: bosh-cli
+      globs:
+        - bosh-cli-*-linux-amd64
   - name: pipelines
     type: git
     source:
