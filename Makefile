@@ -31,7 +31,7 @@ build:
 	go build $(GO_OPTIONS) $(BUILD_OPTIONS) -o ${EXECUTABLE} $(MAINFILE)
 
 testdeps:
-	go install bosh-alicloud-cpi/vendor/github.com/onsi/ginkgo/ginkgo
+	go install github.com/onsi/ginkgo/ginkgo@v1.16.5
 
 test: testdeps
 	ginkgo -r -skipPackage integration src/bosh-alicloud-cpi
