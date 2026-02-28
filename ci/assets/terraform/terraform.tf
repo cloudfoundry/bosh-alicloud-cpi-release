@@ -117,7 +117,7 @@ resource "alicloud_security_group_rule" "all-in" {
   port_range        = "-1/-1"
   priority          = 1
   security_group_id = alicloud_security_group.default.id
-  cidr_ip           = "0.0.0.0/0"
+  cidr_ip           = alicloud_vpc.default.cidr_block
 }
 
 resource "alicloud_security_group_rule" "all-out" {
