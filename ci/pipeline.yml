@@ -86,6 +86,37 @@ shared:
             value: ecs.g6.xlarge
           EOF
 
+# Alibaba Cloud EIPs don't support hairpin NAT: the Director VM cannot
+# reach its own EIP from inside.  The bosh-cpi-certification deploy-director
+# task sets both BOSH_ENVIRONMENT and BOSH_ALL_PROXY to the EIP, so the
+# SOCKS5 proxy on the Director tries to forward to EIP:25555 and times out.
+# Fix: rewrite BOSH_ENVIRONMENT to the internal IP so the SOCKS forward
+# stays local, while keeping the SSH tunnel endpoint on the EIP.
+- &patch-director-env
+  task: patch-director-env
+  config:
+    platform: linux
+    image_resource:
+      type: docker-image
+      source: {repository: bosh/integration, tag: main}
+    inputs:
+      - name: director-state
+      - name: environment
+    outputs:
+      - name: director-state
+    run:
+      path: bash
+      args:
+        - -c
+        - |
+          set -euo pipefail
+          internal_ip=$(python3 -c "import json; print(json.load(open('environment/metadata'))['internal_ip'])")
+          echo "Patching BOSH_ENVIRONMENT from EIP to internal IP: ${internal_ip}"
+          sed -i "s|^export BOSH_ENVIRONMENT=.*|export BOSH_ENVIRONMENT=\"${internal_ip}\"|" \
+            director-state/director.env
+          echo "--- patched director.env ---"
+          cat director-state/director.env
+
 jobs:
 - name: build-candidate
   serial: true
@@ -165,6 +196,7 @@ jobs:
           -o bosh-deployment/director-instance-type.yml
     - do:
         - <<: *deploy-director
+        - <<: *patch-director-env
         - <<: *run-bats
       ensure:
         do:
@@ -212,6 +244,7 @@ jobs:
 #              -o pipelines/alicloud/assets/ops/ram-instance-profile-ops-file.yml
     - do:
         - <<: *deploy-director
+        - <<: *patch-director-env
         - <<: *run-end-2-end
       ensure:
         do:
