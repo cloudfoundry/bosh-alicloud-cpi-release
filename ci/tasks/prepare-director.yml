@@ -1,0 +1,28 @@
+---
+# Custom prepare-director task that adds bosh-cpi-src as an input
+# so we can reference ops files from the CPI repo.
+# Based on pipelines/shared/tasks/prepare-director.yml from bosh-cpi-certification.
+platform: linux
+image_resource:
+  type: docker-image
+  source: {repository: bosh/integration, tag: main }
+
+inputs:
+  - name: pipelines
+  - name: environment
+  - name: bosh-deployment
+  - name: bosh-release
+  - name: cpi-release
+  - name: stemcell
+  - name: bosh-cpi-src
+
+outputs:
+  - name: director-config
+
+run:
+  path: pipelines/shared/tasks/prepare-director.sh
+
+params:
+  DIRECTOR_VARS_FILE: ""
+  INFRASTRUCTURE:     ""
+  OPTIONAL_OPS_FILE:  ""
