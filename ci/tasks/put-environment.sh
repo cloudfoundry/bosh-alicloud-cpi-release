@@ -21,6 +21,12 @@ set -e
 : ${remote_state_file_path:="terraform-state"}
 : ${remote_state_file_name:=""}
 
+# Auto-detect Concourse worker's outbound IP for security group rules
+CONCOURSE_WORKER_IP=$(curl -s --max-time 5 ifconfig.me || echo "")
+if [[ -n "${CONCOURSE_WORKER_IP}" ]]; then
+    echo "Detected Concourse worker outbound IP: ${CONCOURSE_WORKER_IP}"
+fi
+
 if [[ ${env_name} == "" ]]; then
     if [[ ${generate_random_name} = true ]]; then
         env_name="bosh-concourse-$(echo $RANDOM)"
@@ -78,10 +84,10 @@ pushd ${terraform_source}
 
     if [[ ${action} == "destroy" ]]; then
         echo -e "******** Try to delete environment ********\n"
-        terraform apply -destroy -auto-approve -var access_key=${ACCESS_KEY_ID} -var secret_key=${ACCESS_KEY_SECRET} -var security_token=${SECURITY_TOKEN} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}"
+        terraform apply -destroy -auto-approve -var access_key=${ACCESS_KEY_ID} -var secret_key=${ACCESS_KEY_SECRET} -var security_token=${SECURITY_TOKEN} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}" -var "concourse_worker_ip=${CONCOURSE_WORKER_IP}"
     else
         echo -e "******** Try to build environment ********\n"
-        terraform apply --auto-approve -var access_key=${ACCESS_KEY_ID} -var secret_key=${ACCESS_KEY_SECRET} -var security_token=${SECURITY_TOKEN} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}"
+        terraform apply --auto-approve -var access_key=${ACCESS_KEY_ID} -var secret_key=${ACCESS_KEY_SECRET} -var security_token=${SECURITY_TOKEN} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}" -var "concourse_worker_ip=${CONCOURSE_WORKER_IP}"
         if [[ $? -eq 0 ]]; then
             echo -e "******** Build terraform environment successfully ******** \n"
             ls -al
@@ -91,7 +97,7 @@ pushd ${terraform_source}
             echo "}" >> ${output_path}/${output_module}
         elif [[ ${delete_on_failure} = true ]]; then
             echo -e "******** Destroy terraform environment... ******** \n"
-            terraform apply -destroy -auto-approve -var access_key=${ACCESS_KEY_ID} -var secret_key=${ACCESS_KEY_SECRET} -var security_token=${SECURITY_TOKEN} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}"
+            terraform apply -destroy -auto-approve -var access_key=${ACCESS_KEY_ID} -var secret_key=${ACCESS_KEY_SECRET} -var security_token=${SECURITY_TOKEN} -var region=${region} -var env_name=${env_name} -var "public_key=${public_key}" -var "concourse_worker_ip=${CONCOURSE_WORKER_IP}"
         fi
     fi
 

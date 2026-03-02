@@ -16,6 +16,10 @@ variable "env_name" {
 variable "public_key" {
 }
 
+variable "concourse_worker_ip" {
+  default = ""
+}
+
 terraform {
   backend "oss" {
   }
@@ -118,6 +122,19 @@ resource "alicloud_security_group_rule" "all-in" {
   priority          = 1
   security_group_id = alicloud_security_group.default.id
   cidr_ip           = alicloud_vpc.default.cidr_block
+}
+
+# Allow Concourse worker to reach BOSH Director ports (mbus, API, SSH, etc.)
+resource "alicloud_security_group_rule" "concourse-in" {
+  count             = var.concourse_worker_ip != "" ? 1 : 0
+  type              = "ingress"
+  ip_protocol       = "all"
+  nic_type          = "intranet"
+  policy            = "accept"
+  port_range        = "-1/-1"
+  priority          = 1
+  security_group_id = alicloud_security_group.default.id
+  cidr_ip           = "${var.concourse_worker_ip}/32"
 }
 
 resource "alicloud_security_group_rule" "all-out" {
