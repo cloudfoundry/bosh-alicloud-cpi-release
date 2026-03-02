@@ -133,7 +133,6 @@ jobs:
       terraform_source: bosh-cpi-src/ci/assets/terraform
   - do:
     - <<: *prepare-director
-      file: bosh-cpi-src/ci/tasks/prepare-director.yml
       params:
         <<: *prepare-director-params
         OPTIONAL_OPS_FILE:  |
