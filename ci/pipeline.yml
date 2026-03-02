@@ -129,7 +129,7 @@ jobs:
     params:
       <<: *put-environment-params
       env_name: bosh-alicloud-cpi-bats
-      delete_on_failure: true
+      delete_on_failure: false  # TEMP: preserve failed instances for debugging
       terraform_source: bosh-cpi-src/ci/assets/terraform
   - do:
     - <<: *prepare-director
@@ -139,6 +139,7 @@ jobs:
           -o pipelines/shared/assets/ops/remove-hm.yml
           -o bosh-deployment/external-ip-with-registry-not-recommended.yml
           -o pipelines/shared/assets/ops/remove-provider-cert.yml
+          -o bosh-cpi-src/ci/assets/ops/director-size.yml
     - do:
         - <<: *deploy-director
         - <<: *run-bats

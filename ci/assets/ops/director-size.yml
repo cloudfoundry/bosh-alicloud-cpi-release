@@ -1,0 +1,23 @@
+# Override director VM size and NTP servers for eu-central-1 region
+# The default ecs.mn4.small is too small and may not be available in all regions
+
+- type: replace
+  path: /resource_pools/name=vms/cloud_properties/instance_type
+  value: ecs.g6.large
+
+# Use global NTP servers instead of China-specific ones
+- type: replace
+  path: /instance_groups/name=bosh/properties/agent/env/bosh/ntp
+  value:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+  - 2.pool.ntp.org
+  - 3.pool.ntp.org
+
+- type: replace
+  path: /resource_pools/0/env/bosh/ntp
+  value:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+  - 2.pool.ntp.org
+  - 3.pool.ntp.org
