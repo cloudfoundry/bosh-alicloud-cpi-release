@@ -64,6 +64,28 @@ shared:
   task: teardown
   file: pipelines/shared/tasks/teardown.yml
 
+- &patch-director-size
+  task: patch-director-size
+  config:
+    platform: linux
+    image_resource:
+      type: docker-image
+      source: {repository: bosh/integration, tag: main}
+    inputs:
+      - name: bosh-deployment
+    outputs:
+      - name: bosh-deployment
+    run:
+      path: bash
+      args:
+        - -c
+        - |
+          cat > bosh-deployment/director-instance-type.yml <<'EOF'
+          - path: /resource_pools/name=vms/cloud_properties/instance_type
+            type: replace
+            value: ecs.g6.xlarge
+          EOF
+
 jobs:
 - name: build-candidate
   serial: true
@@ -132,6 +154,7 @@ jobs:
       delete_on_failure: true
       terraform_source: bosh-cpi-src/ci/assets/terraform
   - do:
+    - <<: *patch-director-size
     - <<: *prepare-director
       params:
         <<: *prepare-director-params
@@ -139,6 +162,7 @@ jobs:
           -o pipelines/shared/assets/ops/remove-hm.yml
           -o bosh-deployment/external-ip-with-registry-not-recommended.yml
           -o pipelines/shared/assets/ops/remove-provider-cert.yml
+          -o bosh-deployment/director-instance-type.yml
     - do:
         - <<: *deploy-director
         - <<: *run-bats
@@ -177,12 +201,14 @@ jobs:
       delete_on_failure: true
       terraform_source: bosh-cpi-src/ci/assets/terraform
   - do:
+    - <<: *patch-director-size
     - <<: *prepare-director
       params:
         <<: *prepare-director-params
         OPTIONAL_OPS_FILE:  |
           -o bosh-deployment/external-ip-with-registry-not-recommended.yml
           -o pipelines/shared/assets/ops/remove-provider-cert.yml
+          -o bosh-deployment/director-instance-type.yml
 #              -o pipelines/alicloud/assets/ops/ram-instance-profile-ops-file.yml
     - do:
         - <<: *deploy-director
