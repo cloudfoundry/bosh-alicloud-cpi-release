@@ -28,7 +28,7 @@ shared:
     STEMCELL_NAME:      bosh-alicloud-kvm-ubuntu-noble
     BAT_INFRASTRUCTURE: alicloud
     BAT_NETWORKING:     manual
-    BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~raw_ephemeral_storage --tag ~persistent_disk"
+    BAT_RSPEC_FLAGS:    "--tag ~multiple_manual_networks --tag ~raw_ephemeral_storage"
 
 - &run-end-2-end
   task: run-e2e
@@ -117,6 +117,50 @@ shared:
           echo "--- patched director.env ---"
           cat director-state/director.env
 
+# Alibaba Cloud cloud_efficiency disks have a 20 GB minimum (enforced by
+# the CPI in action/disks.go AmendSmallDiskSize, since 2017).  Two upstream
+# BATS tests create disks < 20 GB and assert on the exact byte-size, so they
+# always fail on alicloud.  Inject `skip` with an explanation so they appear
+# as *pending* instead of *failed*.
+- &patch-bats
+  task: patch-bats
+  config:
+    platform: linux
+    image_resource:
+      type: docker-image
+      source: {repository: bosh/integration, tag: main}
+    inputs:
+      - name: bats
+    outputs:
+      - name: bats
+    run:
+      path: bash
+      args:
+        - -c
+        - |
+          set -euo pipefail
+          REASON="Alibaba Cloud cloud_efficiency disks have a 20 GB minimum size. "\
+          "The CPI auto-amends smaller requests to 20 GB (AmendSmallDiskSize), "\
+          "so byte-size assertions for < 20 GB disks will never match."
+
+          echo "=== Patching BATS: skipping tests incompatible with Alibaba Cloud disk constraints ==="
+
+          # 1. persistent_disks_spec.rb – "attaches multiple disks"
+          #    Creates 5 GB + 4 GB disks, expects exact lsblk byte sizes.
+          #    Both disks are silently upsized to 20 GB, failing the assertion.
+          echo "  [skip] persistent_disks_spec.rb: 'attaches multiple disks'"
+          sed -i "s|it 'attaches multiple disks'|it 'attaches multiple disks', skip: '${REASON}'|" \
+            bats/spec/system/persistent_disks_spec.rb
+
+          # 2. with_release_stemcell_spec.rb – "should migrate disk contents"
+          #    Resizes from 2 GB to 4 GB; both are upsized to 20 GB so
+          #    the size comparison (before != after) always fails.
+          echo "  [skip] with_release_stemcell_spec.rb: 'should migrate disk contents'"
+          sed -i "s|it 'should migrate disk contents'|it 'should migrate disk contents', skip: '${REASON}'|" \
+            bats/spec/system/with_release_stemcell_spec.rb
+
+          echo "=== Done. Skipped tests will appear as pending in rspec output. ==="
+
 jobs:
 - name: build-candidate
   serial: true
@@ -197,6 +241,7 @@ jobs:
     - do:
         - <<: *deploy-director
         - <<: *patch-director-env
+        - <<: *patch-bats
         - <<: *run-bats
       ensure:
         do:
@@ -300,8 +345,8 @@ resources:
   - name: bosh-cpi-src-in
     type: git
     source:
-      uri: https://github.com/ali-tkang/bosh-alicloud-cpi-release.git
-      branch: feature/security-dependency-upgrades-v55
+      uri: https://github.com/cloudfoundry/bosh-alicloud-cpi-release.git
+      branch: master
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
