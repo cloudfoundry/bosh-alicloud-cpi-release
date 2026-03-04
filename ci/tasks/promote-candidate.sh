@@ -6,8 +6,6 @@ set -e
 : ${ALICLOUD_ACCESS_KEY_SECRET:?}
 
 source bosh-cpi-src/ci/tasks/utils.sh
-source /etc/profile.d/chruby.sh
-chruby 2.4.4
 
 integer_version=`cut -f1 release-version-semver/number`
 echo $integer_version > promoted/integer_version
