@@ -354,7 +354,7 @@ resources:
   - name: bosh-cpi-src-out
     type: git
     source:
-      uri: git@github.com:cloudfoundry/bosh-alicloud-cpi-release.git
+      uri: git@github.com:ali-tkang/bosh-alicloud-cpi-release.git
       branch: master
       private_key: {{github_bosh-alicloud-cpi-release_private-key}}
   - name: version-semver
