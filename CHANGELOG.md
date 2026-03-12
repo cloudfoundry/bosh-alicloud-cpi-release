@@ -1,7 +1,15 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 56.0.0 (Unreleased)
+## 56.0.0 (March 12, 2026)
+
+SECURITY:
+
+- Bumped Go version to 1.26.1 ([#195](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/195))
+  - Fixes CVE-2024-45337 (crypto/x509)
+  - Fixes CVE-2023-45288 (x/net)
+- Upgraded golang.org/x/net v0.49.0 -> v0.51.0
+  - Fixes HTTP/2 CONTINUATION flood vulnerability
 
 ## 55.0.0 (March 05, 2026)
 
