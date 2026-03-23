@@ -73,7 +73,7 @@ type CreateVMMethod struct {
 	instances alicloud.InstanceManager
 	disks     alicloud.DiskManager
 	networks  alicloud.NetworkManager
-	registry  alicloud.RegistryManager
+	registry  registry.Client
 }
 
 func NewCreateVMMethod(
@@ -82,7 +82,7 @@ func NewCreateVMMethod(
 	instances alicloud.InstanceManager,
 	disks alicloud.DiskManager,
 	networks alicloud.NetworkManager,
-	registry alicloud.RegistryManager) CreateVMMethod {
+	registry registry.Client) CreateVMMethod {
 	return CreateVMMethod{cc, stemcells, instances, disks, networks, registry}
 }
 

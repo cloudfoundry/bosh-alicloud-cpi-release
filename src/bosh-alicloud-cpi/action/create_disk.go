@@ -46,7 +46,7 @@ func (a CreateDiskMethod) CreateDisk(size int, props apiv1.DiskCloudProps, vmCid
 	disk, err := NewDiskInfoWithSize(size, props)
 
 	if err != nil {
-		return cid, bosherr.WrapErrorf(err, "create_disk check input failed %n, %v", size, props)
+		return cid, bosherr.WrapErrorf(err, "create_disk check input failed %d, %v", size, props)
 	}
 
 	args := ecs.CreateCreateDiskRequest()

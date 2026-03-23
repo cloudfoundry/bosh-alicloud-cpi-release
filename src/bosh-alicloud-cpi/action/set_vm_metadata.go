@@ -54,7 +54,7 @@ func (a SetVMMetadataMethod) SetVMMetadata(vmCID apiv1.VMCID, meta apiv1.VMMeta)
 
 	err = a.instances.AddTags(instCid, tags)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "AddTags %v to %s failed", instCid, tags, instCid)
+		return bosherr.WrapErrorf(err, "AddTags %v to %s failed", tags, instCid)
 	}
 
 	return nil

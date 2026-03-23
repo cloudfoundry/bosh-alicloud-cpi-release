@@ -29,7 +29,7 @@ func WrapErrorResponse(err error, format string, args ...interface{}) CpiRespons
 			err.Error(),
 			false,
 		},
-		Log: fmt.Sprintf(format, args),
+		Log: fmt.Sprintf(format, args...),
 	}
 }
 

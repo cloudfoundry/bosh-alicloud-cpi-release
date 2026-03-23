@@ -12,7 +12,7 @@ import (
 
 type TestJson struct {
 	Key    string `json:"Key"`
-	Secret string `json:Secret`
+	Secret string `json:"Secret"`
 }
 
 var _ = Describe("mock:builder", func() {

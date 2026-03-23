@@ -14,7 +14,7 @@ var _ = Describe("cpi:detach_disk", func() {
 	It("can detach disk", func() {
 		instCid, _ := mockContext.NewInstance()
 		diskCid, disk := mockContext.NewDisk(instCid)
-		disk.Status = alicloud.DiskStatusInUse
+		disk.Status = string(alicloud.DiskStatusInUse)
 
 		_, err := caller.Call("detach_disk", instCid, diskCid)
 		Expect(err).NotTo(HaveOccurred())

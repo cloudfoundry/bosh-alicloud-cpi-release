@@ -107,7 +107,7 @@ func (a InstanceManagerMock) RebootInstance(cid string) error {
 	if !ok {
 		return fmt.Errorf("StopInstance instance not exists %s", cid)
 	}
-	if alicloud.InstanceStatus(inst.Status) != alicloud.Running || alicloud.InstanceStatus(inst.Status) != alicloud.Stopped {
+	if alicloud.InstanceStatus(inst.Status) != alicloud.Running && alicloud.InstanceStatus(inst.Status) != alicloud.Stopped {
 		return fmt.Errorf("RebootInstance instance %s status %s can't reboot", cid, inst.Status)
 	}
 	inst.Status = string(alicloud.Running)
