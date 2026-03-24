@@ -30,8 +30,6 @@ func (c RegistryClientMock) Fetch(instanceID string) (registry.AgentSettings, er
 	} else {
 		return registry.AgentSettings{}, fmt.Errorf("reigstry not found instance=%s", instanceID)
 	}
-
-	return registry.AgentSettings{}, nil
 }
 
 func (c RegistryClientMock) Update(instanceID string, agentSettings registry.AgentSettings) error {

@@ -272,7 +272,7 @@ func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props Stemcell
 	err = cmd.Run()
 
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, fmt.Sprintf("%s-(%s)-(%s)", "Unable to extract image", out.String(), stderr.String()))
+		return "", bosherr.WrapErrorf(err, "%s-(%s)-(%s)", "Unable to extract image", out.String(), stderr.String())
 	}
 	// The root stemcell is 3 GB and using multipart uploading to avoid timeout error
 	err = a.osses.MultipartUploadFile(*bucket, imageName, fmt.Sprintf("%s/%s", path.Dir(imagePath), "root.img"), PART_SIZE, oss.Routines(5))

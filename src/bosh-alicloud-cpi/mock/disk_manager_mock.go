@@ -47,7 +47,7 @@ func (a DiskManagerMock) CreateDisk(region string, args *ecs.CreateDiskRequest) 
 		return "", fmt.Errorf("convert size %s got an error: %#v.", args.Size, err)
 	}
 	if size < 5 || size > MaxDiskSizeGB {
-		return "", fmt.Errorf("CreateDisk size too small or large %d", args.Size)
+		return "", fmt.Errorf("CreateDisk size too small or large %d", size)
 	}
 	if args.ZoneId == "" {
 		return "", fmt.Errorf("CreateDisk zone can't be empty")
