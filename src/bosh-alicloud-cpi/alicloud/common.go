@@ -68,6 +68,7 @@ const (
 	DiskCategoryEphemeralSSD    = DiskCategory("ephemeral_ssd")
 	DiskCategoryCloudEfficiency = DiskCategory("cloud_efficiency")
 	DiskCategoryCloudSSD        = DiskCategory("cloud_ssd")
+	DiskCategoryCloudESSD       = DiskCategory("cloud_essd")
 )
 
 type SpotStrategyType string

@@ -124,8 +124,9 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	}
 
 	if isSystem {
-		if c != alicloud.DiskCategoryCloudEfficiency && c != alicloud.DiskCategoryCloudSSD {
-			return a, fmt.Errorf("system disk only support: cloud_efficiency/cloud_ssd not %s", a.ecsCategory)
+		if c != alicloud.DiskCategoryCloudEfficiency && c != alicloud.DiskCategoryCloudSSD &&
+			c != alicloud.DiskCategoryCloudESSD {
+			return a, fmt.Errorf("system disk only support: cloud_efficiency/cloud_ssd/cloud_essd not %s", a.ecsCategory)
 		}
 		if a.sizeGB == 0 {
 			a.sizeGB = DefaultSystemDiskSizeGB
@@ -133,7 +134,8 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 		a.path = "/dev/xvda"
 	} else {
 		if c != alicloud.DiskCategoryCloud && c != alicloud.DiskCategoryCloudEfficiency &&
-			c != alicloud.DiskCategoryCloudSSD && c != alicloud.DiskCategoryEphemeralSSD {
+			c != alicloud.DiskCategoryCloudSSD && c != alicloud.DiskCategoryEphemeralSSD &&
+			c != alicloud.DiskCategoryCloudESSD {
 			return a, fmt.Errorf("unsupported ephemeral disk type: %s", c)
 		}
 		a.path = "/dev/xvdb"
