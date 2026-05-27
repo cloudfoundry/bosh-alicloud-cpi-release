@@ -197,6 +197,12 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 	}
 
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Create Alicloud Image %s success", imageId)
+
+	if err = a.stemcells.EnableNvmeSupport(imageId); err != nil {
+		a.cleanUp(imageId)
+		return "", bosherr.WrapError(err, "Failed to enable NvmeSupport on Alicloud Image")
+	}
+
 	return imageId, nil
 }
 
@@ -230,6 +236,12 @@ func (a CreateStemcellMethod) copyImage(stemcellId string, props StemcellProps) 
 		a.cleanUp(imageId)
 		return "", bosherr.WrapError(err, "Failed to copy Alicloud Image")
 	}
+
+	if err = a.stemcells.EnableNvmeSupport(imageId); err != nil {
+		a.cleanUp(imageId)
+		return "", bosherr.WrapError(err, "Failed to enable NvmeSupport on copied Alicloud Image")
+	}
+
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Copy Alicloud Image %s success", imageId)
 
 	// If the full stemcell, the raw image should be deleted after copied

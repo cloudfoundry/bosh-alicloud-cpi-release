@@ -29,6 +29,7 @@ type StemcellManager interface {
 	DeleteStemcell(id string) error
 	ImportImage(args *ecs.ImportImageRequest) (string, error)
 	CopyImage(args *ecs.CopyImageRequest) (string, error)
+	EnableNvmeSupport(imageId string) error
 	OpenLocalFile(path string) (*os.File, error)
 	WaitForImageReady(id string) error
 }
@@ -170,6 +171,24 @@ func (a StemcellManagerImpl) CopyImage(args *ecs.CopyImageRequest) (string, erro
 	}
 	a.log("Copying Image", err, args, resp.ImageId)
 	return resp.ImageId, err
+}
+
+func (a StemcellManagerImpl) EnableNvmeSupport(imageId string) error {
+	client, err := a.config.NewEcsClient("")
+	if err != nil {
+		return err
+	}
+
+	args := ecs.CreateModifyImageAttributeRequest()
+	args.ImageId = imageId
+	args.Features = ecs.ModifyImageAttributeFeatures{NvmeSupport: "supported"}
+
+	if _, err := client.ModifyImageAttribute(args); err != nil {
+		return bosherr.WrapErrorf(err, "Failed to enable NvmeSupport on Alicloud Image '%s'", imageId)
+	}
+
+	a.logger.Info(AlicloudImageServiceTag, "Enabled NvmeSupport on Alicloud Image '%s'", imageId)
+	return nil
 }
 
 func (a StemcellManagerImpl) OpenLocalFile(path string) (*os.File, error) {

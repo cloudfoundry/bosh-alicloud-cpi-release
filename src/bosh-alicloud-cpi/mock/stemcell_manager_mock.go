@@ -55,6 +55,10 @@ func (a StemcellManagerMock) CopyImage(args *ecs.CopyImageRequest) (string, erro
 	return id, nil
 }
 
+func (a StemcellManagerMock) EnableNvmeSupport(imageId string) error {
+	return nil
+}
+
 func (a StemcellManagerMock) OpenLocalFile(path string) (*os.File, error) {
 	return nil, nil
 }
