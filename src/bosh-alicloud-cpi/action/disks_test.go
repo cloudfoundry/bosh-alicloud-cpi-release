@@ -95,7 +95,52 @@ var _ = Describe("Disks", func() {
 			}
 		}`)
 		Expect(err).Should(HaveOccurred())
-		//Expect(disks.SystemDisk.sizeGB).To(Equal(40))
-		//Expect(disks.SystemDisk.sizeGB).To(Equal(60))
+	})
+	It("can work with cloud_essd system disk", func() {
+		disks, err := parseCloudProps(`{
+			"system_disk": {
+				"size": 81920,
+				"category": "cloud_essd",
+				"performance_level": "PL1"
+			},
+			"ephemeral_disk": {
+				"size": "40_960",
+				"category": "cloud_essd",
+				"performance_level": "PL0"
+			}
+		}`)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(disks.SystemDisk.sizeGB).To(Equal(80))
+		Expect(disks.SystemDisk.GetCategory()).To(Equal(alicloud.DiskCategoryCloudESSD))
+		Expect(disks.SystemDisk.PerformanceLevel).To(Equal("PL1"))
+		Expect(disks.EphemeralDisk.sizeGB).To(Equal(40))
+		Expect(disks.EphemeralDisk.GetCategory()).To(Equal(alicloud.DiskCategoryCloudESSD))
+		Expect(disks.EphemeralDisk.PerformanceLevel).To(Equal("PL0"))
+	})
+	It("can work with cloud_auto system disk", func() {
+		disks, err := parseCloudProps(`{
+			"system_disk": {
+				"size": 81920,
+				"category": "cloud_auto"
+			},
+			"ephemeral_disk": {
+				"size": 10240,
+				"category": "cloud_auto"
+			}
+		}`)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(disks.SystemDisk.sizeGB).To(Equal(80))
+		Expect(disks.SystemDisk.GetCategory()).To(Equal(alicloud.DiskCategoryCloudAuto))
+		Expect(disks.EphemeralDisk.sizeGB).To(Equal(40))
+		Expect(disks.EphemeralDisk.GetCategory()).To(Equal(alicloud.DiskCategoryCloudAuto))
+	})
+	It("will check unsupported system disk category", func() {
+		_, err := parseCloudProps(`{
+			"system_disk": {
+				"size": 81920,
+				"category": "cloud_essd_entry"
+			}
+		}`)
+		Expect(err).Should(HaveOccurred())
 	})
 })

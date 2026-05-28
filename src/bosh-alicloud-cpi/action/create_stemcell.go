@@ -179,6 +179,7 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 		args.Platform = formatImagePlatform(strings.ToLower(props.OsDistro))
 	}
 	args.Description = props.Description
+	args.QueryParams["Features.NvmeSupport"] = "supported"
 
 	devices := []ecs.ImportImageDiskDeviceMapping{
 		device,

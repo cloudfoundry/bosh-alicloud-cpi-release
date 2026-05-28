@@ -31,6 +31,7 @@ type Disks struct {
 type DiskInfo struct {
 	SizeRaw            interface{}       `json:"size"`
 	Category           string            `json:"category"`
+	PerformanceLevel   string            `json:"performance_level"`
 	Encrypted          *bool             `json:"encrypted,omitempty"`
 	DeleteWithInstance *bool             `json:"delete_with_instance,omitempty"`
 	Tags               map[string]string `json:"tags"`
@@ -124,8 +125,9 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	}
 
 	if isSystem {
-		if c != alicloud.DiskCategoryCloudEfficiency && c != alicloud.DiskCategoryCloudSSD {
-			return a, fmt.Errorf("system disk only support: cloud_efficiency/cloud_ssd not %s", a.ecsCategory)
+		if c != alicloud.DiskCategoryCloudEfficiency && c != alicloud.DiskCategoryCloudSSD &&
+			c != alicloud.DiskCategoryCloudESSD && c != alicloud.DiskCategoryCloudAuto {
+			return a, fmt.Errorf("system disk only support: cloud_efficiency/cloud_ssd/cloud_essd/cloud_auto not %s", c)
 		}
 		if a.sizeGB == 0 {
 			a.sizeGB = DefaultSystemDiskSizeGB
@@ -133,7 +135,8 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 		a.path = "/dev/xvda"
 	} else {
 		if c != alicloud.DiskCategoryCloud && c != alicloud.DiskCategoryCloudEfficiency &&
-			c != alicloud.DiskCategoryCloudSSD && c != alicloud.DiskCategoryEphemeralSSD {
+			c != alicloud.DiskCategoryCloudSSD && c != alicloud.DiskCategoryEphemeralSSD &&
+			c != alicloud.DiskCategoryCloudESSD && c != alicloud.DiskCategoryCloudAuto {
 			return a, fmt.Errorf("unsupported ephemeral disk type: %s", c)
 		}
 		a.path = "/dev/xvdb"
@@ -146,10 +149,16 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 	// cloud: [5, 2000]
 	// cloud_efficiency: [20, 32768]
 	// cloud_ssd: [20, 32768]
+	// cloud_essd: [20, 32768]
+	// cloud_auto: [40, 32768]
 	if AmendSmallDiskSize {
 		if a.ecsCategory == alicloud.DiskCategoryCloud {
 			if a.sizeGB < 5 {
 				a.sizeGB = 5
+			}
+		} else if a.ecsCategory == alicloud.DiskCategoryCloudAuto {
+			if a.sizeGB < 40 {
+				a.sizeGB = 40
 			}
 		} else {
 			if a.sizeGB < 20 {
@@ -179,6 +188,9 @@ func (a DiskInfo) GetPath() string {
 func (a Disks) FillCreateInstanceArgs(golbalEncrypt *bool, request map[string]interface{}) {
 	request["SystemDiskSize"] = requests.NewInteger(a.SystemDisk.sizeGB)
 	request["SystemDiskCategory"] = string(a.SystemDisk.ecsCategory)
+	if a.SystemDisk.PerformanceLevel != "" {
+		request["SystemDiskPerformanceLevel"] = a.SystemDisk.PerformanceLevel
+	}
 
 	encrypt := a.EphemeralDisk.Encrypted
 	if encrypt == nil {
@@ -198,6 +210,9 @@ func (a Disks) FillCreateInstanceArgs(golbalEncrypt *bool, request map[string]in
 		request["DataDisk.1.Category"] = string(a.EphemeralDisk.GetCategory())
 		request["DataDisk.1.Encrypted"] = strconv.FormatBool(*encrypt)
 		request["DataDisk.1.DeleteWithInstance"] = strconv.FormatBool(*deleteWithInstance)
+		if a.EphemeralDisk.PerformanceLevel != "" {
+			request["DataDisk.1.PerformanceLevel"] = a.EphemeralDisk.PerformanceLevel
+		}
 	}
 }
 
