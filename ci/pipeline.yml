@@ -11,6 +11,7 @@ groups:
 shared:
 - &prepare-director
   task: prepare-director
+  image: bosh-integration-image
   file: pipelines/shared/tasks/prepare-director.yml
   params: &prepare-director-params
     INFRASTRUCTURE:     alicloud
@@ -18,10 +19,12 @@ shared:
 
 - &deploy-director
   task: deploy-director
+  image: bosh-integration-image
   file: pipelines/shared/tasks/deploy-director.yml
 
 - &run-bats
   task: run-bats
+  image: bosh-integration-image
   file: pipelines/shared/tasks/run-bats.yml
   params:
     INFRASTRUCTURE:     alicloud
@@ -32,6 +35,7 @@ shared:
 
 - &run-end-2-end
   task: run-e2e
+  image: bosh-integration-image
   file: bosh-cpi-src/ci/tasks/run-e2e.yml
   params:
     ALICLOUD_ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
@@ -62,6 +66,7 @@ shared:
 
 - &teardown
   task: teardown
+  image: bosh-integration-image
   file: pipelines/shared/tasks/teardown.yml
 
 - &patch-director-size
@@ -69,7 +74,7 @@ shared:
   config:
     platform: linux
     image_resource:
-      type: docker-image
+      type: registry-image
       source: {repository: bosh/integration, tag: main}
     inputs:
       - name: bosh-deployment
@@ -97,7 +102,7 @@ shared:
   config:
     platform: linux
     image_resource:
-      type: docker-image
+      type: registry-image
       source: {repository: bosh/integration, tag: main}
     inputs:
       - name: director-state
@@ -127,7 +132,7 @@ shared:
   config:
     platform: linux
     image_resource:
-      type: docker-image
+      type: registry-image
       source: {repository: bosh/integration, tag: main}
     inputs:
       - name: bats
@@ -219,6 +224,7 @@ jobs:
     - {get: pipelines,       trigger: false}
     - {get: bosh-cli,        trigger: false}
     - {get: bats,            trigger: false}
+    - {get: bosh-integration-image, trigger: false}
     - {get: one-day,             trigger: false}
     - {get: jq-blob,         trigger: false}
     - {get: aliyun-cli,      trigger: false, resource: aliyun-cli}
@@ -268,6 +274,7 @@ jobs:
     - {get: bosh-deployment, trigger: false}
     - {get: pipelines,       trigger: false}
     - {get: bosh-cli,        trigger: false}
+    - {get: bosh-integration-image, trigger: false}
     - {get: one-day,             trigger: false}
     - {get: jq-blob,         trigger: false}
     - {get: aliyun-cli,      trigger: false, resource: aliyun-cli}
@@ -324,12 +331,17 @@ jobs:
 
 resource_types:
   - name: terraform_type
-    type: docker-image
+    type: registry-image
     source:
       repository: ljfranklin/terraform-resource
       tag: latest
 
 resources:
+  - name: bosh-integration-image
+    type: registry-image
+    source:
+      repository: bosh/integration
+      tag: main
   - name: one-day
     type: time
     source: {interval: 24h}
@@ -354,7 +366,7 @@ resources:
   - name: bosh-cpi-src-out
     type: git
     source:
-      uri: git@github.com:ali-tkang/bosh-alicloud-cpi-release.git
+      uri: git@github.com:cloudfoundry/bosh-alicloud-cpi-release.git
       branch: master
       private_key: {{github_bosh-alicloud-cpi-release_private-key}}
   - name: version-semver
