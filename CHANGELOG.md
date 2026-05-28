@@ -1,6 +1,22 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
+## 57.0.0 (May 28, 2026)
+
+FEATURES:
+
+- Added NVMe support for stemcell import ([#202](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/202))
+  - Enables 9th-generation instance types (c9i, g9i, r9i) that require NVMe-compatible images
+- Added ESSD disk type support ([#202](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/202))
+  - `cloud_essd`: Enhanced SSD with configurable performance levels
+  - `cloud_auto`: ESSD AutoPL with automatic performance scaling
+
+IMPROVEMENTS:
+
+- Added integration tests for spot instance creation and ESSD disk operations
+- Fixed CI pipeline image references and task configurations
+- Made spot instance type configurable via `CPI_SPOT_INSTANCE_TYPE` environment variable
+
 ## 56.0.0 (March 12, 2026)
 
 SECURITY:
