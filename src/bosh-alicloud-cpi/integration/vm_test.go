@@ -403,7 +403,7 @@ var _ = Describe("integration:vm", func() {
 						"category": "cloud_efficiency"
 					},
 					"instance_name": "bosh-test-cpi-integration",
-					"instance_type": "ecs.n4.small",
+					"instance_type": "${SPOT_INSTANCE_TYPE}",
 					"spot_strategy": "${SPOT_STRATEGY}",
 					"spot_price_limit": ${SPOT_PRICE_LIMIT},
 					"system_disk": {
@@ -444,6 +444,7 @@ var _ = Describe("integration:vm", func() {
 			P("INTERNAL_GW", internalGw).
 			P("SPOT_STRATEGY", spotStrategy).
 			P("SPOT_PRICE_LIMIT", spotPriceLimit).
+			P("SPOT_INSTANCE_TYPE", spotInstanceType).
 			ToBytes()
 
 		r := caller.Run(in)
@@ -541,4 +542,73 @@ var _ = Describe("integration:vm", func() {
 	//It("can create vm, then start, stop and delete it", func() {})
 	//It("can create vm, then start, reboot, stop and delete it", func() {})
 	//It("can create vm, then start, reboot, stop and delete it", func() {})
+
+	It("can run the vm lifecycle with cloud_essd disks", func() {
+		By("create vm with cloud_essd on 9th-gen instance")
+		in := mock.NewBuilder(`{
+			"method": "create_vm",
+			"arguments": [
+				"be387a69-c5d5-4b94-86c2-978581354b50",
+				"${STEMCELL_ID}", {
+					"ephemeral_disk": {
+						"size": "40_960",
+						"category": "cloud_essd"
+					},
+					"instance_name": "bosh-test-cpi-integration-essd",
+					"instance_type": "${INSTANCE_TYPE}",
+					"system_disk": {
+						"size": "61_440",
+						"category": "cloud_essd"
+					}
+				}, {
+					"private": {
+						"type": "manual",
+						"ip": "${INTERNAL_IP}",
+						"netmask": "${INTERNAL_NETMASK}",
+						"cloud_properties": {
+							"security_group_ids": ["${SECURITY_GROUP_ID}"],
+							"vswitch_id": "${VSWITCH_ID}"
+						},
+						"default": [
+							"dns",
+							"gateway"
+						],
+						"dns": [
+							"8.8.8.8"
+						],
+						"gateway": "${INTERNAL_GW}"
+					}
+				},
+				[],
+				{}
+			],
+			"context": {
+				"director_uuid": "911133bb-7d44-4811-bf8a-b215608bf084"
+			}
+		}`).
+			P("STEMCELL_ID", existingStemcell).
+			P("SECURITY_GROUP_ID", securityGroupId).
+			P("VSWITCH_ID", vswitchId).
+			P("INTERNAL_IP", internalIp).
+			P("INTERNAL_NETMASK", internalNetmask).
+			P("INTERNAL_GW", internalGw).
+			P("INSTANCE_TYPE", essdInstanceType).
+			ToBytes()
+
+		r := caller.Run(in)
+		Expect(r.GetError()).NotTo(HaveOccurred())
+		cid := r.GetResultString()
+
+		By("sleep for awhile")
+		time.Sleep(time.Duration(90) * time.Second)
+
+		By("delete vm")
+		_, err := caller.Call("delete_vm", cid)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("vm should not exists")
+		exists, err := caller.CallGeneric("has_vm", cid)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(exists).To(BeFalse())
+	})
 })

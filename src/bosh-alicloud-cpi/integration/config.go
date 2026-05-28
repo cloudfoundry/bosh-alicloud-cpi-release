@@ -38,13 +38,17 @@ var (
 	externalIp       = envOrDefault("CPI_EXTERNAL_IP", "")
 
 	// spot
-	spotStrategy   = envOrDefault("CPI_SPOT_STRATEGY", "SpotWithPriceLimit")
-	spotPriceLimit = envOrDefault("CPI_SPOT_PRICE_LIMIT", "0.18")
+	spotStrategy     = envOrDefault("CPI_SPOT_STRATEGY", "SpotWithPriceLimit")
+	spotPriceLimit   = envOrDefault("CPI_SPOT_PRICE_LIMIT", "0.18")
+	spotInstanceType = envOrDefault("CPI_SPOT_INSTANCE_TYPE", "ecs.c6.large")
 
 	// ram
 	ramRoleName = envOrDefault("RAM_ROLE_NAME", "DirectorRole")
 	//tags
 	tags = envOrDefault("Tags", `{ "name": "boshTag", "foo": "bar" }`)
+
+	// essd instance type for 9th-gen instance testing
+	essdInstanceType = envOrDefault("CPI_ESSD_INSTANCE_TYPE", "ecs.c9i.large")
 
 	//
 	// registry
