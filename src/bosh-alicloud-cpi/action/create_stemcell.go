@@ -233,8 +233,6 @@ func (a CreateStemcellMethod) copyImage(stemcellId string, props StemcellProps) 
 	}
 
 	// CopyImage does not propagate Features.NvmeSupport from the source image.
-	// Apply ModifyImageAttribute on the copy so c9i/g9i/r9i can boot from the
-	// encrypted copy (this is the image actually used to launch VMs).
 	if err = a.stemcells.EnableNvmeSupport(imageId); err != nil {
 		a.cleanUp(imageId)
 		return "", bosherr.WrapError(err, "Failed to enable NvmeSupport on copied Alicloud Image")

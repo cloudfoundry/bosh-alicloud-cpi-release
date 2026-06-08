@@ -178,9 +178,7 @@ func (a StemcellManagerImpl) OpenLocalFile(path string) (*os.File, error) {
 }
 
 // EnableNvmeSupport sets the Features.NvmeSupport=supported attribute on an existing
-// ECS image. Required for c9i/g9i/r9i (gen-3) instance families which only accept
-// NVMe-capable images. Upstream sets this on ImportImage but not on CopyImage; we
-// apply it post-create as a uniform safety net so encrypted-copy images also get it.
+// ECS image.
 func (a StemcellManagerImpl) EnableNvmeSupport(imageId string) error {
 	client, err := a.config.NewEcsClient("")
 	if err != nil {
