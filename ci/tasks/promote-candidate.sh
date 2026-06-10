@@ -43,7 +43,7 @@ EOF
   git diff | cat
   git add .
 
-  git config --global user.email guimin.hgm@alibaba-inc.com
-  git config --global user.name xiaozhu36
+  git config --global user.email kangtai.kang@alibaba-inc.com
+  git config --global user.name ali-tkang
   git commit -m "Bump Alibaba Cloud cpi/$integer_version"
 popd
