@@ -53,6 +53,8 @@ builds:
     version: "4"
   d3d3532a-124c-4e48-50da-6d8663adafd1:
     version: 28.0.0
+  e6cf3a87-373e-40b6-409f-3670b5e694d1:
+    version: 58.0.0
   e9e25de4-2cea-47fd-6b73-9d054f9e0ddc:
     version: "11"
 format-version: "2"
