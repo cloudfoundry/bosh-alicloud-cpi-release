@@ -1,6 +1,13 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
+## 58.0.0 (Unreleased)
+
+FIXES:
+
+- Fixed NVMe support not being propagated when copying encrypted stemcell images ([#204](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/204))
+  - `CopyImage` does not inherit `Features.NvmeSupport` from the source image; now explicitly set via `ModifyImageAttribute` after copy
+
 ## 57.0.0 (May 28, 2026)
 
 FEATURES:
