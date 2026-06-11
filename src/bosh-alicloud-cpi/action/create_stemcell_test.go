@@ -139,7 +139,24 @@ var _ = Describe("create_stemcell", func() {
 var _ = Describe("create_stemcell EnableNvmeSupport", func() {
 	// stemcell arguments shared across cases — uses the image_id (region map) path so
 	// no real file I/O or OSS upload is needed.
-	const stemcellArgs = `[
+	const stemcellArgsWithNvme = `[
+		"/var/vcap/data/tmp/director/stemcell/image",
+		{
+			"architecture": "x86_64",
+			"disk": "50",
+			"disk_format": "rawdisk",
+			"hypervisor": "kvm",
+			"image_id": {"cn-beijing": "m-2zehhdtfg22hq46reabf"},
+			"infrastructure": "alicloud",
+			"name": "bosh-alicloud-kvm-ubuntu-jammy-go_agent",
+			"os_distro": "ubuntu",
+			"os_type": "linux",
+			"nvme_support": "supported",
+			"version": "1.0"
+		}
+	]`
+
+	const stemcellArgsWithoutNvme = `[
 		"/var/vcap/data/tmp/director/stemcell/image",
 		{
 			"architecture": "x86_64",
@@ -155,7 +172,7 @@ var _ = Describe("create_stemcell EnableNvmeSupport", func() {
 		}
 	]`
 
-	It("calls EnableNvmeSupport on the copied image when encryption is enabled", func() {
+	It("calls EnableNvmeSupport on the copied image when encryption is enabled and nvme_support=supported", func() {
 		cfg := mustParseEncryptedConfig()
 		spy := &nvmeStemcellManagerSpy{
 			StemcellManager: mock.NewStemcellManagerMock(mock.NewTestContext(cfg)),
@@ -164,7 +181,7 @@ var _ = Describe("create_stemcell EnableNvmeSupport", func() {
 
 		r := encryptedCaller.Run([]byte(`{
 			"method": "create_stemcell",
-			"arguments": ` + stemcellArgs + `,
+			"arguments": ` + stemcellArgsWithNvme + `,
 			"context": {"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"}
 		}`))
 
@@ -183,13 +200,31 @@ var _ = Describe("create_stemcell EnableNvmeSupport", func() {
 
 		r := localCaller.Run([]byte(`{
 			"method": "create_stemcell",
-			"arguments": ` + stemcellArgs + `,
+			"arguments": ` + stemcellArgsWithNvme + `,
 			"context": {"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"}
 		}`))
 
 		Expect(r.GetError()).NotTo(HaveOccurred())
 		Expect(spy.nvmeCalledWith).To(BeEmpty(),
 			"EnableNvmeSupport should not be called when encryption is disabled")
+	})
+
+	It("does not call EnableNvmeSupport when nvme_support is absent from stemcell props", func() {
+		cfg := mustParseEncryptedConfig()
+		spy := &nvmeStemcellManagerSpy{
+			StemcellManager: mock.NewStemcellManagerMock(mock.NewTestContext(cfg)),
+		}
+		encryptedCaller := newEncryptedCallerWithSpy(spy, cfg)
+
+		r := encryptedCaller.Run([]byte(`{
+			"method": "create_stemcell",
+			"arguments": ` + stemcellArgsWithoutNvme + `,
+			"context": {"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"}
+		}`))
+
+		Expect(r.GetError()).NotTo(HaveOccurred())
+		Expect(spy.nvmeCalledWith).To(BeEmpty(),
+			"EnableNvmeSupport should not be called when nvme_support is not declared in stemcell props")
 	})
 
 	It("propagates an error from EnableNvmeSupport", func() {
@@ -202,7 +237,7 @@ var _ = Describe("create_stemcell EnableNvmeSupport", func() {
 
 		r := encryptedCaller.Run([]byte(`{
 			"method": "create_stemcell",
-			"arguments": ` + stemcellArgs + `,
+			"arguments": ` + stemcellArgsWithNvme + `,
 			"context": {"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"}
 		}`))
 
