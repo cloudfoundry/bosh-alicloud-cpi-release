@@ -38,6 +38,7 @@ type StemcellProps struct {
 	diskGB          int
 	Hypervisor      string `json:"hypervisor"`
 	Name            string `json:"name"`
+	NvmeSupport     string `json:"nvme_support"`
 	OsDistro        string `json:"os_distro"`
 	OsType          string `json:"os_type"`
 	//RootDeviceName string 	`json:"root_device_name"`
@@ -179,7 +180,9 @@ func (a CreateStemcellMethod) importImage(props StemcellProps) (string, error) {
 		args.Platform = formatImagePlatform(strings.ToLower(props.OsDistro))
 	}
 	args.Description = props.Description
-	args.QueryParams["Features.NvmeSupport"] = "supported"
+	if props.NvmeSupport == "supported" {
+		args.QueryParams["Features.NvmeSupport"] = "supported"
+	}
 
 	devices := []ecs.ImportImageDiskDeviceMapping{
 		device,
@@ -233,9 +236,12 @@ func (a CreateStemcellMethod) copyImage(stemcellId string, props StemcellProps) 
 	}
 
 	// CopyImage does not propagate Features.NvmeSupport from the source image.
-	if err = a.stemcells.EnableNvmeSupport(imageId); err != nil {
-		a.cleanUp(imageId)
-		return "", bosherr.WrapError(err, "Failed to enable NvmeSupport on copied Alicloud Image")
+	// Only call EnableNvmeSupport when the stemcell declares nvme_support=supported.
+	if props.NvmeSupport == "supported" {
+		if err = a.stemcells.EnableNvmeSupport(imageId); err != nil {
+			a.cleanUp(imageId)
+			return "", bosherr.WrapError(err, "Failed to enable NvmeSupport on copied Alicloud Image")
+		}
 	}
 
 	a.Logger.Debug(alicloud.AlicloudImageServiceTag, "Copy Alicloud Image %s success", imageId)
