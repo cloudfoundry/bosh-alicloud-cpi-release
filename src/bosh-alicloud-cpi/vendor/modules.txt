@@ -50,7 +50,7 @@ github.com/bmatcuk/doublestar
 # github.com/charlievieth/fs v0.0.3
 ## explicit; go 1.18
 github.com/charlievieth/fs
-# github.com/clbanning/mxj/v2 v2.5.5
+# github.com/clbanning/mxj/v2 v2.7.0
 ## explicit; go 1.15
 github.com/clbanning/mxj/v2
 # github.com/cloudfoundry/bosh-utils v0.0.590
