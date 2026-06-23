@@ -131,6 +131,11 @@ func (f ActionFactory) Create(method string, apiVersion int, context CallContext
 			return nil, cpi.ResizeDisk(diskCID, size)
 		}, nil
 
+	case "update_disk":
+		return func(diskCID DiskCID, size int, props CloudPropsImpl) (interface{}, error) {
+			return cpi.UpdateDisk(diskCID, size, props)
+		}, nil
+
 	case "set_disk_metadata":
 		return func(diskCID DiskCID, metadata DiskMeta) (interface{}, error) {
 			return nil, cpi.SetDiskMetadata(diskCID, metadata)

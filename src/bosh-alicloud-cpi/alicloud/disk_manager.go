@@ -39,6 +39,7 @@ type DiskManager interface {
 
 	ResizeDisk(diskCid string, sizeGB int) error
 	ModifyDiskAttribute(diskCid, name, description string) error
+	ModifyDiskCategory(diskCid string, category DiskCategory) error
 
 	CreateSnapshot(diskCid string, snapshotName string) (string, error)
 	DeleteSnapshot(snapshotCid string) error
@@ -239,6 +240,27 @@ func (a DiskManagerImpl) ModifyDiskAttribute(diskCid, name, description string) 
 	return invoker.Run(func() error {
 		_, e := client.ModifyDiskAttribute(args)
 		a.log("ModifyDiskAttribute", e, diskCid, "ok")
+		return e
+	})
+}
+
+// ModifyDiskCategory changes the category of a disk in-place using AliCloud's ModifyDiskSpec API.
+// Only forward (upgrade) transitions are supported by AliCloud (e.g. cloud_efficiency -> cloud_essd).
+// The disk must be detached before calling this; the caller is responsible for detaching/re-attaching.
+func (a DiskManagerImpl) ModifyDiskCategory(diskCid string, category DiskCategory) error {
+	client, err := a.config.NewEcsClient("")
+	if err != nil {
+		return err
+	}
+
+	args := ecs.CreateModifyDiskSpecRequest()
+	args.DiskId = diskCid
+	args.DiskCategory = string(category)
+
+	invoker := NewInvoker()
+	return invoker.Run(func() error {
+		_, e := client.ModifyDiskSpec(args)
+		a.log("ModifyDiskCategory", e, diskCid, string(category))
 		return e
 	})
 }

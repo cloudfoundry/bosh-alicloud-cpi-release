@@ -136,6 +136,16 @@ func (a DiskManagerMock) ModifyDiskAttribute(diskCid string, name string, descri
 	return nil
 }
 
+func (a DiskManagerMock) ModifyDiskCategory(diskCid string, category alicloud.DiskCategory) error {
+	disk, ok := a.mc.Disks[diskCid]
+	if !ok {
+		return fmt.Errorf("ModifyDiskCategory disk %s not exists", diskCid)
+	}
+
+	disk.Category = string(category)
+	return nil
+}
+
 func (a DiskManagerMock) CreateSnapshot(diskCid string, snapshotName string) (string, error) {
 	_, ok := a.mc.Disks[diskCid]
 	if !ok {

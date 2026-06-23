@@ -10,6 +10,7 @@ type DisksV1 interface {
 
 	HasDisk(DiskCID) (bool, error)
 	ResizeDisk(DiskCID, int) error
+	UpdateDisk(DiskCID, int, DiskCloudProps) (interface{}, error)
 }
 
 type DisksV2Additions interface {
