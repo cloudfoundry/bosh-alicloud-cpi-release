@@ -291,6 +291,28 @@ func (a CreateVMMethod) createVM(
 		return apiv1.VMCID{}, nil, bosherr.WrapErrorf(err, "wait %s to STOPPED failed and then delete it timeout: %v", instCid, err2)
 	}
 
+	// Resolve the ephemeral disk path. For NVMe-capable instance types (c9i/g9i/r9i/...),
+	// the legacy /dev/vdb path does not exist; the agent must use /dev/disk/by-id/nvme-...
+	// We can only do this after VM creation because we need the data disk's CID.
+	if disks.EphemeralDisk.sizeGB > 0 {
+		attachedDisks, derr := a.disks.GetDisks(instCid)
+		if derr != nil {
+			a.Logger.Warn("create_vm", "GetDisks after create failed for %s: %v - leaving ephemeral path as %s", instCid, derr, disks.EphemeralDisk.path)
+		} else {
+			for _, d := range attachedDisks {
+				if d.Type == "data" {
+					disks.EphemeralDisk.path = a.disks.GetDiskPath(
+						disks.EphemeralDisk.path,
+						d.DiskId,
+						instProps.InstanceType,
+						alicloud.DiskCategory(d.Category),
+					)
+					break
+				}
+			}
+		}
+	}
+
 	agentSettings := registry.AgentSettings{
 		AgentID:   agentID.AsString(),
 		Blobstore: a.Config.Agent.Blobstore.AsRegistrySettings(),
