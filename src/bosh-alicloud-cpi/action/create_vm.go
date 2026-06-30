@@ -294,11 +294,14 @@ func (a CreateVMMethod) createVM(
 	// Resolve the ephemeral disk path. For NVMe-capable instance types (c9i/g9i/r9i/...),
 	// the legacy /dev/vdb path does not exist; the agent must use /dev/disk/by-id/nvme-...
 	// We can only do this after VM creation because we need the data disk's CID.
+	//
+	// On NVMe instances, leaving the legacy path would cause the agent to loop forever
+	// waiting for /dev/vdb and the deploy would only fail after the 600s agent-ping timeout.
+	// Fail fast here and let the existing post-CreateInstance cleanup path delete the VM.
 	if disks.EphemeralDisk.sizeGB > 0 {
 		attachedDisks, derr := a.disks.GetDisks(instCid)
-		if derr != nil {
-			a.Logger.Warn("create_vm", "GetDisks after create failed for %s: %v - leaving ephemeral path as %s", instCid, derr, disks.EphemeralDisk.path)
-		} else {
+		if derr == nil {
+			found := false
 			for _, d := range attachedDisks {
 				if d.Type == "data" {
 					disks.EphemeralDisk.path = a.disks.GetDiskPath(
@@ -307,9 +310,34 @@ func (a CreateVMMethod) createVM(
 						instProps.InstanceType,
 						alicloud.DiskCategory(d.Category),
 					)
+					found = true
 					break
 				}
 			}
+			if !found {
+				derr = bosherr.Errorf("no data disk found attached to instance %s after create", instCid)
+			}
+		}
+		if derr != nil {
+			eniIds := a.instances.GetAttachedNetworkInterfaceIds(instCid)
+			var err2 error
+			for retry := 0; retry < 10; retry++ {
+				err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
+					switch status {
+					case alicloud.Running, alicloud.Stopped:
+						return false, a.instances.DeleteInstance(instCid)
+					case alicloud.Deleted:
+						return true, a.instances.CleanupInstanceNetworkInterfaces(instCid, eniIds)
+					default:
+						return false, nil
+					}
+				})
+				if err2 == nil {
+					return apiv1.NewVMCID(instCid), nil, bosherr.WrapErrorf(derr, "resolve ephemeral disk path for %s failed and the vm has been deleted.", instCid)
+				}
+				time.Sleep(5 * time.Second)
+			}
+			return apiv1.NewVMCID(instCid), nil, bosherr.WrapErrorf(derr, "resolve ephemeral disk path for %s failed and then delete it timeout: %v", instCid, err2)
 		}
 	}
 
