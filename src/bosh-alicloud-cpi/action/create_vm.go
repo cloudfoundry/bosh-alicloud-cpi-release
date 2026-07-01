@@ -291,13 +291,10 @@ func (a CreateVMMethod) createVM(
 		return apiv1.VMCID{}, nil, bosherr.WrapErrorf(err, "wait %s to STOPPED failed and then delete it timeout: %v", instCid, err2)
 	}
 
-	// Resolve the ephemeral disk path. For NVMe-capable instance types (c9i/g9i/r9i/...),
-	// the legacy /dev/vdb path does not exist; the agent must use /dev/disk/by-id/nvme-...
-	// We can only do this after VM creation because we need the data disk's CID.
-	//
-	// On NVMe instances, leaving the legacy path would cause the agent to loop forever
-	// waiting for /dev/vdb and the deploy would only fail after the 600s agent-ping timeout.
-	// Fail fast here and let the existing post-CreateInstance cleanup path delete the VM.
+	// Resolve the ephemeral disk path after VM creation (we need the data disk CID).
+	// NVMe instance types use /dev/disk/by-id/nvme-... instead of the legacy /dev/vdb.
+	// If unresolved, the agent would hang until the 600s ping timeout, so fail fast
+	// and cleanup by deleting the VM.
 	if disks.EphemeralDisk.sizeGB > 0 {
 		attachedDisks, derr := a.disks.GetDisks(instCid)
 		if derr == nil {
