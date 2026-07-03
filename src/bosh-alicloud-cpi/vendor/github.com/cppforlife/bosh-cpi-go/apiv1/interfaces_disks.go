@@ -17,11 +17,11 @@ type DisksV2Additions interface {
 }
 
 // DiskUpdater is an opt-in CPI capability corresponding to the BOSH CPI v2
-// `update_disk` method. The returned *DiskCID is nil when the disk was
-// updated in place (the Director keeps using the original CID), or a new
-// disk's CID when the CPI replaced the disk (e.g. snapshot + recreate).
+// DiskUpdater is an opt-in CPI capability for the BOSH CPI v2 `update_disk`
+// method. It returns the CID the Director should use going forward: the
+// original CID for in-place updates, or a new CID if the disk was replaced.
 type DiskUpdater interface {
-	UpdateDisk(DiskCID, int, DiskCloudProps) (*DiskCID, error)
+	UpdateDisk(DiskCID, int, DiskCloudProps) (DiskCID, error)
 }
 
 type DiskCloudProps interface {

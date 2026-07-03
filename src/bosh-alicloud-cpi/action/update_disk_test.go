@@ -19,7 +19,7 @@ var _ = Describe("cpi:update_disk", func() {
 			"category": string(alicloud.DiskCategoryCloudESSD),
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(r).To(BeNil())
+		Expect(r).To(Equal(cid))
 
 		updated, ok := mockContext.Disks[cid]
 		Expect(ok).To(BeTrue())
@@ -34,7 +34,7 @@ var _ = Describe("cpi:update_disk", func() {
 			"category": string(alicloud.DiskCategoryCloudESSD),
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(r).To(BeNil())
+		Expect(r).To(Equal(cid))
 
 		updated := mockContext.Disks[cid]
 		Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))

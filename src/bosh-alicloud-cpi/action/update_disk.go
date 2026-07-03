@@ -26,27 +26,27 @@ func NewUpdateDiskMethod(cc CallContext, disks alicloud.DiskManager) UpdateDiskM
 // If the disk already has the requested category, the call is a no-op.
 // If only the size changes (same category), the disk is resized in-place.
 //
-// Returns (nil, nil) on success because all AliCloud paths update the disk in place —
-// the Director keeps using the original CID. A non-nil *DiskCID would signal that the
-// disk was replaced (e.g. snapshot + recreate), which this implementation never does.
-func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudProps apiv1.DiskCloudProps) (*apiv1.DiskCID, error) {
+// All AliCloud paths update the disk in place — the returned DiskCID is always the
+// original diskCID. A different CID would signal that the disk was replaced (e.g.
+// snapshot + recreate), which this implementation never does.
+func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudProps apiv1.DiskCloudProps) (apiv1.DiskCID, error) {
 	diskCid := diskCID.AsString()
 
 	disk, err := a.disks.GetDisk(diskCid)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "UpdateDisk GetDisk failed %s", diskCid)
+		return diskCID, bosherr.WrapErrorf(err, "UpdateDisk GetDisk failed %s", diskCid)
 	}
 	if disk == nil {
-		return nil, bosherr.Errorf("UpdateDisk disk not found id=%s", diskCid)
+		return diskCID, bosherr.Errorf("UpdateDisk disk not found id=%s", diskCid)
 	}
 
 	var props DiskInfo
 	if err := cloudProps.As(&props); err != nil {
-		return nil, bosherr.WrapErrorf(err, "UpdateDisk failed to parse cloud_properties for disk %s", diskCid)
+		return diskCID, bosherr.WrapErrorf(err, "UpdateDisk failed to parse cloud_properties for disk %s", diskCid)
 	}
 	props, err = props.Validate(false)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "UpdateDisk invalid cloud_properties for disk %s", diskCid)
+		return diskCID, bosherr.WrapErrorf(err, "UpdateDisk invalid cloud_properties for disk %s", diskCid)
 	}
 
 	targetCategory := props.GetCategory()
@@ -55,25 +55,25 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 	// Category change — use ModifyDiskSpec (in-place, no snapshot needed on AliCloud).
 	if currentCategory != targetCategory {
 		if err := a.disks.ModifyDiskCategory(diskCid, targetCategory); err != nil {
-			return nil, bosherr.WrapErrorf(err, "UpdateDisk ModifyDiskCategory failed for disk %s (%s -> %s)",
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk ModifyDiskCategory failed for disk %s (%s -> %s)",
 				diskCid, currentCategory, targetCategory)
 		}
 
 		// Wait for the disk to return to Available after the category change.
 		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable); err != nil {
-			return nil, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after category change", diskCid)
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after category change", diskCid)
 		}
 
-		return nil, nil
+		return diskCID, nil
 	}
 
 	// Same category — resize only if the new size is larger.
 	newSizeGB := ConvertToGB(float64(newSize))
 	if newSizeGB > disk.Size {
 		if err := a.disks.ResizeDisk(diskCid, newSizeGB); err != nil {
-			return nil, bosherr.WrapErrorf(err, "UpdateDisk ResizeDisk failed for disk %s", diskCid)
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk ResizeDisk failed for disk %s", diskCid)
 		}
 	}
 
-	return nil, nil
+	return diskCID, nil
 }

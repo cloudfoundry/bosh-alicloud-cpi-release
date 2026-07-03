@@ -139,7 +139,7 @@ func (f ActionFactory) Create(method string, apiVersion int, context CallContext
 		if !ok {
 			return nil, bosherr.Errorf("Method 'update_disk' is not supported by this CPI")
 		}
-		return func(diskCID DiskCID, size int, props CloudPropsImpl) (*DiskCID, error) {
+		return func(diskCID DiskCID, size int, props CloudPropsImpl) (DiskCID, error) {
 			return updater.UpdateDisk(diskCID, size, props)
 		}, nil
 
