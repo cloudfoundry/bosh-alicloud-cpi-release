@@ -15,11 +15,11 @@ var _ = Describe("cpi:update_disk", func() {
 		cid, disk := mockContext.NewDisk("")
 		Expect(disk.Category).To(Equal(string(alicloud.DiskCategoryCloudEfficiency)))
 
-		r, err := caller.CallGeneric("update_disk", cid, 20480, map[string]interface{}{
+		r, err := caller.CallGenericAPIVersion("update_disk", 2, cid, 20480, map[string]interface{}{
 			"category": string(alicloud.DiskCategoryCloudESSD),
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(r).To(Equal(cid))
+		Expect(r).To(BeNil())
 
 		updated, ok := mockContext.Disks[cid]
 		Expect(ok).To(BeTrue())
@@ -30,11 +30,11 @@ var _ = Describe("cpi:update_disk", func() {
 		cid, disk := mockContext.NewDisk("")
 		disk.Category = string(alicloud.DiskCategoryCloudESSD)
 
-		r, err := caller.CallGeneric("update_disk", cid, 20480, map[string]interface{}{
+		r, err := caller.CallGenericAPIVersion("update_disk", 2, cid, 20480, map[string]interface{}{
 			"category": string(alicloud.DiskCategoryCloudESSD),
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(r).To(Equal(cid))
+		Expect(r).To(BeNil())
 
 		updated := mockContext.Disks[cid]
 		Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
@@ -45,7 +45,7 @@ var _ = Describe("cpi:update_disk", func() {
 		disk.Category = string(alicloud.DiskCategoryCloudESSD)
 		initialSize := disk.Size
 
-		_, err := caller.CallGeneric("update_disk", cid, (initialSize+10)*1024, map[string]interface{}{
+		_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, (initialSize+10)*1024, map[string]interface{}{
 			"category": string(alicloud.DiskCategoryCloudESSD),
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -55,7 +55,7 @@ var _ = Describe("cpi:update_disk", func() {
 	})
 
 	It("returns error when disk does not exist", func() {
-		_, err := caller.CallGeneric("update_disk", "non-existent-disk", 20480, map[string]interface{}{
+		_, err := caller.CallGenericAPIVersion("update_disk", 2, "non-existent-disk", 20480, map[string]interface{}{
 			"category": string(alicloud.DiskCategoryCloudESSD),
 		})
 		Expect(err).To(HaveOccurred())

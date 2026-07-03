@@ -25,7 +25,11 @@ func NewUpdateDiskMethod(cc CallContext, disks alicloud.DiskManager) UpdateDiskM
 //
 // If the disk already has the requested category, the call is a no-op.
 // If only the size changes (same category), the disk is resized in-place.
-func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudProps apiv1.DiskCloudProps) (interface{}, error) {
+//
+// Returns (nil, nil) on success because all AliCloud paths update the disk in place —
+// the Director keeps using the original CID. A non-nil *DiskCID would signal that the
+// disk was replaced (e.g. snapshot + recreate), which this implementation never does.
+func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudProps apiv1.DiskCloudProps) (*apiv1.DiskCID, error) {
 	diskCid := diskCID.AsString()
 
 	disk, err := a.disks.GetDisk(diskCid)
@@ -60,7 +64,7 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 			return nil, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after category change", diskCid)
 		}
 
-		return diskCid, nil
+		return nil, nil
 	}
 
 	// Same category — resize only if the new size is larger.
@@ -71,5 +75,5 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 		}
 	}
 
-	return diskCid, nil
+	return nil, nil
 }

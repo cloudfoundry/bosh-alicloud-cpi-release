@@ -10,11 +10,18 @@ type DisksV1 interface {
 
 	HasDisk(DiskCID) (bool, error)
 	ResizeDisk(DiskCID, int) error
-	UpdateDisk(DiskCID, int, DiskCloudProps) (interface{}, error)
 }
 
 type DisksV2Additions interface {
 	AttachDiskV2(VMCID, DiskCID) (DiskHint, error)
+}
+
+// DiskUpdater is an opt-in CPI capability corresponding to the BOSH CPI v2
+// `update_disk` method. The returned *DiskCID is nil when the disk was
+// updated in place (the Director keeps using the original CID), or a new
+// disk's CID when the CPI replaced the disk (e.g. snapshot + recreate).
+type DiskUpdater interface {
+	UpdateDisk(DiskCID, int, DiskCloudProps) (*DiskCID, error)
 }
 
 type DiskCloudProps interface {
