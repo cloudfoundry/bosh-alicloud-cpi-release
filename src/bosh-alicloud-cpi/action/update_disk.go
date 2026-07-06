@@ -19,16 +19,9 @@ func NewUpdateDiskMethod(cc CallContext, disks alicloud.DiskManager) UpdateDiskM
 	return UpdateDiskMethod{cc, disks}
 }
 
-// UpdateDisk changes the category of an existing persistent disk in-place using AliCloud's
-// ModifyDiskSpec API. AliCloud supports forward (upgrade) transitions only, e.g.
-// cloud_efficiency -> cloud_essd. The disk CID is unchanged after migration.
-//
-// If the disk already has the requested category, the call is a no-op.
-// If only the size changes (same category), the disk is resized in-place.
-//
-// All AliCloud paths update the disk in place — the returned DiskCID is always the
-// original diskCID. A different CID would signal that the disk was replaced (e.g.
-// snapshot + recreate), which this implementation never does.
+// UpdateDisk applies category and/or size changes to an existing disk in-place.
+// Category upgrades use ModifyDiskSpec (upgrades only), size changes use ResizeDisk;
+// when combined, the category change runs first. The original DiskCID is always returned.
 func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudProps apiv1.DiskCloudProps) (apiv1.DiskCID, error) {
 	diskCid := diskCID.AsString()
 
@@ -53,21 +46,22 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 	currentCategory := alicloud.DiskCategory(disk.Category)
 
 	// Category change — use ModifyDiskSpec (in-place, no snapshot needed on AliCloud).
+	// Runs first so a subsequent resize operates on the disk in its target category.
 	if currentCategory != targetCategory {
 		if err := a.disks.ModifyDiskCategory(diskCid, targetCategory); err != nil {
 			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk ModifyDiskCategory failed for disk %s (%s -> %s)",
 				diskCid, currentCategory, targetCategory)
 		}
 
-		// Wait for the disk to return to Available after the category change.
+		// Wait for the disk to return to Available after the category change; ResizeDisk
+		// (and any subsequent director-side attach) requires the disk out of Modifying.
 		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable); err != nil {
 			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after category change", diskCid)
 		}
-
-		return diskCID, nil
 	}
 
-	// Same category — resize only if the new size is larger.
+	// Resize if the requested size is larger than the current disk size. Runs after the
+	// category change (if any) so both mutations are applied when combined in one call.
 	newSizeGB := ConvertToGB(float64(newSize))
 	if newSizeGB > disk.Size {
 		if err := a.disks.ResizeDisk(diskCid, newSizeGB); err != nil {

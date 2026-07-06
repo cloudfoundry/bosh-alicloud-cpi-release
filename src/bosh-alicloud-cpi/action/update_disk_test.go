@@ -54,6 +54,21 @@ var _ = Describe("cpi:update_disk", func() {
 		Expect(updated.Size).To(BeNumerically(">", initialSize))
 	})
 
+	It("applies both category change and resize in a single call", func() {
+		cid, disk := mockContext.NewDisk("")
+		Expect(disk.Category).To(Equal(string(alicloud.DiskCategoryCloudEfficiency)))
+		initialSize := disk.Size
+
+		_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, (initialSize+10)*1024, map[string]interface{}{
+			"category": string(alicloud.DiskCategoryCloudESSD),
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		updated := mockContext.Disks[cid]
+		Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
+		Expect(updated.Size).To(BeNumerically(">", initialSize))
+	})
+
 	It("returns error when disk does not exist", func() {
 		_, err := caller.CallGenericAPIVersion("update_disk", 2, "non-existent-disk", 20480, map[string]interface{}{
 			"category": string(alicloud.DiskCategoryCloudESSD),
