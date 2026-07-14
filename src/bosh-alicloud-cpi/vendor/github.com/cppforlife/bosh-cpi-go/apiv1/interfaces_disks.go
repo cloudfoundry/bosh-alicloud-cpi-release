@@ -16,7 +16,6 @@ type DisksV2Additions interface {
 	AttachDiskV2(VMCID, DiskCID) (DiskHint, error)
 }
 
-// DiskUpdater is an opt-in CPI capability corresponding to the BOSH CPI v2
 // DiskUpdater is an opt-in CPI capability for the BOSH CPI v2 `update_disk`
 // method. It returns the CID the Director should use going forward: the
 // original CID for in-place updates, or a new CID if the disk was replaced.
