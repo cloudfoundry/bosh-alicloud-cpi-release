@@ -181,6 +181,10 @@ func (a DiskInfo) GetCategory() alicloud.DiskCategory {
 	return a.ecsCategory
 }
 
+func (a DiskInfo) GetPerformanceLevel() string {
+	return a.PerformanceLevel
+}
+
 func (a DiskInfo) GetPath() string {
 	return a.path
 }

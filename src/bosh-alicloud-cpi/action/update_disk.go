@@ -19,7 +19,7 @@ func NewUpdateDiskMethod(cc CallContext, disks alicloud.DiskManager) UpdateDiskM
 	return UpdateDiskMethod{cc, disks}
 }
 
-// UpdateDisk applies category and/or size changes to an existing disk in-place.
+// UpdateDisk applies category, performance-level and/or size changes to an existing disk in-place.
 func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudProps apiv1.DiskCloudProps) (apiv1.DiskCID, error) {
 	diskCid := diskCID.AsString()
 
@@ -43,29 +43,36 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 	targetCategory := props.GetCategory()
 	currentCategory := alicloud.DiskCategory(disk.Category)
 
+	targetPL := props.GetPerformanceLevel()
+	currentPL := disk.PerformanceLevel
+
 	newSizeGB := ConvertToGB(float64(newSize))
 	if newSizeGB < disk.Size {
 		return diskCID, bosherr.Errorf("UpdateDisk cannot shrink disk %s: requested %d GB < current %d GB",
 			diskCid, newSizeGB, disk.Size)
 	}
 
-	// Category change — try in-place via ModifyDiskSpec. Runs before the resize
-	// so any subsequent resize operates on the disk in its target category.
-	if currentCategory != targetCategory {
-		err := a.disks.ModifyDiskCategory(diskCid, targetCategory)
+	// Category and/or performance-level change — apply in-place via ModifyDiskSpec
+	// (a single API call carries both). Runs before the resize so any subsequent
+	// resize operates on the disk in its target spec. A performance_level change is
+	// only meaningful when it actually differs; an empty target PL leaves it unchanged.
+	categoryChanged := currentCategory != targetCategory
+	plChanged := targetPL != "" && targetPL != currentPL
+	if categoryChanged || plChanged {
+		err := a.disks.ModifyDiskCategory(diskCid, targetCategory, targetPL)
 		if err != nil && alicloud.IsCategoryRefusedError(err) {
 			return diskCID, alicloud.NewNotSupportedError(
-				"UpdateDisk: AliCloud refused in-place category change on disk %s (%s -> %s): %s",
-				diskCid, currentCategory, targetCategory, err.Error())
+				"UpdateDisk: AliCloud refused in-place spec change on disk %s (category %s -> %s, PL %s -> %s): %s",
+				diskCid, currentCategory, targetCategory, currentPL, targetPL, err.Error())
 		}
 		if err != nil {
-			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk ModifyDiskCategory failed for disk %s (%s -> %s)",
-				diskCid, currentCategory, targetCategory)
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk ModifyDiskCategory failed for disk %s (category %s -> %s, PL %s -> %s)",
+				diskCid, currentCategory, targetCategory, currentPL, targetPL)
 		}
 
-		// Wait for Available after the category change before attempting resize.
+		// Wait for Available after the spec change before attempting resize.
 		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable); err != nil {
-			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after category change", diskCid)
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after spec change", diskCid)
 		}
 	}
 

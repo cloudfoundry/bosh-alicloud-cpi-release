@@ -71,6 +71,54 @@ var _ = Describe("cpi:update_disk", func() {
 		})
 	})
 
+	Context("performance_level updates (ESSD)", func() {
+		It("applies a performance_level change on an ESSD disk", func() {
+			cid, disk := mockContext.NewDisk("")
+			disk.Category = string(alicloud.DiskCategoryCloudESSD)
+			disk.PerformanceLevel = "PL1"
+
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category":          string(alicloud.DiskCategoryCloudESSD),
+				"performance_level": "PL2",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			updated := mockContext.Disks[cid]
+			Expect(updated.PerformanceLevel).To(Equal("PL2"))
+			Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
+		})
+
+		It("applies category change AND performance_level in a single call", func() {
+			cid, disk := mockContext.NewDisk("")
+			Expect(disk.Category).To(Equal(string(alicloud.DiskCategoryCloudEfficiency)))
+
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category":          string(alicloud.DiskCategoryCloudESSD),
+				"performance_level": "PL2",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			updated := mockContext.Disks[cid]
+			Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
+			Expect(updated.PerformanceLevel).To(Equal("PL2"))
+		})
+
+		It("leaves performance_level unchanged when the target matches the current level", func() {
+			cid, disk := mockContext.NewDisk("")
+			disk.Category = string(alicloud.DiskCategoryCloudESSD)
+			disk.PerformanceLevel = "PL1"
+
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category":          string(alicloud.DiskCategoryCloudESSD),
+				"performance_level": "PL1",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			updated := mockContext.Disks[cid]
+			Expect(updated.PerformanceLevel).To(Equal("PL1"))
+		})
+	})
+
 	Context("unsupported transitions", func() {
 		It("returns Bosh::Clouds::NotSupported when AliCloud refuses the in-place category change", func() {
 			// cloud_essd -> cloud_efficiency is a downgrade; the mock's

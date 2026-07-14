@@ -136,7 +136,7 @@ func (a DiskManagerMock) ModifyDiskAttribute(diskCid string, name string, descri
 	return nil
 }
 
-func (a DiskManagerMock) ModifyDiskCategory(diskCid string, category alicloud.DiskCategory) error {
+func (a DiskManagerMock) ModifyDiskCategory(diskCid string, category alicloud.DiskCategory, performanceLevel string) error {
 	disk, ok := a.mc.Disks[diskCid]
 	if !ok {
 		return fmt.Errorf("ModifyDiskCategory disk %s not exists", diskCid)
@@ -152,6 +152,9 @@ func (a DiskManagerMock) ModifyDiskCategory(diskCid string, category alicloud.Di
 	}
 
 	disk.Category = string(category)
+	if performanceLevel != "" {
+		disk.PerformanceLevel = performanceLevel
+	}
 	return nil
 }
 
