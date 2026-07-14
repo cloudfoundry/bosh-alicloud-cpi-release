@@ -247,6 +247,9 @@ func (a DiskManagerImpl) ModifyDiskAttribute(diskCid, name, description string) 
 // ModifyDiskCategory changes the category of a disk in-place using AliCloud's ModifyDiskSpec API.
 // Only forward (upgrade) transitions are supported by AliCloud (e.g. cloud_efficiency -> cloud_essd).
 // The disk must be detached before calling this; the caller is responsible for detaching/re-attaching.
+//
+// Raw AliCloud errors are returned unchanged. Callers that want to fall back to a snapshot+recreate
+// path should test refusal with IsCategoryRefusedError.
 func (a DiskManagerImpl) ModifyDiskCategory(diskCid string, category DiskCategory) error {
 	client, err := a.config.NewEcsClient("")
 	if err != nil {
@@ -263,6 +266,13 @@ func (a DiskManagerImpl) ModifyDiskCategory(diskCid string, category DiskCategor
 		a.log("ModifyDiskCategory", e, diskCid, string(category))
 		return e
 	})
+}
+
+// IsCategoryRefusedError reports whether err is AliCloud's "cannot reach that
+// category in-place" refusal from ModifyDiskSpec. Callers use this to decide
+// whether to fall back to a snapshot+recreate path.
+func IsCategoryRefusedError(err error) bool {
+	return err != nil && IsExceptedErrors(err, DiskCategoryUnsupportedCodes)
 }
 
 func (a DiskManagerImpl) CreateSnapshot(diskCid, snapshotName string) (snapshotId string, err error) {

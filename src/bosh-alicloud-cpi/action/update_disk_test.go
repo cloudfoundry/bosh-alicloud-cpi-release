@@ -11,68 +11,108 @@ import (
 )
 
 var _ = Describe("cpi:update_disk", func() {
-	It("changes disk category when target category differs", func() {
-		cid, disk := mockContext.NewDisk("")
-		Expect(disk.Category).To(Equal(string(alicloud.DiskCategoryCloudEfficiency)))
+	Context("in-place mutations (ModifyDiskSpec path)", func() {
+		It("changes disk category when the target category differs", func() {
+			cid, disk := mockContext.NewDisk("")
+			Expect(disk.Category).To(Equal(string(alicloud.DiskCategoryCloudEfficiency)))
 
-		r, err := caller.CallGenericAPIVersion("update_disk", 2, cid, 20480, map[string]interface{}{
-			"category": string(alicloud.DiskCategoryCloudESSD),
+			r, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudESSD),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(r).To(Equal(cid))
+
+			updated, ok := mockContext.Disks[cid]
+			Expect(ok).To(BeTrue())
+			Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
 		})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(r).To(Equal(cid))
 
-		updated, ok := mockContext.Disks[cid]
-		Expect(ok).To(BeTrue())
-		Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
+		It("is a no-op when category already matches and size is unchanged", func() {
+			cid, disk := mockContext.NewDisk("")
+			disk.Category = string(alicloud.DiskCategoryCloudESSD)
+
+			r, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudESSD),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(r).To(Equal(cid))
+
+			updated := mockContext.Disks[cid]
+			Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
+		})
+
+		It("resizes when category matches but the requested size is larger", func() {
+			cid, disk := mockContext.NewDisk("")
+			disk.Category = string(alicloud.DiskCategoryCloudESSD)
+			initialSize := disk.Size
+
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, (initialSize+10)*1024, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudESSD),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			updated := mockContext.Disks[cid]
+			Expect(updated.Size).To(BeNumerically(">", initialSize))
+		})
+
+		It("applies category change AND resize in a single call", func() {
+			cid, disk := mockContext.NewDisk("")
+			Expect(disk.Category).To(Equal(string(alicloud.DiskCategoryCloudEfficiency)))
+			initialSize := disk.Size
+
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, (initialSize+10)*1024, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudESSD),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			updated := mockContext.Disks[cid]
+			Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
+			Expect(updated.Size).To(BeNumerically(">", initialSize))
+		})
 	})
 
-	It("is a no-op when category already matches", func() {
-		cid, disk := mockContext.NewDisk("")
-		disk.Category = string(alicloud.DiskCategoryCloudESSD)
+	Context("unsupported transitions", func() {
+		It("returns Bosh::Clouds::NotSupported when AliCloud refuses the in-place category change", func() {
+			// cloud_essd -> cloud_efficiency is a downgrade; the mock's
+			// ModifyDiskCategory simulates AliCloud returning
+			// InvalidDiskCategory.NotSupported, which the CPI translates to
+			// Bosh::Clouds::NotSupported so the director can fall back.
+			cid, disk := mockContext.NewDisk("")
+			disk.Category = string(alicloud.DiskCategoryCloudESSD)
 
-		r, err := caller.CallGenericAPIVersion("update_disk", 2, cid, 20480, map[string]interface{}{
-			"category": string(alicloud.DiskCategoryCloudESSD),
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudEfficiency),
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(`"type":"Bosh::Clouds::NotSupported"`))
+
+			// Disk must be untouched — director drives the recovery.
+			Expect(mockContext.Disks[cid].Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
 		})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(r).To(Equal(cid))
-
-		updated := mockContext.Disks[cid]
-		Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
 	})
 
-	It("resizes disk when category matches but new size is larger", func() {
-		cid, disk := mockContext.NewDisk("")
-		disk.Category = string(alicloud.DiskCategoryCloudESSD)
-		initialSize := disk.Size
+	Context("failure modes", func() {
+		It("rejects shrink requests with a plain error, NOT Bosh::Clouds::NotSupported", func() {
+			cid, disk := mockContext.NewDisk("")
+			disk.Category = string(alicloud.DiskCategoryCloudESSD)
+			initialSize := disk.Size
 
-		_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, (initialSize+10)*1024, map[string]interface{}{
-			"category": string(alicloud.DiskCategoryCloudESSD),
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, (initialSize-5)*1024, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudESSD),
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).NotTo(ContainSubstring(`"type":"Bosh::Clouds::NotSupported"`))
+			Expect(err.Error()).To(ContainSubstring("cannot shrink"))
+
+			updated := mockContext.Disks[cid]
+			Expect(updated.Size).To(Equal(initialSize))
 		})
-		Expect(err).NotTo(HaveOccurred())
 
-		updated := mockContext.Disks[cid]
-		Expect(updated.Size).To(BeNumerically(">", initialSize))
-	})
-
-	It("applies both category change and resize in a single call", func() {
-		cid, disk := mockContext.NewDisk("")
-		Expect(disk.Category).To(Equal(string(alicloud.DiskCategoryCloudEfficiency)))
-		initialSize := disk.Size
-
-		_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, (initialSize+10)*1024, map[string]interface{}{
-			"category": string(alicloud.DiskCategoryCloudESSD),
+		It("returns an error when the disk does not exist", func() {
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, "non-existent-disk", 20480, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudESSD),
+			})
+			Expect(err).To(HaveOccurred())
 		})
-		Expect(err).NotTo(HaveOccurred())
-
-		updated := mockContext.Disks[cid]
-		Expect(updated.Category).To(Equal(string(alicloud.DiskCategoryCloudESSD)))
-		Expect(updated.Size).To(BeNumerically(">", initialSize))
-	})
-
-	It("returns error when disk does not exist", func() {
-		_, err := caller.CallGenericAPIVersion("update_disk", 2, "non-existent-disk", 20480, map[string]interface{}{
-			"category": string(alicloud.DiskCategoryCloudESSD),
-		})
-		Expect(err).To(HaveOccurred())
 	})
 })

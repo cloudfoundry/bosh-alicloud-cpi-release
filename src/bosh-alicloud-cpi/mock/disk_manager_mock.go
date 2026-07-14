@@ -142,8 +142,44 @@ func (a DiskManagerMock) ModifyDiskCategory(diskCid string, category alicloud.Di
 		return fmt.Errorf("ModifyDiskCategory disk %s not exists", diskCid)
 	}
 
+	// Simulate AliCloud refusing downgrades — real API returns
+	// InvalidDiskCategory.NotSupported, which the CPI translates to
+	// Bosh::Clouds::NotSupported for the director to handle.
+	if isCategoryDowngrade(alicloud.DiskCategory(disk.Category), category) {
+		return alicloud.NewProviderError(
+			alicloud.InvalidDiskCategoryNotSupported,
+			fmt.Sprintf("AliCloud refused in-place category change on disk %s to %s", diskCid, category))
+	}
+
 	disk.Category = string(category)
 	return nil
+}
+
+// categoryTier ranks disk categories from lowest (0) to highest performance.
+// AliCloud's ModifyDiskSpec only permits forward (upgrade) transitions; any
+// same-tier or lower target is rejected in the real API.
+func categoryTier(c alicloud.DiskCategory) int {
+	switch c {
+	case alicloud.DiskCategoryCloud, alicloud.DiskCategoryEphemeral, alicloud.DiskCategoryEphemeralSSD:
+		return 0
+	case alicloud.DiskCategoryCloudEfficiency:
+		return 1
+	case alicloud.DiskCategoryCloudSSD:
+		return 2
+	case alicloud.DiskCategoryCloudESSD, alicloud.DiskCategoryCloudAuto:
+		return 3
+	default:
+		return -1
+	}
+}
+
+func isCategoryDowngrade(from, to alicloud.DiskCategory) bool {
+	fromTier := categoryTier(from)
+	toTier := categoryTier(to)
+	if fromTier < 0 || toTier < 0 {
+		return false
+	}
+	return toTier < fromTier
 }
 
 func (a DiskManagerMock) CreateSnapshot(diskCid string, snapshotName string) (string, error) {
