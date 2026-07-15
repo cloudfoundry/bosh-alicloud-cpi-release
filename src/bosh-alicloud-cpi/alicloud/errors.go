@@ -28,8 +28,7 @@ const (
 var EcsInstanceNotFound = []string{"Instance.Notfound", "InvalidInstanceId.NotFound"}
 var ResourceNotFound = []string{"InvalidResourceId.NotFound"}
 
-// AliCloud ModifyDiskSpec refusal codes indicating the target category is not
-// reachable in-place from the current one.
+// AliCloud ModifyDiskSpec refusal codes: target category not reachable in-place.
 const (
 	InvalidDiskCategoryNotSupported = "InvalidDiskCategory.NotSupported"
 	OperationDeniedDiskCategory     = "OperationDenied.DiskCategoryNotSupport"
@@ -40,9 +39,8 @@ var DiskCategoryUnsupportedCodes = []string{
 	OperationDeniedDiskCategory,
 }
 
-// NotSupportedError signals the director that the requested disk mutation
-// cannot be performed in-place by AliCloud, but MAY be recoverable via
-// snapshot-and-recreate.
+// NotSupportedError signals the director that the disk mutation cannot be done
+// in-place by AliCloud, but MAY be recoverable via snapshot-and-recreate.
 type NotSupportedError struct {
 	message string
 }
@@ -72,9 +70,8 @@ func (err *ProviderError) Message() string {
 	return err.message
 }
 
-// NewProviderError constructs a *ProviderError with a caller-supplied code
-// and message. Primarily used by tests/mocks that need to synthesize a
-// specific AliCloud error code that IsExceptedErrors can match on.
+// NewProviderError constructs a *ProviderError with a caller-supplied code and
+// message. Used by tests/mocks to synthesize a specific AliCloud error code.
 func NewProviderError(errorCode, message string) *ProviderError {
 	return &ProviderError{errorCode: errorCode, message: message}
 }

@@ -244,14 +244,11 @@ func (a DiskManagerImpl) ModifyDiskAttribute(diskCid, name, description string) 
 	})
 }
 
-// ModifyDiskCategory changes the category and/or performance level of a disk in-place
-// using AliCloud's ModifyDiskSpec API. Category transitions only support forward
-// (upgrade) moves (e.g. cloud_efficiency -> cloud_essd). performanceLevel applies to
-// ESSD disks (PL0/PL1/PL2/PL3); pass "" to leave it unchanged.
-// The disk must be detached before calling this; the caller is responsible for detaching/re-attaching.
-//
-// Raw AliCloud errors are returned unchanged. Callers that want to fall back to a snapshot+recreate
-// path should test refusal with IsCategoryRefusedError.
+// ModifyDiskCategory changes a disk's category and/or performance level in-place
+// via ModifyDiskSpec. Category moves are forward-only (e.g. cloud_efficiency ->
+// cloud_essd); performanceLevel applies to ESSD (PL0-PL3), "" leaves it unchanged.
+// The disk must be detached first. Raw AliCloud errors are returned unchanged;
+// callers can test refusal with IsCategoryRefusedError to fall back to snapshot+recreate.
 func (a DiskManagerImpl) ModifyDiskCategory(diskCid string, category DiskCategory, performanceLevel string) error {
 	client, err := a.config.NewEcsClient("")
 	if err != nil {
@@ -273,9 +270,8 @@ func (a DiskManagerImpl) ModifyDiskCategory(diskCid string, category DiskCategor
 	})
 }
 
-// IsCategoryRefusedError reports whether err is AliCloud's "cannot reach that
-// category in-place" refusal from ModifyDiskSpec. Callers use this to decide
-// whether to fall back to a snapshot+recreate path.
+// IsCategoryRefusedError reports whether err is AliCloud's in-place category
+// refusal from ModifyDiskSpec, used to decide on a snapshot+recreate fallback.
 func IsCategoryRefusedError(err error) bool {
 	return err != nil && IsExceptedErrors(err, DiskCategoryUnsupportedCodes)
 }

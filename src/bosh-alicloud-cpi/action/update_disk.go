@@ -19,7 +19,7 @@ func NewUpdateDiskMethod(cc CallContext, disks alicloud.DiskManager) UpdateDiskM
 	return UpdateDiskMethod{cc, disks}
 }
 
-// UpdateDisk applies category, performance-level and/or size changes to an existing disk in-place.
+// UpdateDisk applies category, PL and/or size changes to a disk in-place.
 func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudProps apiv1.DiskCloudProps) (apiv1.DiskCID, error) {
 	diskCid := diskCID.AsString()
 
@@ -52,10 +52,8 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 			diskCid, newSizeGB, disk.Size)
 	}
 
-	// Category and/or performance-level change — apply in-place via ModifyDiskSpec
-	// (a single API call carries both). Runs before the resize so any subsequent
-	// resize operates on the disk in its target spec. A performance_level change is
-	// only meaningful when it actually differs; an empty target PL leaves it unchanged.
+	// Apply category/PL change in-place before resize so the resize runs on the
+	// target spec. PL only changes when it differs; empty target PL leaves it as-is.
 	categoryChanged := currentCategory != targetCategory
 	plChanged := targetPL != "" && targetPL != currentPL
 	if categoryChanged || plChanged {
@@ -70,7 +68,7 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 				diskCid, currentCategory, targetCategory, currentPL, targetPL)
 		}
 
-		// Wait for Available after the spec change before attempting resize.
+		// Wait for Available before resizing.
 		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable); err != nil {
 			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after spec change", diskCid)
 		}
