@@ -23,6 +23,12 @@ type TestContext struct {
 	OssObjects        map[string]string
 	Snapshots         map[string]string
 	NetworkInterfaces map[string]*ecs.NetworkInterface
+
+	// Flags is a shared failure-injection map for tests. It's a map (reference
+	// type) so mutations on the suite-level TestContext are visible to the mocks,
+	// which each hold a by-value copy of the struct but share the same map header.
+	// Recognized keys: "failGetDisks", "failDiskPath".
+	Flags map[string]bool
 }
 
 func NewTestContext(config alicloud.Config) TestContext {
@@ -34,6 +40,7 @@ func NewTestContext(config alicloud.Config) TestContext {
 		Buckets:    make(map[string]*oss.Bucket),
 		OssObjects: make(map[string]string),
 		Snapshots:  make(map[string]string),
+		Flags:      make(map[string]bool),
 	}
 }
 

@@ -6,6 +6,7 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/mock"
+	"bosh-alicloud-cpi/registry"
 	"os"
 	"testing"
 
@@ -21,6 +22,7 @@ func TestActions(t *testing.T) {
 
 var caller Caller
 var mockContext mock.TestContext
+var registryMock registry.Client
 
 var configForTest = []byte(`{
     "cloud": {
@@ -65,13 +67,14 @@ var _ = BeforeSuite(func() {
 	logger := boshlog.NewWriterLogger(boshlog.LevelWarn, os.Stderr)
 
 	mockContext = mock.NewTestContext(config)
+	registryMock = mock.NewRegistryMock()
 	services := Services{
 		Stemcells: mock.NewStemcellManagerMock(mockContext),
 		Osses:     mock.NewOssManagerMock(mockContext),
 		Instances: mock.NewInstanceManagerMock(mockContext),
 		Disks:     mock.NewDiskManagerMock(mockContext),
 		Networks:  mock.NewNetworkManagerMock(mockContext),
-		Registry:  mock.NewRegistryMock(),
+		Registry:  registryMock,
 	}
 
 	caller = NewCallerWithServices(config, logger, services)

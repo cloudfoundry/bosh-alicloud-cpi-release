@@ -286,4 +286,92 @@ var _ = Describe("create_vm", func() {
 		r := caller.Run(in)
 		Expect(r.GetError()).NotTo(HaveOccurred())
 	})
+
+	Context("ephemeral disk path resolution", func() {
+		// buildCreateVM returns a create_vm request for the given instance type with
+		// an ephemeral disk, so the mock attaches a "data" disk that create_vm then
+		// resolves a device path for.
+		buildCreateVM := func(instanceType string) []byte {
+			return mock.NewBuilder(`{
+				"method": "create_vm",
+				"arguments": [
+					"243bf6fc-8f26-4aef-b40f-824763fcdfa2",
+					"m-2zehhdtfg22hq46reabf",
+					{
+						"instance_type": "` + instanceType + `",
+						"ephemeral_disk": { "size": "40_960", "type": "cloud_efficiency" }
+					},
+					{
+						"cf1": {
+							"type": "manual",
+							"ip": "10.0.16.109",
+							"netmask": "255.255.240.0",
+							"cloud_properties": {
+							"security_group_ids": ["sg-2ze2ct08gslmnwyv8c1k"],
+							"vswitch_id": "vpc-2ze3owai4kbkv2yf6nivg"
+						},
+							"default": ["dns", "gateway"],
+							"dns": ["10.0.16.2"],
+							"gateway": "10.0.16.1"
+						}
+					},
+					[],
+					{ "bosh": { "group": "g" } }
+				],
+				"context": { "director_uuid": "879e2edf-a9c4-4d2e-be8c-6b23dc530008" }
+			}`).ToBytes()
+		}
+
+		ephemeralPathFor := func(r CpiResponse) string {
+			cid := r.GetResultString()
+			settings, err := registryMock.Fetch(cid)
+			Expect(err).NotTo(HaveOccurred())
+			return settings.Disks.Ephemeral
+		}
+
+		AfterEach(func() {
+			delete(mockContext.Flags, "failGetDisks")
+			delete(mockContext.Flags, "failDiskPath")
+			delete(mockContext.Flags, "noDataDisk")
+		})
+
+		It("resolves the NVMe by-id path on an NVMe-capable instance type", func() {
+			r := caller.Run(buildCreateVM("ecs.c9i.xlarge"))
+			Expect(r.GetError()).NotTo(HaveOccurred())
+			Expect(ephemeralPathFor(r)).To(HavePrefix("/dev/disk/by-id/nvme-Alibaba_Cloud_Elastic_Block_Storage_"))
+		})
+
+		It("resolves the virtio by-id path on a non-NVMe instance type", func() {
+			r := caller.Run(buildCreateVM("ecs.n4.xlarge"))
+			Expect(r.GetError()).NotTo(HaveOccurred())
+			Expect(ephemeralPathFor(r)).To(HavePrefix("/dev/disk/by-id/virtio-"))
+		})
+
+		It("fails and deletes the VM when GetDisks fails", func() {
+			mockContext.Flags["failGetDisks"] = true
+			before := len(mockContext.Instances)
+
+			r := caller.Run(buildCreateVM("ecs.c9i.xlarge"))
+			Expect(r.GetError()).To(HaveOccurred())
+			Expect(mockContext.Instances).To(HaveLen(before), "the created instance should have been deleted")
+		})
+
+		It("fails and deletes the VM when path resolution fails", func() {
+			mockContext.Flags["failDiskPath"] = true
+			before := len(mockContext.Instances)
+
+			r := caller.Run(buildCreateVM("ecs.c9i.xlarge"))
+			Expect(r.GetError()).To(HaveOccurred())
+			Expect(mockContext.Instances).To(HaveLen(before), "the created instance should have been deleted")
+		})
+
+		It("fails and deletes the VM when no data disk is attached after create", func() {
+			mockContext.Flags["noDataDisk"] = true
+			before := len(mockContext.Instances)
+
+			r := caller.Run(buildCreateVM("ecs.c9i.xlarge"))
+			Expect(r.GetError()).To(HaveOccurred())
+			Expect(mockContext.Instances).To(HaveLen(before), "the created instance should have been deleted")
+		})
+	})
 })
