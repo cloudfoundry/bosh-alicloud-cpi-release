@@ -69,10 +69,17 @@ func (a AttachDiskMethod) attach(vmCID apiv1.VMCID, diskCID apiv1.DiskCID, cpiVe
 		switch alicloud.DiskStatus(disk.Status) {
 		case alicloud.DiskStatusInUse:
 			inst, er := a.instances.GetInstance(instCid)
+			var derr error
 			if er == nil {
-				device = a.disks.GetDiskPath(disk.Device, diskCid, inst.InstanceType, alicloud.DiskCategory(disk.Category))
+				device, derr = a.disks.GetDiskPath(disk.Device, diskCid, inst.InstanceType, alicloud.DiskCategory(disk.Category))
 			} else {
-				device = a.disks.GetDiskPath(disk.Device, diskCid, "", alicloud.DiskCategory(disk.Category))
+				device, derr = a.disks.GetDiskPath(disk.Device, diskCid, "", alicloud.DiskCategory(disk.Category))
+			}
+			// The disk is already attached; a resolution failure is non-fatal here
+			// (unlike create_vm's ephemeral path). Log it and proceed with the
+			// best-effort path GetDiskPath returned.
+			if derr != nil {
+				a.Logger.Warn("AttachDisk", "resolve disk path for %s on %s failed, using best-effort path %s: %s", diskCid, instCid, device, derr)
 			}
 			return true, nil
 		case alicloud.DiskStatusAvailable:

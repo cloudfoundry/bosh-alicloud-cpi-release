@@ -46,7 +46,7 @@ type DiskManager interface {
 	WaitForDiskStatus(diskCid string, toStatus DiskStatus) (string, error)
 	ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error)) error
 
-	GetDiskPath(path, diskId, instanceType string, category DiskCategory) string
+	GetDiskPath(path, diskId, instanceType string, category DiskCategory) (string, error)
 }
 
 type DiskManagerImpl struct {
@@ -372,17 +372,24 @@ func AmendDiskPath(path string, category DiskCategory) string {
 	return path
 }
 
-func (a DiskManagerImpl) GetDiskPath(path, diskId, instanceType string, category DiskCategory) string {
+// GetDiskPath resolves the device path the agent should use for a disk. For
+// NVMe-capable instance types it returns the /dev/disk/by-id/nvme-... path; for
+// other types the /dev/disk/by-id/virtio-... path. The returned string is always
+// a usable best-effort path (the amended input path when resolution can't run),
+// but a non-nil error means the NVMe-vs-virtio determination failed and the path
+// may be wrong — callers on the create_vm hot path must treat that as fatal, since
+// a wrong path leaves the agent hanging until the 600s ping timeout.
+func (a DiskManagerImpl) GetDiskPath(path, diskId, instanceType string, category DiskCategory) (string, error) {
 	amendPath := AmendDiskPath(path, category)
 
 	if instanceType == "" || diskId == "" {
-		return amendPath
+		return amendPath, nil
 	}
 
 	conn, err := a.config.EcsTeaClient("")
 	if err != nil {
 		a.log("EcsTeaClient", err, nil, "")
-		return amendPath
+		return amendPath, err
 	}
 
 	invoker := NewInvoker()
@@ -431,9 +438,10 @@ func (a DiskManagerImpl) GetDiskPath(path, diskId, instanceType string, category
 	})
 	if err != nil {
 		a.log(action, err, queries, "")
+		return amendPath, err
 	}
 
-	return amendPath
+	return amendPath, nil
 }
 
 func DescribeDisks(client *ecs.Client, diskId string) (disk *ecs.Disk, err error) {

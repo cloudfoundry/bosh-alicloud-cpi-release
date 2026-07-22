@@ -301,7 +301,7 @@ func (a CreateVMMethod) createVM(
 			found := false
 			for _, d := range attachedDisks {
 				if d.Type == "data" {
-					disks.EphemeralDisk.path = a.disks.GetDiskPath(
+					disks.EphemeralDisk.path, derr = a.disks.GetDiskPath(
 						disks.EphemeralDisk.path,
 						d.DiskId,
 						instProps.InstanceType,
@@ -311,7 +311,7 @@ func (a CreateVMMethod) createVM(
 					break
 				}
 			}
-			if !found {
+			if derr == nil && !found {
 				derr = bosherr.Errorf("no data disk found attached to instance %s after create", instCid)
 			}
 		}

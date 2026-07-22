@@ -197,6 +197,6 @@ func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus alicloud.DiskStat
 	}
 }
 
-func (a DiskManagerMock) GetDiskPath(path, diskId, instanceType string, category alicloud.DiskCategory) string {
-	return path
+func (a DiskManagerMock) GetDiskPath(path, diskId, instanceType string, category alicloud.DiskCategory) (string, error) {
+	return path, nil
 }
