@@ -6,7 +6,7 @@ package registry
 import (
 	"encoding/json"
 
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 )
 
 const defaultSystemDisk = "/dev/sda"

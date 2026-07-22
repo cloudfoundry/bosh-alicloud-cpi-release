@@ -4,7 +4,7 @@
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 )
 
 type Factory struct {

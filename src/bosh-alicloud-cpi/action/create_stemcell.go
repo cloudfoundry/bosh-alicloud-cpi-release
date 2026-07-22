@@ -18,8 +18,8 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 	"github.com/google/uuid"
 )
 

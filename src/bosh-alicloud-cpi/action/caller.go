@@ -4,8 +4,8 @@
 package action
 
 import (
+	boshrpc "github.com/cloudfoundry/bosh-cpi-go/rpc"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshrpc "github.com/cppforlife/bosh-cpi-go/rpc"
 
 	"bosh-alicloud-cpi/alicloud"
 	"bytes"
