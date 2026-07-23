@@ -7,6 +7,7 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
@@ -24,6 +25,9 @@ func NewDiskManagerMock(mc TestContext) alicloud.DiskManager {
 }
 
 func (a DiskManagerMock) GetDisks(instCid string) ([]ecs.Disk, error) {
+	if a.mc.Flags["failGetDisks"] {
+		return nil, fmt.Errorf("GetDisks injected failure (mock) for %s", instCid)
+	}
 	r := []ecs.Disk{}
 	for _, d := range a.mc.Disks {
 		if d.InstanceId == instCid {
@@ -246,6 +250,24 @@ func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus alicloud.DiskStat
 	}
 }
 
-func (a DiskManagerMock) GetDiskPath(path, diskId, instanceType string, category alicloud.DiskCategory) string {
-	return path
+// GetDiskPath mimics the real resolution: NVMe-capable instance types (the mock
+// treats any type containing "9i", e.g. ecs.c9i.*, as NVMe) resolve to the
+// nvme-... by-id path; everything else to the virtio-... by-id path. The
+// "failDiskPath" flag forces a resolution error, mirroring an EcsTeaClient /
+// DescribeInstanceTypes failure.
+func (a DiskManagerMock) GetDiskPath(path, diskId, instanceType string, category alicloud.DiskCategory) (string, error) {
+	if instanceType == "" || diskId == "" {
+		return path, nil
+	}
+	if a.mc.Flags["failDiskPath"] {
+		return path, fmt.Errorf("GetDiskPath injected failure (mock) for %s", instanceType)
+	}
+	suffix := diskId
+	if parts := strings.SplitN(diskId, "-", 2); len(parts) == 2 {
+		suffix = parts[1]
+	}
+	if strings.Contains(instanceType, "9i") {
+		return "/dev/disk/by-id/nvme-Alibaba_Cloud_Elastic_Block_Storage_" + suffix, nil
+	}
+	return "/dev/disk/by-id/virtio-" + suffix, nil
 }

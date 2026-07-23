@@ -37,7 +37,22 @@ func (a InstanceManagerMock) CreateInstance(region string, args map[string]inter
 	if v, ok := args["ZoneId"]; ok {
 		inst.ZoneId = v.(string)
 	}
-	// ...
+	if v, ok := args["InstanceType"]; ok {
+		inst.InstanceType = v.(string)
+	}
+
+	// Mirror RunInstances creating + attaching the ephemeral data disk when a
+	// DataDisk.1 was requested. create_vm resolves this disk's path after the VM
+	// reaches Stopped, so it must be discoverable via GetDisks as Type == "data".
+	// The "noDataDisk" flag suppresses this to exercise create_vm's
+	// "no data disk found" branch.
+	if _, ok := args["DataDisk.1.Size"]; ok && !a.mc.Flags["noDataDisk"] {
+		_, d := a.mc.NewDisk(id)
+		d.Type = "data"
+		if v, ok := args["DataDisk.1.Category"]; ok {
+			d.Category = v.(string)
+		}
+	}
 
 	return id, nil
 }

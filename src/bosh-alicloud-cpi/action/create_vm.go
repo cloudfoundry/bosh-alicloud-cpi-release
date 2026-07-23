@@ -291,6 +291,53 @@ func (a CreateVMMethod) createVM(
 		return apiv1.VMCID{}, nil, bosherr.WrapErrorf(err, "wait %s to STOPPED failed and then delete it timeout: %v", instCid, err2)
 	}
 
+	// Resolve the ephemeral disk path after VM creation (we need the data disk CID).
+	// NVMe instance types use /dev/disk/by-id/nvme-... instead of the legacy /dev/vdb.
+	// If unresolved, the agent would hang until the 600s ping timeout, so fail fast
+	// and cleanup by deleting the VM.
+	if disks.EphemeralDisk.sizeGB > 0 {
+		attachedDisks, derr := a.disks.GetDisks(instCid)
+		if derr == nil {
+			found := false
+			for _, d := range attachedDisks {
+				if d.Type == "data" {
+					disks.EphemeralDisk.path, derr = a.disks.GetDiskPath(
+						disks.EphemeralDisk.path,
+						d.DiskId,
+						instProps.InstanceType,
+						alicloud.DiskCategory(d.Category),
+					)
+					found = true
+					break
+				}
+			}
+			if derr == nil && !found {
+				derr = bosherr.Errorf("no data disk found attached to instance %s after create", instCid)
+			}
+		}
+		if derr != nil {
+			eniIds := a.instances.GetAttachedNetworkInterfaceIds(instCid)
+			var err2 error
+			for retry := 0; retry < 10; retry++ {
+				err2 = a.instances.ChangeInstanceStatus(instCid, alicloud.Deleted, func(status alicloud.InstanceStatus) (bool, error) {
+					switch status {
+					case alicloud.Running, alicloud.Stopped:
+						return false, a.instances.DeleteInstance(instCid)
+					case alicloud.Deleted:
+						return true, a.instances.CleanupInstanceNetworkInterfaces(instCid, eniIds)
+					default:
+						return false, nil
+					}
+				})
+				if err2 == nil {
+					return apiv1.NewVMCID(instCid), nil, bosherr.WrapErrorf(derr, "resolve ephemeral disk path for %s failed and the vm has been deleted.", instCid)
+				}
+				time.Sleep(5 * time.Second)
+			}
+			return apiv1.NewVMCID(instCid), nil, bosherr.WrapErrorf(derr, "resolve ephemeral disk path for %s failed and then delete it timeout: %v", instCid, err2)
+		}
+	}
+
 	agentSettings := registry.AgentSettings{
 		AgentID:   agentID.AsString(),
 		Blobstore: a.Config.Agent.Blobstore.AsRegistrySettings(),
