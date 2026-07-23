@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 const (
@@ -179,6 +179,10 @@ func (a DiskInfo) GetSizeGB() int {
 
 func (a DiskInfo) GetCategory() alicloud.DiskCategory {
 	return a.ecsCategory
+}
+
+func (a DiskInfo) GetPerformanceLevel() string {
+	return a.PerformanceLevel
 }
 
 func (a DiskInfo) GetPath() string {

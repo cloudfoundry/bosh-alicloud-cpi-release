@@ -11,7 +11,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 )
 
 type AttachDiskMethod struct {

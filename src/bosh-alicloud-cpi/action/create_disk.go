@@ -6,8 +6,8 @@ package action
 import (
 	"bosh-alicloud-cpi/alicloud"
 
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"

@@ -28,6 +28,30 @@ const (
 var EcsInstanceNotFound = []string{"Instance.Notfound", "InvalidInstanceId.NotFound"}
 var ResourceNotFound = []string{"InvalidResourceId.NotFound"}
 
+// AliCloud ModifyDiskSpec refusal codes: target category not reachable in-place.
+const (
+	InvalidDiskCategoryNotSupported = "InvalidDiskCategory.NotSupported"
+	OperationDeniedDiskCategory     = "OperationDenied.DiskCategoryNotSupport"
+)
+
+var DiskCategoryUnsupportedCodes = []string{
+	InvalidDiskCategoryNotSupported,
+	OperationDeniedDiskCategory,
+}
+
+// NotSupportedError signals the director that the disk mutation cannot be done
+// in-place by AliCloud, but MAY be recoverable via snapshot-and-recreate.
+type NotSupportedError struct {
+	message string
+}
+
+func (e NotSupportedError) Error() string { return e.message }
+func (e NotSupportedError) Type() string  { return "Bosh::Clouds::NotSupported" }
+
+func NewNotSupportedError(format string, args ...interface{}) NotSupportedError {
+	return NotSupportedError{message: fmt.Sprintf(format, args...)}
+}
+
 // An Error represents a custom error for Terraform failure response
 type ProviderError struct {
 	errorCode string
@@ -44,6 +68,12 @@ func (err *ProviderError) ErrorCode() string {
 
 func (err *ProviderError) Message() string {
 	return err.message
+}
+
+// NewProviderError constructs a *ProviderError with a caller-supplied code and
+// message. Used by tests/mocks to synthesize a specific AliCloud error code.
+func NewProviderError(errorCode, message string) *ProviderError {
+	return &ProviderError{errorCode: errorCode, message: message}
 }
 
 func GetNotFoundErrorFromString(str string) error {

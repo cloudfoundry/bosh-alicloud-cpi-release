@@ -4,7 +4,7 @@
 package action
 
 import (
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 )
 
 type Factory struct {
@@ -32,6 +32,7 @@ type CPI struct {
 	DetachDiskMethod
 	HasDiskMethod
 	ResizeDiskMethod
+	UpdateDiskMethod
 	SetDiskMetadataMethod
 	SnapshotDiskMethod
 	DeleteSnapshotMethod
@@ -67,6 +68,7 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		NewDetachDiskMethod(cc, ss.Disks, ss.Registry),
 		NewHasDiskMethod(cc, ss.Disks),
 		NewResizeDiskMethod(cc, ss.Disks),
+		NewUpdateDiskMethod(cc, ss.Disks),
 		NewSetDiskMetadataMethod(cc, ss.Disks, ss.Instances),
 		NewSnapshotDiskMethod(cc, ss.Disks),
 		NewDeleteSnapshotMethod(cc, ss.Disks),

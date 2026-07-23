@@ -4,10 +4,12 @@
 package action
 
 import (
+	"archive/tar"
 	"bosh-alicloud-cpi/alicloud"
 	"bosh-alicloud-cpi/mock"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -109,10 +111,28 @@ var _ = Describe("create_stemcell", func() {
 	})
 
 	It("can create stemcell from tarball", func() {
-		r := caller.Run([]byte(`{
+		// CreateFromTarball runs `tar -xf <imagePath>` in the image's directory,
+		// then uploads root.img via the (mocked) OSS manager. Build a real tarball
+		// on disk so the extraction succeeds; the upload and image import are mocked.
+		tmpDir, err := os.MkdirTemp("", "cpi-stemcell-tarball")
+		Expect(err).NotTo(HaveOccurred())
+		defer os.RemoveAll(tmpDir)
+
+		imagePath := filepath.Join(tmpDir, "image")
+		f, err := os.Create(imagePath)
+		Expect(err).NotTo(HaveOccurred())
+		tw := tar.NewWriter(f)
+		content := []byte("fake root image")
+		Expect(tw.WriteHeader(&tar.Header{Name: "root.img", Mode: 0644, Size: int64(len(content))})).To(Succeed())
+		_, err = tw.Write(content)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(tw.Close()).To(Succeed())
+		Expect(f.Close()).To(Succeed())
+
+		r := caller.Run([]byte(fmt.Sprintf(`{
 			"method": "create_stemcell",
 			"arguments": [
-				"/var/vcap/data/tmp/director/stemcell20170926-9684-17ncxdz/image",
+				"%s",
 				{
 					"architecture": "x86_64",
 					"container_format": "",
@@ -131,7 +151,7 @@ var _ = Describe("create_stemcell", func() {
 			"context": {
 				"director_uuid": "073eac6e-7a35-4a49-8c42-68988ea16ca7"
 			}
-		}`))
+		}`, imagePath)))
 		Expect(r.GetError()).NotTo(HaveOccurred())
 	})
 })

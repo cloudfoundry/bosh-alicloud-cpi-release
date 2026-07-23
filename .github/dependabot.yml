@@ -21,7 +21,7 @@ updates:
       production-dependencies:
         patterns:
           - "github.com/cloudfoundry/bosh-utils"
-          - "github.com/cppforlife/bosh-cpi-go"
+          - "github.com/cloudfoundry/bosh-cpi-go"
           - "github.com/alibabacloud-go/*"
           - "github.com/aliyun/*"
       test-dependencies:
@@ -36,7 +36,7 @@ updates:
     # Ignore major version updates for stable dependencies
     ignore:
       # bosh-cpi-go is stable and rarely updated
-      - dependency-name: "github.com/cppforlife/bosh-cpi-go"
+      - dependency-name: "github.com/cloudfoundry/bosh-cpi-go"
         update-types: ["version-update:semver-major"]
     # Allow security updates even if they're major versions
     allow:

@@ -4,8 +4,8 @@
 package action
 
 import (
+	boshrpc "github.com/cloudfoundry/bosh-cpi-go/rpc"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshrpc "github.com/cppforlife/bosh-cpi-go/rpc"
 
 	"bosh-alicloud-cpi/alicloud"
 	"bytes"
@@ -128,6 +128,10 @@ func (c Caller) Run(input []byte) CpiResponse {
 }
 
 func (c Caller) CallGeneric(method string, args ...interface{}) (interface{}, error) {
+	return c.CallGenericAPIVersion(method, 0, args...)
+}
+
+func (c Caller) CallGenericAPIVersion(method string, apiVersion int, args ...interface{}) (interface{}, error) {
 	arguments := ""
 	for i, a := range args {
 		if i > 0 {
@@ -156,8 +160,9 @@ func (c Caller) CallGeneric(method string, args ...interface{}) (interface{}, er
 	in := fmt.Sprintf(`{
 		"method": "%s",
 		"arguments": [%s],
+		"api_version": %d,
 		"context": { "director_uuid": "%s" }
-	}`, method, arguments, "911133bb-7d44-4811-bf8a-b215608bf084")
+	}`, method, arguments, apiVersion, "911133bb-7d44-4811-bf8a-b215608bf084")
 
 	r := c.Run([]byte(in))
 

@@ -7,8 +7,8 @@ import (
 	"bosh-alicloud-cpi/alicloud"
 	"fmt"
 
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
 type RebootVMMethod struct {
