@@ -46,7 +46,8 @@ type StemcellProps struct {
 	OSSBucket   string                 `json:"oss_bucket"`
 	OSSObject   string                 `json:"oss_object"`
 	Description string                 `json:"description,omitempty"`
-	Version     string                 `json:"version"`
+	Version     interface{}            `json:"version"`
+	version     string
 	Images      map[string]interface{} `json:"image_id"`
 }
 
@@ -99,7 +100,27 @@ func (a StemcellProps) Validate() (StemcellProps, error) {
 	//if len(a.Name) >= maxBucketNameLength {
 	//	return a, fmt.Errorf("bosh stemcell name max length is %d", maxBucketNameLength)
 	//}
+
+	// version may arrive as a JSON string ("1003") or number (1003) depending on
+	// the director; normalize to a string for use in image names.
+	switch v := a.Version.(type) {
+	case nil:
+		a.version = ""
+	case string:
+		a.version = v
+	case float64:
+		a.version = strconv.FormatFloat(v, 'f', -1, 64)
+	case int:
+		a.version = strconv.Itoa(v)
+	default:
+		return a, fmt.Errorf("error Stemcell.version type %v", a.Version)
+	}
+
 	return a, nil
+}
+
+func (a StemcellProps) GetVersion() string {
+	return a.version
 }
 
 // Image size minimum is 5GB. Refer to https://www.alibabacloud.com/help/doc-detail/25542.htm
@@ -217,8 +238,8 @@ func (a CreateStemcellMethod) copyImage(stemcellId string, props StemcellProps) 
 	args.ImageId = stemcellId
 	args.RegionId = a.Config.OpenApi.GetRegion("")
 	args.DestinationRegionId = a.Config.OpenApi.GetRegion("")
-	args.DestinationImageName = fmt.Sprintf("bosh-stemcell-%s-%s", props.Version, uuid.New().String())
-	args.DestinationDescription = fmt.Sprintf("Copied from stemcell %s:%s", props.Name, props.Version)
+	args.DestinationImageName = fmt.Sprintf("bosh-stemcell-%s-%s", props.GetVersion(), uuid.New().String())
+	args.DestinationDescription = fmt.Sprintf("Copied from stemcell %s:%s", props.Name, props.GetVersion())
 	args.Encrypted = requests.NewBoolean(true)
 	args.KMSKeyId = kmsKeyId
 
@@ -251,7 +272,7 @@ func (a CreateStemcellMethod) copyImage(stemcellId string, props StemcellProps) 
 }
 
 func (a CreateStemcellMethod) CreateFromTarball(imagePath string, props StemcellProps) (string, error) {
-	imageName := fmt.Sprintf("%s-%s-%s-%s.raw", AlicloudImageNamePrefix, props.Name, props.Version, uuid.New().String())
+	imageName := fmt.Sprintf("%s-%s-%s-%s.raw", AlicloudImageNamePrefix, props.Name, props.GetVersion(), uuid.New().String())
 	bucketName := fmt.Sprintf("%s-%s", alicloud.AlicloudDefaultImageName, uuid.New().String())
 
 	if len(bucketName) > OSS_BUCKET_NAME_MAX_LENGTH {
