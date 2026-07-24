@@ -140,7 +140,10 @@ var _ = Describe("cpi:update_disk", func() {
 	})
 
 	Context("failure modes", func() {
-		It("rejects shrink requests with a plain error, NOT Bosh::Clouds::NotSupported", func() {
+		It("returns Bosh::Clouds::NotSupported for a shrink so the director falls back to copy migration", func() {
+			// AliCloud can't shrink in-place. The CPI returns NotSupported (not a
+			// generic error) so the director's copy/migrate path handles the shrink,
+			// matching the behavior from before update_disk existed.
 			cid, disk := mockContext.NewDisk("")
 			disk.Category = string(alicloud.DiskCategoryCloudESSD)
 			initialSize := disk.Size
@@ -149,7 +152,7 @@ var _ = Describe("cpi:update_disk", func() {
 				"category": string(alicloud.DiskCategoryCloudESSD),
 			})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).NotTo(ContainSubstring(`"type":"Bosh::Clouds::NotSupported"`))
+			Expect(err.Error()).To(ContainSubstring(`"type":"Bosh::Clouds::NotSupported"`))
 			Expect(err.Error()).To(ContainSubstring("cannot shrink"))
 
 			updated := mockContext.Disks[cid]
