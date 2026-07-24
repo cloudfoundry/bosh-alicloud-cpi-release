@@ -122,11 +122,8 @@ shared:
           echo "--- patched director.env ---"
           cat director-state/director.env
 
-# Alibaba Cloud cloud_efficiency disks have a 20 GB minimum (enforced by
-# the CPI in action/disks.go AmendSmallDiskSize, since 2017).  Two upstream
-# BATS tests create disks < 20 GB and assert on the exact byte-size, so they
-# always fail on alicloud.  Inject `skip` with an explanation so they appear
-# as *pending* instead of *failed*.
+# Apply provider-specific compatibility patches to upstream BATS. Guard the
+# instance-type patch so incompatible upstream template changes fail explicitly.
 - &patch-bats
   task: patch-bats
   config:
@@ -148,7 +145,23 @@ shared:
           "The CPI auto-amends smaller requests to 20 GB (AmendSmallDiskSize), "\
           "so byte-size assertions for < 20 GB disks will never match."
 
-          echo "=== Patching BATS: skipping tests incompatible with Alibaba Cloud disk constraints ==="
+          echo "=== Patching BATS for Alibaba Cloud ==="
+
+          # Upstream defaults to ecs.mn4.large, whose eu-central-1a stock is unreliable.
+          # Keep using the upstream run-bats task and only replace the template fallback.
+          template=bats/templates/cloud_config_alicloud.yml.erb
+          old_instance_type='properties.instance_type || "ecs.mn4.large"'
+          new_instance_type='properties.instance_type || "ecs.hfc6.xlarge"'
+          if ! grep -Fq "${old_instance_type}" "${template}"; then
+            echo "Expected instance type fallback not found in ${template}" >&2
+            exit 1
+          fi
+          sed -i "s#${old_instance_type}#${new_instance_type}#" "${template}"
+          if grep -Fq "${old_instance_type}" "${template}" || ! grep -Fq "${new_instance_type}" "${template}"; then
+            echo "Failed to update instance type fallback in ${template}" >&2
+            exit 1
+          fi
+          echo "  [instance type] ecs.mn4.large -> ecs.hfc6.xlarge"
 
           # 1. persistent_disks_spec.rb – "attaches multiple disks"
           #    Creates 5 GB + 4 GB disks, expects exact lsblk byte sizes.
