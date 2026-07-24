@@ -1,7 +1,22 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 59.0.0 (Unreleased)
+## 60.0.0 (Unreleased)
+
+## 59.0.0 (July 24, 2026)
+
+FEATURES:
+
+- Added the `update_disk` CPI method for in-place disk category, performance level, and size changes ([#208](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/208))
+  - Supports forward category changes such as `cloud_efficiency` to `cloud_essd`
+  - Returns `NotSupported` when Alibaba Cloud rejects an in-place disk specification change
+
+FIXES:
+
+- Resolved ephemeral disk device paths for NVMe-capable instance types ([#209](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/209))
+  - Uses stable `/dev/disk/by-id` paths for NVMe and virtio disks
+  - Fails fast and cleans up the VM when the ephemeral disk path cannot be resolved
+- Updated the BATS instance type to avoid intermittent `OperationDenied.NoStock` failures in `eu-central-1a` ([#212](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/212))
 
 ## 58.0.0 (June 10, 2026)
 
@@ -401,4 +416,3 @@ A temporary release for fixing a go sdk invalid timestamp error. (Changed in loc
 ## [r0]
 
 - Early ruby version.
-
