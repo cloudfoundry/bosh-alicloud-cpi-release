@@ -95,6 +95,7 @@ var _ = BeforeSuite(func() {
 					"os_type": "linux",
 					"os_distro": "ubuntu",
 					"root_device_name": "/dev/vda1",
+					"nvme_support": "supported",
 					"version": "${STEMCELL_VERSION}"
 				}
 			],
@@ -109,6 +110,11 @@ var _ = BeforeSuite(func() {
 	Expect(r.GetError()).NotTo(HaveOccurred())
 	existingStemcell = r.GetResultString()
 	Expect(existingStemcell).ToNot(BeEmpty())
+
+	image, err := services.Stemcells.FindStemcellById(existingStemcell)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(image).NotTo(BeNil())
+	Expect(image.Features.NvmeSupport).To(Equal("supported"))
 })
 
 var _ = AfterSuite(func() {
