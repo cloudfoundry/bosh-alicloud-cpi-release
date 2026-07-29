@@ -1,7 +1,19 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 60.0.0 (Unreleased)
+## 61.0.0 (Unreleased)
+
+## 60.0.0 (July 29, 2026)
+
+IMPROVEMENTS:
+
+- Enabled NVMe image support only when the stemcell declares `nvme_support: supported` ([#207](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/207))
+  - Applies to direct image imports and encrypted image copies
+  - Keeps stemcells without the NVMe capability declaration on the legacy image path
+
+TESTS:
+
+- Updated the integration suite to declare and verify NVMe support before testing 9th-generation instance types ([#215](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/215))
 
 ## 59.0.0 (July 24, 2026)
 
