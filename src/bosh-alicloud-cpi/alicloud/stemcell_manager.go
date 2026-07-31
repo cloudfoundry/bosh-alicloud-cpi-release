@@ -115,6 +115,13 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 		return bosherr.WrapErrorf(err, "Alicloud Image '%s' does not exists", id)
 	}
 
+	var snapshotIds []string
+	for _, dm := range image.DiskDeviceMappings.DiskDeviceMapping {
+		if dm.SnapshotId != "" {
+			snapshotIds = append(snapshotIds, dm.SnapshotId)
+		}
+	}
+
 	a.logger.Debug(AlicloudImageServiceTag, "Deleting Alicloud Image '%s'", id)
 	client, err := a.config.NewEcsClient("")
 	if err != nil {
@@ -124,6 +131,15 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 	args.ImageId = id
 	if _, err := client.DeleteImage(args); err != nil {
 		return bosherr.WrapErrorf(err, "Failed to delete Alicloud Image '%s'", id)
+	}
+
+	for _, snapshotId := range snapshotIds {
+		a.logger.Debug(AlicloudImageServiceTag, "Deleting snapshot '%s' for image '%s'", snapshotId, id)
+		snapArgs := ecs.CreateDeleteSnapshotRequest()
+		snapArgs.SnapshotId = snapshotId
+		if _, err := client.DeleteSnapshot(snapArgs); err != nil {
+			a.logger.Warn(AlicloudImageServiceTag, "Failed to delete snapshot '%s' for image '%s': %s", snapshotId, id, err)
+		}
 	}
 
 	return nil
