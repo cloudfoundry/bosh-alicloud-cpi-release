@@ -1,12 +1,3 @@
-variable "access_key" {
-}
-
-variable "secret_key" {
-}
-
-variable "security_token" {
-}
-
 variable "region" {
 }
 
@@ -20,6 +11,14 @@ variable "concourse_worker_ip" {
   default = ""
 }
 
+# Name of the pre-created RAM role attached to the Director VM. It is created
+# once, out of band, because the pipeline's provisioning role is intentionally
+# not granted ram:CreatePolicy / ram:AttachPolicyToRole (that would let the
+# pipeline grant itself arbitrary permissions). See ci/README.md.
+variable "director_role_name" {
+  default = "BoshDirectorRole"
+}
+
 terraform {
   backend "oss" {
   }
@@ -31,11 +30,12 @@ terraform {
   }
 }
 
+# Credentials come from the environment (ALICLOUD_ACCESS_KEY, ALICLOUD_SECRET_KEY
+# and ALICLOUD_SECURITY_TOKEN), which the pipeline fills from the role it
+# assumed. Declaring them as variables would put them into the plan and into any
+# saved plan file.
 provider "alicloud" {
-  access_key     = var.access_key
-  secret_key     = var.secret_key
-  security_token = var.security_token
-  region         = var.region
+  region = var.region
 }
 
 data "alicloud_zones" "default" {
@@ -216,29 +216,22 @@ resource "alicloud_key_pair" "director" {
   public_key    = var.public_key
 }
 
-resource "alicloud_ram_role" "role" {
-  name        = var.env_name
-  description = "a role for bosh integration test"
-  force       = true
-  document    = <<EOF
-  {
-    "Statement": [
-      {
-        "Action": "sts:AssumeRole",
-        "Effect": "Allow",
-        "Principal": {
-          "Service": [
-            "ecs.aliyuncs.com"
-          ]
-        }
-      }
-    ],
-    "Version": "1"
-  }
-  
-EOF
-
+locals {
+  # No fallback to env_name: the role is pre-created and shared, not per-env.
+  director_role_name = var.director_role_name
 }
+
+# The Director VM runs the CPI under this pre-created RAM role and discovers its
+# credentials from instance metadata, so no access key is ever written to the
+# Director. The role and its permission policy are created once, out of band
+# (see ci/README.md); the pipeline only references it by name and attaches it to
+# the VM at create time.
+#
+# Terraform deliberately does not look up, create, or manage the role: the
+# provisioning role is intentionally granted neither ram:ListRoles nor
+# ram:CreatePolicy / ram:AttachPolicyToRole, so it cannot grant itself
+# permissions. If the role is missing, `bosh create-env` fails with a clear
+# "RAM role not found" error when it attaches the role to the Director VM.
 
 output "vpc_id" {
   value = alicloud_vpc.default.id
@@ -326,6 +319,6 @@ output "integration_bucket" {
 }
 
 output "ram_role" {
-  value = alicloud_ram_role.role.name
+  value = local.director_role_name
 }
 

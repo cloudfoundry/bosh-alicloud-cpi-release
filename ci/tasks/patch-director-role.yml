@@ -1,16 +1,19 @@
 ---
 platform: linux
+
 image_resource:
   type: registry-image
   source:
     repository: bosh/integration
     tag: main
+
 inputs:
   - name: bosh-cpi-src
-  - name: bosh-cpi-release
-  - name: release-version-semver
-  - name: bosh-cli
+  - name: bosh-deployment
+  - name: environment
+
 outputs:
-  - name: promoted
+  - name: bosh-deployment
+
 run:
-  path: bosh-cpi-src/ci/tasks/promote-candidate.sh
+  path: bosh-cpi-src/ci/tasks/patch-director-role.sh

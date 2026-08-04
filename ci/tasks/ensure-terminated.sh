@@ -2,11 +2,15 @@
 
 set -e
 
-: ${ALICLOUD_ACCESS_KEY_ID:?}
-: ${ALICLOUD_ACCESS_KEY_SECRET:?}
 : ${ALICLOUD_DEFAULT_REGION:?}
+: ${cleanup_role_arn:?}
 
 source bosh-cpi-src/ci/tasks/utils.sh
+source bosh-cpi-src/ci/tasks/credentials.sh
+
+# Assume the provisioning role from scratch: this task runs in the `ensure` of a
+# failed job, so it cannot rely on anything the main task produced.
+region="${ALICLOUD_DEFAULT_REGION}" assume_pipeline_role "${cleanup_role_arn}" "cleanup"
 
 metadata=$(cat environment/metadata)
 vpc_id=$(echo ${metadata} | jq --raw-output ".vpc_id")
@@ -15,8 +19,6 @@ echo "Checking whether there still exists instances in the VPC ${vpc_id} and the
 if [[ ! -z "${vpc_id}" ]] ; then
   instance_ids="$(echo $(aliyun ecs DescribeInstances \
     --VpcId ${vpc_id} \
-    --access-key-id ${ALICLOUD_ACCESS_KEY_ID} \
-    --access-key-secret ${ALICLOUD_ACCESS_KEY_SECRET} \
     --region ${ALICLOUD_DEFAULT_REGION}
     ) | jq -r '.Instances.Instance[].InstanceId'
     )"
@@ -28,8 +30,6 @@ if [[ ! -z "${vpc_id}" ]] ; then
     aliyun ecs DeleteInstance \
             --InstanceId ${inst} \
             --Force true \
-            --access-key-id ${ALICLOUD_ACCESS_KEY_ID} \
-            --access-key-secret ${ALICLOUD_ACCESS_KEY_SECRET} \
             --region ${ALICLOUD_DEFAULT_REGION}
   done
 fi

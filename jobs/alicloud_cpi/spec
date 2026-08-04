@@ -16,14 +16,20 @@ properties:
   alicloud.availability_zone:
     description: "Alibaba Cloud default zone, each region has several zones."
     default: ""
+  alicloud.credential_source:
+    description: "How the CPI obtains Alibaba Cloud credentials. `static` uses `access_key_id`/`access_key_secret`; `ecs_ram_role` uses short-lived STS credentials issued to the RAM role attached to the instance the CPI runs on."
+    default: "static"
+  alicloud.ram_role_name:
+    description: "RAM role to use when `credential_source` is `ecs_ram_role`. Leave empty to discover the role attached to the current instance, which lets the same config work both on the machine running `bosh create-env` and on the Director."
+    default: ""
   alicloud.access_key_id:
-    description: "Alibaba Cloud `Access key id`. Default to env `ACCESS_KEY_ID`."
+    description: "Alibaba Cloud `Access key id`. Only used when `credential_source` is `static`. Default to env `ACCESS_KEY_ID`."
     default: ""
   alicloud.access_key_secret:
-    description: "Alibaba Cloud `Access key secret`. Default to env `ACCESS_KEY_SECRET`."
+    description: "Alibaba Cloud `Access key secret`. Only used when `credential_source` is `static`. Default to env `ACCESS_KEY_SECRET`."
     default: ""
   alicloud.security_token:
-    description: "Alibaba Cloud STS token. Default to env `SECURITY_TOKEN`."
+    description: "Alibaba Cloud STS token. Only used when `credential_source` is `static`. Default to env `SECURITY_TOKEN`."
     default: ""
   alicloud.encrypted:
     description: "Whether to encrypt alibaba cloud disk. Default to `false`."

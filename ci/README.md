@@ -10,14 +10,18 @@ fly -t alicloud login -c <YOUR CONCOURSE URL>
 And then:
  * Create the variable file vars-pipeline-develop.yml
 
+ The pipeline holds no long-lived Alibaba Cloud access key. Every task starts from
+ the RAM role attached to the Concourse worker ECS instance and assumes
+ `terraform_role_arn` for the work it needs to do, so only the role ARN, bucket
+ and region are configured here. See `docs/design/zero-long-lived-ak-spec.md`.
+
  ```
 
- alicloud_access_key__primary: YOUR_ALICLOUD_ACCESS_KEY
- alicloud_secret_key__primary: YOUR_ALICLOUD_SECRET_KEY
  alicloud_region__primary:     REGION # cn-beijing
- alicloud__cpi_stemcell_id:    CPI_STEMCELL_ID # m-2ze1cneefoj075diqyeh
- alicloud__cpi_internal_ip:    CPI_INTERNAL_IP # 172.16.0.2
- alicloud__cpi_internal_gw:    CPI_INTERNAL_GATEWAY # 172.16.0.1
+ terraform_role_arn:           acs:ram::<account-id>:role/<provisioning-role>
+ terraform_backend_bucket:     OSS_BUCKET_FOR_TERRAFORM_STATE
+ terraform_backend_region:     REGION
+ PUBLIC_KEY:                   "ssh-ed25519 ... # must match the private key below"
  github_user_email:            YOUR_GITHUB_ACCOUNT_EMAIL
  github_user_name:             YOUR_GITHUB_ACCOUNT_NAME
  github_user_id:               YOUR_GITHUB_ACCOUNT_ID
@@ -27,9 +31,10 @@ And then:
    YOUR_LOCAL_PRIVATE_KEY
    -----END RSA PRIVATE KEY-----
  alicloud_director_vars_file: |
-   -----BEGIN RSA PRIVATE KEY-----
-   YOUR_BOSH_DIRECTOR_PRIVATE_KEY
-   -----END RSA PRIVATE KEY-----
+   private_key: |
+     -----BEGIN RSA PRIVATE KEY-----
+     YOUR_BOSH_DIRECTOR_PRIVATE_KEY
+     -----END RSA PRIVATE KEY-----
  ```
 
 * Set the BOSH Alicloud CPI pipeline:

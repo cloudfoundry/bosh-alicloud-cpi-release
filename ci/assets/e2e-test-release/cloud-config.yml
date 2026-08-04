@@ -16,12 +16,16 @@ vm_types:
     cloud_properties:
       <<: *default_cloud_properties
       slbs: [((slb))]
+      # The errand reads short-lived credentials from instance metadata.
+      ram_role_name: ((ram_role))
   - name: spot_instance_pool
     cloud_properties:
       <<: *default_cloud_properties
       instance_type: ecs.sn1ne.large
       spot_strategy: "SpotWithPriceLimit"
       spot_price_limit: 0.10 # 10x the normal bid price
+      # The errand reads short-lived credentials from instance metadata.
+      ram_role_name: ((ram_role))
 
 compilation:
   reuse_compilation_vms: true

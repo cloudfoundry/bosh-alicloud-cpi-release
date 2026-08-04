@@ -11,7 +11,5 @@ templates:
 properties:
   ecs_region:
     description: The Alicloud region in which the errand is run
-  access_key:
-    description: The Alicloud Access Key
-  secret_key:
-    description: The Alicloud Access Secret Key
+  ram_role_name:
+    description: The RAM role attached to this VM, used to obtain short-lived credentials from instance metadata

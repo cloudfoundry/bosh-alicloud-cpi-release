@@ -5,12 +5,13 @@ export PATH=$(readlink -nf /var/vcap/packages/jq):/usr/local/bin:/var/vcap/packa
 
 slb_id=<%= p('load_balancer_id') %>
 region=<%= p('ecs_region') %>
-key=<%= p('access_key') %>
-secret=<%= p('secret_key') %>
+ram_role_name=<%= p('ram_role_name') %>
 
 echo "fetching instance ID"
 instance_id=$(curl http://100.100.100.200/latest/meta-data/instance-id)
 echo "instance id: $instance_id"
 
 echo "checking if our instance $instance_id is registered with $slb_id"
-aliyun slb DescribeLoadBalancerAttribute --LoadBalancerId "$slb_id" --access-key-id $key --access-key-secret $secret --region $region | jq --arg instance_id $instance_id -e '.BackendServers.BackendServer[0] | select(.ServerId == $instance_id)'
+# Credentials come from the RAM role attached to this VM, so no access key is
+# baked into the errand.
+aliyun slb DescribeLoadBalancerAttribute --LoadBalancerId "$slb_id" --mode EcsRamRole --ram-role-name $ram_role_name --region $region | jq --arg instance_id $instance_id -e '.BackendServers.BackendServer[0] | select(.ServerId == $instance_id)'

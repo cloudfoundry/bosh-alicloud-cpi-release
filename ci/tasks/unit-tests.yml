@@ -14,8 +14,3 @@ run:
   - |
     chmod +x bosh-cpi-src/ci/tasks/unit-tests.sh
     bash bosh-cpi-src/ci/tasks/unit-tests.sh
-
-params:
-  ALICLOUD_ACCESS_KEY_ID:     ""
-  ALICLOUD_ACCESS_KEY_SECRET: ""
-  ALICLOUD_DEFAULT_REGION:    ""

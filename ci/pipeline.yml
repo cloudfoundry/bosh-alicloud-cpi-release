@@ -37,31 +37,28 @@ shared:
   task: run-e2e
   image: bosh-integration-image
   file: bosh-cpi-src/ci/tasks/run-e2e.yml
-  params:
-    ALICLOUD_ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
-    ALICLOUD_SECRET_ACCESS_KEY:          {{alicloud_secret_key__primary}}
 
 - &put-environment
   task: put-environment
   file: bosh-cpi-src/ci/tasks/put-environment.yml
   params: &put-environment-params
-    access_key: {{alicloud_access_key__primary}}
-    secret_key: {{alicloud_secret_key__primary}}
     region:     {{alicloud_region__primary}}
     terraform_role_arn: {{terraform_role_arn}}
-    remote_state_access_key: {{terraform_backend_access_key}}
-    remote_state_secret_key: {{terraform_backend_secret_key}}
+    director_role_name: {{director_role_name}}
     remote_state_bucket:     {{terraform_backend_bucket}}
     remote_state_region:     {{terraform_backend_region}}
     remote_state_file_path:  "bosh-alicloud-cpi-state"
     public_key: ((PUBLIC_KEY))
 
+- &patch-director-role
+  task: patch-director-role
+  file: bosh-cpi-src/ci/tasks/patch-director-role.yml
+
 - &ensure-terminated
   task: ensure-terminated
   file: bosh-cpi-src/ci/tasks/ensure-terminated.yml
   params:
-    ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-    ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
+    cleanup_role_arn:           {{terraform_role_arn}}
     ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
 
 - &teardown
@@ -213,8 +210,7 @@ jobs:
   - task: test
     file: bosh-cpi-src/ci/tasks/run-integration.yml
     params:
-      ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-      ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
+      test_role_arn: {{terraform_role_arn}}
     ensure:
       do:
         - <<: *ensure-terminated
@@ -249,6 +245,7 @@ jobs:
       terraform_source: bosh-cpi-src/ci/assets/terraform
   - do:
     - <<: *patch-director-size
+    - <<: *patch-director-role
     - <<: *prepare-director
       params:
         <<: *prepare-director-params
@@ -257,6 +254,7 @@ jobs:
           -o bosh-deployment/external-ip-with-registry-not-recommended.yml
           -o pipelines/shared/assets/ops/remove-provider-cert.yml
           -o bosh-deployment/director-instance-type.yml
+          -o bosh-deployment/director-ram-role.yml
     - do:
         - <<: *deploy-director
         - <<: *patch-director-env
@@ -299,6 +297,7 @@ jobs:
       terraform_source: bosh-cpi-src/ci/assets/terraform
   - do:
     - <<: *patch-director-size
+    - <<: *patch-director-role
     - <<: *prepare-director
       params:
         <<: *prepare-director-params
@@ -306,7 +305,7 @@ jobs:
           -o bosh-deployment/external-ip-with-registry-not-recommended.yml
           -o pipelines/shared/assets/ops/remove-provider-cert.yml
           -o bosh-deployment/director-instance-type.yml
-#              -o pipelines/alicloud/assets/ops/ram-instance-profile-ops-file.yml
+          -o bosh-deployment/director-ram-role.yml
     - do:
         - <<: *deploy-director
         - <<: *patch-director-env
@@ -333,9 +332,6 @@ jobs:
     - {get: bosh-cli,               trigger: false}
   - task: promote
     file: bosh-cpi-src/ci/tasks/promote-candidate.yml
-    params:
-      ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-      ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
   - put: bosh-cpi-src-out
     params: {repository: promoted/repo, rebase: true, tag_prefix: "v", tag: promoted/integer_version}
   - put: release-version-semver
@@ -445,12 +441,13 @@ resources:
       uri: https://github.com/cloudfoundry/bosh-deployment
       branch: master
 
+  # Fetched from the public GitHub release rather than a private OSS mirror, so
+  # the pipeline needs no credentials for it.
   - name: aliyun-cli
-    type: s3
+    type: github-release
+    check_every: 24h
     source:
-      access_key_id: {{aliyun_cli_access_key}}
-      secret_access_key: {{aliyun_cli_secret_key}}
-      bucket: {{aliyun_cli_bucket}}
-      regexp: .*-cli-linux-3\.0\.(\d+)-amd64\.tgz
-      region_name: {{aliyun_cli_region}}
-      endpoint: oss-((aliyun_cli_region)).aliyuncs.com
+      owner: aliyun
+      repository: aliyun-cli
+      globs:
+        - aliyun-cli-linux-*-amd64.tgz

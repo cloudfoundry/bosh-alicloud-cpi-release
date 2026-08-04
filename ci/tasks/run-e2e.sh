@@ -51,10 +51,10 @@ time bosh -n ucc \
 # BOSH DEPLOY
 #-v "heavy_stemcell_name=${heavy_stemcell_name}" \
 #-v "encrypted_heavy_stemcell_img_id=${encrypted_heavy_stemcell_img_id}" \
+# The errands authenticate with the RAM role the CPI attaches to their VMs, whose
+# name comes from the environment metadata; no access key is passed in.
 time bosh -n deploy -d e2e-test \
   -v "stemcell_name=${stemcell_name}" \
-  -v access_key=${ALICLOUD_ACCESS_KEY_ID} \
-  -v secret_key=${ALICLOUD_SECRET_ACCESS_KEY} \
   -l ${METADATA_FILE} \
   bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
 

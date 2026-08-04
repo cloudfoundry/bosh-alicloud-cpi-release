@@ -15,19 +15,17 @@ outputs:
 run:
   path: bosh-cpi-src/ci/tasks/put-environment.sh
 params:
-  access_key: ""
-  secret_key: ""
   region: ""
   env_name: ""
   public_key: ""
   delete_on_failure: false
   generate_random_name: false
   action: ""
+  # Assumed from the Concourse worker's instance role; no access key is passed in.
   terraform_role_arn: ""
+  director_role_name: ""
   terraform_source: ""
   output_module: ""
-  remote_state_access_key: ""
-  remote_state_secret_key: ""
   remote_state_region: ""
   remote_state_bucket: ""
   remote_state_file_path: ""
