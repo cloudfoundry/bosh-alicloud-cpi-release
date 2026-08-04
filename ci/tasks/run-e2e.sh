@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 source bosh-cpi-src/ci/tasks/utils.sh
 source director-state/director.env
@@ -9,6 +9,11 @@ CURRENT_PATH=$(pwd)
 JQ_BLOB_PATH=$CURRENT_PATH/jq-blob
 ALIYUN_CLI_PATH=$CURRENT_PATH/aliyun-cli
 METADATA_FILE=$CURRENT_PATH/environment/metadata
+
+: "${ALICLOUD_ACCESS_KEY_ID:?}"
+: "${ALICLOUD_SECRET_ACCESS_KEY:?}"
+: "${LEGACY_INSTANCE_TYPE:?}"
+: "${NVME_INSTANCE_TYPE:?}"
 
 # add blobs for e2e test
 # when e2e-test-release/config/final set to remote storage, this code can be removed
@@ -46,16 +51,18 @@ stemcell_name="$( bosh int <( tar xfO $(realpath stemcell/*.tgz) stemcell.MF ) -
 #UPDATE CLOUD CONFIG
 time bosh -n ucc \
   -l ${METADATA_FILE} \
+  -v "legacy_instance_type=${LEGACY_INSTANCE_TYPE}" \
+  -v "nvme_instance_type=${NVME_INSTANCE_TYPE}" \
   bosh-cpi-src/ci/assets/e2e-test-release/cloud-config.yml
 
 # BOSH DEPLOY
-#-v "heavy_stemcell_name=${heavy_stemcell_name}" \
-#-v "encrypted_heavy_stemcell_img_id=${encrypted_heavy_stemcell_img_id}" \
 time bosh -n deploy -d e2e-test \
   -v "stemcell_name=${stemcell_name}" \
-  -v access_key=${ALICLOUD_ACCESS_KEY_ID} \
-  -v secret_key=${ALICLOUD_SECRET_ACCESS_KEY} \
-  -l ${METADATA_FILE} \
+  -v "nvme_vm_type=nvme_upgrade_legacy" \
+  -v "nvme_disk_type=nvme_upgrade_legacy" \
+  -v "access_key=${ALICLOUD_ACCESS_KEY_ID}" \
+  -v "secret_key=${ALICLOUD_SECRET_ACCESS_KEY}" \
+  -l "${METADATA_FILE}" \
   bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
 
 # RUN ERRANDS

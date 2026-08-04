@@ -11,17 +11,14 @@ inputs:
   - name: bosh-cpi-src
   - name: environment
   - name: stemcell
-  - name: heavy-stemcell
   - name: bosh-cli
   - name: director-state
-  - name: jq-blob
   - name: aliyun-cli
 
 run:
-  path: bosh-cpi-src/ci/tasks/run-e2e.sh
+  path: bosh-cpi-src/ci/tasks/run-nvme-customer-journey.sh
 
 params:
-  BOSH_DEBUG_LEVEL: info
   ALICLOUD_ACCESS_KEY_ID: ""
   ALICLOUD_SECRET_ACCESS_KEY: ""
   LEGACY_INSTANCE_TYPE: ecs.hfc6.xlarge

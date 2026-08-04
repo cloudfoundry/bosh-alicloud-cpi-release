@@ -1,0 +1,5 @@
+check process nvme-upgrade-test
+  with pidfile /var/vcap/sys/run/nvme-upgrade-test/nvme-upgrade-test.pid
+  start program "/var/vcap/jobs/nvme-upgrade-test/bin/ctl start"
+  stop program "/var/vcap/jobs/nvme-upgrade-test/bin/ctl stop"
+  group vcap

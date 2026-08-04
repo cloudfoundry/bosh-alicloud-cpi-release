@@ -22,6 +22,40 @@ vm_types:
       instance_type: ecs.sn1ne.large
       spot_strategy: "SpotWithPriceLimit"
       spot_price_limit: 0.10 # 10x the normal bid price
+  - name: nvme_upgrade_legacy
+    cloud_properties:
+      instance_type: ((legacy_instance_type))
+      availability_zone: ((zone))
+      system_disk:
+        size: 40960
+        category: cloud_efficiency
+      ephemeral_disk:
+        size: 40960
+        category: cloud_efficiency
+  - name: nvme_upgrade_target
+    cloud_properties:
+      instance_type: ((nvme_instance_type))
+      availability_zone: ((zone))
+      system_disk:
+        size: 40960
+        category: cloud_essd
+      ephemeral_disk:
+        size: 40960
+        category: cloud_essd
+
+disk_types:
+  - name: nvme_upgrade_legacy
+    disk_size: 40960
+    cloud_properties:
+      category: cloud_efficiency
+  - name: nvme_upgrade_target
+    disk_size: 40960
+    cloud_properties:
+      category: cloud_essd
+  - name: nvme_upgrade_target_smaller
+    disk_size: 20480
+    cloud_properties:
+      category: cloud_essd
 
 compilation:
   reuse_compilation_vms: true
