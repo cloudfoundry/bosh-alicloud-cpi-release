@@ -193,7 +193,9 @@ jobs:
         - <<: *run-bats
       ensure:
         do:
-          - <<: *refresh-director-credentials
+          # try: a failed refresh must not skip teardown or ensure-terminated.
+          - try:
+              <<: *refresh-director-credentials
           - <<: *teardown
           - <<: *ensure-terminated
     ensure:
@@ -240,7 +242,9 @@ jobs:
         - <<: *run-end-2-end
       ensure:
         do:
-          - <<: *refresh-director-credentials
+          # try: a failed refresh must not skip teardown or ensure-terminated.
+          - try:
+              <<: *refresh-director-credentials
           - <<: *teardown
           - <<: *ensure-terminated
     ensure:

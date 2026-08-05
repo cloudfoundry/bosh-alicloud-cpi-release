@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -uo pipefail
 
 : ${provision_role_arn:?}
 : ${region:?}
@@ -12,42 +12,51 @@ source bosh-cpi-src/ci/tasks/credentials.sh
 # into the director manifest at deploy time. A build runs for hours while an
 # assumed-role session lasts an hour, so that credential is expired by then and
 # teardown would fail, leaving the director VM behind. Mint a fresh one.
+#
+# This runs first in an `ensure` block, so it must never fail: a non-zero exit
+# would skip teardown and ensure-terminated and leak the whole environment. Warn
+# and let the cleanup chain continue instead.
+warn_and_exit() {
+  echo "WARNING: $1; teardown will use the credential from deploy time" >&2
+  exit 0
+}
+
 if [[ ! -f "${DIRECTOR_MANIFEST}" ]]; then
   echo "${DIRECTOR_MANIFEST} does not exist, nothing to refresh"
   exit 0
 fi
 
-ensure_aliyun_cli
-assume_pipeline_role "${provision_role_arn}" "teardown"
+command -v bosh >/dev/null 2>&1 || warn_and_exit "the bosh CLI is not on PATH"
 
-python3 - "${DIRECTOR_MANIFEST}" <<'PY'
-import os, sys, yaml
+ensure_aliyun_cli || warn_and_exit "could not install the aliyun CLI"
+assume_pipeline_role "${provision_role_arn}" "teardown" || warn_and_exit "AssumeRole failed"
 
-path = sys.argv[1]
-with open(path) as f:
-    manifest = yaml.safe_load(f)
+ops=$(mktemp)
+cat > "${ops}" <<EOF
+- path: /cloud_provider/properties/alicloud/access_key_id?
+  type: replace
+  value: ${ALIBABA_CLOUD_ACCESS_KEY_ID}
+- path: /cloud_provider/properties/alicloud/access_key_secret?
+  type: replace
+  value: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET}
+- path: /cloud_provider/properties/alicloud/security_token?
+  type: replace
+  value: ${ALIBABA_CLOUD_SECURITY_TOKEN}
+EOF
 
-alicloud = manifest.get('cloud_provider', {}).get('properties', {}).get('alicloud')
-if alicloud is None:
-    raise SystemExit('cloud_provider.properties.alicloud missing from %s' % path)
+# bosh int keeps the manifest valid; the image's python has no yaml module.
+refreshed=$(mktemp)
+if ! bosh int "${DIRECTOR_MANIFEST}" -o "${ops}" > "${refreshed}" 2>/tmp/bosh-int-err; then
+  rm -f "${ops}"
+  echo "  bosh int failed: $(head -3 /tmp/bosh-int-err | tr '\n' ' ')" >&2
+  warn_and_exit "could not rewrite ${DIRECTOR_MANIFEST}"
+fi
 
-alicloud['access_key_id'] = os.environ['ALIBABA_CLOUD_ACCESS_KEY_ID']
-alicloud['access_key_secret'] = os.environ['ALIBABA_CLOUD_ACCESS_KEY_SECRET']
-alicloud['security_token'] = os.environ['ALIBABA_CLOUD_SECURITY_TOKEN']
+if [[ ! -s "${refreshed}" ]]; then
+  rm -f "${ops}" "${refreshed}"
+  warn_and_exit "bosh int produced an empty manifest"
+fi
 
-with open(path, 'w') as f:
-    yaml.safe_dump(manifest, f, default_flow_style=False)
-
-print('  refreshed cloud_provider credentials in %s' % path)
-PY
-
-# Fail loudly rather than let teardown discover a broken manifest.
-python3 -c "
-import yaml, sys
-m = yaml.safe_load(open('${DIRECTOR_MANIFEST}'))
-a = m['cloud_provider']['properties']['alicloud']
-missing = [k for k in ('access_key_id', 'access_key_secret', 'security_token') if not a.get(k)]
-if missing:
-    sys.exit('refresh left these empty: %s' % missing)
-print('  manifest still parses and carries a complete credential')
-"
+mv "${refreshed}" "${DIRECTOR_MANIFEST}"
+rm -f "${ops}"
+echo "  refreshed the cloud_provider credential in ${DIRECTOR_MANIFEST}"
