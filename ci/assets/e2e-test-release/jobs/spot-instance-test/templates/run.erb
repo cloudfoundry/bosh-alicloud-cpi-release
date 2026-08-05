@@ -4,16 +4,19 @@ set -e -o pipefail
 export PATH=$(readlink -nf /var/vcap/packages/jq):/usr/local/bin:/var/vcap/packages/aliyuncli/bin/:${PATH}
 
 region=<%= p('ecs_region') %>
-ram_role_name=<%= p('ram_role_name') %>
+key=<%= p('access_key') %>
+secret=<%= p('secret_key') %>
+token=<%= p('security_token') %>
 
 echo "fetching instance ID"
 instance_id=$(curl http://100.100.100.200/latest/meta-data/instance-id)
 echo "instance id: $instance_id"
 
 echo "checking if our instance $instance_id is a spot instance"
-# Credentials come from the RAM role attached to this VM, so no access key is
-# baked into the errand.
-instance_info="$(aliyun ecs DescribeInstances --InstanceIds \[\"${instance_id}\"\] --mode EcsRamRole --ram-role-name $ram_role_name --region $region)"
+# A short-lived assumed-role credential, not a long-lived access key. The errand
+# VM is deliberately given no RAM role: attaching one would require the
+# director's CPI to hold ram:PassRole.
+instance_info="$(aliyun ecs DescribeInstances --InstanceIds \[\"${instance_id}\"\] --access-key-id $key --access-key-secret $secret --sts-token $token --region $region)"
 spot_strategy="$(echo ${instance_info} | jq -r '.Instances.Instance[0].SpotStrategy')"
 
 if [ "${spot_strategy}" != "SpotWithPriceLimit" ]; then

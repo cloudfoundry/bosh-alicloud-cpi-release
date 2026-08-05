@@ -37,6 +37,9 @@ shared:
   task: run-e2e
   image: bosh-integration-image
   file: bosh-cpi-src/ci/tasks/run-e2e.yml
+  params:
+    provision_role_arn: {{terraform_role_arn}}
+    region:             {{alicloud_region__primary}}
 
 - &put-environment
   task: put-environment

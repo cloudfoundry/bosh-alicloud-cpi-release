@@ -3,7 +3,11 @@
 set -e
 
 source bosh-cpi-src/ci/tasks/utils.sh
+source bosh-cpi-src/ci/tasks/credentials.sh
 source director-state/director.env
+
+: ${provision_role_arn:?}
+: ${region:?}
 
 CURRENT_PATH=$(pwd)
 JQ_BLOB_PATH=$CURRENT_PATH/jq-blob
@@ -51,10 +55,17 @@ time bosh -n ucc \
 # BOSH DEPLOY
 #-v "heavy_stemcell_name=${heavy_stemcell_name}" \
 #-v "encrypted_heavy_stemcell_img_id=${encrypted_heavy_stemcell_img_id}" \
-# The errands authenticate with the RAM role the CPI attaches to their VMs, whose
-# name comes from the environment metadata; no access key is passed in.
+# The errands query ECS and SLB to assert what the CPI did, so they need a
+# credential of their own. They get a short-lived assumed-role one rather than a
+# RAM role on their VM, which would require the director's CPI to hold
+# ram:PassRole.
+assume_pipeline_role "${provision_role_arn}" "e2e"
+
 time bosh -n deploy -d e2e-test \
   -v "stemcell_name=${stemcell_name}" \
+  -v "access_key=${ALIBABA_CLOUD_ACCESS_KEY_ID}" \
+  -v "secret_key=${ALIBABA_CLOUD_ACCESS_KEY_SECRET}" \
+  -v "security_token=${ALIBABA_CLOUD_SECURITY_TOKEN}" \
   -l ${METADATA_FILE} \
   bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
 
