@@ -53,6 +53,18 @@ shared:
 - &patch-director-role
   task: patch-director-role
   file: bosh-cpi-src/ci/tasks/patch-director-role.yml
+  params: &director-role-params
+    provision_role_arn: {{terraform_role_arn}}
+    region:             {{alicloud_region__primary}}
+
+# An assumed-role session lasts an hour and a build runs for hours, so the
+# credential baked into the director manifest at deploy time is expired by the
+# time teardown runs `bosh delete-env`. Refresh it first.
+- &refresh-director-credentials
+  task: refresh-director-credentials
+  file: bosh-cpi-src/ci/tasks/refresh-director-credentials.yml
+  params:
+    <<: *director-role-params
 
 - &ensure-terminated
   task: ensure-terminated
@@ -262,6 +274,7 @@ jobs:
         - <<: *run-bats
       ensure:
         do:
+          - <<: *refresh-director-credentials
           - <<: *teardown
           - <<: *ensure-terminated
     ensure:
@@ -312,6 +325,7 @@ jobs:
         - <<: *run-end-2-end
       ensure:
         do:
+          - <<: *refresh-director-credentials
           - <<: *teardown
           - <<: *ensure-terminated
     ensure:

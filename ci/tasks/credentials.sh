@@ -100,6 +100,19 @@ build_session_name() {
   printf '%s' "${raw}" | tr -c 'a-zA-Z0-9.@_-' '-' | cut -c1-64
 }
 
+# ensure_aliyun_cli installs the CLI when the task image does not ship it. The
+# credential bootstrap needs it to call AssumeRole, and it is fetched from
+# Alibaba Cloud's public CDN so no credential is required to get it.
+ensure_aliyun_cli() {
+  if command -v aliyun >/dev/null 2>&1; then
+    return 0
+  fi
+  local dir="$(mktemp -d)"
+  wget -qO "${dir}/aliyun-cli.tgz" https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz
+  tar -zxf "${dir}/aliyun-cli.tgz" -C /usr/bin
+  rm -rf "${dir}"
+}
+
 # assume_pipeline_role exchanges the worker role credential for the role that
 # owns the work about to be done, and exports the result under every variable
 # name the aliyun CLI and the Terraform alicloud provider understand.

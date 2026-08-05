@@ -3,24 +3,35 @@
 set -euo pipefail
 
 : ${METADATA_FILE:=environment/metadata}
+: ${provision_role_arn:?}
+: ${region:?}
+
+source bosh-cpi-src/ci/tasks/credentials.sh
 
 ram_role_name=$(python3 -c "import json; print(json.load(open('${METADATA_FILE}'))['ram_role'])")
 
 if [[ -z "${ram_role_name}" ]]; then
-  echo "environment metadata has no ram_role; terraform must create the director role" >&2
+  echo "environment metadata has no ram_role" >&2
   exit 1
 fi
 
-echo "Configuring the director to run the CPI under RAM role: ${ram_role_name}"
-
-# Applied after bosh-deployment/alicloud/cpi.yml, so it can drop the access key
-# that cpi.yml puts in the manifest.
+# Two CPIs are configured here, and they cannot share a credential source:
 #
-# Two CPIs are configured here:
-#   - /cloud_provider is the CPI that `bosh create-env` runs locally, which picks
-#     up the Concourse worker's own role by leaving ram_role_name unset.
-#   - /instance_groups/name=bosh is the CPI on the Director, which gets the role
-#     that terraform attaches to the Director VM.
+#   /instance_groups/name=bosh is the CPI on the Director. It uses the RAM role
+#   that terraform attaches to the Director VM, read from instance metadata and
+#   refreshed automatically.
+#
+#   /cloud_provider is the CPI that `bosh create-env` runs locally on the
+#   Concourse worker. It cannot use the worker's own instance role: that role is
+#   deliberately limited to sts:AssumeRole, so ecs:CreateInstance is denied. It
+#   therefore gets a short-lived credential assumed here. The same credential is
+#   refreshed before teardown, because a build runs far longer than a session
+#   lasts.
+ensure_aliyun_cli
+assume_pipeline_role "${provision_role_arn}" "create-env"
+
+echo "Director CPI will run under RAM role: ${ram_role_name}"
+
 cat > bosh-deployment/director-ram-role.yml <<EOF
 - path: /resource_pools/name=vms/cloud_properties/ram_role_name?
   type: replace
@@ -34,14 +45,17 @@ cat > bosh-deployment/director-ram-role.yml <<EOF
 - path: /instance_groups/name=bosh/properties/alicloud/access_key_secret
   type: remove
 
-- path: /cloud_provider/properties/alicloud/credential_source?
+- path: /cloud_provider/properties/alicloud/access_key_id?
   type: replace
-  value: ecs_ram_role
-- path: /cloud_provider/properties/alicloud/access_key_id
-  type: remove
-- path: /cloud_provider/properties/alicloud/access_key_secret
-  type: remove
+  value: ${ALIBABA_CLOUD_ACCESS_KEY_ID}
+- path: /cloud_provider/properties/alicloud/access_key_secret?
+  type: replace
+  value: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET}
+- path: /cloud_provider/properties/alicloud/security_token?
+  type: replace
+  value: ${ALIBABA_CLOUD_SECURITY_TOKEN}
 EOF
 
-echo "--- director-ram-role.yml ---"
-cat bosh-deployment/director-ram-role.yml
+# The file holds a live credential, so print only its shape.
+echo "--- director-ram-role.yml (values redacted) ---"
+sed -E 's/^(  value: ).+/\1<redacted>/' bosh-deployment/director-ram-role.yml
