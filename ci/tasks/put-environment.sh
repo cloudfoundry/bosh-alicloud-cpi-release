@@ -76,6 +76,12 @@ pushd ${terraform_source}
         -var "director_role_name=${director_role_name}"
     )
 
+    # Terraform failures must not be swallowed. `set +e` below lets a failed
+    # apply fall through to the delete-on-failure path, so every exit code is
+    # captured and the task fails at the end if any of them was non-zero.
+    # Reporting success after a failed destroy is what lets an environment
+    # survive unnoticed and collide with the next build.
+    terraform_status=0
     set +e
 
     echo -e "******* Build terraform environment ******** \n"
@@ -83,28 +89,42 @@ pushd ${terraform_source}
     if [[ ${action} == "destroy" ]]; then
         echo -e "******** Try to delete environment ********\n"
         terraform apply -destroy -auto-approve "${terraform_vars[@]}"
+        terraform_status=$?
     else
         echo -e "******** Try to build environment ********\n"
         terraform apply --auto-approve "${terraform_vars[@]}"
-        if [[ $? -eq 0 ]]; then
+        apply_status=$?
+        if [[ ${apply_status} -eq 0 ]]; then
             echo -e "******** Build terraform environment successfully ******** \n"
             ls -al
             echo "{" > ${output_path}/${output_module}
             terraform output >> ${output_path}/${output_module}
             sed -i '2,$s/^/"/g; 2, $s/$/,/g; $s/,//g; 2,$s/ = /": /g' ${output_path}/${output_module}
             echo "}" >> ${output_path}/${output_module}
-        elif [[ ${delete_on_failure} = true ]]; then
-            echo -e "******** Destroy terraform environment... ******** \n"
-            terraform apply -destroy -auto-approve "${terraform_vars[@]}"
+        else
+            terraform_status=${apply_status}
+            if [[ ${delete_on_failure} = true ]]; then
+                echo -e "******** Destroy terraform environment... ******** \n"
+                terraform apply -destroy -auto-approve "${terraform_vars[@]}"
+                destroy_status=$?
+                if [[ ${destroy_status} -ne 0 ]]; then
+                    echo "Destroy after a failed apply also failed; the environment may still exist" >&2
+                fi
+            fi
         fi
     fi
 
     set -e
-
-    echo -e "******** Write metadata successfully ********\n"
 
 popd
 
 # The metadata file is published as a task output and consumed by later jobs, so
 # it must not carry credentials.
 assert_no_credentials_in_file "${output_path}/${output_module}"
+
+if [[ ${terraform_status} -ne 0 ]]; then
+    echo "terraform ${action:-apply} exited ${terraform_status}" >&2
+    exit ${terraform_status}
+fi
+
+echo -e "******** Write metadata successfully ********\n"

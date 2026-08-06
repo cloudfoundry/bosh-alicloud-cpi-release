@@ -5,16 +5,30 @@ export PATH=$(readlink -nf /var/vcap/packages/jq):/usr/local/bin:/var/vcap/packa
 
 slb_id=<%= p('load_balancer_id') %>
 region=<%= p('ecs_region') %>
-key=<%= p('access_key') %>
-secret=<%= p('secret_key') %>
-token=<%= p('security_token') %>
+
+# A short-lived, read-only assumed-role credential, not a long-lived access key.
+# The errand VM is deliberately given no RAM role: attaching one would require
+# the director's CPI to hold ram:PassRole.
+#
+# The credential is exported rather than passed as --access-key-id, which would
+# put it in the process arguments where every user on this VM can read it. The
+# aliyun CLI reads these variables itself.
+export ALIBABA_CLOUD_ACCESS_KEY_ID=<%= p('access_key') %>
+export ALIBABA_CLOUD_ACCESS_KEY_SECRET=<%= p('secret_key') %>
+export ALIBABA_CLOUD_SECURITY_TOKEN=<%= p('security_token') %>
 
 echo "fetching instance ID"
-instance_id=$(curl http://100.100.100.200/latest/meta-data/instance-id)
+# IMDSv2 first: an instance that requires it rejects an unauthenticated read. An
+# IMDSv1-only instance has no token endpoint, so fall back to a plain read.
+metadata_token=$(curl -sf -X PUT -H 'X-aliyun-ecs-metadata-token-ttl-seconds: 60' \
+  http://100.100.100.200/latest/api/token || true)
+if [[ -n "${metadata_token}" ]]; then
+  instance_id=$(curl -sf -H "X-aliyun-ecs-metadata-token: ${metadata_token}" \
+    http://100.100.100.200/latest/meta-data/instance-id)
+else
+  instance_id=$(curl -sf http://100.100.100.200/latest/meta-data/instance-id)
+fi
 echo "instance id: $instance_id"
 
 echo "checking if our instance $instance_id is registered with $slb_id"
-# A short-lived assumed-role credential, not a long-lived access key. The errand
-# VM is deliberately given no RAM role: attaching one would require the
-# director's CPI to hold ram:PassRole.
-aliyun slb DescribeLoadBalancerAttribute --LoadBalancerId "$slb_id" --access-key-id $key --access-key-secret $secret --sts-token $token --region $region | jq --arg instance_id $instance_id -e '.BackendServers.BackendServer[0] | select(.ServerId == $instance_id)'
+aliyun slb DescribeLoadBalancerAttribute --LoadBalancerId "$slb_id" --region $region | jq --arg instance_id $instance_id -e '.BackendServers.BackendServer[0] | select(.ServerId == $instance_id)'

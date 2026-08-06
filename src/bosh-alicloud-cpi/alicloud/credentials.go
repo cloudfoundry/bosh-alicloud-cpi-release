@@ -34,10 +34,17 @@ const (
 	CredentialSourceECSRAMRole CredentialSource = "ecs_ram_role"
 )
 
+// ecsMetadataBaseURL is the link-local instance metadata service. It is a
+// variable so tests can point it at a fake metadata server; production code must
+// never override it.
+var ecsMetadataBaseURL = "http://100.100.100.200"
+
 // ecsMetadataRoleURL lists the RAM roles attached to the running ECS instance.
-// It is a variable so tests can point it at a fake metadata server; production
-// code must never override it.
-var ecsMetadataRoleURL = "http://100.100.100.200/latest/meta-data/ram/security-credentials/"
+var ecsMetadataRoleURL = ecsMetadataBaseURL + "/latest/meta-data/ram/security-credentials/"
+
+// ecsMetadataTokenTTL is how long an IMDSv2 token stays valid. Role discovery
+// uses the token once and discards it, so the window is deliberately short.
+const ecsMetadataTokenTTL = "60"
 
 // ecsMetadataTimeout bounds metadata lookups. The service is link-local, so a
 // slow response means it is unreachable rather than busy.
@@ -115,7 +122,7 @@ func (p staticCredentialProvider) TeaCredential() (credential.Credential, error)
 	if err != nil {
 		return nil, bosherr.WrapError(scrubCredentialError(err), "Building static credential failed")
 	}
-	return c, nil
+	return scrubbingCredential{inner: c}, nil
 }
 
 func (p staticCredentialProvider) OSSCredentialsProvider() (oss.CredentialsProvider, error) {
@@ -178,8 +185,8 @@ func (p *ecsRAMRoleCredentialProvider) teaCredentialLocked() (credential.Credent
 		return nil, bosherr.WrapError(scrubCredentialError(err), "Building ecs_ram_role credential failed")
 	}
 
-	p.teaCredential = c
-	return c, nil
+	p.teaCredential = scrubbingCredential{inner: c}
+	return p.teaCredential, nil
 }
 
 func (p *ecsRAMRoleCredentialProvider) OSSCredentialsProvider() (oss.CredentialsProvider, error) {
@@ -227,12 +234,49 @@ func (p *ecsRAMRoleCredentialProvider) resolveRoleName() (string, error) {
 	return roleName, nil
 }
 
+// ecsMetadataToken fetches an IMDSv2 token. An instance configured to require
+// IMDSv2 rejects unauthenticated reads, so the token is obtained first. An
+// instance that still allows IMDSv1 has no token endpoint, in which case this
+// returns an empty token and the caller falls back to an unauthenticated read.
+func ecsMetadataToken(client *http.Client) string {
+	req, err := http.NewRequest(http.MethodPut, ecsMetadataBaseURL+"/latest/api/token", nil)
+	if err != nil {
+		return ""
+	}
+	req.Header.Set("X-aliyun-ecs-metadata-token-ttl-seconds", ecsMetadataTokenTTL)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	token, err := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(token))
+}
+
 // discoverECSRAMRoleName asks the instance metadata service which RAM role is
 // attached to this instance.
 func discoverECSRAMRoleName() (string, error) {
 	client := &http.Client{Timeout: ecsMetadataTimeout}
 
-	resp, err := client.Get(ecsMetadataRoleURL)
+	req, err := http.NewRequest(http.MethodGet, ecsMetadataRoleURL, nil)
+	if err != nil {
+		return "", bosherr.WrapError(scrubCredentialError(err),
+			"Building the ECS instance metadata request failed")
+	}
+	if token := ecsMetadataToken(client); token != "" {
+		req.Header.Set("X-aliyun-ecs-metadata-token", token)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", bosherr.WrapError(scrubCredentialError(err),
 			"Discovering the ECS RAM role from instance metadata failed")
@@ -343,6 +387,61 @@ func (p *ossRoleCredentialsProvider) fetch() (ossCredentials, error) {
 	}
 	return ossCredentials{}, bosherr.WrapError(scrubCredentialError(err),
 		"Obtaining OSS credentials from the ecs_ram_role credential source failed")
+}
+
+// scrubbingCredential wraps a credential so that errors raised while it
+// refreshes itself are scrubbed too. Without it, only construction and the OSS
+// adapter are covered: the Tea SDK refreshes the credential on its own during a
+// call, and credentials-go quotes the raw metadata response in those errors.
+type scrubbingCredential struct {
+	inner credential.Credential
+}
+
+func (c scrubbingCredential) GetAccessKeyId() (*string, error) {
+	v, err := c.inner.GetAccessKeyId()
+	return v, scrubCredentialError(err)
+}
+
+func (c scrubbingCredential) GetAccessKeySecret() (*string, error) {
+	v, err := c.inner.GetAccessKeySecret()
+	return v, scrubCredentialError(err)
+}
+
+func (c scrubbingCredential) GetSecurityToken() (*string, error) {
+	v, err := c.inner.GetSecurityToken()
+	return v, scrubCredentialError(err)
+}
+
+func (c scrubbingCredential) GetBearerToken() *string { return c.inner.GetBearerToken() }
+func (c scrubbingCredential) GetType() *string        { return c.inner.GetType() }
+
+func (c scrubbingCredential) GetCredential() (*credential.CredentialModel, error) {
+	m, err := c.inner.GetCredential()
+	return m, scrubCredentialError(err)
+}
+
+// String keeps a wrapped credential from printing its inner state.
+func (c scrubbingCredential) String() string {
+	return fmt.Sprintf("credential(type=%s)", tea.StringValue(c.inner.GetType()))
+}
+
+// String redacts the credential fields so that formatting an OpenApi, a Config
+// or anything embedding them with %s or %v cannot put a usable credential into a
+// log. Both the access key secret and the STS token are secrets.
+func (a OpenApi) String() string {
+	redacted := a
+	if redacted.AccessKeyId != "" {
+		redacted.AccessKeyId = "<redacted>"
+	}
+	if redacted.AccessKeySecret != "" {
+		redacted.AccessKeySecret = "<redacted>"
+	}
+	if redacted.SecurityToken != "" {
+		redacted.SecurityToken = "<redacted>"
+	}
+	// Format the copy through an alias so this method is not re-entered.
+	type openApiFields OpenApi
+	return fmt.Sprintf("%+v", openApiFields(redacted))
 }
 
 // credentialSecretPattern matches the secret-bearing fields an SDK may echo

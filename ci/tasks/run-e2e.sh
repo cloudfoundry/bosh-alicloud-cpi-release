@@ -6,7 +6,7 @@ source bosh-cpi-src/ci/tasks/utils.sh
 source bosh-cpi-src/ci/tasks/credentials.sh
 source director-state/director.env
 
-: ${provision_role_arn:?}
+: ${observer_role_arn:?}
 : ${region:?}
 
 CURRENT_PATH=$(pwd)
@@ -59,15 +59,32 @@ time bosh -n ucc \
 # credential of their own. They get a short-lived assumed-role one rather than a
 # RAM role on their VM, which would require the director's CPI to hold
 # ram:PassRole.
-assume_pipeline_role "${provision_role_arn}" "e2e"
+#
+# observer_role_arn is read-only. The errands only describe resources, so they
+# must not receive the provisioning role, which can create and delete the whole
+# test environment.
+assume_pipeline_role "${observer_role_arn}" "e2e-observer"
+
+# The credential goes through a vars file rather than -v, which would put it in
+# the process arguments where any user on this container can read it.
+deploy_vars=$(mktemp)
+chmod 0600 "${deploy_vars}"
+trap 'rm -f "${deploy_vars}"' EXIT
+
+cat > "${deploy_vars}" <<EOF
+access_key: ${ALIBABA_CLOUD_ACCESS_KEY_ID}
+secret_key: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET}
+security_token: ${ALIBABA_CLOUD_SECURITY_TOKEN}
+EOF
 
 time bosh -n deploy -d e2e-test \
   -v "stemcell_name=${stemcell_name}" \
-  -v "access_key=${ALIBABA_CLOUD_ACCESS_KEY_ID}" \
-  -v "secret_key=${ALIBABA_CLOUD_ACCESS_KEY_SECRET}" \
-  -v "security_token=${ALIBABA_CLOUD_SECURITY_TOKEN}" \
+  -l "${deploy_vars}" \
   -l ${METADATA_FILE} \
   bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
+
+rm -f "${deploy_vars}"
+trap - EXIT
 
 # RUN ERRANDS
 #time bosh -n run-errand -d e2e-test iam-instance-profile-test

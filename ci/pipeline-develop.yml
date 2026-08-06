@@ -34,7 +34,10 @@ shared:
   task: run-e2e
   file: bosh-cpi-src/ci/tasks/run-e2e.yml
   params:
-    provision_role_arn: {{terraform_role_arn}}
+    # Read-only. The errands only describe ECS and SLB resources, so they must
+    # not receive the provisioning role, which can create and delete the whole
+    # test environment.
+    observer_role_arn:  {{e2e_observer_role_arn}}
     region:             {{alicloud_region__primary}}
 
 - &put-environment
@@ -193,11 +196,17 @@ jobs:
         - <<: *run-bats
       ensure:
         do:
-          # try: a failed refresh must not skip teardown or ensure-terminated.
+          # A refresh failure must not skip the cleanup that follows, but it must
+          # not be reported as success either: the task itself exits zero after
+          # warning, so `try` is not used to mask a real error here.
           - try:
               <<: *refresh-director-credentials
-          - <<: *teardown
-          - <<: *ensure-terminated
+          # ensure, not a plain sequence: teardown failing must still run
+          # ensure-terminated, while the failure still propagates.
+          - do:
+              - <<: *teardown
+            ensure:
+              <<: *ensure-terminated
     ensure:
       do:
         - <<: *put-environment
@@ -242,11 +251,17 @@ jobs:
         - <<: *run-end-2-end
       ensure:
         do:
-          # try: a failed refresh must not skip teardown or ensure-terminated.
+          # A refresh failure must not skip the cleanup that follows, but it must
+          # not be reported as success either: the task itself exits zero after
+          # warning, so `try` is not used to mask a real error here.
           - try:
               <<: *refresh-director-credentials
-          - <<: *teardown
-          - <<: *ensure-terminated
+          # ensure, not a plain sequence: teardown failing must still run
+          # ensure-terminated, while the failure still propagates.
+          - do:
+              - <<: *teardown
+            ensure:
+              <<: *ensure-terminated
     ensure:
       do:
         - <<: *put-environment

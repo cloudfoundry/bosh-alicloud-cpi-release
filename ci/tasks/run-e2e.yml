@@ -23,5 +23,5 @@ run:
 params:
   BOSH_DEBUG_LEVEL: info
   # Assumed from the Concourse worker's instance role; no access key is passed in.
-  provision_role_arn: ""
+  observer_role_arn: ""
   region: ""

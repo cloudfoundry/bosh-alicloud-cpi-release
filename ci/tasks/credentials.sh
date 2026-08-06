@@ -12,7 +12,9 @@
 
 # ecs_metadata_base is the link-local instance metadata service. Overridable
 # only so the pipeline can be exercised against a stub.
-: ${ecs_metadata_base:=http://100.100.100.200/latest/meta-data}
+: ${ecs_metadata_root:=http://100.100.100.200}
+: ${ecs_metadata_base:=${ecs_metadata_root}/latest/meta-data}
+: ${ecs_metadata_token_ttl:=60}
 
 # assume_role_duration_seconds covers a full create/test/destroy leg. The role's
 # MaxSessionDuration must be at least this large.
@@ -44,18 +46,40 @@ require_credential_value() {
   fi
 }
 
+# metadata_token fetches an IMDSv2 token. An instance configured to require
+# IMDSv2 rejects unauthenticated reads, so the token is obtained first. An
+# instance that still allows IMDSv1 does not serve this endpoint, in which case
+# this prints nothing and the caller reads metadata unauthenticated.
+metadata_token() {
+  curl -s --max-time 5 -X PUT \
+    -H "X-aliyun-ecs-metadata-token-ttl-seconds: ${ecs_metadata_token_ttl}" \
+    "${ecs_metadata_root}/latest/api/token" 2>/dev/null || true
+}
+
+# read_metadata GETs a metadata path, presenting an IMDSv2 token when one is
+# available.
+read_metadata() {
+  local path="$1" token
+  token=$(metadata_token)
+
+  if [[ -n "${token}" ]]; then
+    curl -s --max-time 5 -H "X-aliyun-ecs-metadata-token: ${token}" "${ecs_metadata_base}/${path}"
+  else
+    curl -s --max-time 5 "${ecs_metadata_base}/${path}"
+  fi
+}
+
 # worker_role_name returns the RAM role attached to this ECS instance.
 worker_role_name() {
   local role_name
-  role_name=$(curl -s --max-time 5 "${ecs_metadata_base}/ram/security-credentials/" | head -1 | tr -d '[:space:]')
+  role_name=$(read_metadata "ram/security-credentials/" | head -1 | tr -d '[:space:]')
 
   if [[ -z "${role_name}" ]]; then
     cat >&2 <<'EOF'
 Credential bootstrap failed: no RAM role is attached to this Concourse worker.
 
-The pipeline no longer accepts a long-lived access key. Attach the bootstrap
-role to the worker ECS instance and make sure task containers can reach
-100.100.100.200.
+Attach the bootstrap role to the worker ECS instance and make sure task
+containers can reach 100.100.100.200.
 EOF
     return 1
   fi
@@ -71,7 +95,7 @@ load_worker_role_credentials() {
 
   echo "Using Concourse worker RAM role: ${role_name}"
 
-  document=$(curl -s --max-time 5 "${ecs_metadata_base}/ram/security-credentials/${role_name}")
+  document=$(read_metadata "ram/security-credentials/${role_name}")
 
   local code
   code=$(json_field Code "${document}")

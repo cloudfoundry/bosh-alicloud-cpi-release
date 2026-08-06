@@ -43,9 +43,17 @@ func (f *fakeCredential) GetCredential() (*credential.CredentialModel, error) {
 	return f.next, f.err
 }
 
-func (f *fakeCredential) GetAccessKeyId() (*string, error)     { return tea.String(""), nil }
-func (f *fakeCredential) GetAccessKeySecret() (*string, error) { return tea.String(""), nil }
-func (f *fakeCredential) GetSecurityToken() (*string, error)   { return tea.String(""), nil }
+// The accessors report the configured error too, so the scrubbing wrapper can be
+// exercised on every path the Tea SDK uses to refresh a credential.
+func (f *fakeCredential) GetAccessKeyId() (*string, error)     { return tea.String(""), f.current() }
+func (f *fakeCredential) GetAccessKeySecret() (*string, error) { return tea.String(""), f.current() }
+func (f *fakeCredential) GetSecurityToken() (*string, error)   { return tea.String(""), f.current() }
+
+func (f *fakeCredential) current() error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+	return f.err
+}
 func (f *fakeCredential) GetBearerToken() *string              { return tea.String("") }
 func (f *fakeCredential) GetType() *string                     { return tea.String("fake") }
 
@@ -95,6 +103,13 @@ var _ = Describe("Credential configuration validation", func() {
 		err := newConfig(OpenApi{AccessKeyId: "id"}).Validate()
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("needs both access_key_id and access_key_secret"))
+	})
+
+	It("leaves an entirely empty static access key to the caller", func() {
+		// The rendered config looks like this before the integration harness
+		// fills the key in, so validation must not reject it.
+		err := newConfig(OpenApi{}).Validate()
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("accepts ecs_ram_role without a role name", func() {
@@ -398,6 +413,141 @@ var _ = Describe("OSS role credentials adapter", func() {
 		wg.Wait()
 
 		Expect(adapter.GetCredentials().GetAccessKeyID()).NotTo(BeEmpty())
+	})
+})
+
+var _ = Describe("Instance metadata access", func() {
+	var originalBase, originalRole string
+
+	BeforeEach(func() {
+		originalBase, originalRole = ecsMetadataBaseURL, ecsMetadataRoleURL
+	})
+
+	AfterEach(func() {
+		ecsMetadataBaseURL, ecsMetadataRoleURL = originalBase, originalRole
+	})
+
+	// pointAt makes both the token and the role endpoint resolve to server.
+	pointAt := func(server *httptest.Server) {
+		ecsMetadataBaseURL = server.URL
+		ecsMetadataRoleURL = server.URL + "/latest/meta-data/ram/security-credentials/"
+	}
+
+	It("obtains an IMDSv2 token and presents it when reading the role", func() {
+		var tokenRequests, roleRequests int32
+		var presented string
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPut && r.URL.Path == "/latest/api/token" {
+				atomic.AddInt32(&tokenRequests, 1)
+				Expect(r.Header.Get("X-aliyun-ecs-metadata-token-ttl-seconds")).NotTo(BeEmpty())
+				fmt.Fprint(w, "a-metadata-token")
+				return
+			}
+			atomic.AddInt32(&roleRequests, 1)
+			presented = r.Header.Get("X-aliyun-ecs-metadata-token")
+			fmt.Fprint(w, "BoshDirectorRole")
+		}))
+		defer server.Close()
+		pointAt(server)
+
+		provider, err := NewCredentialProvider(CredentialSourceECSRAMRole, OpenApi{})
+		Expect(err).NotTo(HaveOccurred())
+
+		legacy, err := provider.LegacyCredential()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(legacy.(*credentials.EcsRamRoleCredential).RoleName).To(Equal("BoshDirectorRole"))
+
+		Expect(atomic.LoadInt32(&tokenRequests)).To(Equal(int32(1)))
+		Expect(atomic.LoadInt32(&roleRequests)).To(Equal(int32(1)))
+		Expect(presented).To(Equal("a-metadata-token"))
+	})
+
+	It("still reads the role on an instance that has no token endpoint", func() {
+		var presented string
+		hadToken := true
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPut && r.URL.Path == "/latest/api/token" {
+				// IMDSv1-only instances do not serve this endpoint.
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			presented = r.Header.Get("X-aliyun-ecs-metadata-token")
+			hadToken = presented != ""
+			fmt.Fprint(w, "BoshDirectorRole")
+		}))
+		defer server.Close()
+		pointAt(server)
+
+		provider, err := NewCredentialProvider(CredentialSourceECSRAMRole, OpenApi{})
+		Expect(err).NotTo(HaveOccurred())
+
+		legacy, err := provider.LegacyCredential()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(legacy.(*credentials.EcsRamRoleCredential).RoleName).To(Equal("BoshDirectorRole"))
+		Expect(hadToken).To(BeFalse())
+	})
+})
+
+var _ = Describe("Credential redaction", func() {
+	It("redacts the credential fields when an OpenApi is formatted", func() {
+		a := OpenApi{
+			Region:          "eu-central-1",
+			AccessKeyId:     "an-access-key-id",
+			AccessKeySecret: "an-access-key-secret",
+			SecurityToken:   "an-sts-token",
+		}
+
+		for _, rendered := range []string{fmt.Sprintf("%s", a), fmt.Sprintf("%v", a)} {
+			Expect(rendered).NotTo(ContainSubstring("an-access-key-id"))
+			Expect(rendered).NotTo(ContainSubstring("an-access-key-secret"))
+			Expect(rendered).NotTo(ContainSubstring("an-sts-token"))
+			// Non-secret fields stay visible so the log is still useful.
+			Expect(rendered).To(ContainSubstring("eu-central-1"))
+		}
+	})
+
+	It("redacts the credential fields when the whole Config is formatted", func() {
+		c := Config{OpenApi: OpenApi{Region: "moon", AccessKeySecret: "an-access-key-secret"}}
+		Expect(fmt.Sprintf("%v", c)).NotTo(ContainSubstring("an-access-key-secret"))
+	})
+
+	It("leaves empty credential fields as they are", func() {
+		Expect(fmt.Sprintf("%s", OpenApi{Region: "moon"})).NotTo(ContainSubstring("<redacted>"))
+	})
+})
+
+var _ = Describe("Runtime refresh error scrubbing", func() {
+	// The Tea SDK refreshes the credential during a call, so those errors do not
+	// pass through the provider and have to be scrubbed by the wrapper.
+	newFailing := func() scrubbingCredential {
+		f := &fakeCredential{}
+		f.set(nil, errors.New(`refresh failed: {"AccessKeySecret":"9dSaAbcDefGhiJkl","SecurityToken":"CAISleaked"}`))
+		return scrubbingCredential{inner: f}
+	}
+
+	It("scrubs GetCredential", func() {
+		_, err := newFailing().GetCredential()
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).NotTo(ContainSubstring("9dSaAbcDefGhiJkl"))
+		Expect(err.Error()).NotTo(ContainSubstring("CAISleaked"))
+		Expect(err.Error()).To(ContainSubstring("<redacted>"))
+	})
+
+	It("scrubs the individual accessors", func() {
+		c := newFailing()
+		for _, get := range []func() (*string, error){
+			c.GetAccessKeyId, c.GetAccessKeySecret, c.GetSecurityToken,
+		} {
+			_, err := get()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).NotTo(ContainSubstring("9dSaAbcDefGhiJkl"))
+		}
+	})
+
+	It("does not print the wrapped credential's state", func() {
+		Expect(fmt.Sprintf("%s", newFailing())).To(Equal("credential(type=fake)"))
 	})
 })
 
