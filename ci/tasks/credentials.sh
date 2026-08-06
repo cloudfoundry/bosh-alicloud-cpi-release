@@ -124,17 +124,31 @@ build_session_name() {
   printf '%s' "${raw}" | tr -c 'a-zA-Z0-9.@_-' '-' | cut -c1-64
 }
 
-# ensure_aliyun_cli installs the CLI when the task image does not ship it. The
-# credential bootstrap needs it to call AssumeRole, and it is fetched from
-# Alibaba Cloud's public CDN so no credential is required to get it.
+# ensure_aliyun_cli puts the CLI on PATH from the aliyun-cli task input, which
+# the image used by these tasks does not ship.
+#
+# The archive comes from the pipeline's own resource, which pins a version in a
+# bucket the operator controls. Fetching an unpinned, unverified binary from the
+# internet and unpacking it into /usr/bin would put whoever controls that URL
+# next to live cloud credentials.
 ensure_aliyun_cli() {
   if command -v aliyun >/dev/null 2>&1; then
     return 0
   fi
-  local dir="$(mktemp -d)"
-  wget -qO "${dir}/aliyun-cli.tgz" https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz
-  tar -zxf "${dir}/aliyun-cli.tgz" -C /usr/bin
-  rm -rf "${dir}"
+
+  local archive
+  archive="$(ls aliyun-cli/aliyun-cli-linux-*.tgz 2>/dev/null | head -1)"
+  if [[ -z "${archive}" ]]; then
+    echo "The aliyun CLI is not on PATH and the aliyun-cli task input is missing" >&2
+    return 1
+  fi
+
+  local dir="${PWD}/.aliyun-cli-bin"
+  mkdir -p "${dir}"
+  tar -zxf "${archive}" -C "${dir}" || return 1
+  export PATH="${dir}:${PATH}"
+
+  command -v aliyun >/dev/null 2>&1
 }
 
 # assume_pipeline_role exchanges the worker role credential for the role that
@@ -210,7 +224,9 @@ assert_no_credentials_in_file() {
   local path="$1"
   [[ -f "${path}" ]] || return 0
 
-  if grep -qE '(LTAI[A-Za-z0-9]{6,}|"?[Aa]ccess[Kk]ey[Ss]ecret"?[[:space:]]*[:=]|"?[Ss]ecurity[Tt]oken"?[[:space:]]*[:=])' "${path}"; then
+  # Field names catch a credential written under a known key; the LTAI and CAIS
+  # prefixes catch a bare access key or STS token written under any key at all.
+  if grep -qE '(LTAI[A-Za-z0-9]{6,}|CAIS[A-Za-z0-9+/=]{20,}|"?[Aa]ccess[Kk]ey[Ss]ecret"?[[:space:]]*[:=]|"?[Ss]ecurity[Tt]oken"?[[:space:]]*[:=])' "${path}"; then
     echo "Refusing to continue: ${path} contains credential material" >&2
     return 1
   fi

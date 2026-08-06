@@ -50,8 +50,9 @@ wget -qN https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
 apt-get install unzip
 unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/bin
 
-wget -qN https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz
-tar -zxvf aliyun-cli-linux-latest-amd64.tgz -C /usr/bin
+# The CLI comes from the aliyun-cli input, which pins a version in a bucket the
+# operator controls, rather than an unpinned download unpacked into /usr/bin.
+ensure_aliyun_cli
 
 # Start from the worker's instance role and assume the provisioning role. Both
 # create and destroy do this independently, so a destroy still authenticates
@@ -97,10 +98,26 @@ pushd ${terraform_source}
         if [[ ${apply_status} -eq 0 ]]; then
             echo -e "******** Build terraform environment successfully ******** \n"
             ls -al
-            echo "{" > ${output_path}/${output_module}
-            terraform output >> ${output_path}/${output_module}
-            sed -i '2,$s/^/"/g; 2, $s/$/,/g; $s/,//g; 2,$s/ = /": /g' ${output_path}/${output_module}
-            echo "}" >> ${output_path}/${output_module}
+            # Later jobs locate every resource through this file, and cleanup
+            # cannot find them if it is empty or truncated, so a failure here is
+            # a failure of the task.
+            {
+                echo "{"
+                terraform output
+            } > ${output_path}/${output_module}
+            output_status=$?
+            if [[ ${output_status} -ne 0 ]]; then
+                terraform_status=${output_status}
+                echo "terraform output failed; the metadata file is unusable" >&2
+            else
+                sed -i '2,$s/^/"/g; 2, $s/$/,/g; $s/,//g; 2,$s/ = /": /g' ${output_path}/${output_module}
+                sed_status=$?
+                echo "}" >> ${output_path}/${output_module}
+                if [[ ${sed_status} -ne 0 ]]; then
+                    terraform_status=${sed_status}
+                    echo "rewriting the metadata file failed" >&2
+                fi
+            fi
         else
             terraform_status=${apply_status}
             if [[ ${delete_on_failure} = true ]]; then

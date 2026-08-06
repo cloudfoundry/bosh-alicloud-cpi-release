@@ -11,6 +11,7 @@ inputs:
   - name: bosh-cpi-src
   - name: bosh-deployment
   - name: environment
+  - name: aliyun-cli
 
 outputs:
   - name: bosh-deployment

@@ -32,6 +32,10 @@ assume_pipeline_role "${provision_role_arn}" "create-env"
 
 echo "Director CPI will run under RAM role: ${ram_role_name}"
 
+# The ops file carries a live credential into the next task, so keep it off the
+# default umask.
+touch bosh-deployment/director-ram-role.yml
+chmod 0600 bosh-deployment/director-ram-role.yml
 cat > bosh-deployment/director-ram-role.yml <<EOF
 - path: /resource_pools/name=vms/cloud_properties/ram_role_name?
   type: replace

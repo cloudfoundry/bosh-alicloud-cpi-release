@@ -32,6 +32,21 @@ ensure_aliyun_cli || warn_and_exit "could not install the aliyun CLI"
 assume_pipeline_role "${provision_role_arn}" "teardown" || warn_and_exit "AssumeRole failed"
 
 ops=$(mktemp)
+refreshed=$(mktemp)
+int_err=$(mktemp)
+# mktemp already restricts these, but they hold a usable credential and the
+# manifest built from it, so say so rather than rely on the implementation.
+chmod 0600 "${ops}" "${refreshed}" "${int_err}"
+trap 'rm -f "${ops}" "${refreshed}" "${int_err}"' EXIT
+
+# redact masks the credential in anything echoed to the build log. bosh int
+# quotes the input it could not parse, and that input is the ops file below.
+redact() {
+  sed -e "s|${ALIBABA_CLOUD_ACCESS_KEY_ID}|<redacted>|g" \
+      -e "s|${ALIBABA_CLOUD_ACCESS_KEY_SECRET}|<redacted>|g" \
+      -e "s|${ALIBABA_CLOUD_SECURITY_TOKEN}|<redacted>|g"
+}
+
 cat > "${ops}" <<EOF
 - path: /cloud_provider/properties/alicloud/access_key_id?
   type: replace
@@ -45,18 +60,14 @@ cat > "${ops}" <<EOF
 EOF
 
 # bosh int keeps the manifest valid; the image's python has no yaml module.
-refreshed=$(mktemp)
-if ! bosh int "${DIRECTOR_MANIFEST}" -o "${ops}" > "${refreshed}" 2>/tmp/bosh-int-err; then
-  rm -f "${ops}"
-  echo "  bosh int failed: $(head -3 /tmp/bosh-int-err | tr '\n' ' ')" >&2
+if ! bosh int "${DIRECTOR_MANIFEST}" -o "${ops}" > "${refreshed}" 2>"${int_err}"; then
+  echo "  bosh int failed: $(head -3 "${int_err}" | redact | tr '\n' ' ')" >&2
   warn_and_exit "could not rewrite ${DIRECTOR_MANIFEST}"
 fi
 
 if [[ ! -s "${refreshed}" ]]; then
-  rm -f "${ops}" "${refreshed}"
   warn_and_exit "bosh int produced an empty manifest"
 fi
 
 mv "${refreshed}" "${DIRECTOR_MANIFEST}"
-rm -f "${ops}"
 echo "  refreshed the cloud_provider credential in ${DIRECTOR_MANIFEST}"

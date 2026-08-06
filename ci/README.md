@@ -32,9 +32,10 @@ And then:
  * the role named by `director_role_name`, holding the CPI's ECS/VPC/SLB/NLB/OSS
    permissions. Terraform attaches it to the director VM.
 
- Assumed by the worker role, so they trust it rather than a service. Use either
- `acs:ram::<account-id>:role/<worker-role>` to allow only that instance, or
- `acs:ram::<account-id>:root` to allow the whole account:
+ Assumed by the worker role, so they trust it rather than a service. Name the
+ worker role, `acs:ram::<account-id>:role/<worker-role>`, so only sessions of
+ that role can assume them. `acs:ram::<account-id>:root` also works but trusts
+ every identity in the account, so prefer the narrower form:
 
  * `terraform_role_arn`, which creates and destroys the test environment
  * `e2e_observer_role_arn`, read-only. The E2E errands only describe resources,
@@ -42,6 +43,23 @@ And then:
 
  A role that trusts only `ecs.aliyuncs.com` cannot be assumed, so giving these
  two the same trust policy as the first two makes every task fail at AssumeRole.
+
+ `terraform_role_arn` needs `ram:PassRole` to attach the director role to the
+ director VM, and its `Resource` must name that role:
+
+ ```json
+ {
+   "Effect": "Allow",
+   "Action": "ram:PassRole",
+   "Resource": "acs:ram::<account-id>:role/BoshDirectorRole"
+ }
+ ```
+
+ An unrestricted `ram:PassRole` would let the pipeline attach any role in the
+ account, including a more privileged one, to an instance it creates and then
+ read that role's credentials from the instance's metadata. Withholding
+ `ram:CreatePolicy` and `ram:AttachPolicyToRole` does not prevent that on its
+ own.
 
  ```
 

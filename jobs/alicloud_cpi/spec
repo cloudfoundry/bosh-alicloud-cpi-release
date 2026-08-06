@@ -29,7 +29,7 @@ properties:
     description: "Alibaba Cloud `Access key secret`. Required when `credential_source` is `static`."
     default: ""
   alicloud.security_token:
-    description: "Alibaba Cloud STS token. Only used when `credential_source` is `static`. Default to env `SECURITY_TOKEN`."
+    description: "Alibaba Cloud STS token, paired with a short-lived access key. Optional, and only used when `credential_source` is `static`."
     default: ""
   alicloud.encrypted:
     description: "Whether to encrypt alibaba cloud disk. Default to `false`."
