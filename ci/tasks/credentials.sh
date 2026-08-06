@@ -151,6 +151,36 @@ ensure_aliyun_cli() {
   command -v aliyun >/dev/null 2>&1
 }
 
+# redact_cloud_credentials filters stdin, masking the credential currently in the
+# environment. The Terraform alicloud provider reports a failed call by quoting
+# the signed request URL, which carries AccessKeyId and SecurityToken as query
+# parameters, so its output reaches the build log with a usable credential in it.
+#
+# Values are masked both raw and percent-encoded, because a URL carries the
+# encoded form.
+redact_cloud_credentials() {
+  local -a args=()
+  local value encoded
+
+  for value in "${ALIBABA_CLOUD_ACCESS_KEY_ID:-}" \
+               "${ALIBABA_CLOUD_ACCESS_KEY_SECRET:-}" \
+               "${ALIBABA_CLOUD_SECURITY_TOKEN:-}"; do
+    [[ -z "${value}" ]] && continue
+    args+=(-e "s|${value}|<redacted>|g")
+
+    encoded=$(printf '%s' "${value}" | sed -e 's|%|%25|g' -e 's|/|%2F|g' -e 's|+|%2B|g' -e 's|=|%3D|g')
+    if [[ "${encoded}" != "${value}" ]]; then
+      args+=(-e "s|${encoded}|<redacted>|g")
+    fi
+  done
+
+  if [[ ${#args[@]} -eq 0 ]]; then
+    cat
+  else
+    sed "${args[@]}"
+  fi
+}
+
 # assume_pipeline_role exchanges the worker role credential for the role that
 # owns the work about to be done, and exports the result under every variable
 # name the aliyun CLI and the Terraform alicloud provider understand.

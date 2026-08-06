@@ -63,11 +63,20 @@ pushd ${terraform_source}
     # The provider and the OSS backend read the assumed credentials from the
     # environment. Passing them as -var/-backend-config would put them in the
     # process arguments and in Terraform's debug output.
+    # Terraform's output goes through the redaction filter: the alicloud
+    # provider quotes the signed request URL when a call fails, and that URL
+    # carries the access key and the STS token. PIPESTATUS keeps the exit code of
+    # terraform itself rather than the filter's.
     terraform init \
         -backend-config="region=${remote_state_region}" \
         -backend-config="bucket=${remote_state_bucket}" \
         -backend-config="prefix=${remote_state_file_path}" \
-        -backend-config="key=${remote_state_file_name}"
+        -backend-config="key=${remote_state_file_name}" 2>&1 | redact_cloud_credentials
+    init_status=${PIPESTATUS[0]}
+    if [[ ${init_status} -ne 0 ]]; then
+        echo "terraform init exited ${init_status}" >&2
+        exit ${init_status}
+    fi
 
     terraform_vars=(
         -var "region=${region}"
@@ -89,12 +98,12 @@ pushd ${terraform_source}
 
     if [[ ${action} == "destroy" ]]; then
         echo -e "******** Try to delete environment ********\n"
-        terraform apply -destroy -auto-approve "${terraform_vars[@]}"
-        terraform_status=$?
+        terraform apply -destroy -auto-approve "${terraform_vars[@]}" 2>&1 | redact_cloud_credentials
+        terraform_status=${PIPESTATUS[0]}
     else
         echo -e "******** Try to build environment ********\n"
-        terraform apply --auto-approve "${terraform_vars[@]}"
-        apply_status=$?
+        terraform apply --auto-approve "${terraform_vars[@]}" 2>&1 | redact_cloud_credentials
+        apply_status=${PIPESTATUS[0]}
         if [[ ${apply_status} -eq 0 ]]; then
             echo -e "******** Build terraform environment successfully ******** \n"
             ls -al
@@ -122,8 +131,8 @@ pushd ${terraform_source}
             terraform_status=${apply_status}
             if [[ ${delete_on_failure} = true ]]; then
                 echo -e "******** Destroy terraform environment... ******** \n"
-                terraform apply -destroy -auto-approve "${terraform_vars[@]}"
-                destroy_status=$?
+                terraform apply -destroy -auto-approve "${terraform_vars[@]}" 2>&1 | redact_cloud_credentials
+                destroy_status=${PIPESTATUS[0]}
                 if [[ ${destroy_status} -ne 0 ]]; then
                     echo "Destroy after a failed apply also failed; the environment may still exist" >&2
                 fi
