@@ -15,13 +15,14 @@ import (
 )
 
 const (
-	AlicloudImageServiceTag          = "AlicloudImageService"
-	AlicloudDefaultImageName         = "bosh-stemcell"
-	AlicloudDefaultImageArchitecture = "x86_64"
-	AlicloudDefaultImageOSType       = "linux"
-	WaitForImageReadyTimeout         = 3600
-	DefaultWaitForImageReadyTimeout  = 1800
-	DefaultWaitForInterval           = 10
+	AlicloudImageServiceTag           = "AlicloudImageService"
+	AlicloudDefaultImageName          = "bosh-stemcell"
+	AlicloudDefaultImageArchitecture  = "x86_64"
+	AlicloudDefaultImageOSType        = "linux"
+	WaitForImageReadyTimeout          = 3600
+	DefaultWaitForImageReadyTimeout   = 1800
+	DefaultWaitForImageDeletedTimeout = 300
+	DefaultWaitForInterval            = 10
 )
 
 type StemcellManager interface {
@@ -131,6 +132,15 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 	args.ImageId = id
 	if _, err := client.DeleteImage(args); err != nil {
 		return bosherr.WrapErrorf(err, "Failed to delete Alicloud Image '%s'", id)
+	}
+
+	// DeleteImage is asynchronous. A snapshot cannot be deleted while the image
+	// still references it, so wait for the image to disappear before cleaning up
+	// its backing snapshots. Mirrors the AWS CPI's deregister-then-wait ordering.
+	if len(snapshotIds) > 0 {
+		if err := a.WaitForImageDeleted(id, DefaultWaitForImageDeletedTimeout); err != nil {
+			a.logger.Warn(AlicloudImageServiceTag, "Image '%s' not confirmed deleted before snapshot cleanup: %s", id, err)
+		}
 	}
 
 	for _, snapshotId := range snapshotIds {
@@ -245,4 +255,35 @@ func (a StemcellManagerImpl) WaitForImage(regionId, imageId string, timeout int)
 		time.Sleep(DefaultWaitForInterval * time.Second)
 	}
 	return nil
+}
+
+// WaitForImageDeleted polls until the image can no longer be found, meaning the
+// asynchronous DeleteImage has completed and the image no longer references its
+// backing snapshots. This must succeed before the snapshots can be deleted.
+func (a StemcellManagerImpl) WaitForImageDeleted(imageId string, timeout int) error {
+	if timeout <= 0 {
+		timeout = DefaultWaitForImageDeletedTimeout
+	}
+
+	for {
+		image, err := a.FindStemcellById(imageId)
+		a.logger.Debug(AlicloudImageServiceTag, "Waiting for alicloud image '%s' to be deleted.", imageId)
+
+		if err != nil {
+			if NotFoundError(err) {
+				return nil
+			}
+			return err
+		}
+
+		if image == nil {
+			return nil
+		}
+
+		timeout = timeout - DefaultWaitForInterval
+		if timeout < 0 {
+			return GetTimeErrorFromString(GetTimeoutMessage("ECS image", "Deleted"))
+		}
+		time.Sleep(DefaultWaitForInterval * time.Second)
+	}
 }
