@@ -13,6 +13,11 @@ region=<%= p('ecs_region') %>
 # The credential is exported rather than passed as --access-key-id, which would
 # put it in the process arguments where every user on this VM can read it. The
 # aliyun CLI reads these variables itself.
+#
+# Known limitation: rendering it here still writes it to the job directory on
+# this VM. It expires within the hour and can only describe resources, but this
+# is not credential-free. Removing it needs the errand to obtain its own
+# credential, which means a RAM role on the VM and ram:PassRole for the CPI.
 export ALIBABA_CLOUD_ACCESS_KEY_ID=<%= p('access_key') %>
 export ALIBABA_CLOUD_ACCESS_KEY_SECRET=<%= p('secret_key') %>
 export ALIBABA_CLOUD_SECURITY_TOKEN=<%= p('security_token') %>

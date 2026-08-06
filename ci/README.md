@@ -15,19 +15,33 @@ And then:
  role for the work it needs to do, so only role ARNs, buckets and regions are
  configured for them.
 
- The release and version objects are a separate matter: Concourse's built-in
+ The release and version objects are a separate matter. Concourse's built-in
  `s3` and `semver` resource types accept only a static credential and cannot
- refresh an assumed one, so `aliyun_cli_*` still holds an access key. Reaching
- zero requires a role-aware OSS resource type.
+ refresh an assumed one, so four resources still need an access key:
+ `bosh-cpi-dev-artifacts`, `version-semver` and `release-version-semver` through
+ `bosh_cpi_release_*`, and `aliyun-cli` through `aliyun_cli_*`. Reaching zero
+ requires a role-aware OSS resource type.
 
- Two RAM roles are needed, both trusting `ecs.aliyuncs.com`:
+ Four RAM roles are needed, and the trust relationship differs between them.
 
- * one attached to the Concourse worker, holding only `sts:AssumeRole`
+ Attached to an instance, so they trust `ecs.aliyuncs.com`:
+
+ * the worker role on the Concourse worker instance. It needs only
+   `sts:AssumeRole`: every task bootstraps from it and assumes one of the roles
+   below.
  * the role named by `director_role_name`, holding the CPI's ECS/VPC/SLB/NLB/OSS
-   permissions; terraform attaches it to the director VM
+   permissions. Terraform attaches it to the director VM.
 
- `e2e_observer_role_arn` is read-only: the E2E errands only describe resources,
- so they must not be given the provisioning role.
+ Assumed by the worker role, so they trust it rather than a service. Use either
+ `acs:ram::<account-id>:role/<worker-role>` to allow only that instance, or
+ `acs:ram::<account-id>:root` to allow the whole account:
+
+ * `terraform_role_arn`, which creates and destroys the test environment
+ * `e2e_observer_role_arn`, read-only. The E2E errands only describe resources,
+   so they must not be given the provisioning role.
+
+ A role that trusts only `ecs.aliyuncs.com` cannot be assumed, so giving these
+ two the same trust policy as the first two makes every task fail at AssumeRole.
 
  ```
 
@@ -37,8 +51,12 @@ And then:
  director_role_name:           BoshDirectorRole
  terraform_backend_bucket:     OSS_BUCKET_FOR_TERRAFORM_STATE
  terraform_backend_region:     REGION
+ bosh_cpi_release_bucket:      OSS_BUCKET_FOR_RELEASE_ARTIFACTS
+ bosh_cpi_release_region:      REGION
+ bosh_cpi_release_access_key:  ACCESS_KEY_ID
+ bosh_cpi_release_secret_key:  ACCESS_KEY_SECRET
  aliyun_cli_bucket:            OSS_BUCKET_HOLDING_THE_ALIYUN_CLI
- aliyun_cli_endpoint:          OSS_ENDPOINT
+ aliyun_cli_region:            REGION # the endpoint is derived from this
  aliyun_cli_access_key:        ACCESS_KEY_ID
  aliyun_cli_secret_key:        ACCESS_KEY_SECRET
  PUBLIC_KEY:                   "ssh-ed25519 ... # must match the private key below"
@@ -46,7 +64,7 @@ And then:
  github_user_name:             YOUR_GITHUB_ACCOUNT_NAME
  github_user_id:               YOUR_GITHUB_ACCOUNT_ID
  github_user_password:         YOUR_GITHUB_ACCOUNT_PASSWORD
- gitlab_bosh-alicloud-cpi-release_private-key: |
+ github_bosh-alicloud-cpi-release_private-key: |
    -----BEGIN RSA PRIVATE KEY-----
    YOUR_LOCAL_PRIVATE_KEY
    -----END RSA PRIVATE KEY-----

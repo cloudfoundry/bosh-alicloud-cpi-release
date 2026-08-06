@@ -130,12 +130,10 @@ func (a OpenApi) GetCredentialSource() CredentialSource {
 func (a OpenApi) validateCredentials() error {
 	switch source := a.GetCredentialSource(); source {
 	case CredentialSourceStatic:
-		// A half-configured pair is always a mistake, so reject it. Both being
-		// empty is left alone on purpose: that is how the config renders before
-		// the integration harness fills the key in from the environment, and
-		// rejecting it here would change the behaviour of the default source for
-		// existing deployments. Such a config still fails on the first API call.
-		if (a.AccessKeyId == "") != (a.AccessKeySecret == "") {
+		// Both keys are required. An empty pair has never worked: nothing reads
+		// ACCESS_KEY_ID from the environment despite what the job spec used to
+		// claim, so such a config only failed later on the first API call.
+		if a.AccessKeyId == "" || a.AccessKeySecret == "" {
 			return fmt.Errorf("credential_source 'static' needs both access_key_id and access_key_secret")
 		}
 	case CredentialSourceECSRAMRole:

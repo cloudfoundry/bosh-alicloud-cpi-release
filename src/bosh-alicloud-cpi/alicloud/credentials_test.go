@@ -105,11 +105,12 @@ var _ = Describe("Credential configuration validation", func() {
 		Expect(err.Error()).To(ContainSubstring("needs both access_key_id and access_key_secret"))
 	})
 
-	It("leaves an entirely empty static access key to the caller", func() {
-		// The rendered config looks like this before the integration harness
-		// fills the key in, so validation must not reject it.
+	It("rejects an entirely empty static access key", func() {
+		// Nothing reads the key from the environment, so an empty pair could only
+		// ever fail later on the first API call.
 		err := newConfig(OpenApi{}).Validate()
-		Expect(err).NotTo(HaveOccurred())
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("needs both access_key_id and access_key_secret"))
 	})
 
 	It("accepts ecs_ram_role without a role name", func() {
@@ -487,6 +488,20 @@ var _ = Describe("Instance metadata access", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(legacy.(*credentials.EcsRamRoleCredential).RoleName).To(Equal("BoshDirectorRole"))
 		Expect(hadToken).To(BeFalse())
+	})
+})
+
+var _ = Describe("OSS credential cache bounds", func() {
+	// The cache exists so a metadata blip does not break in-flight signing, but
+	// it must expire before the credential it holds does. credentials-go hands
+	// out a credential with at least ecsRAMRoleRefreshLead of life left, so a
+	// shorter window is what keeps an expired credential from being signed with.
+	It("expires before the credential it caches can expire", func() {
+		Expect(ossCredentialGraceWindow).To(BeNumerically("<", ecsRAMRoleRefreshLead))
+	})
+
+	It("leaves room for several metadata attempts", func() {
+		Expect(ossCredentialGraceWindow).To(BeNumerically(">", ecsMetadataTimeout))
 	})
 })
 

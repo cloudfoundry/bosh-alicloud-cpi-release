@@ -50,11 +50,23 @@ const ecsMetadataTokenTTL = "60"
 // slow response means it is unreachable rather than busy.
 var ecsMetadataTimeout = 5 * time.Second
 
-// ossCredentialGraceWindow is how long the OSS adapter may keep serving the
-// last credential it fetched after a refresh failure. It is deliberately much
-// shorter than the ~6h STS lifetime so a genuinely expired credential is never
-// reused, while a blip in the metadata service does not fail in-flight signing.
-const ossCredentialGraceWindow = 5 * time.Minute
+// ecsRAMRoleRefreshLead is how long before expiry credentials-go treats an ECS
+// RAM role credential as stale and refreshes it, from
+// providers/ecs_ram_role.go: `expirationTimestamp - now <= 180`. A credential
+// handed to us therefore has at least this much life left.
+const ecsRAMRoleRefreshLead = 180 * time.Second
+
+// ossCredentialGraceWindow is how long the OSS adapter may keep serving the last
+// credential it fetched after a refresh failure.
+//
+// It must stay below ecsRAMRoleRefreshLead. The last successful fetch returned a
+// credential with at least that much life left, so a window shorter than the lead
+// guarantees the cache runs out before the credential does; a longer one would
+// sign with an expired credential. This is asserted by a test.
+//
+// The window still covers a metadata blip comfortably: lookups time out after
+// ecsMetadataTimeout, so this allows repeated attempts before giving up.
+const ossCredentialGraceWindow = 60 * time.Second
 
 // CredentialProvider hands out per-SDK credential objects for the configured
 // credential source. The CPI talks to Alibaba Cloud through three SDKs with

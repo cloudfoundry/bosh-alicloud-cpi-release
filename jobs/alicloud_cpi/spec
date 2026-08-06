@@ -23,10 +23,10 @@ properties:
     description: "RAM role to use when `credential_source` is `ecs_ram_role`. Leave empty to discover the role attached to the current instance, which lets the same config work both on the machine running `bosh create-env` and on the Director."
     default: ""
   alicloud.access_key_id:
-    description: "Alibaba Cloud `Access key id`. Only used when `credential_source` is `static`. Default to env `ACCESS_KEY_ID`."
+    description: "Alibaba Cloud `Access key id`. Required when `credential_source` is `static`."
     default: ""
   alicloud.access_key_secret:
-    description: "Alibaba Cloud `Access key secret`. Only used when `credential_source` is `static`. Default to env `ACCESS_KEY_SECRET`."
+    description: "Alibaba Cloud `Access key secret`. Required when `credential_source` is `static`."
     default: ""
   alicloud.security_token:
     description: "Alibaba Cloud STS token. Only used when `credential_source` is `static`. Default to env `SECURITY_TOKEN`."
