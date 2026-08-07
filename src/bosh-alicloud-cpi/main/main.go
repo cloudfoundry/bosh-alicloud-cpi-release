@@ -29,7 +29,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("CONFIG", "load Configuration from %s: %s", configFile, config)
+	// Only the path is logged. The config carries the access key secret and the
+	// STS token, and this line runs on every CPI invocation.
+	logger.Info("CONFIG", "loaded configuration from %s", *configFile)
 
 	caller := action.NewCaller(config, logger)
 

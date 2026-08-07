@@ -22,7 +22,6 @@ run:
 
 params:
   BOSH_DEBUG_LEVEL: info
-  ALICLOUD_ACCESS_KEY_ID: ""
-  ALICLOUD_SECRET_ACCESS_KEY: ""
-  LEGACY_INSTANCE_TYPE: ecs.hfc6.xlarge
-  NVME_INSTANCE_TYPE: ecs.c9i.large
+  # Assumed from the Concourse worker's instance role; no access key is passed in.
+  observer_role_arn: ""
+  region: ""

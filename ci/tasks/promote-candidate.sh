@@ -2,9 +2,6 @@
 
 set -e
 
-: ${ALICLOUD_ACCESS_KEY_ID:?}
-: ${ALICLOUD_ACCESS_KEY_SECRET:?}
-
 source bosh-cpi-src/ci/tasks/utils.sh
 
 integer_version=`cut -f1 release-version-semver/number`
@@ -15,15 +12,8 @@ cp -r bosh-cpi-src promoted/repo
 dev_release=$(echo $PWD/bosh-cpi-release/*.tgz)
 
 pushd promoted/repo
-  echo "Creating config/private.yml with blobstore secrets"
-  set +x
-  cat > config/private.yml << EOF
----
-blobstore:
-  s3:
-    access_key_id: $ALICLOUD_ACCESS_KEY_ID
-    secret_access_key: $ALICLOUD_ACCESS_KEY_SECRET
-EOF
+  # No config/private.yml is written: config/final.yml uses the local blobstore,
+  # so blobs are committed to the repo and finalize-release needs no credentials.
 
   # update the changelog
   changelog="CHANGELOG.md"
@@ -37,8 +27,6 @@ EOF
 
   echo "finalizing CPI release..."
   bosh finalize-release ${dev_release} --version $integer_version --force
-
-  rm config/private.yml
 
   git diff | cat
   git add .

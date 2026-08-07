@@ -4,7 +4,7 @@ github.com/alibabacloud-go/alibabacloud-gateway-spi/client
 # github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.8
 ## explicit; go 1.14
 github.com/alibabacloud-go/darabonba-openapi/v2/client
-# github.com/alibabacloud-go/debug v1.0.0
+# github.com/alibabacloud-go/debug v1.0.1
 ## explicit; go 1.18
 github.com/alibabacloud-go/debug/debug
 # github.com/alibabacloud-go/openapi-util v0.1.1
@@ -20,7 +20,7 @@ github.com/alibabacloud-go/tea-utils/v2/service
 # github.com/alibabacloud-go/tea-xml v1.1.3
 ## explicit; go 1.14
 github.com/alibabacloud-go/tea-xml/service
-# github.com/aliyun/alibaba-cloud-sdk-go v1.62.676
+# github.com/aliyun/alibaba-cloud-sdk-go v1.63.107
 ## explicit; go 1.13
 github.com/aliyun/alibaba-cloud-sdk-go/sdk
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth
@@ -29,6 +29,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials/provider
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/signers
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/endpoints
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors
+github.com/aliyun/alibaba-cloud-sdk-go/sdk/internal
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
@@ -38,9 +39,13 @@ github.com/aliyun/alibaba-cloud-sdk-go/services/slb
 # github.com/aliyun/aliyun-oss-go-sdk v3.0.1+incompatible
 ## explicit
 github.com/aliyun/aliyun-oss-go-sdk/oss
-# github.com/aliyun/credentials-go v1.3.2
+# github.com/aliyun/credentials-go v1.4.12
 ## explicit; go 1.14
+github.com/aliyun/credentials-go
 github.com/aliyun/credentials-go/credentials
+github.com/aliyun/credentials-go/credentials/internal/http
+github.com/aliyun/credentials-go/credentials/internal/utils
+github.com/aliyun/credentials-go/credentials/providers
 github.com/aliyun/credentials-go/credentials/request
 github.com/aliyun/credentials-go/credentials/response
 github.com/aliyun/credentials-go/credentials/utils
@@ -72,8 +77,8 @@ github.com/google/go-cmp/cmp/internal/value
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
-# github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
-## explicit
+# github.com/jmespath/go-jmespath v0.4.0
+## explicit; go 1.14
 github.com/jmespath/go-jmespath
 # github.com/json-iterator/go v1.1.12
 ## explicit; go 1.12

@@ -14,6 +14,3 @@ outputs:
   - name: promoted
 run:
   path: bosh-cpi-src/ci/tasks/promote-candidate.sh
-params:
-  ALICLOUD_ACCESS_KEY_ID:     ""
-  ALICLOUD_ACCESS_KEY_SECRET: ""

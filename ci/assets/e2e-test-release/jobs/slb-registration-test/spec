@@ -15,6 +15,8 @@ properties:
   ecs_region:
     description: The Alicloud region in which the errand is run
   access_key:
-    description: The Alicloud Access Key
+    description: Alibaba Cloud access key id of a short-lived assumed-role credential
   secret_key:
-    description: The Alicloud Access Secret Key
+    description: Alibaba Cloud access key secret of a short-lived assumed-role credential
+  security_token:
+    description: STS token of the short-lived assumed-role credential

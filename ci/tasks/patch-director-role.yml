@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: bosh/integration
+    tag: main
+
+inputs:
+  - name: bosh-cpi-src
+  - name: bosh-deployment
+  - name: environment
+  - name: aliyun-cli
+
+outputs:
+  - name: bosh-deployment
+
+run:
+  path: bosh-cpi-src/ci/tasks/patch-director-role.sh
+params:
+  # Assumed from the Concourse worker's instance role; no access key is passed in.
+  provision_role_arn: ""
+  region: ""

@@ -12,6 +12,6 @@ inputs:
 run:
   path: bosh-cpi-src/ci/tasks/ensure-terminated.sh
 params:
-  ALICLOUD_ACCESS_KEY_ID:     ""
-  ALICLOUD_ACCESS_KEY_SECRET: ""
+  # Assumed from the Concourse worker's instance role; no access key is passed in.
+  cleanup_role_arn:           ""
   ALICLOUD_DEFAULT_REGION:    ""

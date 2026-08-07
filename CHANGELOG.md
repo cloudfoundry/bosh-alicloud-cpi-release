@@ -3,6 +3,27 @@
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
 ## 61.0.0 (Unreleased)
 
+FEATURES:
+
+- Added an ECS RAM role credential source ([#218](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/218))
+  - `alicloud.credential_source` selects `static` or `ecs_ram_role`; the default stays `static`, so existing deployments are unaffected
+  - Under `ecs_ram_role` the CPI reads short-lived STS credentials from instance metadata and refreshes them, and needs no access key
+  - `alicloud.ram_role_name` names the role; leaving it empty discovers the role attached to the current instance
+
+SECURITY:
+
+- The certification pipeline no longer holds an access key for the test environment ([#218](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/218))
+  - Tasks start from the RAM role attached to the Concourse worker and assume a role per task
+  - Credentials pass through environment variables and restricted files rather than process arguments
+  - `patch-director-env` no longer prints `director.env`, which holds the director client secret and the jumpbox private key
+- Bumped `credentials-go` to 1.4.12 and `alibaba-cloud-sdk-go` to 1.63.107 for IMDSv2 support ([#218](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/218))
+  - Instance metadata is read with a token, so instances that require IMDSv2 are supported
+
+IMPROVEMENTS:
+
+- `ensure-terminated` waits for instances to terminate, so the terraform destroy that follows no longer fails on a dependency and leaks a VPC
+- The integration suite uses `ecs.c6.large`, whose stock in the test region is reliable
+
 ## 60.0.0 (July 29, 2026)
 
 IMPROVEMENTS:
