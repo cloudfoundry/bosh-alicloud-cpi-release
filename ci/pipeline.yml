@@ -50,8 +50,9 @@ shared:
   file: bosh-cpi-src/ci/tasks/run-nvme-customer-journey.yml
   timeout: 2h
   params:
-    ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-    ALICLOUD_SECRET_ACCESS_KEY: {{alicloud_secret_key__primary}}
+    # Read-only. The journey only describes instances, disks and images.
+    observer_role_arn:  {{e2e_observer_role_arn}}
+    region:             {{alicloud_region__primary}}
 
 - &put-environment
   task: put-environment

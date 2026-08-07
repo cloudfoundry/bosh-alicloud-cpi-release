@@ -3,27 +3,78 @@
 set -euo pipefail
 
 source bosh-cpi-src/ci/tasks/utils.sh
+source bosh-cpi-src/ci/tasks/credentials.sh
 source director-state/director.env
 
-METADATA_FILE=$(realpath environment/metadata)
-DEPLOYMENT_NAME=e2e-test
-NVME_INSTANCE=nvme-upgrade-test/0
-MARKER_FILE=/var/vcap/store/nvme-upgrade-test/customer-data
-
-: "${ALICLOUD_ACCESS_KEY_ID:?}"
-: "${ALICLOUD_SECRET_ACCESS_KEY:?}"
+: "${observer_role_arn:?}"
+: "${region:?}"
 : "${LEGACY_INSTANCE_TYPE:?}"
 : "${NVME_INSTANCE_TYPE:?}"
 
+METADATA_FILE=$(realpath environment/metadata)
+MANIFEST=bosh-cpi-src/ci/assets/e2e-test-release/nvme-journey.yml
+CLOUD_CONFIG=bosh-cpi-src/ci/assets/e2e-test-release/cloud-config.yml
+# Its own deployment, so the errands in manifest.yml are untouched and neither
+# test waits on the other's VMs.
+DEPLOYMENT_NAME=nvme-journey
+NVME_INSTANCE=nvme-upgrade-test/0
+MARKER_FILE=/var/vcap/store/nvme-upgrade-test/customer-data
+
+# The journey only describes instances, disks and images, so it runs under the
+# read-only role rather than the one that can build and tear down the
+# environment.
+ensure_aliyun_cli
+assume_pipeline_role "${observer_role_arn}" "nvme-journey"
+
 stemcell_name=$(bosh int <(tar xfO "$(realpath stemcell/*.tgz)" stemcell.MF) --path /name)
-region=$(jq -er '.region' "${METADATA_FILE}")
+
+# is_nvme_instance_type asks the same question the CPI asks when it decides which
+# by-id path to hand the agent: DescribeInstanceTypes filtered by
+# NvmeSupport=required.
+is_nvme_instance_type() {
+  local instance_type=$1
+  aliyun ecs DescribeInstanceTypes --region "${region}" \
+    --InstanceTypes.1 "${instance_type}" --NvmeSupport required 2>/dev/null |
+    jq -e '(.InstanceTypes.InstanceType | length) > 0' >/dev/null
+}
+
+# Without this check the whole journey can pass while proving nothing: a legacy
+# type that turns out to be NVMe-capable, or a target type that is not, makes
+# every path assertion below vacuous.
+if ! is_nvme_instance_type "${NVME_INSTANCE_TYPE}"; then
+  echo "NVME_INSTANCE_TYPE=${NVME_INSTANCE_TYPE} is not NVMe-capable; the journey would assert nothing" >&2
+  exit 1
+fi
+if is_nvme_instance_type "${LEGACY_INSTANCE_TYPE}"; then
+  echo "LEGACY_INSTANCE_TYPE=${LEGACY_INSTANCE_TYPE} is NVMe-capable; the journey needs a pre-NVMe starting point" >&2
+  exit 1
+fi
+echo "Preconditions: ${LEGACY_INSTANCE_TYPE} is not NVMe, ${NVME_INSTANCE_TYPE} is"
+
+# The image the director already uploaded must carry the NVMe feature, or a
+# 9th-gen VM built from it cannot see its disks. Encryption is on for this
+# director, so create_stemcell reached this image through CopyImage, where the
+# feature does not carry over from the source and the CPI has to re-apply it.
+assert_stemcell_is_nvme_capable() {
+  local image_id
+  image_id=$(bosh -n stemcells --json |
+    jq -er --arg name "${stemcell_name}" '
+      .Tables[0].Rows[] | select(.name == $name) | .cid' | head -1)
+
+  echo "Checking NVMe support on stemcell image ${image_id}"
+  aliyun ecs DescribeImages --region "${region}" --ImageId "${image_id}" |
+    jq -e '.Images.Image[0].Features.NvmeSupport == "supported"' >/dev/null
+}
+assert_stemcell_is_nvme_capable
 
 bosh -n update-cloud-config \
   -l "${METADATA_FILE}" \
   -v "legacy_instance_type=${LEGACY_INSTANCE_TYPE}" \
   -v "nvme_instance_type=${NVME_INSTANCE_TYPE}" \
-  bosh-cpi-src/ci/assets/e2e-test-release/cloud-config.yml
+  "${CLOUD_CONFIG}"
 
+# The journey's own manifest carries no credential properties, so nothing has to
+# be passed in here.
 deploy_customer_phase() {
   local vm_type=$1
   local disk_type=$2
@@ -32,10 +83,8 @@ deploy_customer_phase() {
     -v "stemcell_name=${stemcell_name}" \
     -v "nvme_vm_type=${vm_type}" \
     -v "nvme_disk_type=${disk_type}" \
-    -v "access_key=${ALICLOUD_ACCESS_KEY_ID}" \
-    -v "secret_key=${ALICLOUD_SECRET_ACCESS_KEY}" \
     -l "${METADATA_FILE}" \
-    bosh-cpi-src/ci/assets/e2e-test-release/manifest.yml
+    "${MANIFEST}"
 }
 
 deployment_row() {
@@ -66,6 +115,7 @@ assert_remote_state() {
 assert_iaas_state() {
   local expected_instance_type=$1
   local expected_disk_category=$2
+  local expected_performance_level=${3:-}
   local current_vm_cid
   local current_disk_cid
   local instance_json
@@ -74,10 +124,11 @@ assert_iaas_state() {
   current_vm_cid=$(vm_cid)
   current_disk_cid=$(disk_cid)
 
+  # The credential comes from the environment, which the aliyun CLI reads on its
+  # own. Passing it as --access-key-id would put it in the process arguments,
+  # where any user on this container can read it.
   instance_json=$(aliyun ecs DescribeInstances \
     --InstanceIds "[\"${current_vm_cid}\"]" \
-    --access-key-id "${ALICLOUD_ACCESS_KEY_ID}" \
-    --access-key-secret "${ALICLOUD_SECRET_ACCESS_KEY}" \
     --region "${region}")
   echo "${instance_json}" | jq -e \
     --arg expected "${expected_instance_type}" \
@@ -85,15 +136,91 @@ assert_iaas_state() {
 
   disk_json=$(aliyun ecs DescribeDisks \
     --DiskIds "[\"${current_disk_cid}\"]" \
-    --access-key-id "${ALICLOUD_ACCESS_KEY_ID}" \
-    --access-key-secret "${ALICLOUD_SECRET_ACCESS_KEY}" \
     --region "${region}")
   echo "${disk_json}" | jq -e \
     --arg expected "${expected_disk_category}" \
     '.Disks.Disk[0].Category == $expected and .Disks.Disk[0].Encrypted == true' >/dev/null
+
+  if [[ -n "${expected_performance_level}" ]]; then
+    echo "${disk_json}" | jq -e \
+      --arg expected "${expected_performance_level}" \
+      '.Disks.Disk[0].PerformanceLevel == $expected' >/dev/null
+  fi
 }
 
-# Establish the customer state that predates NVMe support.
+# assert_device_paths checks the device path the CPI handed to the agent, which a
+# mounted-filesystem check cannot see: a regression from the by-id path back to
+# /dev/vdb still mounts and still boots, right up until the kernel enumerates the
+# disks in a different order. The agent records the CPI's answer verbatim in its
+# settings, so that is what gets compared.
+#
+# create_vm treats a failed resolution as fatal, but attach_disk only warns and
+# carries on with a best-effort path, which makes the persistent disk the more
+# likely of the two to regress unnoticed.
+assert_device_paths() {
+  local expected_prefix=$1
+  local settings ephemeral persistent
+
+  settings=$(bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
+    "sudo cat /var/vcap/bosh/settings.json" --column=stdout --json |
+    jq -r '.Tables[0].Rows[0].stdout')
+
+  ephemeral=$(echo "${settings}" | jq -er '.disks.ephemeral')
+  # The persistent entry is keyed by disk CID, and is either the path itself or an
+  # object carrying it, depending on the agent version.
+  persistent=$(echo "${settings}" | jq -er '
+    .disks.persistent | to_entries[0].value
+    | if type == "object" then (.path // .device_path // empty) else . end')
+
+  echo "  ephemeral=${ephemeral}"
+  echo "  persistent=${persistent}"
+
+  local path
+  for path in "${ephemeral}" "${persistent}"; do
+    case "${path}" in
+      "${expected_prefix}"*) ;;
+      *)
+        echo "expected a device path under ${expected_prefix}, got ${path}" >&2
+        return 1
+        ;;
+    esac
+  done
+
+  # The link the CPI reported has to exist on the instance, not merely look
+  # plausible: that is the difference between naming a device and finding one.
+  bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
+    "sudo test -e '${ephemeral}' && sudo test -e '${persistent}'"
+}
+
+# assert_disk_identity separates an in-place update_disk from the director falling
+# back to create, copy and attach. Both end with a disk that matches the request,
+# so only the CID says which one ran, and that distinction is the whole point of
+# the update_disk method.
+assert_disk_identity() {
+  local mode=$1 previous=$2 current=$3
+
+  case "${mode}" in
+    same)
+      if [[ "${previous}" != "${current}" ]]; then
+        echo "expected an in-place change but the disk was replaced: ${previous} -> ${current}" >&2
+        return 1
+      fi
+      echo "  disk kept in place: ${current}"
+      ;;
+    changed)
+      if [[ "${previous}" == "${current}" ]]; then
+        echo "expected the director to migrate to a new disk, but the CID is unchanged: ${current}" >&2
+        return 1
+      fi
+      echo "  disk migrated: ${previous} -> ${current}"
+      ;;
+  esac
+}
+
+NVME_BY_ID=/dev/disk/by-id/nvme-Alibaba_Cloud_Elastic_Block_Storage_
+VIRTIO_BY_ID=/dev/disk/by-id/virtio-
+
+echo "### Phase 1: where a customer stands before moving to 9th-gen"
 deploy_customer_phase nvme_upgrade_legacy nvme_upgrade_legacy
 
 marker="nvme-customer-journey-$(date +%s)"
@@ -101,23 +228,54 @@ bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
   "sudo mkdir -p '$(dirname "${MARKER_FILE}")' && echo '${marker}' | sudo tee '${MARKER_FILE}' >/dev/null"
 assert_remote_state "${marker}"
 assert_iaas_state "${LEGACY_INSTANCE_TYPE}" cloud_efficiency
+assert_device_paths "${VIRTIO_BY_ID}"
+legacy_disk=$(disk_cid)
 
-# Upgrade compute and disks together, as a customer does when moving to c9i.
+echo "### Phase 2: move compute and disks to 9th-gen and ESSD together"
 deploy_customer_phase nvme_upgrade_target nvme_upgrade_target
 assert_remote_state "${marker}"
 assert_iaas_state "${NVME_INSTANCE_TYPE}" cloud_essd
+assert_device_paths "${NVME_BY_ID}"
+upgraded_disk=$(disk_cid)
+assert_disk_identity same "${legacy_disk}" "${upgraded_disk}"
 
-# Exercise Director's copy/migrate fallback for a requested disk shrink.
+echo "### Phase 3: grow the ESSD disk, which update_disk must do in place"
+deploy_customer_phase nvme_upgrade_target nvme_upgrade_target_larger
+assert_remote_state "${marker}"
+assert_iaas_state "${NVME_INSTANCE_TYPE}" cloud_essd
+assert_device_paths "${NVME_BY_ID}"
+grown_disk=$(disk_cid)
+assert_disk_identity same "${upgraded_disk}" "${grown_disk}"
+
+echo "### Phase 4: raise the ESSD performance level, also in place"
+deploy_customer_phase nvme_upgrade_target nvme_upgrade_target_pl2
+assert_remote_state "${marker}"
+assert_iaas_state "${NVME_INSTANCE_TYPE}" cloud_essd PL2
+pl_disk=$(disk_cid)
+assert_disk_identity same "${grown_disk}" "${pl_disk}"
+
+echo "### Phase 5: a shrink the CPI must refuse, so the director copies and migrates"
 deploy_customer_phase nvme_upgrade_target nvme_upgrade_target_smaller
 assert_remote_state "${marker}"
 assert_iaas_state "${NVME_INSTANCE_TYPE}" cloud_essd
+assert_device_paths "${NVME_BY_ID}"
+shrunk_disk=$(disk_cid)
+assert_disk_identity changed "${pl_disk}" "${shrunk_disk}"
 
-# Recreate on NVMe and verify agent bootstrap, both disk mounts and customer data.
+echo "### Phase 6: recreate on 9th-gen and check the agent returns to both mounts"
 time bosh -n -d "${DEPLOYMENT_NAME}" recreate "${NVME_INSTANCE}"
 assert_remote_state "${marker}"
 assert_iaas_state "${NVME_INSTANCE_TYPE}" cloud_essd
+assert_device_paths "${NVME_BY_ID}"
+assert_disk_identity same "${shrunk_disk}" "$(disk_cid)"
 
-# Roll compute back to the legacy family while retaining the upgraded ESSD disk.
+echo "### Phase 7: roll compute back to the legacy family, keeping the ESSD disk"
 deploy_customer_phase nvme_upgrade_legacy nvme_upgrade_target_smaller
 assert_remote_state "${marker}"
 assert_iaas_state "${LEGACY_INSTANCE_TYPE}" cloud_essd
+# The same ESSD disk must now be reported as virtio, because the path depends on
+# what the instance supports, not on the disk.
+assert_device_paths "${VIRTIO_BY_ID}"
+assert_disk_identity same "${shrunk_disk}" "$(disk_cid)"
+
+echo "NVMe customer journey passed"

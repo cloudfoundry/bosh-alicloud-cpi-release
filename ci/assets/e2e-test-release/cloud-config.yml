@@ -48,10 +48,24 @@ disk_types:
     disk_size: 40960
     cloud_properties:
       category: cloud_efficiency
+  # Same size as the legacy disk, ESSD instead of cloud_efficiency: update_disk
+  # must change the category in place without replacing the disk.
   - name: nvme_upgrade_target
     disk_size: 40960
     cloud_properties:
       category: cloud_essd
+  # Larger, same category: update_disk must resize in place.
+  - name: nvme_upgrade_target_larger
+    disk_size: 61440
+    cloud_properties:
+      category: cloud_essd
+  # Same size, higher performance level: update_disk must change PL in place.
+  - name: nvme_upgrade_target_pl2
+    disk_size: 61440
+    cloud_properties:
+      category: cloud_essd
+      performance_level: PL2
+  # Smaller: the CPI must refuse, so the director copies and migrates instead.
   - name: nvme_upgrade_target_smaller
     disk_size: 20480
     cloud_properties:
