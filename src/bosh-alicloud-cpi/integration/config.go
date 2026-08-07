@@ -16,8 +16,11 @@ var (
 	regionId        = envOrDefault("CPI_REGION", "cn-beijing")
 	zoneId          = envOrDefault("CPI_ZONE", "cn-beijing-a")
 	endpoint        = envOrDefault("CPI_ENDPOINT", "aliyuncs.com")
+	credentialSrc   = envOrDefault("CPI_CREDENTIAL_SOURCE", "static")
+	ramRole         = os.Getenv("CPI_RAM_ROLE_NAME")
 	accessKeyId     = os.Getenv("CPI_ACCESS_KEY_ID")
 	accessKeySecret = os.Getenv("CPI_ACCESS_KEY_SECRET")
+	securityToken   = os.Getenv("CPI_SECURITY_TOKEN")
 
 	// Configurable defaults
 	// A stemcell that will be created in integration_suite_test.go
@@ -74,14 +77,27 @@ func ApplySystemEnv(config *alicloud.Config) error {
 		return fmt.Errorf("can't find sysenv: CPI_ZONE")
 	}
 
-	a.AccessKeyId = accessKeyId
-	if a.AccessKeyId == "" {
-		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_ID")
-	}
+	a.CredentialSource = credentialSrc
+	switch alicloud.CredentialSource(credentialSrc) {
+	case alicloud.CredentialSourceECSRAMRole:
+		// The CPI discovers its credentials from instance metadata, so no key is
+		// expected in the environment.
+		a.RamRoleName = ramRole
+	case alicloud.CredentialSourceStatic:
+		a.AccessKeyId = accessKeyId
+		if a.AccessKeyId == "" {
+			return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_ID")
+		}
 
-	a.AccessKeySecret = accessKeySecret
-	if a.AccessKeySecret == "" {
-		return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_SECRET")
+		a.AccessKeySecret = accessKeySecret
+		if a.AccessKeySecret == "" {
+			return fmt.Errorf("can't find sysenv: CPI_ACCESS_KEY_SECRET")
+		}
+
+		// Set when the pipeline supplies a short-lived assumed-role credential.
+		a.SecurityToken = securityToken
+	default:
+		return fmt.Errorf("unsupported CPI_CREDENTIAL_SOURCE: %s", credentialSrc)
 	}
 
 	a.AccessEndpoint = endpoint

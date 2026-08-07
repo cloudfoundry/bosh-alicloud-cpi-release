@@ -14,14 +14,12 @@ import (
 
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
-	credential "github.com/aliyun/credentials-go/credentials"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/endpoints"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/location"
@@ -65,6 +63,8 @@ type OpenApi struct {
 	Region           string `json:"region"`
 	AvailabilityZone string `json:"availability_zone"`
 	AccessEndpoint   string `json:"access_endpoint"`
+	CredentialSource string `json:"credential_source"`
+	RamRoleName      string `json:"ram_role_name"`
 	AccessKeyId      string `json:"access_key_id"`
 	AccessKeySecret  string `json:"access_key_secret"`
 	SecurityToken    string `json:"security_token"`
@@ -101,12 +101,50 @@ func (c Config) Validate() error {
 		return fmt.Errorf("region can't be empty")
 	}
 
+	if err := c.OpenApi.validateCredentials(); err != nil {
+		return err
+	}
+
 	_, err := c.Registry.Port.Int64()
 	if err != nil {
 		return fmt.Errorf("bad registry.port %s", c.Registry.Port.String())
 	}
 
 	//TODO: validate more
+	return nil
+}
+
+// GetCredentialSource returns the configured credential source, defaulting to
+// static so a config written before this feature existed keeps working.
+func (a OpenApi) GetCredentialSource() CredentialSource {
+	source := strings.TrimSpace(a.CredentialSource)
+	if source == "" {
+		return CredentialSourceStatic
+	}
+	return CredentialSource(source)
+}
+
+// validateCredentials rejects ambiguous credential configurations at startup.
+// A misconfiguration must fail loudly here rather than fall back to another
+// credential source at signing time.
+func (a OpenApi) validateCredentials() error {
+	switch source := a.GetCredentialSource(); source {
+	case CredentialSourceStatic:
+		// Both keys are required. An empty pair has never worked: nothing reads
+		// ACCESS_KEY_ID from the environment despite what the job spec used to
+		// claim, so such a config only failed later on the first API call.
+		if a.AccessKeyId == "" || a.AccessKeySecret == "" {
+			return fmt.Errorf("credential_source 'static' needs both access_key_id and access_key_secret")
+		}
+	case CredentialSourceECSRAMRole:
+		if a.AccessKeyId != "" || a.AccessKeySecret != "" || a.SecurityToken != "" {
+			return fmt.Errorf("credential_source 'ecs_ram_role' can't be combined with " +
+				"access_key_id, access_key_secret or security_token")
+		}
+	default:
+		return fmt.Errorf("unknown credential_source %q, must be one of %q, %q",
+			source, CredentialSourceStatic, CredentialSourceECSRAMRole)
+	}
 	return nil
 }
 
@@ -193,7 +231,11 @@ func (c Config) NewEcsClient(region string) (*ecs.Client, error) {
 	if endpoint != "" {
 		endpoints.AddEndpointMapping(c.OpenApi.Region, "ecs", endpoint)
 	}
-	client, err := ecs.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig().WithTimeout(time.Duration(90)*time.Second), c.getAuthCredential(true))
+	authCredential, err := c.getAuthCredential()
+	if err != nil {
+		return nil, err
+	}
+	client, err := ecs.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig().WithTimeout(time.Duration(90)*time.Second), authCredential)
 	client.AppendUserAgent(BoshCPI, BoshCPIVersion)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Initiating ECS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
@@ -221,7 +263,10 @@ func (c Config) EcsTeaClient(region string) (*openapi.Client, error) {
 		}
 	}
 
-	config := c.getTeaSdkConfig()
+	config, err := c.getTeaSdkConfig()
+	if err != nil {
+		return nil, err
+	}
 	config.SetEndpoint(endpoint)
 	return openapi.NewClient(config)
 }
@@ -238,7 +283,11 @@ func (c Config) NewSlbClient(region string) (*slb.Client, error) {
 	if endpoint != "" {
 		endpoints.AddEndpointMapping(c.OpenApi.Region, "slb", endpoint)
 	}
-	client, err := slb.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig().WithTimeout(time.Duration(30)*time.Second), c.getAuthCredential(true))
+	authCredential, err := c.getAuthCredential()
+	if err != nil {
+		return nil, err
+	}
+	client, err := slb.NewClientWithOptions(c.OpenApi.GetRegion(region), getSdkConfig().WithTimeout(time.Duration(30)*time.Second), authCredential)
 	client.AppendUserAgent(BoshCPI, BoshCPIVersion)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Initiating SLB Client in '%s' got an error.", c.OpenApi.GetRegion(region))
@@ -263,28 +312,41 @@ func (c Config) NlbTeaClient(region string) (*openapi.Client, error) {
 		endpoint = fmt.Sprintf("nlb.%s.aliyuncs.com", region)
 	}
 
-	config := c.getTeaSdkConfig()
+	config, err := c.getTeaSdkConfig()
+	if err != nil {
+		return nil, err
+	}
 	config.SetEndpoint(endpoint)
 	return openapi.NewClient(config)
 }
 
-func (c Config) getTeaSdkConfig() *openapi.Config {
+func (c Config) getTeaSdkConfig() (*openapi.Config, error) {
 	config := &openapi.Config{
-		RegionId:        tea.String(c.OpenApi.Region),
-		AccessKeyId:     tea.String(c.OpenApi.AccessKeyId),
-		AccessKeySecret: tea.String(c.OpenApi.AccessKeySecret),
-		ReadTimeout:     tea.Int(60000),
-		UserAgent:       tea.String(fmt.Sprintf("%s/%s", BoshCPI, BoshCPIVersion)),
-		MaxIdleConns:    tea.Int(500),
-		Protocol:        tea.String("HTTPS"),
-		HttpProxy:       tea.String(os.Getenv("HTTP_PROXY")),
-		HttpsProxy:      tea.String(os.Getenv("HTTPS_PROXY")),
-		NoProxy:         tea.String(os.Getenv("NO_PROXY")),
+		RegionId:     tea.String(c.OpenApi.Region),
+		ReadTimeout:  tea.Int(60000),
+		UserAgent:    tea.String(fmt.Sprintf("%s/%s", BoshCPI, BoshCPIVersion)),
+		MaxIdleConns: tea.Int(500),
+		Protocol:     tea.String("HTTPS"),
+		HttpProxy:    tea.String(os.Getenv("HTTP_PROXY")),
+		HttpsProxy:   tea.String(os.Getenv("HTTPS_PROXY")),
+		NoProxy:      tea.String(os.Getenv("NO_PROXY")),
 	}
-	if c.OpenApi.SecurityToken != "" {
-		config.SecurityToken = tea.String(c.OpenApi.SecurityToken)
+
+	provider, err := c.GetCredentialProvider()
+	if err != nil {
+		return nil, err
 	}
-	return config
+
+	// The credential object carries the access key, and for ecs_ram_role it
+	// refreshes itself. Setting AccessKeyId/AccessKeySecret as well would make
+	// the OpenAPI client build a static credential and ignore it.
+	teaCredential, err := provider.TeaCredential()
+	if err != nil {
+		return nil, err
+	}
+	config.Credential = teaCredential
+
+	return config, nil
 }
 func (c Config) GetRegistryClient(logger boshlog.Logger) RegistryManager {
 	//if !c.Registry.IsEmpty() {
@@ -330,9 +392,23 @@ func (c Config) NewOssClient(region string) (*oss.Client, error) {
 		endpoint = fmt.Sprintf("%s://%s", schma, endpoint)
 	}
 
-	clientOptions := []oss.ClientOption{oss.UserAgent(BoshCPI + "/" + BoshCPIVersion),
-		oss.SecurityToken(c.OpenApi.SecurityToken)}
-	ossClient, err := oss.New(endpoint, c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, clientOptions...)
+	provider, err := c.GetCredentialProvider()
+	if err != nil {
+		return nil, err
+	}
+	ossCredentialsProvider, err := provider.OSSCredentialsProvider()
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Initiating OSS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
+	}
+
+	// The provider is consulted on every signature, so a refreshed ecs_ram_role
+	// credential is picked up without rebuilding the client. The access key
+	// arguments stay empty; SetCredentialsProvider overrides them.
+	clientOptions := []oss.ClientOption{
+		oss.UserAgent(BoshCPI + "/" + BoshCPIVersion),
+		oss.SetCredentialsProvider(ossCredentialsProvider),
+	}
+	ossClient, err := oss.New(endpoint, "", "", clientOptions...)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Initiating OSS Client in '%s' got an error.", c.OpenApi.GetRegion(region))
 	}
@@ -355,30 +431,47 @@ func (c Config) GetHttpRegistryClient(logger boshlog.Logger) registry.Client {
 	return client
 }
 
-func (c Config) getAuthCredential(stsSupported bool) auth.Credential {
-	if stsSupported {
-		return credentials.NewStsTokenCredential(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret, c.OpenApi.SecurityToken)
+// credentialProviders caches one provider per credential identity. Every cloud
+// client in the process then shares the same refresh state and credential
+// cache, instead of each client hitting the metadata service on its own.
+var (
+	credentialProvidersMutex sync.Mutex
+	credentialProviders      = map[string]CredentialProvider{}
+)
+
+// GetCredentialProvider returns the credential provider for this config.
+func (c Config) GetCredentialProvider() (CredentialProvider, error) {
+	source := c.OpenApi.GetCredentialSource()
+	key := strings.Join([]string{
+		string(source),
+		c.OpenApi.RamRoleName,
+		c.OpenApi.AccessKeyId,
+		c.OpenApi.AccessKeySecret,
+		c.OpenApi.SecurityToken,
+	}, "\x00")
+
+	credentialProvidersMutex.Lock()
+	defer credentialProvidersMutex.Unlock()
+
+	if provider, ok := credentialProviders[key]; ok {
+		return provider, nil
 	}
 
-	return credentials.NewAccessKeyCredential(c.OpenApi.AccessKeyId, c.OpenApi.AccessKeySecret)
+	provider, err := NewCredentialProvider(source, c.OpenApi)
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Building the credential provider failed")
+	}
+
+	credentialProviders[key] = provider
+	return provider, nil
 }
 
-func (c Config) getCredentialConfig(stsSupported bool) *credential.Config {
-	credentialType := ""
-	credentialConfig := &credential.Config{}
-	if c.OpenApi.AccessKeyId != "" && c.OpenApi.AccessKeySecret != "" {
-		credentialType = "access_key"
-		credentialConfig.AccessKeyId = &c.OpenApi.AccessKeyId         // AccessKeyId
-		credentialConfig.AccessKeySecret = &c.OpenApi.AccessKeySecret // AccessKeySecret
-
-		if stsSupported && c.OpenApi.SecurityToken != "" {
-			credentialType = "sts"
-			credentialConfig.SecurityToken = &c.OpenApi.SecurityToken // STS Token
-		}
+func (c Config) getAuthCredential() (auth.Credential, error) {
+	provider, err := c.GetCredentialProvider()
+	if err != nil {
+		return nil, err
 	}
-
-	credentialConfig.Type = &credentialType
-	return credentialConfig
+	return provider.LegacyCredential()
 }
 
 func (c Config) GetInstanceRegion(instanceId string) (region string, err error) {
@@ -463,7 +556,11 @@ func (c Config) describeEndpointForService(serviceCode string) (*location.Descri
 		}
 	}
 
-	locationClient, err := location.NewClientWithOptions(c.OpenApi.Region, getSdkConfig(), c.getAuthCredential(true))
+	locationCredential, err := c.getAuthCredential()
+	if err != nil {
+		return nil, err
+	}
+	locationClient, err := location.NewClientWithOptions(c.OpenApi.Region, getSdkConfig(), locationCredential)
 	locationClient.AppendUserAgent(BoshCPI, BoshCPIVersion)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize the location client: %#v", err)

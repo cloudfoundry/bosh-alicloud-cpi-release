@@ -24,7 +24,7 @@ var _ = Describe("integration:vm", func() {
 						"category": "cloud_efficiency"
 					},
 					"instance_name": "bosh-test-cpi-integration",
-					"instance_type": "ecs.n4.small",
+					"instance_type": "ecs.c6.large",
 					"system_disk": {
 						"size": "61_440",
 						"category": "cloud_efficiency"
@@ -93,7 +93,7 @@ var _ = Describe("integration:vm", func() {
 						"category": "cloud_efficiency"
 					},
 					"instance_name": "bosh-test-cpi-integration",
-					"instance_type": "ecs.n4.small",
+					"instance_type": "ecs.c6.large",
 					"slb_server_group": ["${SLB_SERVER_GROUP_ID}"],
 					"system_disk": {
 						"size": "61_440",
@@ -163,7 +163,7 @@ var _ = Describe("integration:vm", func() {
 						"category": "cloud_efficiency"
 					},
 					"instance_name": "bosh-test-cpi-integration-tags",
-					"instance_type": "ecs.n4.small",
+					"instance_type": "ecs.c6.large",
 					"tags": ${Tags},
 					"system_disk": {
 						"size": "61_440",
@@ -234,7 +234,7 @@ var _ = Describe("integration:vm", func() {
 						"category": "cloud_efficiency"
 					},
 					"instance_name": "bosh-test-cpi-integration",
-					"instance_type": "ecs.n4.small",
+					"instance_type": "ecs.c6.large",
 					"slbs": ["${SLB_ID}"],
 					"system_disk": {
 						"size": "61_440",
@@ -305,7 +305,7 @@ var _ = Describe("integration:vm", func() {
 						"category": "cloud_efficiency"
 					},
 					"instance_name": "bosh-test-cpi-integration",
-					"instance_type": "ecs.n4.small",
+					"instance_type": "ecs.c6.large",
 					"system_disk": {
 						"size": "61_440",
 						"category": "cloud_efficiency"
@@ -476,7 +476,7 @@ var _ = Describe("integration:vm", func() {
 						"category": "cloud_efficiency"
 					},
 					"instance_name": "bosh-test-cpi-integration",
-					"instance_type": "ecs.n4.small",
+					"instance_type": "ecs.c6.large",
 					"password": "Cloud12345",
 					"ram_role_name": "${RAM_ROLE_NAME}",
 					"system_disk": {

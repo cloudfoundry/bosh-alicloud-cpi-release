@@ -25,7 +25,7 @@ var _ = Describe("integration:disk", func() {
 						"category": "cloud_efficiency"
 					},
 					"instance_name": "bosh-test-cpi-integration",
-					"instance_type": "ecs.n4.small",
+					"instance_type": "ecs.c6.large",
 					"system_disk": {
 						"size": "61_440",
 						"category": "cloud_efficiency"

@@ -34,30 +34,45 @@ shared:
   task: run-e2e
   file: bosh-cpi-src/ci/tasks/run-e2e.yml
   params:
-    ALICLOUD_ACCESS_KEY_ID:              {{alicloud_access_key__primary}}
-    ALICLOUD_SECRET_ACCESS_KEY:          {{alicloud_secret_key__primary}}
+    # Read-only. The errands only describe ECS and SLB resources, so they must
+    # not receive the provisioning role, which can create and delete the whole
+    # test environment.
+    observer_role_arn:  {{e2e_observer_role_arn}}
+    region:             {{alicloud_region__primary}}
 
 - &put-environment
   task: put-environment
   file: bosh-cpi-src/ci/tasks/put-environment.yml
   params: &put-environment-params
-    access_key: {{alicloud_access_key__primary}}
-    secret_key: {{alicloud_secret_key__primary}}
     region:     {{alicloud_region__primary}}
     terraform_role_arn: {{terraform_role_arn}}
-    remote_state_access_key: {{terraform_backend_access_key}}
-    remote_state_secret_key: {{terraform_backend_secret_key}}
+    director_role_name: {{director_role_name}}
     remote_state_bucket:     {{terraform_backend_bucket}}
     remote_state_region:     {{terraform_backend_region}}
     remote_state_file_path:  "bosh-alicloud-cpi-state"
     public_key: ((PUBLIC_KEY))
 
+- &patch-director-role
+  task: patch-director-role
+  file: bosh-cpi-src/ci/tasks/patch-director-role.yml
+  params: &director-role-params
+    provision_role_arn: {{terraform_role_arn}}
+    region:             {{alicloud_region__primary}}
+
+# An assumed-role session lasts an hour and a build runs for hours, so the
+# credential baked into the director manifest at deploy time is expired by the
+# time teardown runs `bosh delete-env`. Refresh it first.
+- &refresh-director-credentials
+  task: refresh-director-credentials
+  file: bosh-cpi-src/ci/tasks/refresh-director-credentials.yml
+  params:
+    <<: *director-role-params
+
 - &ensure-terminated
   task: ensure-terminated
   file: bosh-cpi-src/ci/tasks/ensure-terminated.yml
   params:
-    ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-    ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
+    cleanup_role_arn:           {{terraform_role_arn}}
     ALICLOUD_DEFAULT_REGION:    {{alicloud_region__primary}}
 
 - &teardown
@@ -116,8 +131,7 @@ jobs:
   - task: test
     file: bosh-cpi-src/ci/tasks/run-integration.yml
     params:
-      ALICLOUD_ACCESS_KEY_ID:     {{alicloud_access_key__primary}}
-      ALICLOUD_ACCESS_KEY_SECRET: {{alicloud_secret_key__primary}}
+      test_role_arn: {{terraform_role_arn}}
     ensure:
       do:
         - <<: *ensure-terminated
@@ -168,6 +182,7 @@ jobs:
       delete_on_failure: true
       terraform_source: bosh-cpi-src/ci/assets/terraform
   - do:
+    - <<: *patch-director-role
     - <<: *prepare-director
       params:
         <<: *prepare-director-params
@@ -175,13 +190,23 @@ jobs:
           -o pipelines/shared/assets/ops/remove-hm.yml
           -o bosh-deployment/external-ip-with-registry-not-recommended.yml
           -o pipelines/shared/assets/ops/remove-provider-cert.yml
+          -o bosh-deployment/director-ram-role.yml
     - do:
         - <<: *deploy-director
         - <<: *run-bats
       ensure:
         do:
-          - <<: *teardown
-          - <<: *ensure-terminated
+          # A refresh failure must not skip the cleanup that follows, but it must
+          # not be reported as success either: the task itself exits zero after
+          # warning, so `try` is not used to mask a real error here.
+          - try:
+              <<: *refresh-director-credentials
+          # ensure, not a plain sequence: teardown failing must still run
+          # ensure-terminated, while the failure still propagates.
+          - do:
+              - <<: *teardown
+            ensure:
+              <<: *ensure-terminated
     ensure:
       do:
         - <<: *put-environment
@@ -213,20 +238,30 @@ jobs:
       delete_on_failure: true
       terraform_source: bosh-cpi-src/ci/assets/terraform
   - do:
+    - <<: *patch-director-role
     - <<: *prepare-director
       params:
         <<: *prepare-director-params
         OPTIONAL_OPS_FILE:  |
           -o bosh-deployment/external-ip-with-registry-not-recommended.yml
           -o pipelines/shared/assets/ops/remove-provider-cert.yml
-#              -o pipelines/alicloud/assets/ops/ram-instance-profile-ops-file.yml
+          -o bosh-deployment/director-ram-role.yml
     - do:
         - <<: *deploy-director
         - <<: *run-end-2-end
       ensure:
         do:
-          - <<: *teardown
-          - <<: *ensure-terminated
+          # A refresh failure must not skip the cleanup that follows, but it must
+          # not be reported as success either: the task itself exits zero after
+          # warning, so `try` is not used to mask a real error here.
+          - try:
+              <<: *refresh-director-credentials
+          # ensure, not a plain sequence: teardown failing must still run
+          # ensure-terminated, while the failure still propagates.
+          - do:
+              - <<: *teardown
+            ensure:
+              <<: *ensure-terminated
     ensure:
       do:
         - <<: *put-environment
@@ -346,12 +381,6 @@ resources:
       uri: https://github.com/cloudfoundry/bosh-deployment
       branch: master
 
-#  - name: aliyun-cli
-#    type: github-release
-#    source:
-#      owner: aliyun
-#      repository: aliyun-cli
-#      insecure: true
   - name: aliyun-cli
     type: s3
     source:

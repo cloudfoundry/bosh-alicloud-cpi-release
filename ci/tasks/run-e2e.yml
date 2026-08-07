@@ -22,5 +22,6 @@ run:
 
 params:
   BOSH_DEBUG_LEVEL: info
-  ALICLOUD_ACCESS_KEY_ID:      ""
-  ALICLOUD_SECRET_ACCESS_KEY:      ""
+  # Assumed from the Concourse worker's instance role; no access key is passed in.
+  observer_role_arn: ""
+  region: ""

@@ -3,10 +3,11 @@
 set -e
 
 source bosh-cpi-src/ci/tasks/utils.sh
+source bosh-cpi-src/ci/tasks/credentials.sh
 
-: ${ALICLOUD_ACCESS_KEY_ID:?}
-: ${ALICLOUD_ACCESS_KEY_SECRET:?}
+: ${test_role_arn:?}
 : ${METADATA_FILE:=environment/metadata}
+: ${CPI_CREDENTIAL_SOURCE:=static}
 
 # Stemcell stuff
 export CPI_STEMCELL_VERSION=`cat stemcell/version`
@@ -31,10 +32,6 @@ exportMetadata2Env(){
   export $1=${value2//\"/}
 }
 
-
-export CPI_ACCESS_KEY_ID=${ALICLOUD_ACCESS_KEY_ID}
-export CPI_ACCESS_KEY_SECRET=${ALICLOUD_ACCESS_KEY_SECRET}
-
 exportMetadata2Env CPI_REGION region
 exportMetadata2Env CPI_ZONE zone
 exportMetadata2Env CPI_SECURITY_GROUP_ID security_group_id
@@ -50,8 +47,23 @@ exportMetadata2Env RAM_ROLE_NAME ram_role
 export CIDR_NOTATION=$(getCidrNotation $CPI_INTERNAL_CIDR)
 export CPI_INTERNAL_NETMASK=$(cdr2mask $CIDR_NOTATION)
 
+# Exchange the worker's instance role for the test role. The aliyun CLI reads the
+# result from the environment, so no credential appears on a command line.
+region="${CPI_REGION}" assume_pipeline_role "${test_role_arn}" "integration"
+
+# The CPI under test authenticates the same way. `static` feeds it the assumed
+# short-lived credential, which is also what exercises the static code path;
+# `ecs_ram_role` makes it discover the role attached to this container instead.
+export CPI_CREDENTIAL_SOURCE
+if [[ "${CPI_CREDENTIAL_SOURCE}" == "static" ]]; then
+  export CPI_ACCESS_KEY_ID=${ALIBABA_CLOUD_ACCESS_KEY_ID}
+  export CPI_ACCESS_KEY_SECRET=${ALIBABA_CLOUD_ACCESS_KEY_SECRET}
+  export CPI_SECURITY_TOKEN=${ALIBABA_CLOUD_SECURITY_TOKEN}
+fi
+echo "CPI credential source: ${CPI_CREDENTIAL_SOURCE}"
+
 echo "Uploading raw image ${stemcell_image_name} to ${CPI_STEMCELL_OSS_BUCKET}..."
-aliyun oss cp ${stemcell_image} oss://${CPI_STEMCELL_OSS_BUCKET}/${stemcell_image_name} --access-key-id ${CPI_ACCESS_KEY_ID} --access-key-secret ${CPI_ACCESS_KEY_SECRET} --region ${CPI_REGION} --force
+aliyun oss cp ${stemcell_image} oss://${CPI_STEMCELL_OSS_BUCKET}/${stemcell_image_name} --region ${CPI_REGION} --force
 
 # Setup Go and run tests
 echo "set go path..."
@@ -63,9 +75,8 @@ check_go_version $GOPATH
 
 echo "do integration test..."
 cd ${PWD}/bosh-cpi-src
-env
 
 make testintci
 
 echo "Deleting raw image ${stemcell_image_name} from ${CPI_STEMCELL_OSS_BUCKET}..."
-aliyun oss rm oss://${CPI_STEMCELL_OSS_BUCKET}/${stemcell_image_name} -r -f --access-key-id ${CPI_ACCESS_KEY_ID} --access-key-secret ${CPI_ACCESS_KEY_SECRET} --region ${CPI_REGION}
+aliyun oss rm oss://${CPI_STEMCELL_OSS_BUCKET}/${stemcell_image_name} -r -f --region ${CPI_REGION}

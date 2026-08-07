@@ -12,5 +12,6 @@ inputs:
 run:
   path: bosh-cpi-src/ci/tasks/run-integration.sh
 params:
-  ALICLOUD_ACCESS_KEY_ID:     ""
-  ALICLOUD_ACCESS_KEY_SECRET: ""
+  # Assumed from the Concourse worker's instance role; no access key is passed in.
+  test_role_arn:         ""
+  CPI_CREDENTIAL_SOURCE: static
