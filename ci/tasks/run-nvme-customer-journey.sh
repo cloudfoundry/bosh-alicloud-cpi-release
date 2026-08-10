@@ -20,6 +20,9 @@ DEPLOYMENT_NAME=nvme-journey
 INSTANCE_GROUP=nvme-upgrade-test
 NVME_INSTANCE="${INSTANCE_GROUP}/0"
 MARKER_FILE="/var/vcap/store/${INSTANCE_GROUP}/customer-data"
+# Where the agent persists the settings the CPI handed it, including the device
+# path for each disk. That path is the whole subject of assert_device_paths.
+AGENT_SETTINGS_FILE=/var/vcap/bosh/settings.json
 
 # The journey only describes instances, disks and images, so it runs under the
 # read-only role rather than the one that can build and tear down the
@@ -251,6 +254,25 @@ assert_iaas_state() {
   fi
 }
 
+# remote_stdout runs a command on the journey instance and returns just what it
+# printed. `bosh ssh` prefixes every line with the instance and stream, and its
+# --json shape has moved between CLI versions, so the output is put through
+# base64 on the far side: one line, no spaces, and the prefix comes off with a
+# single substitution no matter what surrounds it.
+remote_stdout() {
+  local command=$1 encoded
+
+  encoded=$(bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
+    "${command} | base64 -w0" |
+    sed -n 's/^.*stdout | //p' | tr -d '[:space:]')
+
+  if [[ -z "${encoded}" ]]; then
+    echo "no output from '${command}' on ${NVME_INSTANCE}" >&2
+    return 1
+  fi
+  printf '%s' "${encoded}" | base64 -d
+}
+
 # assert_device_paths checks the device path the CPI handed to the agent, which a
 # mounted-filesystem check cannot see: a regression from the by-id path back to
 # /dev/vdb still mounts and still boots, right up until the kernel enumerates the
@@ -262,27 +284,36 @@ assert_iaas_state() {
 # likely of the two to regress unnoticed.
 assert_device_paths() {
   local expected_prefix=$1
-  local settings ephemeral persistent
+  local settings disks ephemeral persistent
 
-  settings=$(bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
-    "sudo cat /var/vcap/bosh/settings.json" --column=stdout --json |
-    jq -r '.Tables[0].Rows[0].stdout')
+  settings=$(remote_stdout "sudo cat ${AGENT_SETTINGS_FILE}") || {
+    echo "  could not read ${AGENT_SETTINGS_FILE}; what is in that directory:" >&2
+    bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
+      "sudo ls -la $(dirname ${AGENT_SETTINGS_FILE})" >&2 || true
+    return 1
+  }
 
-  ephemeral=$(echo "${settings}" | jq -er '.disks.ephemeral')
+  # Printed on every run, not only on failure: this is the CPI's own answer, and
+  # having it in the log is what makes a later regression readable.
+  disks=$(printf '%s' "${settings}" | jq -c '.disks // "<no .disks key>"')
+  echo "  disks=${disks}"
+
+  ephemeral=$(printf '%s' "${settings}" | jq -r '.disks.ephemeral // empty')
   # The persistent entry is keyed by disk CID, and is either the path itself or an
   # object carrying it, depending on the agent version.
-  persistent=$(echo "${settings}" | jq -er '
-    .disks.persistent | to_entries[0].value
+  persistent=$(printf '%s' "${settings}" | jq -r '
+    (.disks.persistent // {}) | to_entries[0].value // empty
     | if type == "object" then (.path // .device_path // empty) else . end')
-
-  echo "  ephemeral=${ephemeral}"
-  echo "  persistent=${persistent}"
 
   local path kind
   for kind in ephemeral persistent; do
-    path=$([[ "${kind}" == ephemeral ]] && echo "${ephemeral}" || echo "${persistent}")
+    path=$([[ "${kind}" == ephemeral ]] && printf '%s' "${ephemeral}" || printf '%s' "${persistent}")
+    if [[ -z "${path}" ]]; then
+      echo "  FAIL ${kind} path: the agent settings carry no path for it" >&2
+      return 1
+    fi
     case "${path}" in
-      "${expected_prefix}"*) echo "  ok ${kind} path under ${expected_prefix}" ;;
+      "${expected_prefix}"*) echo "  ok ${kind}=${path}" ;;
       *)
         echo "  FAIL ${kind} path: expected a path under ${expected_prefix}, got '${path}'" >&2
         return 1
