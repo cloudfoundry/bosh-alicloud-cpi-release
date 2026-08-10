@@ -34,22 +34,49 @@ refresh_cloud_credentials() {
 }
 refresh_cloud_credentials
 
-# The e2e task in this same job already uploaded the light stemcell, which shares
-# its name and version with the full one. Uploading the full stemcell as-is would
-# be a no-op, and `version: latest` in the manifest would then silently select the
-# light stemcell -- the journey would report success without ever exercising the
-# image path it exists to test. Repacking under a name of its own makes the
-# stemcell this journey runs on unambiguous.
-FULL_STEMCELL_NAME=nvme-journey-full-stemcell
-FULL_STEMCELL_VERSION=0.1
-repacked_stemcell=$(mktemp -d)/${FULL_STEMCELL_NAME}.tgz
+# The stemcell is repacked rather than uploaded as it comes, for two reasons.
+#
+# It shares its name and version with the copy the e2e task in this same job
+# already uploaded, so an as-is upload would be a no-op and `version: latest`
+# would resolve to that one -- the journey would report success without ever
+# booting the image it exists to test.
+#
+# And the published stemcell does not declare nvme_support yet
+# (light-stemcell-builder's feature/nvme-support is unmerged), which is what tells
+# create_stemcell to re-apply the NVMe feature to the encrypted copy the VMs
+# actually boot from. Declaring it here keeps this a test of the CPI rather than
+# of the stemcell publishing pipeline.
+#
+# The light stemcell is deliberate: it carries an image_id map, so create_stemcell
+# resolves an image that already exists instead of uploading a 3 GB disk, while
+# the CopyImage and EnableNvmeSupport path this journey cares about still runs.
+# Paying 40 minutes to build an image would test create_stemcell's upload path,
+# which is not what is under test here.
+JOURNEY_STEMCELL_NAME=nvme-journey-stemcell
+JOURNEY_STEMCELL_VERSION=0.1
 
-echo "Repacking the full stemcell as ${FULL_STEMCELL_NAME}/${FULL_STEMCELL_VERSION}"
-time bosh repack-stemcell \
-  --name "${FULL_STEMCELL_NAME}" \
-  --version "${FULL_STEMCELL_VERSION}" \
-  "$(realpath stemcell/*.tgz)" \
-  "${repacked_stemcell}"
+stemcell_dir=$(mktemp -d)
+repacked_stemcell=$(mktemp -d)/${JOURNEY_STEMCELL_NAME}.tgz
+tar -xzf "$(realpath stemcell/*.tgz)" -C "${stemcell_dir}"
+
+# Only the two top-level keys are rewritten; the same names nested under
+# cloud_properties are left alone, which is why the patterns are anchored.
+sed -i \
+  -e "s|^name: .*|name: ${JOURNEY_STEMCELL_NAME}|" \
+  -e "s|^version: .*|version: '${JOURNEY_STEMCELL_VERSION}'|" \
+  "${stemcell_dir}/stemcell.MF"
+if ! grep -qE '^[[:space:]]+nvme_support:' "${stemcell_dir}/stemcell.MF"; then
+  sed -i '/^cloud_properties:/a\  nvme_support: supported' "${stemcell_dir}/stemcell.MF"
+fi
+
+# A stemcell.MF that no longer parses would surface much later as a confusing
+# director error, so it is checked here.
+bosh int "${stemcell_dir}/stemcell.MF" --path /cloud_properties/nvme_support |
+  grep -qx supported
+echo "Repacked stemcell as ${JOURNEY_STEMCELL_NAME}/${JOURNEY_STEMCELL_VERSION} with nvme_support: supported"
+
+# The bosh CLI rejects a stemcell whose tar entries carry a leading ./
+(cd "${stemcell_dir}" && tar -czf "${repacked_stemcell}" *)
 time bosh -n upload-stemcell "${repacked_stemcell}"
 
 # is_nvme_instance_type asks the same question the CPI asks when it decides which
@@ -78,7 +105,8 @@ echo "Preconditions: ${LEGACY_INSTANCE_TYPE} is not NVMe, ${NVME_INSTANCE_TYPE} 
 # The image the director uploaded must carry the NVMe feature, or a 9th-gen VM
 # built from it cannot see its disks. Encryption is on for this director, so
 # create_stemcell reached this image through CopyImage, where the feature does
-# not carry over from the source and the CPI has to re-apply it.
+# not carry over from the source and the CPI has to re-apply it. That re-apply is
+# the CPI behaviour this assertion exists to pin down.
 #
 # The lookup pins both name and version: picking the first row that merely
 # matches a name would go back to reading whichever stemcell the e2e task
@@ -88,7 +116,7 @@ assert_stemcell_is_nvme_capable() {
   refresh_cloud_credentials
 
   image_id=$(bosh -n stemcells --json |
-    jq -er --arg name "${FULL_STEMCELL_NAME}" --arg version "${FULL_STEMCELL_VERSION}" '
+    jq -er --arg name "${JOURNEY_STEMCELL_NAME}" --arg version "${JOURNEY_STEMCELL_VERSION}" '
       [ .Tables[0].Rows[]
         | select(.name == $name and (.version | sub("\\*$"; "")) == $version) ]
       | if length == 1 then .[0].cid
@@ -115,8 +143,8 @@ deploy_customer_phase() {
   local disk_type=$2
 
   time bosh -n deploy -d "${DEPLOYMENT_NAME}" \
-    -v "stemcell_name=${FULL_STEMCELL_NAME}" \
-    -v "stemcell_version=${FULL_STEMCELL_VERSION}" \
+    -v "stemcell_name=${JOURNEY_STEMCELL_NAME}" \
+    -v "stemcell_version=${JOURNEY_STEMCELL_VERSION}" \
     -v "nvme_vm_type=${vm_type}" \
     -v "nvme_disk_type=${disk_type}" \
     -l "${METADATA_FILE}" \
