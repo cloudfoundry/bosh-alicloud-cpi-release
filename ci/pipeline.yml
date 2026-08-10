@@ -48,6 +48,11 @@ shared:
   task: nvme-customer-journey
   image: bosh-integration-image
   file: bosh-cpi-src/ci/tasks/run-nvme-customer-journey.yml
+  # The customer runs the full stemcell, and the light stemcell's NVMe image
+  # pipeline is not merged yet. The light stemcell already gets a smoke test from
+  # the e2e errands, so the journey runs on the full one only.
+  input_mapping:
+    stemcell: heavy-stemcell
   timeout: 2h
   params:
     # Read-only. The journey only describes instances, disks and images.

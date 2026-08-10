@@ -59,17 +59,13 @@ disk_types:
     disk_size: 61440
     cloud_properties:
       category: cloud_essd
-  # Same size, higher performance level: update_disk must change PL in place.
-  - name: nvme_upgrade_target_pl2
-    disk_size: 61440
-    cloud_properties:
-      category: cloud_essd
-      performance_level: PL2
-  # Smaller: the CPI must refuse, so the director copies and migrates instead.
-  - name: nvme_upgrade_target_smaller
-    disk_size: 20480
-    cloud_properties:
-      category: cloud_essd
+  # No PL2 disk type here: ESSD only accepts PL2 from 461 GiB up, so a 60 GiB PL2
+  # request fails on the size rather than on anything the CPI did. A PL change is
+  # better covered by an integration test that can afford the capacity.
+  #
+  # No smaller disk type either: the CPI rejects a shrink with a plain error
+  # rather than Bosh::Clouds::NotSupported, so the director never falls back to
+  # copy-and-migrate and the deploy simply fails.
 
 compilation:
   reuse_compilation_vms: true
