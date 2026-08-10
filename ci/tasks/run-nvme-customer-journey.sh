@@ -34,24 +34,28 @@ refresh_cloud_credentials() {
 }
 refresh_cloud_credentials
 
-# The stemcell is repacked rather than uploaded as it comes, for two reasons.
-#
-# It shares its name and version with the copy the e2e task in this same job
-# already uploaded, so an as-is upload would be a no-op and `version: latest`
-# would resolve to that one -- the journey would report success without ever
-# booting the image it exists to test.
-#
-# And the published stemcell does not declare nvme_support yet
-# (light-stemcell-builder's feature/nvme-support is unmerged), which is what tells
-# create_stemcell to re-apply the NVMe feature to the encrypted copy the VMs
-# actually boot from. Declaring it here keeps this a test of the CPI rather than
-# of the stemcell publishing pipeline.
+# expect compares one value and says what it saw when they differ. A bare `jq -e`
+# exits non-zero with nothing on stdout, which under `set -e` ends the journey
+# with no clue which of a dozen checks failed -- the whole point of these phases
+# is to say what the CPI got wrong, so every check reports its own subject.
+expect() {
+  local subject=$1 expected=$2 actual=$3
+
+  if [[ "${expected}" != "${actual}" ]]; then
+    echo "  FAIL ${subject}: expected '${expected}', got '${actual}'" >&2
+    return 1
+  fi
+  echo "  ok ${subject}=${actual}"
+}
+
+# The stemcell is repacked because it shares its name and version with the copy
+# the e2e task in this same job already uploaded. An as-is upload would be a
+# no-op and `version: latest` would resolve to that one, so the journey would
+# report success without ever booting the image it exists to test.
 #
 # The light stemcell is deliberate: it carries an image_id map, so create_stemcell
 # resolves an image that already exists instead of uploading a 3 GB disk, while
 # the CopyImage and EnableNvmeSupport path this journey cares about still runs.
-# Paying 40 minutes to build an image would test create_stemcell's upload path,
-# which is not what is under test here.
 JOURNEY_STEMCELL_NAME=nvme-journey-stemcell
 JOURNEY_STEMCELL_VERSION=0.1
 
@@ -59,21 +63,37 @@ stemcell_dir=$(mktemp -d)
 repacked_stemcell=$(mktemp -d)/${JOURNEY_STEMCELL_NAME}.tgz
 tar -xzf "$(realpath stemcell/*.tgz)" -C "${stemcell_dir}"
 
+# nvme_support in the manifest is what tells create_stemcell to re-apply the NVMe
+# feature to the encrypted copy the VMs boot from, so a stemcell without it can
+# only produce 9th-gen VMs that cannot see their disks. Rather than quietly
+# injecting it and testing the CPI against something no publisher ships, the
+# journey states the requirement and names what has to produce it.
+if ! grep -qE '^[[:space:]]+nvme_support:[[:space:]]*supported$' "${stemcell_dir}/stemcell.MF"; then
+  cat >&2 <<EOF
+This stemcell does not declare 'nvme_support: supported':
+
+$(grep -E '^(name|version):' "${stemcell_dir}/stemcell.MF")
+
+Without it create_stemcell leaves the encrypted copy without the NVMe feature and
+no 9th-gen VM can boot from it. Publish a light stemcell built from a full
+stemcell that declares nvme_support (1.484 and later do) with
+bosh-alicloud-light-stemcell-builder, and point the light stemcell resource at it.
+EOF
+  exit 1
+fi
+
 # Only the two top-level keys are rewritten; the same names nested under
 # cloud_properties are left alone, which is why the patterns are anchored.
 sed -i \
   -e "s|^name: .*|name: ${JOURNEY_STEMCELL_NAME}|" \
   -e "s|^version: .*|version: '${JOURNEY_STEMCELL_VERSION}'|" \
   "${stemcell_dir}/stemcell.MF"
-if ! grep -qE '^[[:space:]]+nvme_support:' "${stemcell_dir}/stemcell.MF"; then
-  sed -i '/^cloud_properties:/a\  nvme_support: supported' "${stemcell_dir}/stemcell.MF"
-fi
 
 # A stemcell.MF that no longer parses would surface much later as a confusing
 # director error, so it is checked here.
-bosh int "${stemcell_dir}/stemcell.MF" --path /cloud_properties/nvme_support |
-  grep -qx supported
-echo "Repacked stemcell as ${JOURNEY_STEMCELL_NAME}/${JOURNEY_STEMCELL_VERSION} with nvme_support: supported"
+expect "repacked nvme_support" supported \
+  "$(bosh int "${stemcell_dir}/stemcell.MF" --path /cloud_properties/nvme_support)"
+echo "Repacked as ${JOURNEY_STEMCELL_NAME}/${JOURNEY_STEMCELL_VERSION} from $(bosh int <(tar xfO "$(realpath stemcell/*.tgz)" stemcell.MF) --path /cloud_properties/version)"
 
 # The bosh CLI rejects a stemcell whose tar entries carry a leading ./
 (cd "${stemcell_dir}" && tar -czf "${repacked_stemcell}" *)
@@ -124,8 +144,9 @@ assert_stemcell_is_nvme_capable() {
         end')
 
   echo "Checking NVMe support on stemcell image ${image_id}"
-  aliyun ecs DescribeImages --region "${region}" --ImageId "${image_id}" |
-    jq -e '.Images.Image[0].Features.NvmeSupport == "supported"' >/dev/null
+  expect "image NvmeSupport" supported \
+    "$(aliyun ecs DescribeImages --region "${region}" --ImageId "${image_id}" |
+      jq -r '.Images.Image[0].Features.NvmeSupport // "<absent>"')"
 }
 assert_stemcell_is_nvme_capable
 
@@ -158,23 +179,36 @@ deployment_row() {
 }
 
 vm_cid() {
-  deployment_row | jq -er '.vm_cid | select(length > 0)'
+  local cid
+  cid=$(deployment_row | jq -r '.vm_cid // empty')
+  if [[ -z "${cid}" ]]; then
+    echo "no vm_cid for ${INSTANCE_GROUP} in deployment ${DEPLOYMENT_NAME}" >&2
+    return 1
+  fi
+  printf '%s' "${cid}"
 }
 
 disk_cid() {
-  deployment_row | jq -er '
-    .disk_cids
-    | if type == "array" then .[0] else split(",")[0] end
-    | select(length > 0)'
+  local cid
+  cid=$(deployment_row | jq -r '
+    .disk_cids // empty
+    | if type == "array" then (.[0] // empty) else split(",")[0] end')
+  if [[ -z "${cid}" ]]; then
+    echo "no persistent disk cid for ${INSTANCE_GROUP} in deployment ${DEPLOYMENT_NAME}" >&2
+    return 1
+  fi
+  printf '%s' "${cid}"
 }
 
 assert_remote_state() {
   local expected_marker=$1
+  local state
 
   bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
     "sudo test \"\$(cat '${MARKER_FILE}')\" = '${expected_marker}' && findmnt -rn /var/vcap/data && findmnt -rn /var/vcap/store"
 
-  deployment_row | jq -e '.process_state == "running"' >/dev/null
+  state=$(deployment_row | jq -r '.process_state // "<absent>"')
+  expect "process_state" running "${state}"
 }
 
 assert_iaas_state() {
@@ -190,6 +224,7 @@ assert_iaas_state() {
 
   current_vm_cid=$(vm_cid)
   current_disk_cid=$(disk_cid)
+  echo "  vm=${current_vm_cid} disk=${current_disk_cid}"
 
   # The credential comes from the environment, which the aliyun CLI reads on its
   # own. Passing it as --access-key-id would put it in the process arguments,
@@ -197,21 +232,22 @@ assert_iaas_state() {
   instance_json=$(aliyun ecs DescribeInstances \
     --InstanceIds "[\"${current_vm_cid}\"]" \
     --region "${region}")
-  echo "${instance_json}" | jq -e \
-    --arg expected "${expected_instance_type}" \
-    '.Instances.Instance[0].InstanceType == $expected' >/dev/null
+  expect "instance_type" "${expected_instance_type}" \
+    "$(echo "${instance_json}" | jq -r '.Instances.Instance[0].InstanceType // "<absent>"')"
 
   disk_json=$(aliyun ecs DescribeDisks \
     --DiskIds "[\"${current_disk_cid}\"]" \
     --region "${region}")
-  echo "${disk_json}" | jq -e \
-    --arg expected "${expected_disk_category}" \
-    '.Disks.Disk[0].Category == $expected and .Disks.Disk[0].Encrypted == true' >/dev/null
+  expect "disk_category" "${expected_disk_category}" \
+    "$(echo "${disk_json}" | jq -r '.Disks.Disk[0].Category // "<absent>"')"
+  # The director encrypts, so a disk that came back unencrypted means the CPI
+  # dropped the setting rather than that the test asked for the wrong thing.
+  expect "disk_encrypted" true \
+    "$(echo "${disk_json}" | jq -r '.Disks.Disk[0].Encrypted // "<absent>"')"
 
   if [[ -n "${expected_performance_level}" ]]; then
-    echo "${disk_json}" | jq -e \
-      --arg expected "${expected_performance_level}" \
-      '.Disks.Disk[0].PerformanceLevel == $expected' >/dev/null
+    expect "performance_level" "${expected_performance_level}" \
+      "$(echo "${disk_json}" | jq -r '.Disks.Disk[0].PerformanceLevel // "<absent>"')"
   fi
 }
 
@@ -242,12 +278,13 @@ assert_device_paths() {
   echo "  ephemeral=${ephemeral}"
   echo "  persistent=${persistent}"
 
-  local path
-  for path in "${ephemeral}" "${persistent}"; do
+  local path kind
+  for kind in ephemeral persistent; do
+    path=$([[ "${kind}" == ephemeral ]] && echo "${ephemeral}" || echo "${persistent}")
     case "${path}" in
-      "${expected_prefix}"*) ;;
+      "${expected_prefix}"*) echo "  ok ${kind} path under ${expected_prefix}" ;;
       *)
-        echo "expected a device path under ${expected_prefix}, got ${path}" >&2
+        echo "  FAIL ${kind} path: expected a path under ${expected_prefix}, got '${path}'" >&2
         return 1
         ;;
     esac
