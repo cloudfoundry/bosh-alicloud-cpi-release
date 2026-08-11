@@ -8,7 +8,7 @@
 + validate the customer upgrade journey for NVMe instance types
   - start on a legacy instance with an encrypted stemcell and cloud-efficiency disks
   - preserve persistent data while upgrading to a 9th-generation instance and ESSD
-  - preserve data while shrinking through the Director copy/migrate fallback
+  - grow the ESSD disk in place via update_disk
   - recreate on NVMe, then move compute back to the legacy family with the ESSD attached
 
 ### TODO

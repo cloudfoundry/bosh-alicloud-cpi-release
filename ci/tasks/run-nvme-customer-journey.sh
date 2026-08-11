@@ -146,10 +146,16 @@ assert_stemcell_is_nvme_capable() {
         else error("expected exactly one \($name)/\($version) stemcell, found \(length)")
         end')
 
-  echo "Checking NVMe support on stemcell image ${image_id}"
+  echo "Checking NVMe support and encryption on stemcell image ${image_id}"
+  local describe_json
+  describe_json=$(aliyun ecs DescribeImages --region "${region}" --ImageId "${image_id}")
   expect "image NvmeSupport" supported \
-    "$(aliyun ecs DescribeImages --region "${region}" --ImageId "${image_id}" |
-      jq -r '.Images.Image[0].Features.NvmeSupport // "<absent>"')"
+    "$(echo "${describe_json}" | jq -r '.Images.Image[0].Features.NvmeSupport // "<absent>"')"
+  # The director always asks the CPI for an encrypted copy. The source light
+  # image already carries NvmeSupport, so without this check a CPI that skips
+  # the encrypted CopyImage would still pass the NvmeSupport assertion.
+  expect "image Encrypted" true \
+    "$(echo "${describe_json}" | jq -r '.Images.Image[0].Encrypted // "<absent>"')"
 }
 assert_stemcell_is_nvme_capable
 
@@ -218,6 +224,7 @@ assert_iaas_state() {
   local expected_instance_type=$1
   local expected_disk_category=$2
   local expected_performance_level=${3:-}
+  local expected_disk_size=${4:-}
   local current_vm_cid
   local current_disk_cid
   local instance_json
@@ -251,6 +258,10 @@ assert_iaas_state() {
   if [[ -n "${expected_performance_level}" ]]; then
     expect "performance_level" "${expected_performance_level}" \
       "$(echo "${disk_json}" | jq -r '.Disks.Disk[0].PerformanceLevel // "<absent>"')"
+  fi
+  if [[ -n "${expected_disk_size}" ]]; then
+    expect "disk_size_gib" "${expected_disk_size}" \
+      "$(echo "${disk_json}" | jq -r '.Disks.Disk[0].Size // "<absent>"')"
   fi
 }
 
@@ -365,7 +376,7 @@ assert_disk_kept_in_place "${legacy_disk}" "${upgraded_disk}"
 echo "### Phase 3: grow the ESSD disk, which update_disk must do in place"
 deploy_customer_phase nvme_upgrade_target nvme_upgrade_target_larger
 assert_remote_state "${marker}"
-assert_iaas_state "${NVME_INSTANCE_TYPE}" cloud_essd
+assert_iaas_state "${NVME_INSTANCE_TYPE}" cloud_essd "" 60
 assert_device_paths "${NVME_BY_ID}"
 grown_disk=$(disk_cid)
 assert_disk_kept_in_place "${upgraded_disk}" "${grown_disk}"
