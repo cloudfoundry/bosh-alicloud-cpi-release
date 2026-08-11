@@ -368,7 +368,7 @@ legacy_disk=$(disk_cid)
 echo "### Phase 2: move compute and disks to 9th-gen and ESSD together"
 deploy_customer_phase nvme_upgrade_target nvme_upgrade_target
 assert_remote_state "${marker}"
-assert_iaas_state "${NVME_INSTANCE_TYPE}" cloud_essd
+assert_iaas_state "${NVME_INSTANCE_TYPE}" cloud_essd "" 40
 assert_device_paths "${NVME_BY_ID}"
 upgraded_disk=$(disk_cid)
 assert_disk_kept_in_place "${legacy_disk}" "${upgraded_disk}"
