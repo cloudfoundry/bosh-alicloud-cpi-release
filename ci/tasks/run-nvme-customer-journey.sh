@@ -254,24 +254,24 @@ assert_iaas_state() {
   fi
 }
 
-# remote_stdout runs a command on the journey instance and returns just what it
-# printed. `bosh ssh` prefixes every line with the instance and stream, and its
-# --json shape has moved between CLI versions, so the output is put through
-# base64 on the far side: one line, no spaces, and the prefix comes off with a
-# single substitution no matter what surrounds it.
-remote_stdout() {
-  local command=$1 encoded
-
-  encoded=$(bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
-    "${command} | base64 -w0" |
-    sed -n 's/^.*stdout | //p' | tr -d '[:space:]')
-
-  if [[ -z "${encoded}" ]]; then
-    echo "no output from '${command}' on ${NVME_INSTANCE}" >&2
-    return 1
-  fi
-  printf '%s' "${encoded}" | base64 -d
-}
+# The settings file is several kilobytes, and asking for it whole did not survive
+# the trip: one base64 line that long came back from `bosh ssh` truncated, and
+# decoding it failed with nothing to show for it. The instance is asked for the
+# three short lines that are actually wanted instead. The program itself travels
+# as base64 so its quoting does not have to survive two levels of shell.
+AGENT_DISKS_PROGRAM=$(cat <<'PY'
+import json, sys
+settings = json.load(open(sys.argv[1]))
+disks = settings.get('disks') or {}
+persistent = disks.get('persistent') or {}
+entry = list(persistent.values())[0] if persistent else None
+if isinstance(entry, dict):
+    entry = entry.get('path') or entry.get('device_path')
+print('JOURNEY_EPHEMERAL', disks.get('ephemeral') or '')
+print('JOURNEY_PERSISTENT', entry or '')
+print('JOURNEY_DISKS', json.dumps(disks, separators=(',', ':')))
+PY
+)
 
 # assert_device_paths checks the device path the CPI handed to the agent, which a
 # mounted-filesystem check cannot see: a regression from the by-id path back to
@@ -284,26 +284,25 @@ remote_stdout() {
 # likely of the two to regress unnoticed.
 assert_device_paths() {
   local expected_prefix=$1
-  local settings disks ephemeral persistent
+  local encoded report disks ephemeral persistent
 
-  settings=$(remote_stdout "sudo cat ${AGENT_SETTINGS_FILE}") || {
-    echo "  could not read ${AGENT_SETTINGS_FILE}; what is in that directory:" >&2
-    bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
-      "sudo ls -la $(dirname ${AGENT_SETTINGS_FILE})" >&2 || true
+  encoded=$(printf '%s' "${AGENT_DISKS_PROGRAM}" | base64 | tr -d '\n')
+  report=$(bosh -n -d "${DEPLOYMENT_NAME}" ssh "${NVME_INSTANCE}" -c \
+    "echo ${encoded} | base64 -d | sudo python3 - ${AGENT_SETTINGS_FILE}" 2>&1) || true
+
+  disks=$(printf '%s\n' "${report}" | sed -n 's/.*JOURNEY_DISKS //p')
+  if [[ -z "${disks}" ]]; then
+    echo "  FAIL the instance did not report its disk settings; it said:" >&2
+    printf '%s\n' "${report}" >&2
     return 1
-  }
+  fi
 
   # Printed on every run, not only on failure: this is the CPI's own answer, and
   # having it in the log is what makes a later regression readable.
-  disks=$(printf '%s' "${settings}" | jq -c '.disks // "<no .disks key>"')
   echo "  disks=${disks}"
 
-  ephemeral=$(printf '%s' "${settings}" | jq -r '.disks.ephemeral // empty')
-  # The persistent entry is keyed by disk CID, and is either the path itself or an
-  # object carrying it, depending on the agent version.
-  persistent=$(printf '%s' "${settings}" | jq -r '
-    (.disks.persistent // {}) | to_entries[0].value // empty
-    | if type == "object" then (.path // .device_path // empty) else . end')
+  ephemeral=$(printf '%s\n' "${report}" | sed -n 's/.*JOURNEY_EPHEMERAL //p' | tr -d '[:space:]')
+  persistent=$(printf '%s\n' "${report}" | sed -n 's/.*JOURNEY_PERSISTENT //p' | tr -d '[:space:]')
 
   local path kind
   for kind in ephemeral persistent; do
