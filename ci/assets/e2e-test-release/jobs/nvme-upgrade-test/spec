@@ -1,0 +1,5 @@
+---
+name: nvme-upgrade-test
+
+templates:
+  ctl.erb: bin/ctl

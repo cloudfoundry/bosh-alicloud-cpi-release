@@ -1,0 +1,38 @@
+---
+# The customer journey runs in its own deployment so that changing an instance
+# type or a disk spec here cannot disturb the errands in manifest.yml, and so the
+# regular e2e job does not pay for an extra long-lived VM.
+name: nvme-journey
+
+releases:
+  - name: e2e-test
+    version: latest
+
+update:
+  canaries: 1
+  canary_watch_time: 30000-240000
+  update_watch_time: 30000-600000
+  max_in_flight: 1
+
+stemcells:
+  - alias: stemcell
+    name: ((stemcell_name))
+    # Pinned, not `latest`: the e2e task uploads a stemcell of its own into the
+    # same director, and `latest` could resolve to that one instead.
+    version: ((stemcell_version))
+
+instance_groups:
+  # Not an errand: the journey needs a VM that stays up across several deploys so
+  # that the marker file on its persistent disk proves the customer's data
+  # survived each step.
+  - name: nvme-upgrade-test
+    jobs:
+      - name: nvme-upgrade-test
+        release: e2e-test
+    stemcell: stemcell
+    instances: 1
+    vm_type: ((nvme_vm_type))
+    persistent_disk_type: ((nvme_disk_type))
+    networks:
+      - name: private
+        default: [dns, gateway]

@@ -1,0 +1,26 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: bosh/integration
+    tag: main
+
+inputs:
+  - name: bosh-cpi-src
+  - name: environment
+  - name: stemcell
+  - name: bosh-cli
+  - name: director-state
+  - name: aliyun-cli
+
+run:
+  path: bosh-cpi-src/ci/tasks/run-nvme-customer-journey.sh
+
+params:
+  # Assumed from the Concourse worker's instance role; no access key is passed in.
+  observer_role_arn: ""
+  region: ""
+  LEGACY_INSTANCE_TYPE: ecs.hfc6.xlarge
+  NVME_INSTANCE_TYPE: ecs.c9i.large

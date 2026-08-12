@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -eu
+
+run_dir=/var/vcap/sys/run/nvme-upgrade-test
+log_dir=/var/vcap/sys/log/nvme-upgrade-test
+pid_file=${run_dir}/nvme-upgrade-test.pid
+
+case "${1:-}" in
+  start)
+    mkdir -p "${run_dir}" "${log_dir}"
+    if [[ -f "${pid_file}" ]] && kill -0 "$(cat "${pid_file}")" 2>/dev/null; then
+      exit 0
+    fi
+    nohup /bin/sleep infinity \
+      >>"${log_dir}/nvme-upgrade-test.stdout.log" \
+      2>>"${log_dir}/nvme-upgrade-test.stderr.log" &
+    echo $! > "${pid_file}"
+    ;;
+  stop)
+    if [[ -f "${pid_file}" ]]; then
+      kill "$(cat "${pid_file}")" 2>/dev/null || true
+      rm -f "${pid_file}"
+    fi
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}" >&2
+    exit 1
+    ;;
+esac

@@ -44,6 +44,16 @@ shared:
     observer_role_arn:  {{e2e_observer_role_arn}}
     region:             {{alicloud_region__primary}}
 
+- &run-nvme-customer-journey
+  task: nvme-customer-journey
+  image: bosh-integration-image
+  file: bosh-cpi-src/ci/tasks/run-nvme-customer-journey.yml
+  timeout: 2h
+  params:
+    # Read-only. The journey only describes instances, disks and images.
+    observer_role_arn:  {{e2e_observer_role_arn}}
+    region:             {{alicloud_region__primary}}
+
 - &put-environment
   task: put-environment
   file: bosh-cpi-src/ci/tasks/put-environment.yml
@@ -104,6 +114,31 @@ shared:
           - path: /resource_pools/name=vms/cloud_properties/instance_type
             type: replace
             value: ecs.g6.xlarge
+          EOF
+
+- &patch-director-customer-journey
+  task: patch-director-customer-journey
+  config:
+    platform: linux
+    image_resource:
+      type: registry-image
+      source: {repository: bosh/integration, tag: main}
+    inputs:
+      - name: bosh-deployment
+    outputs:
+      - name: bosh-deployment
+    run:
+      path: bash
+      args:
+        - -c
+        - |
+          cat > bosh-deployment/nvme-customer-journey.yml <<'EOF'
+          - type: replace
+            path: /instance_groups/name=bosh/properties/director/enable_cpi_update_disk?
+            value: true
+          - type: replace
+            path: /instance_groups/name=bosh/properties/alicloud/encrypted?
+            value: true
           EOF
 
 # Alibaba Cloud EIPs don't support hairpin NAT: the Director VM cannot
@@ -327,6 +362,7 @@ jobs:
   - do:
     - <<: *patch-director-size
     - <<: *patch-director-role
+    - <<: *patch-director-customer-journey
     - <<: *prepare-director
       params:
         <<: *prepare-director-params
@@ -335,10 +371,12 @@ jobs:
           -o pipelines/shared/assets/ops/remove-provider-cert.yml
           -o bosh-deployment/director-instance-type.yml
           -o bosh-deployment/director-ram-role.yml
+          -o bosh-deployment/nvme-customer-journey.yml
     - do:
         - <<: *deploy-director
         - <<: *patch-director-env
         - <<: *run-end-2-end
+        - <<: *run-nvme-customer-journey
       ensure:
         do:
           # A refresh failure must not skip the cleanup that follows, but it must
@@ -461,6 +499,8 @@ resources:
     type: bosh-io-stemcell
     source:
       name: bosh-alicloud-kvm-ubuntu-noble
+      force_regular: false
+      tarball: true
   - name: bats
     type: git
     source:

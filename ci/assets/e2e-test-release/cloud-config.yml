@@ -22,6 +22,50 @@ vm_types:
       instance_type: ecs.sn1ne.large
       spot_strategy: "SpotWithPriceLimit"
       spot_price_limit: 0.10 # 10x the normal bid price
+  - name: nvme_upgrade_legacy
+    cloud_properties:
+      instance_type: ((legacy_instance_type))
+      availability_zone: ((zone))
+      system_disk:
+        size: 40960
+        category: cloud_efficiency
+      ephemeral_disk:
+        size: 40960
+        category: cloud_efficiency
+  - name: nvme_upgrade_target
+    cloud_properties:
+      instance_type: ((nvme_instance_type))
+      availability_zone: ((zone))
+      system_disk:
+        size: 40960
+        category: cloud_essd
+      ephemeral_disk:
+        size: 40960
+        category: cloud_essd
+
+disk_types:
+  - name: nvme_upgrade_legacy
+    disk_size: 40960
+    cloud_properties:
+      category: cloud_efficiency
+  # Same size as the legacy disk, ESSD instead of cloud_efficiency: update_disk
+  # must change the category in place without replacing the disk.
+  - name: nvme_upgrade_target
+    disk_size: 40960
+    cloud_properties:
+      category: cloud_essd
+  # Larger, same category: update_disk must resize in place.
+  - name: nvme_upgrade_target_larger
+    disk_size: 61440
+    cloud_properties:
+      category: cloud_essd
+  # No PL2 disk type here: ESSD only accepts PL2 from 461 GiB up, so a 60 GiB PL2
+  # request fails on the size rather than on anything the CPI did. A PL change is
+  # better covered by an integration test that can afford the capacity.
+  #
+  # No smaller disk type either: the CPI rejects a shrink with a plain error
+  # rather than Bosh::Clouds::NotSupported, so the director never falls back to
+  # copy-and-migrate and the deploy simply fails.
 
 compilation:
   reuse_compilation_vms: true
