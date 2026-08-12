@@ -48,7 +48,10 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 
 	newSizeGB := ConvertToGB(float64(newSize))
 	if newSizeGB < disk.Size {
-		return diskCID, bosherr.Errorf("UpdateDisk cannot shrink disk %s: requested %d GB < current %d GB",
+		// AliCloud can't shrink in-place. Return NotSupported (not a generic error) so
+		// the director falls back to its copy/migrate path, as it did before update_disk.
+		return diskCID, alicloud.NewNotSupportedError(
+			"UpdateDisk cannot shrink disk %s in-place: requested %d GB < current %d GB",
 			diskCid, newSizeGB, disk.Size)
 	}
 
