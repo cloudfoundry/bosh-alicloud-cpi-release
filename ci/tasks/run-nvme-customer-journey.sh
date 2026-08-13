@@ -154,8 +154,24 @@ assert_stemcell_is_nvme_capable() {
   # The director always asks the CPI for an encrypted copy. The source light
   # image already carries NvmeSupport, so without this check a CPI that skips
   # the encrypted CopyImage would still pass the NvmeSupport assertion.
-  expect "image Encrypted" true \
-    "$(echo "${describe_json}" | jq -r '.Images.Image[0].Encrypted // "<absent>"')"
+  #
+  # Encryption is read off the image's system snapshot, not off the image:
+  # DescribeImages reports Encrypted only per DiskDeviceMapping and documents
+  # that field as an invitational preview, while a snapshot's own Encrypted is
+  # long-standing API.
+  local snapshot_id snapshot_json
+  snapshot_id=$(echo "${describe_json}" |
+    jq -er '[ .Images.Image[0].DiskDeviceMappings.DiskDeviceMapping[]
+              | select(.Type == "system") | .SnapshotId ]
+            | first // error("image has no system disk snapshot")')
+  snapshot_json=$(aliyun ecs DescribeSnapshots --region "${region}" \
+    --SnapshotIds "[\"${snapshot_id}\"]")
+  # tostring with no `//`: jq's alternative operator takes the right-hand side
+  # for false as well as for null, so any default here would report an
+  # unencrypted snapshot as though the API had stopped returning the field.
+  # tostring alone still renders a missing field as "null".
+  expect "snapshot ${snapshot_id} Encrypted" true \
+    "$(echo "${snapshot_json}" | jq -r '.Snapshots.Snapshot[0].Encrypted | tostring')"
 }
 assert_stemcell_is_nvme_capable
 
@@ -252,8 +268,10 @@ assert_iaas_state() {
     "$(echo "${disk_json}" | jq -r '.Disks.Disk[0].Category // "<absent>"')"
   # The director encrypts, so a disk that came back unencrypted means the CPI
   # dropped the setting rather than that the test asked for the wrong thing.
+  # tostring for the same reason as the snapshot check above: any `//` default
+  # would report an unencrypted disk as a missing field.
   expect "disk_encrypted" true \
-    "$(echo "${disk_json}" | jq -r '.Disks.Disk[0].Encrypted // "<absent>"')"
+    "$(echo "${disk_json}" | jq -r '.Disks.Disk[0].Encrypted | tostring')"
 
   if [[ -n "${expected_performance_level}" ]]; then
     expect "performance_level" "${expected_performance_level}" \
