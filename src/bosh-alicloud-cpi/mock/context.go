@@ -93,23 +93,6 @@ func (c TestContext) NewStemcell() (string, *ecs.Image) {
 	return m.ImageId, &m
 }
 
-// NewStemcellWithSnapshots creates a stemcell image whose DiskDeviceMappings
-// reference the given snapshot IDs, and registers those IDs in mc.Snapshots.
-func (c TestContext) NewStemcellWithSnapshots(snapshotIds []string) (string, *ecs.Image) {
-	m := ecs.Image{
-		ImageId: NewStemcellId(),
-	}
-	for _, ssid := range snapshotIds {
-		m.DiskDeviceMappings.DiskDeviceMapping = append(
-			m.DiskDeviceMappings.DiskDeviceMapping,
-			ecs.DiskDeviceMapping{SnapshotId: ssid},
-		)
-		c.Snapshots[ssid] = m.ImageId
-	}
-	c.Stemcells[m.ImageId] = &m
-	return m.ImageId, &m
-}
-
 func (c TestContext) NewBucket(name string) (string, *oss.Bucket) {
 	b := oss.Bucket{
 		BucketName: NewOssBucketName(),
