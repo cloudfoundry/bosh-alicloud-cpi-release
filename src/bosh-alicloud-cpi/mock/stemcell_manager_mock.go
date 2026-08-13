@@ -29,14 +29,9 @@ func (a StemcellManagerMock) FindStemcellById(id string) (*ecs.Image, error) {
 }
 
 func (a StemcellManagerMock) DeleteStemcell(id string) error {
-	image, ok := a.mc.Stemcells[id]
+	_, ok := a.mc.Stemcells[id]
 	if !ok {
 		return fmt.Errorf("DeleteImage image not exists %s", id)
-	}
-	for _, dm := range image.DiskDeviceMappings.DiskDeviceMapping {
-		if dm.SnapshotId != "" {
-			delete(a.mc.Snapshots, dm.SnapshotId)
-		}
 	}
 	delete(a.mc.Stemcells, id)
 	return nil

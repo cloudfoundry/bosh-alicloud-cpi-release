@@ -35,10 +35,26 @@ type StemcellManager interface {
 	WaitForImageReady(id string) error
 }
 
+// EcsImageClient is the subset of the ECS SDK client used by the stemcell
+// manager. Defining it as an interface lets tests inject a fake client and
+// exercise the real StemcellManagerImpl logic without talking to AliCloud.
+type EcsImageClient interface {
+	DescribeImages(request *ecs.DescribeImagesRequest) (*ecs.DescribeImagesResponse, error)
+	DeleteImage(request *ecs.DeleteImageRequest) (*ecs.DeleteImageResponse, error)
+	DeleteSnapshot(request *ecs.DeleteSnapshotRequest) (*ecs.DeleteSnapshotResponse, error)
+	ImportImage(request *ecs.ImportImageRequest) (*ecs.ImportImageResponse, error)
+	CopyImage(request *ecs.CopyImageRequest) (*ecs.CopyImageResponse, error)
+	ModifyImageAttribute(request *ecs.ModifyImageAttributeRequest) (*ecs.ModifyImageAttributeResponse, error)
+}
+
 type StemcellManagerImpl struct {
 	config Config
 	logger boshlog.Logger
 	region string
+
+	// newClient builds the ECS client for a region. It defaults to a thin
+	// wrapper over config.NewEcsClient and is overridable in tests.
+	newClient func(region string) (EcsImageClient, error)
 }
 
 func NewStemcellManager(config Config, logger boshlog.Logger) StemcellManager {
@@ -46,6 +62,9 @@ func NewStemcellManager(config Config, logger boshlog.Logger) StemcellManager {
 		config: config,
 		logger: logger,
 		region: config.OpenApi.GetRegion(""),
+		newClient: func(region string) (EcsImageClient, error) {
+			return config.NewEcsClient(region)
+		},
 	}
 }
 
@@ -59,7 +78,7 @@ func (a StemcellManagerImpl) log(action string, err error, args interface{}, res
 }
 
 func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.Image, error) {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +101,7 @@ func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.Image, error) {
 }
 
 func (a StemcellManagerImpl) FindStemcellByName(name string) (*ecs.Image, error) {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +132,8 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 		return err
 	}
 	if image == nil {
-		return bosherr.WrapErrorf(err, "Alicloud Image '%s' does not exists", id)
+		// Idempotent: nothing to delete.
+		return nil
 	}
 
 	var snapshotIds []string
@@ -124,7 +144,7 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 	}
 
 	a.logger.Debug(AlicloudImageServiceTag, "Deleting Alicloud Image '%s'", id)
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return err
 	}
@@ -139,7 +159,13 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 	// its backing snapshots. Mirrors the AWS CPI's deregister-then-wait ordering.
 	if len(snapshotIds) > 0 {
 		if err := a.WaitForImageDeleted(id, DefaultWaitForImageDeletedTimeout); err != nil {
-			a.logger.Warn(AlicloudImageServiceTag, "Image '%s' not confirmed deleted before snapshot cleanup: %s", id, err)
+			// The image is still present, so DeleteSnapshot would fail for every
+			// snapshot. Skip the attempts and log each ID as leaked so recovery
+			// doesn't require a full-region scan.
+			for _, snapshotId := range snapshotIds {
+				a.logger.Warn(AlicloudImageServiceTag, "Leaked snapshot '%s' for image '%s': image not confirmed deleted (%s)", snapshotId, id, err)
+			}
+			return nil
 		}
 	}
 
@@ -156,7 +182,7 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 }
 
 func (a StemcellManagerImpl) ImportImage(args *ecs.ImportImageRequest) (string, error) {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return "", err
 	}
@@ -178,7 +204,7 @@ func (a StemcellManagerImpl) ImportImage(args *ecs.ImportImageRequest) (string, 
 }
 
 func (a StemcellManagerImpl) CopyImage(args *ecs.CopyImageRequest) (string, error) {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return "", err
 	}
@@ -206,7 +232,7 @@ func (a StemcellManagerImpl) OpenLocalFile(path string) (*os.File, error) {
 // EnableNvmeSupport sets the Features.NvmeSupport=supported attribute on an existing
 // ECS image.
 func (a StemcellManagerImpl) EnableNvmeSupport(imageId string) error {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return err
 	}
