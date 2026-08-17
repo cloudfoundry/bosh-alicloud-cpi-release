@@ -44,10 +44,10 @@ type StemcellProps struct {
 	//RootDeviceName string 	`json:"root_device_name"`
 	SourceUrl string `json:"source_url"`
 	//SourceSha1    string `json:"raw_disk_sha1,omitempty"`
-	OSSBucket   string                 `json:"oss_bucket"`
-	OSSObject   string                 `json:"oss_object"`
-	Description string                 `json:"description,omitempty"`
-	Version     interface{}            `json:"version"`
+	OSSBucket   string      `json:"oss_bucket"`
+	OSSObject   string      `json:"oss_object"`
+	Description string      `json:"description,omitempty"`
+	Version     interface{} `json:"version"`
 	version     string
 	Images      map[string]interface{} `json:"image_id"`
 }

@@ -44,7 +44,7 @@ type DiskManager interface {
 	CreateSnapshot(diskCid string, snapshotName string) (string, error)
 	DeleteSnapshot(snapshotCid string) error
 
-	WaitForDiskStatus(diskCid string, toStatus DiskStatus) (string, error)
+	WaitForDiskStatus(diskCid string, toStatus DiskStatus, opts ...time.Duration) (string, error)
 	ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error)) error
 
 	GetDiskPath(path, diskId, instanceType string, category DiskCategory) (string, error)
@@ -318,11 +318,24 @@ func (a DiskManagerImpl) DeleteSnapshot(snapshotCid string) error {
 	})
 }
 
-func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus DiskStatus) (string, error) {
+// WaitForDiskStatus polls until the disk reaches toStatus. The timeout and
+// interval are optional: WaitForDiskStatus(cid, status) uses the default
+// WaitTimeout/WaitInterval; pass WaitForDiskStatus(cid, status, timeout) or
+// (cid, status, timeout, interval) to override. Extra args beyond two are
+// ignored.
+func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus DiskStatus, opts ...time.Duration) (string, error) {
 	invoker := NewInvoker()
 
+	timeout, interval := WaitTimeout, WaitInterval
+	if len(opts) >= 1 {
+		timeout = opts[0]
+	}
+	if len(opts) >= 2 {
+		interval = opts[1]
+	}
+
 	result := ""
-	ok, err := invoker.RunUntil(WaitTimeout, WaitInterval, func() (bool, error) {
+	ok, err := invoker.RunUntil(timeout, interval, func() (bool, error) {
 		disk, e := a.GetDisk(diskCid)
 
 		if e != nil {

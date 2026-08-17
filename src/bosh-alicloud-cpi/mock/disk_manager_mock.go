@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
@@ -208,7 +209,7 @@ func (a DiskManagerMock) DeleteSnapshot(snapshotCid string) error {
 	return nil
 }
 
-func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus alicloud.DiskStatus) (string, error) {
+func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus alicloud.DiskStatus, opts ...time.Duration) (string, error) {
 	disk, ok := a.mc.Disks[diskCid]
 	if !ok {
 		return "", fmt.Errorf("WaitForDiskStatus disk not exists id=%s", diskCid)

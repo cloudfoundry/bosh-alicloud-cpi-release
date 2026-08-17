@@ -5,9 +5,18 @@ package action
 
 import (
 	"bosh-alicloud-cpi/alicloud"
+	"time"
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+)
+
+// ModifyDiskSpec is asynchronous and can run for many minutes on large disks —
+// longer than the generic WaitForDiskStatus timeout (600s). Give the spec-change
+// wait its own budget, matching the 30 min the Ruby bootstrap-bosh migration uses.
+const (
+	modifyDiskSpecWaitTimeout  = 30 * time.Minute
+	modifyDiskSpecWaitInterval = 10 * time.Second
 )
 
 type UpdateDiskMethod struct {
@@ -71,8 +80,11 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 				diskCid, currentCategory, targetCategory, currentPL, targetPL)
 		}
 
-		// Wait for Available before resizing.
-		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable); err != nil {
+		// Wait for the spec change to finish before resizing. The disk passes
+		// through "Modifying" during the conversion; use the long ModifyDiskSpec
+		// timeout (not the generic WaitTimeout) so large-disk conversions don't
+		// time out mid-flight and leave the director to detach a Modifying disk.
+		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable, modifyDiskSpecWaitTimeout, modifyDiskSpecWaitInterval); err != nil {
 			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after spec change", diskCid)
 		}
 	}
