@@ -240,7 +240,7 @@ func (a DiskManagerMock) WaitForDiskSpec(diskCid, targetCategory, targetPL strin
 	return nil
 }
 
-func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus alicloud.DiskStatus, checkFunc func(disk *ecs.Disk) (bool, error)) error {
+func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus alicloud.DiskStatus, checkFunc func(disk *ecs.Disk) (bool, error), opts ...time.Duration) error {
 	disk, err := a.GetDisk(cid)
 	if err != nil {
 		return err
