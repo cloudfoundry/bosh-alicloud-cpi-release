@@ -5,6 +5,7 @@ package mock
 
 import (
 	"bosh-alicloud-cpi/alicloud"
+	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -29,18 +30,25 @@ type TestContext struct {
 	// which each hold a by-value copy of the struct but share the same map header.
 	// Recognized keys: "failGetDisks", "failDiskPath".
 	Flags map[string]bool
+
+	// WaitForDiskSpecOpts records the opts passed to the most recent WaitForDiskSpec
+	// call, so tests can assert that update_disk passes the expected timeout/interval.
+	// Stored as a pointer so the mock's copy of TestContext writes through to the original.
+	WaitForDiskSpecOpts *[]time.Duration
 }
 
 func NewTestContext(config alicloud.Config) TestContext {
+	opts := make([]time.Duration, 0)
 	return TestContext{
-		config:     config,
-		Disks:      make(map[string]*ecs.Disk),
-		Instances:  make(map[string]*ecs.Instance),
-		Stemcells:  make(map[string]*ecs.Image),
-		Buckets:    make(map[string]*oss.Bucket),
-		OssObjects: make(map[string]string),
-		Snapshots:  make(map[string]string),
-		Flags:      make(map[string]bool),
+		config:              config,
+		Disks:               make(map[string]*ecs.Disk),
+		Instances:           make(map[string]*ecs.Instance),
+		Stemcells:           make(map[string]*ecs.Image),
+		Buckets:             make(map[string]*oss.Bucket),
+		OssObjects:          make(map[string]string),
+		Snapshots:           make(map[string]string),
+		Flags:               make(map[string]bool),
+		WaitForDiskSpecOpts: &opts,
 	}
 }
 

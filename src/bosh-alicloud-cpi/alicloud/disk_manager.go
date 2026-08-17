@@ -45,6 +45,7 @@ type DiskManager interface {
 	DeleteSnapshot(snapshotCid string) error
 
 	WaitForDiskStatus(diskCid string, toStatus DiskStatus, opts ...time.Duration) (string, error)
+	WaitForDiskSpec(diskCid, targetCategory, targetPL string, opts ...time.Duration) error
 	ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error)) error
 
 	GetDiskPath(path, diskId, instanceType string, category DiskCategory) (string, error)
@@ -361,6 +362,53 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus DiskStatus, 
 		return "", bosherr.Errorf("WaitForDisk %s to %s timeout", diskCid, toStatus)
 	}
 	return result, nil
+}
+
+// WaitForDiskSpec polls until the disk is Available with the target category and,
+// when targetPL is non-empty, the target performance level. ModifyDiskSpec is
+// asynchronous: the disk may still show Available before it transitions to
+// Modifying, so checking category+PL prevents a spurious early return.
+func (a DiskManagerImpl) WaitForDiskSpec(diskCid, targetCategory, targetPL string, opts ...time.Duration) error {
+	invoker := NewInvoker()
+
+	timeout, interval := WaitTimeout, WaitInterval
+	if len(opts) >= 1 {
+		timeout = opts[0]
+	}
+	if len(opts) >= 2 {
+		interval = opts[1]
+	}
+
+	ok, err := invoker.RunUntil(timeout, interval, func() (bool, error) {
+		disk, e := a.GetDisk(diskCid)
+		if e != nil {
+			return false, e
+		}
+		if disk == nil {
+			return false, fmt.Errorf("disk missing id=%s", diskCid)
+		}
+		if DiskStatus(disk.Status) != DiskStatusAvailable {
+			a.logger.Info("DiskManager", "WaitForDiskSpec %s: status=%s waiting for Available", diskCid, disk.Status)
+			return false, nil
+		}
+		if disk.Category != targetCategory {
+			a.logger.Info("DiskManager", "WaitForDiskSpec %s: category=%s waiting for %s", diskCid, disk.Category, targetCategory)
+			return false, nil
+		}
+		if targetPL != "" && disk.PerformanceLevel != targetPL {
+			a.logger.Info("DiskManager", "WaitForDiskSpec %s: PL=%s waiting for %s", diskCid, disk.PerformanceLevel, targetPL)
+			return false, nil
+		}
+		return true, nil
+	})
+
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return bosherr.Errorf("WaitForDiskSpec %s to category=%s PL=%s timeout", diskCid, targetCategory, targetPL)
+	}
+	return nil
 }
 
 func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error)) error {

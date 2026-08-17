@@ -5,6 +5,7 @@ package action
 
 import (
 	"bosh-alicloud-cpi/alicloud"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -167,7 +168,22 @@ var _ = Describe("cpi:update_disk", func() {
 				"category": string(alicloud.DiskCategoryCloudESSD),
 			})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("WaitForDiskStatus"))
+			Expect(err.Error()).To(ContainSubstring("WaitForDiskSpec"))
+		})
+
+		It("passes 30m timeout and 10s interval to WaitForDiskSpec", func() {
+			cid, disk := mockContext.NewDisk("")
+			Expect(disk.Category).To(Equal(string(alicloud.DiskCategoryCloudEfficiency)))
+
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudESSD),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			opts := *mockContext.WaitForDiskSpecOpts
+			Expect(opts).To(HaveLen(2))
+			Expect(opts[0]).To(Equal(30 * time.Minute))
+			Expect(opts[1]).To(Equal(10 * time.Second))
 		})
 
 		It("returns an error when the disk does not exist", func() {
