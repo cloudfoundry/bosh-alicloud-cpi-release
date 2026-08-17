@@ -80,10 +80,8 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 				diskCid, currentCategory, targetCategory, currentPL, targetPL)
 		}
 
-		// Wait for the spec change to finish before resizing. The disk passes
-		// through "Modifying" during the conversion; use the long ModifyDiskSpec
-		// timeout (not the generic WaitTimeout) so large-disk conversions don't
-		// time out mid-flight and leave the director to detach a Modifying disk.
+		// Wait for the spec change to finish before resizing, using the long
+		// ModifyDiskSpec timeout so large-disk conversions don't time out.
 		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable, modifyDiskSpecWaitTimeout, modifyDiskSpecWaitInterval); err != nil {
 			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after spec change", diskCid)
 		}
