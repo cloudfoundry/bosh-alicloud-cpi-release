@@ -365,15 +365,25 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus DiskStatus, 
 }
 
 // WaitForDiskSpec polls until the disk is Available with the target category and,
-// when targetPL is non-empty, the target performance level. ModifyDiskSpec is
-// asynchronous: the disk may still show Available before it transitions to
-// Modifying, so checking category+PL prevents a spurious early return.
+// when targetPL is non-empty, the target PL. Checking category+PL (not just
+// Available) avoids returning early during the async ModifyDiskSpec transition.
+// On timeout it reports expected-vs-observed spec, so an unsatisfiable target
+// (e.g. a PL that ECS silently ignores) is diagnosable rather than a bare timeout.
 func (a DiskManagerImpl) WaitForDiskSpec(diskCid, targetCategory, targetPL string, opts ...time.Duration) error {
-	return a.ChangeDiskStatus(diskCid, DiskStatusAvailable, func(disk *ecs.Disk) (bool, error) {
+	err := a.ChangeDiskStatus(diskCid, DiskStatusAvailable, func(disk *ecs.Disk) (bool, error) {
 		return DiskStatus(disk.Status) == DiskStatusAvailable &&
 			disk.Category == targetCategory &&
 			(targetPL == "" || disk.PerformanceLevel == targetPL), nil
 	}, opts...)
+	if err != nil {
+		observed := "unknown"
+		if disk, gerr := a.GetDisk(diskCid); gerr == nil && disk != nil {
+			observed = fmt.Sprintf("status=%s category=%s PL=%q", disk.Status, disk.Category, disk.PerformanceLevel)
+		}
+		return bosherr.WrapErrorf(err, "WaitForDiskSpec disk %s: expected category=%s PL=%q, observed %s",
+			diskCid, targetCategory, targetPL, observed)
+	}
+	return nil
 }
 
 func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error), opts ...time.Duration) error {

@@ -142,6 +142,21 @@ func (a DiskInfo) Validate(isSystem bool) (DiskInfo, error) {
 		a.path = "/dev/xvdb"
 	}
 	a.ecsCategory = c
+
+	// performance_level applies only to ESSD (PL0-PL3); "" lets ECS choose.
+	// Reject bad input here so it fails fast instead of stalling a ModifyDiskSpec
+	// wait for a PL that ECS silently ignores (e.g. on cloud_auto).
+	if pl := strings.TrimSpace(a.PerformanceLevel); pl != "" {
+		switch pl {
+		case "PL0", "PL1", "PL2", "PL3":
+			if c != alicloud.DiskCategoryCloudESSD {
+				return a, fmt.Errorf("performance_level %s is only supported on cloud_essd, not %s", pl, c)
+			}
+		default:
+			return a, fmt.Errorf("invalid performance_level %q (expected PL0/PL1/PL2/PL3 or empty)", pl)
+		}
+	}
+
 	a.path = alicloud.AmendDiskPath(a.path, a.ecsCategory)
 
 	//

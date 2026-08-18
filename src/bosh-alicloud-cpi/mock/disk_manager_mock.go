@@ -160,6 +160,11 @@ func (a DiskManagerMock) ModifyDiskCategory(diskCid string, category alicloud.Di
 	if performanceLevel != "" {
 		disk.PerformanceLevel = performanceLevel
 	}
+	// Simulate an async conversion that hasn't settled: leave the disk
+	// non-Available so the post-ModifyDiskSpec WaitForDiskSpec has to wait.
+	if a.mc.Flags["stallModifyDiskSpec"] {
+		disk.Status = string(alicloud.DiskStatusCreating)
+	}
 	return nil
 }
 

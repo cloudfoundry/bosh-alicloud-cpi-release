@@ -40,6 +40,22 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 		return diskCID, bosherr.Errorf("UpdateDisk disk not found id=%s", diskCid)
 	}
 
+	// On retry after a prior timeout the disk may still be Modifying. Wait for it
+	// to settle to Available before reading category/PL, so we don't re-issue
+	// ModifyDiskSpec on a disk that is mid-conversion.
+	if alicloud.DiskStatus(disk.Status) != alicloud.DiskStatusAvailable {
+		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable, modifyDiskSpecWaitTimeout, modifyDiskSpecWaitInterval); err != nil {
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk disk %s not Available on entry", diskCid)
+		}
+		disk, err = a.disks.GetDisk(diskCid)
+		if err != nil {
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk GetDisk after wait failed %s", diskCid)
+		}
+		if disk == nil {
+			return diskCID, bosherr.Errorf("UpdateDisk disk not found after wait id=%s", diskCid)
+		}
+	}
+
 	var props DiskInfo
 	if err := cloudProps.As(&props); err != nil {
 		return diskCID, bosherr.WrapErrorf(err, "UpdateDisk failed to parse cloud_properties for disk %s", diskCid)
