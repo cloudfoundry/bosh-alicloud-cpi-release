@@ -155,23 +155,18 @@ assert_stemcell_is_nvme_capable() {
   # image already carries NvmeSupport, so without this check a CPI that skips
   # the encrypted CopyImage would still pass the NvmeSupport assertion.
   #
-  # Encryption is read off the image's system snapshot, not off the image:
-  # DescribeImages reports Encrypted only per DiskDeviceMapping and documents
-  # that field as an invitational preview, while a snapshot's own Encrypted is
-  # long-standing API.
-  local snapshot_id snapshot_json
-  snapshot_id=$(echo "${describe_json}" |
-    jq -er '[ .Images.Image[0].DiskDeviceMappings.DiskDeviceMapping[]
-              | select(.Type == "system") | .SnapshotId ]
-            | first // error("image has no system disk snapshot")')
-  snapshot_json=$(aliyun ecs DescribeSnapshots --region "${region}" \
-    --SnapshotIds "[\"${snapshot_id}\"]")
-  # tostring with no `//`: jq's alternative operator takes the right-hand side
-  # for false as well as for null, so any default here would report an
-  # unencrypted snapshot as though the API had stopped returning the field.
-  # tostring alone still renders a missing field as "null".
-  expect "snapshot ${snapshot_id} Encrypted" true \
-    "$(echo "${snapshot_json}" | jq -r '.Snapshots.Snapshot[0].Encrypted | tostring')"
+  # DescribeImages reports encryption per disk mapping rather than on the image
+  # itself, so the system disk's mapping is what has to be read. tostring with
+  # no `//`: jq's alternative operator takes the right-hand side for false as
+  # well as for null, so any default here would report an unencrypted image as
+  # though the API had stopped returning the field. tostring alone still renders
+  # a missing mapping as "null", and the `[]?` keeps an empty image list from
+  # failing as a jq error instead of as this assertion.
+  expect "image encrypted" true \
+    "$(echo "${describe_json}" | jq -r '
+      [ .Images.Image[0].DiskDeviceMappings.DiskDeviceMapping[]?
+        | select(.Type == "system") | .Encrypted ]
+      | first | tostring')"
 }
 assert_stemcell_is_nvme_capable
 
