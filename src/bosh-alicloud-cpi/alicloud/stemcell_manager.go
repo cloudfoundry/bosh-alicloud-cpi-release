@@ -15,13 +15,14 @@ import (
 )
 
 const (
-	AlicloudImageServiceTag          = "AlicloudImageService"
-	AlicloudDefaultImageName         = "bosh-stemcell"
-	AlicloudDefaultImageArchitecture = "x86_64"
-	AlicloudDefaultImageOSType       = "linux"
-	WaitForImageReadyTimeout         = 3600
-	DefaultWaitForImageReadyTimeout  = 1800
-	DefaultWaitForInterval           = 10
+	AlicloudImageServiceTag           = "AlicloudImageService"
+	AlicloudDefaultImageName          = "bosh-stemcell"
+	AlicloudDefaultImageArchitecture  = "x86_64"
+	AlicloudDefaultImageOSType        = "linux"
+	WaitForImageReadyTimeout          = 3600
+	DefaultWaitForImageReadyTimeout   = 1800
+	DefaultWaitForImageDeletedTimeout = 300
+	DefaultWaitForInterval            = 10
 )
 
 type StemcellManager interface {
@@ -34,10 +35,26 @@ type StemcellManager interface {
 	WaitForImageReady(id string) error
 }
 
+// EcsImageClient is the subset of the ECS SDK client used by the stemcell
+// manager. Defining it as an interface lets tests inject a fake client and
+// exercise the real StemcellManagerImpl logic without talking to AliCloud.
+type EcsImageClient interface {
+	DescribeImages(request *ecs.DescribeImagesRequest) (*ecs.DescribeImagesResponse, error)
+	DeleteImage(request *ecs.DeleteImageRequest) (*ecs.DeleteImageResponse, error)
+	DeleteSnapshot(request *ecs.DeleteSnapshotRequest) (*ecs.DeleteSnapshotResponse, error)
+	ImportImage(request *ecs.ImportImageRequest) (*ecs.ImportImageResponse, error)
+	CopyImage(request *ecs.CopyImageRequest) (*ecs.CopyImageResponse, error)
+	ModifyImageAttribute(request *ecs.ModifyImageAttributeRequest) (*ecs.ModifyImageAttributeResponse, error)
+}
+
 type StemcellManagerImpl struct {
 	config Config
 	logger boshlog.Logger
 	region string
+
+	// newClient builds the ECS client for a region. It defaults to a thin
+	// wrapper over config.NewEcsClient and is overridable in tests.
+	newClient func(region string) (EcsImageClient, error)
 }
 
 func NewStemcellManager(config Config, logger boshlog.Logger) StemcellManager {
@@ -45,6 +62,9 @@ func NewStemcellManager(config Config, logger boshlog.Logger) StemcellManager {
 		config: config,
 		logger: logger,
 		region: config.OpenApi.GetRegion(""),
+		newClient: func(region string) (EcsImageClient, error) {
+			return config.NewEcsClient(region)
+		},
 	}
 }
 
@@ -58,7 +78,7 @@ func (a StemcellManagerImpl) log(action string, err error, args interface{}, res
 }
 
 func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.Image, error) {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +101,7 @@ func (a StemcellManagerImpl) FindStemcellById(id string) (*ecs.Image, error) {
 }
 
 func (a StemcellManagerImpl) FindStemcellByName(name string) (*ecs.Image, error) {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return nil, err
 	}
@@ -112,11 +132,19 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 		return err
 	}
 	if image == nil {
-		return bosherr.WrapErrorf(err, "Alicloud Image '%s' does not exists", id)
+		// Idempotent: nothing to delete.
+		return nil
+	}
+
+	var snapshotIds []string
+	for _, dm := range image.DiskDeviceMappings.DiskDeviceMapping {
+		if dm.SnapshotId != "" {
+			snapshotIds = append(snapshotIds, dm.SnapshotId)
+		}
 	}
 
 	a.logger.Debug(AlicloudImageServiceTag, "Deleting Alicloud Image '%s'", id)
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return err
 	}
@@ -126,11 +154,35 @@ func (a StemcellManagerImpl) DeleteStemcell(id string) error {
 		return bosherr.WrapErrorf(err, "Failed to delete Alicloud Image '%s'", id)
 	}
 
+	// DeleteImage is asynchronous. A snapshot cannot be deleted while the image
+	// still references it, so wait for the image to disappear before cleaning up
+	// its backing snapshots. Mirrors the AWS CPI's deregister-then-wait ordering.
+	if len(snapshotIds) > 0 {
+		if err := a.WaitForImageDeleted(id, DefaultWaitForImageDeletedTimeout); err != nil {
+			// The image is still present, so DeleteSnapshot would fail for every
+			// snapshot. Skip the attempts and log each ID as leaked so recovery
+			// doesn't require a full-region scan.
+			for _, snapshotId := range snapshotIds {
+				a.logger.Warn(AlicloudImageServiceTag, "Leaked snapshot '%s' for image '%s': image not confirmed deleted (%s)", snapshotId, id, err)
+			}
+			return nil
+		}
+	}
+
+	for _, snapshotId := range snapshotIds {
+		a.logger.Debug(AlicloudImageServiceTag, "Deleting snapshot '%s' for image '%s'", snapshotId, id)
+		snapArgs := ecs.CreateDeleteSnapshotRequest()
+		snapArgs.SnapshotId = snapshotId
+		if _, err := client.DeleteSnapshot(snapArgs); err != nil {
+			a.logger.Warn(AlicloudImageServiceTag, "Failed to delete snapshot '%s' for image '%s': %s", snapshotId, id, err)
+		}
+	}
+
 	return nil
 }
 
 func (a StemcellManagerImpl) ImportImage(args *ecs.ImportImageRequest) (string, error) {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return "", err
 	}
@@ -152,7 +204,7 @@ func (a StemcellManagerImpl) ImportImage(args *ecs.ImportImageRequest) (string, 
 }
 
 func (a StemcellManagerImpl) CopyImage(args *ecs.CopyImageRequest) (string, error) {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return "", err
 	}
@@ -180,7 +232,7 @@ func (a StemcellManagerImpl) OpenLocalFile(path string) (*os.File, error) {
 // EnableNvmeSupport sets the Features.NvmeSupport=supported attribute on an existing
 // ECS image.
 func (a StemcellManagerImpl) EnableNvmeSupport(imageId string) error {
-	client, err := a.config.NewEcsClient("")
+	client, err := a.newClient("")
 	if err != nil {
 		return err
 	}
@@ -229,4 +281,35 @@ func (a StemcellManagerImpl) WaitForImage(regionId, imageId string, timeout int)
 		time.Sleep(DefaultWaitForInterval * time.Second)
 	}
 	return nil
+}
+
+// WaitForImageDeleted polls until the image can no longer be found, meaning the
+// asynchronous DeleteImage has completed and the image no longer references its
+// backing snapshots. This must succeed before the snapshots can be deleted.
+func (a StemcellManagerImpl) WaitForImageDeleted(imageId string, timeout int) error {
+	if timeout <= 0 {
+		timeout = DefaultWaitForImageDeletedTimeout
+	}
+
+	for {
+		image, err := a.FindStemcellById(imageId)
+		a.logger.Debug(AlicloudImageServiceTag, "Waiting for alicloud image '%s' to be deleted.", imageId)
+
+		if err != nil {
+			if NotFoundError(err) {
+				return nil
+			}
+			return err
+		}
+
+		if image == nil {
+			return nil
+		}
+
+		timeout = timeout - DefaultWaitForInterval
+		if timeout < 0 {
+			return GetTimeErrorFromString(GetTimeoutMessage("ECS image", "Deleted"))
+		}
+		time.Sleep(DefaultWaitForInterval * time.Second)
+	}
 }
