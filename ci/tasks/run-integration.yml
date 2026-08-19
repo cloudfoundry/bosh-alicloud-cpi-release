@@ -15,18 +15,14 @@ params:
   # Assumed from the Concourse worker's instance role; no access key is passed in.
   test_role_arn:         ""
   CPI_CREDENTIAL_SOURCE: static
-  # The spot lifecycle spec bids for capacity that a fixed price cannot always
-  # win: eu-central-1a returned OperationDenied.NoStock on three separate builds,
-  # which reports both a sold-out zone and a bid under the market price. Following
-  # the market removes the second cause, leaving only genuine capacity to fail on.
+  # eu-central-1a has no c6 spot capacity: the spec kept answering
+  # OperationDenied.NoStock even with the price ruled out, by asking the market
+  # rate rather than a fixed bid. sn1ne.large does have it -- the e2e spot errand
+  # creates one on every build -- and spot capacity is spare on-demand capacity,
+  # so a family that can serve spot can serve this spec.
   #
-  # The pair is not independent: create_vm rejects a price limit on any strategy
-  # other than SpotWithPriceLimit, so a non-zero price here would fail before ECS
-  # is ever called.
-  CPI_SPOT_STRATEGY:     SpotAsPriceGo
-  CPI_SPOT_PRICE_LIMIT:  0
-  # Following the market was not enough: ecs.c6.large kept answering NoStock with
-  # price ruled out, so that zone genuinely has no c6 spot capacity. sn1ne.large
-  # does -- the e2e spot errand creates one on every build -- and spot capacity is
-  # spare on-demand capacity, so a family that can serve spot can serve this spec.
+  # The strategy and the bid stay at their defaults, SpotWithPriceLimit at 0.18.
+  # That is the configuration a customer is most likely to use, and it is the only
+  # thing that exercises spot_price_limit; the e2e errand wins the same capacity
+  # with a fixed bid of 0.10, so 0.18 has room.
   CPI_SPOT_INSTANCE_TYPE: ecs.sn1ne.large
