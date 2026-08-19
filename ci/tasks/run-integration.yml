@@ -25,3 +25,8 @@ params:
   # is ever called.
   CPI_SPOT_STRATEGY:     SpotAsPriceGo
   CPI_SPOT_PRICE_LIMIT:  0
+  # Following the market was not enough: ecs.c6.large kept answering NoStock with
+  # price ruled out, so that zone genuinely has no c6 spot capacity. sn1ne.large
+  # does -- the e2e spot errand creates one on every build -- and spot capacity is
+  # spare on-demand capacity, so a family that can serve spot can serve this spec.
+  CPI_SPOT_INSTANCE_TYPE: ecs.sn1ne.large

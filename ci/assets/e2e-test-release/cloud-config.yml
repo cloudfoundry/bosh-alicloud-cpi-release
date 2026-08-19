@@ -10,7 +10,7 @@ networks:
 vm_types:
   - name: default
     cloud_properties: &default_cloud_properties
-      instance_type: ecs.sn2.medium
+      instance_type: ecs.g6.large
       availability_zone: ((zone))
   - name: slb_registration_pool
     cloud_properties:
@@ -72,5 +72,5 @@ compilation:
   workers: 1
   network: private
   cloud_properties:
-    instance_type: ecs.sn2.medium
+    instance_type: ecs.g6.large
     availability_zone: ((zone))
