@@ -67,14 +67,29 @@ pushd ${terraform_source}
     # provider quotes the signed request URL when a call fails, and that URL
     # carries the access key and the STS token. PIPESTATUS keeps the exit code of
     # terraform itself rather than the filter's.
-    terraform init \
-        -backend-config="region=${remote_state_region}" \
-        -backend-config="bucket=${remote_state_bucket}" \
-        -backend-config="prefix=${remote_state_file_path}" \
-        -backend-config="key=${remote_state_file_name}" 2>&1 | redact_cloud_credentials
-    init_status=${PIPESTATUS[0]}
+    #
+    # init is retried because it reaches the Location service over the public
+    # internet to discover the OSS endpoint for the state backend, and a build was
+    # lost to a bare net.OpError on that call before any environment existed.
+    # Re-running init is safe: it only prepares the working directory.
+    init_attempts=5
+    for init_attempt in $(seq 1 ${init_attempts}); do
+        terraform init \
+            -backend-config="region=${remote_state_region}" \
+            -backend-config="bucket=${remote_state_bucket}" \
+            -backend-config="prefix=${remote_state_file_path}" \
+            -backend-config="key=${remote_state_file_name}" 2>&1 | redact_cloud_credentials
+        init_status=${PIPESTATUS[0]}
+        if [[ ${init_status} -eq 0 ]]; then
+            break
+        fi
+        if [[ ${init_attempt} -lt ${init_attempts} ]]; then
+            echo "terraform init exited ${init_status}; retrying ($((init_attempt + 1))/${init_attempts})" >&2
+            sleep $((init_attempt * 5))
+        fi
+    done
     if [[ ${init_status} -ne 0 ]]; then
-        echo "terraform init exited ${init_status}" >&2
+        echo "terraform init exited ${init_status} after ${init_attempts} attempts" >&2
         exit ${init_status}
     fi
 

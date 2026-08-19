@@ -94,7 +94,7 @@ func (a InstanceManagerImpl) GetInstance(cid string) (inst *ecs.Instance, err er
 	args.RegionId = a.config.OpenApi.GetRegion("")
 	args.InstanceIds = convertListToJsonString([]interface{}{cid})
 
-	invoker := NewInvoker()
+	invoker := NewDescribeInvoker()
 	err = invoker.Run(func() error {
 		r, e := client.DescribeInstances(args)
 		if e != nil {

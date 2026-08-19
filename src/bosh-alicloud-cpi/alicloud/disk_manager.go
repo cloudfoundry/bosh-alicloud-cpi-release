@@ -525,7 +525,7 @@ func DescribeDisks(client *ecs.Client, diskId string) (disk *ecs.Disk, err error
 	bytes, _ := json.Marshal([]string{diskId})
 	args.DiskIds = string(bytes)
 
-	invoker := NewInvoker()
+	invoker := NewDescribeInvoker()
 	err = invoker.Run(func() error {
 		r, e := client.DescribeDisks(args)
 		if r != nil && len(r.Disks.Disk) > 0 {
