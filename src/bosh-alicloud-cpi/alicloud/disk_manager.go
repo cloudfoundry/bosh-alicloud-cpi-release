@@ -44,8 +44,9 @@ type DiskManager interface {
 	CreateSnapshot(diskCid string, snapshotName string) (string, error)
 	DeleteSnapshot(snapshotCid string) error
 
-	WaitForDiskStatus(diskCid string, toStatus DiskStatus) (string, error)
-	ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error)) error
+	WaitForDiskStatus(diskCid string, toStatus DiskStatus, opts ...time.Duration) (string, error)
+	WaitForDiskSpec(diskCid, targetCategory, targetPL string, opts ...time.Duration) error
+	ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error), opts ...time.Duration) error
 
 	GetDiskPath(path, diskId, instanceType string, category DiskCategory) (string, error)
 }
@@ -318,11 +319,24 @@ func (a DiskManagerImpl) DeleteSnapshot(snapshotCid string) error {
 	})
 }
 
-func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus DiskStatus) (string, error) {
+// WaitForDiskStatus polls until the disk reaches toStatus. The timeout and
+// interval are optional: WaitForDiskStatus(cid, status) uses the default
+// WaitTimeout/WaitInterval; pass WaitForDiskStatus(cid, status, timeout) or
+// (cid, status, timeout, interval) to override. Extra args beyond two are
+// ignored.
+func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus DiskStatus, opts ...time.Duration) (string, error) {
 	invoker := NewInvoker()
 
+	timeout, interval := WaitTimeout, WaitInterval
+	if len(opts) >= 1 {
+		timeout = opts[0]
+	}
+	if len(opts) >= 2 {
+		interval = opts[1]
+	}
+
 	result := ""
-	ok, err := invoker.RunUntil(WaitTimeout, WaitInterval, func() (bool, error) {
+	ok, err := invoker.RunUntil(timeout, interval, func() (bool, error) {
 		disk, e := a.GetDisk(diskCid)
 
 		if e != nil {
@@ -350,8 +364,37 @@ func (a DiskManagerImpl) WaitForDiskStatus(diskCid string, toStatus DiskStatus) 
 	return result, nil
 }
 
-func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error)) error {
+// WaitForDiskSpec polls until the disk is Available with the target category and,
+// when targetPL is non-empty, the target PL. Checking category+PL (not just
+// Available) avoids returning early during the async ModifyDiskSpec transition.
+// On timeout it reports expected-vs-observed spec, so an unsatisfiable target
+// (e.g. a PL that ECS silently ignores) is diagnosable rather than a bare timeout.
+func (a DiskManagerImpl) WaitForDiskSpec(diskCid, targetCategory, targetPL string, opts ...time.Duration) error {
+	err := a.ChangeDiskStatus(diskCid, DiskStatusAvailable, func(disk *ecs.Disk) (bool, error) {
+		return DiskStatus(disk.Status) == DiskStatusAvailable &&
+			disk.Category == targetCategory &&
+			(targetPL == "" || disk.PerformanceLevel == targetPL), nil
+	}, opts...)
+	if err != nil {
+		observed := "unknown"
+		if disk, gerr := a.GetDisk(diskCid); gerr == nil && disk != nil {
+			observed = fmt.Sprintf("status=%s category=%s PL=%q", disk.Status, disk.Category, disk.PerformanceLevel)
+		}
+		return bosherr.WrapErrorf(err, "WaitForDiskSpec disk %s: expected category=%s PL=%q, observed %s",
+			diskCid, targetCategory, targetPL, observed)
+	}
+	return nil
+}
+
+func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus DiskStatus, checkFunc func(*ecs.Disk) (bool, error), opts ...time.Duration) error {
 	timeout := ChangeDiskStatusTimeout
+	interval := ChangeDiskStatusSleepInterval
+	if len(opts) >= 1 {
+		timeout = opts[0]
+	}
+	if len(opts) >= 2 {
+		interval = opts[1]
+	}
 	for {
 		disk, err := a.GetDisk(cid)
 		if err != nil {
@@ -379,8 +422,8 @@ func (a DiskManagerImpl) ChangeDiskStatus(cid string, toStatus DiskStatus, check
 			a.logger.Info("DiskManager", "changing %s from %s to %s ...", cid, status, toStatus)
 		}
 
-		timeout -= ChangeDiskStatusSleepInterval
-		time.Sleep(ChangeDiskStatusSleepInterval)
+		timeout -= interval
+		time.Sleep(interval)
 		if timeout < 0 {
 			return fmt.Errorf("change disk %s to %s timeout", cid, toStatus)
 		}

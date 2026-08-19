@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
@@ -159,6 +160,11 @@ func (a DiskManagerMock) ModifyDiskCategory(diskCid string, category alicloud.Di
 	if performanceLevel != "" {
 		disk.PerformanceLevel = performanceLevel
 	}
+	// Simulate an async conversion that hasn't settled: leave the disk
+	// non-Available so the post-ModifyDiskSpec WaitForDiskSpec has to wait.
+	if a.mc.Flags["stallModifyDiskSpec"] {
+		disk.Status = string(alicloud.DiskStatusCreating)
+	}
 	return nil
 }
 
@@ -208,7 +214,7 @@ func (a DiskManagerMock) DeleteSnapshot(snapshotCid string) error {
 	return nil
 }
 
-func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus alicloud.DiskStatus) (string, error) {
+func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus alicloud.DiskStatus, opts ...time.Duration) (string, error) {
 	disk, ok := a.mc.Disks[diskCid]
 	if !ok {
 		return "", fmt.Errorf("WaitForDiskStatus disk not exists id=%s", diskCid)
@@ -219,7 +225,27 @@ func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus alicloud.Dis
 	return disk.Device, nil
 }
 
-func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus alicloud.DiskStatus, checkFunc func(disk *ecs.Disk) (bool, error)) error {
+// WaitForDiskSpec records opts for test assertions, then checks that the disk is
+// Available with the target category and (when non-empty) the target PL.
+func (a DiskManagerMock) WaitForDiskSpec(diskCid, targetCategory, targetPL string, opts ...time.Duration) error {
+	*a.mc.WaitForDiskSpecOpts = opts
+	disk, ok := a.mc.Disks[diskCid]
+	if !ok {
+		return fmt.Errorf("WaitForDiskSpec disk not exists id=%s", diskCid)
+	}
+	if disk.Status != string(alicloud.DiskStatusAvailable) {
+		return fmt.Errorf("WaitForDiskSpec %s: status=%s is not Available", diskCid, disk.Status)
+	}
+	if disk.Category != targetCategory {
+		return fmt.Errorf("WaitForDiskSpec %s: category=%s does not match target %s", diskCid, disk.Category, targetCategory)
+	}
+	if targetPL != "" && disk.PerformanceLevel != targetPL {
+		return fmt.Errorf("WaitForDiskSpec %s: PL=%s does not match target %s", diskCid, disk.PerformanceLevel, targetPL)
+	}
+	return nil
+}
+
+func (a DiskManagerMock) ChangeDiskStatus(cid string, toStatus alicloud.DiskStatus, checkFunc func(disk *ecs.Disk) (bool, error), opts ...time.Duration) error {
 	disk, err := a.GetDisk(cid)
 	if err != nil {
 		return err

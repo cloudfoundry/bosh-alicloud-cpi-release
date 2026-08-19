@@ -5,6 +5,7 @@ package action
 
 import (
 	"bosh-alicloud-cpi/alicloud"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -117,6 +118,32 @@ var _ = Describe("cpi:update_disk", func() {
 			updated := mockContext.Disks[cid]
 			Expect(updated.PerformanceLevel).To(Equal("PL1"))
 		})
+
+		It("rejects a performance_level on a non-ESSD category instead of stalling the wait", func() {
+			cid, disk := mockContext.NewDisk("")
+			disk.Category = string(alicloud.DiskCategoryCloudAuto)
+
+			// cloud_auto ignores performance_level; a PL target could never be
+			// observed, so Validate must reject it up front.
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category":          string(alicloud.DiskCategoryCloudAuto),
+				"performance_level": "PL1",
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("only supported on cloud_essd"))
+		})
+
+		It("rejects a malformed performance_level up front", func() {
+			cid, disk := mockContext.NewDisk("")
+			disk.Category = string(alicloud.DiskCategoryCloudESSD)
+
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category":          string(alicloud.DiskCategoryCloudESSD),
+				"performance_level": "PL9",
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("invalid performance_level"))
+		})
 	})
 
 	Context("unsupported transitions", func() {
@@ -161,13 +188,50 @@ var _ = Describe("cpi:update_disk", func() {
 
 		It("errors when the disk never returns to Available after the category change", func() {
 			cid, disk := mockContext.NewDisk("")
-			disk.Status = string(alicloud.DiskStatusCreating)
+			// Disk starts Available (entry-wait skipped) as cloud_efficiency, so the
+			// category change to cloud_essd runs. The stall flag makes the mock's
+			// ModifyDiskSpec leave the disk non-Available, so the post-change
+			// WaitForDiskSpec fails.
+			disk.Status = string(alicloud.DiskStatusAvailable)
+			mockContext.Flags["stallModifyDiskSpec"] = true
+			defer delete(mockContext.Flags, "stallModifyDiskSpec")
 
 			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
 				"category": string(alicloud.DiskCategoryCloudESSD),
 			})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("WaitForDiskStatus"))
+			Expect(err.Error()).To(ContainSubstring("WaitForDiskSpec"))
+		})
+
+		It("waits for an in-progress conversion on retry instead of re-issuing ModifyDiskSpec", func() {
+			cid, disk := mockContext.NewDisk("")
+			disk.Category = string(alicloud.DiskCategoryCloudESSD)
+			// Simulate a disk still Modifying from a prior timed-out update_disk call.
+			disk.Status = string(alicloud.DiskStatusCreating)
+
+			// The mock's WaitForDiskStatus fails when status != Available, so this
+			// exercises the entry-wait error path — confirming the guard is reached
+			// and ModifyDiskSpec is not re-issued on a still-Modifying disk.
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudESSD),
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not Available on entry"))
+		})
+
+		It("passes 30m timeout and 10s interval to WaitForDiskSpec", func() {
+			cid, disk := mockContext.NewDisk("")
+			Expect(disk.Category).To(Equal(string(alicloud.DiskCategoryCloudEfficiency)))
+
+			_, err := caller.CallGenericAPIVersion("update_disk", 2, cid, disk.Size*1024, map[string]interface{}{
+				"category": string(alicloud.DiskCategoryCloudESSD),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			opts := *mockContext.WaitForDiskSpecOpts
+			Expect(opts).To(HaveLen(2))
+			Expect(opts[0]).To(Equal(30 * time.Minute))
+			Expect(opts[1]).To(Equal(10 * time.Second))
 		})
 
 		It("returns an error when the disk does not exist", func() {

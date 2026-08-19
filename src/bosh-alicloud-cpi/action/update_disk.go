@@ -5,9 +5,18 @@ package action
 
 import (
 	"bosh-alicloud-cpi/alicloud"
+	"time"
 
 	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+)
+
+// ModifyDiskSpec is asynchronous and can run for many minutes on large disks —
+// longer than the generic WaitForDiskStatus timeout (600s). Give the spec-change
+// wait its own budget, matching the 30 min the Ruby bootstrap-bosh migration uses.
+const (
+	modifyDiskSpecWaitTimeout  = 30 * time.Minute
+	modifyDiskSpecWaitInterval = 10 * time.Second
 )
 
 type UpdateDiskMethod struct {
@@ -29,6 +38,22 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 	}
 	if disk == nil {
 		return diskCID, bosherr.Errorf("UpdateDisk disk not found id=%s", diskCid)
+	}
+
+	// On retry after a prior timeout the disk may still be Modifying. Wait for it
+	// to settle to Available before reading category/PL, so we don't re-issue
+	// ModifyDiskSpec on a disk that is mid-conversion.
+	if alicloud.DiskStatus(disk.Status) != alicloud.DiskStatusAvailable {
+		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable, modifyDiskSpecWaitTimeout, modifyDiskSpecWaitInterval); err != nil {
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk disk %s not Available on entry", diskCid)
+		}
+		disk, err = a.disks.GetDisk(diskCid)
+		if err != nil {
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk GetDisk after wait failed %s", diskCid)
+		}
+		if disk == nil {
+			return diskCID, bosherr.Errorf("UpdateDisk disk not found after wait id=%s", diskCid)
+		}
 	}
 
 	var props DiskInfo
@@ -71,9 +96,10 @@ func (a UpdateDiskMethod) UpdateDisk(diskCID apiv1.DiskCID, newSize int, cloudPr
 				diskCid, currentCategory, targetCategory, currentPL, targetPL)
 		}
 
-		// Wait for Available before resizing.
-		if _, err := a.disks.WaitForDiskStatus(diskCid, alicloud.DiskStatusAvailable); err != nil {
-			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskStatus failed for disk %s after spec change", diskCid)
+		// Wait for the spec change to finish before resizing, using the long
+		// ModifyDiskSpec timeout so large-disk conversions don't time out.
+		if err := a.disks.WaitForDiskSpec(diskCid, string(targetCategory), targetPL, modifyDiskSpecWaitTimeout, modifyDiskSpecWaitInterval); err != nil {
+			return diskCID, bosherr.WrapErrorf(err, "UpdateDisk WaitForDiskSpec failed for disk %s after spec change", diskCid)
 		}
 	}
 
