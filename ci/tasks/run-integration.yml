@@ -15,3 +15,13 @@ params:
   # Assumed from the Concourse worker's instance role; no access key is passed in.
   test_role_arn:         ""
   CPI_CREDENTIAL_SOURCE: static
+  # The spot lifecycle spec bids for capacity that a fixed price cannot always
+  # win: eu-central-1a returned OperationDenied.NoStock on three separate builds,
+  # which reports both a sold-out zone and a bid under the market price. Following
+  # the market removes the second cause, leaving only genuine capacity to fail on.
+  #
+  # The pair is not independent: create_vm rejects a price limit on any strategy
+  # other than SpotWithPriceLimit, so a non-zero price here would fail before ECS
+  # is ever called.
+  CPI_SPOT_STRATEGY:     SpotAsPriceGo
+  CPI_SPOT_PRICE_LIMIT:  0
