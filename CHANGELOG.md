@@ -1,7 +1,9 @@
 # Change Log
 
 All releases of the BOSH CPI for Alibaba Cloud will be documented in this file.
-## 61.0.0 (Unreleased)
+## 62.0.0 (Unreleased)
+
+## 61.0.0 (August 20, 2026)
 
 FEATURES:
 
@@ -19,10 +21,38 @@ SECURITY:
 - Bumped `credentials-go` to 1.4.12 and `alibaba-cloud-sdk-go` to 1.63.107 for IMDSv2 support ([#218](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/218))
   - Instance metadata is read with a token, so instances that require IMDSv2 are supported
 
+FIXES:
+
+- `delete_stemcell` now deletes the snapshots backing the image ([#219](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/219))
+  - `DeleteImage` does not cascade to them, so every deleted stemcell leaked its snapshots
+  - Waits for the image to be gone first, because a snapshot an image still references cannot be deleted
+  - Logs the ID of every snapshot it could not confirm deleted, so recovery does not need a region-wide scan
+  - Deleting a stemcell that is already gone now succeeds instead of returning an error
+- `update_disk` returns `NotSupported` for an in-place shrink ([#217](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/217))
+  - The director falls back to its copy-and-migrate path, as it did before `update_disk` existed, rather than failing the deploy
+- `update_disk` waits for a category or performance level change to take effect, with a longer timeout ([#224](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/224))
+  - On timeout it reports the disk status and performance level it observed
+- Describe calls retry a transient network failure ([#226](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/226))
+  - A single failed status read used to end a status wait that still had minutes of budget left
+  - Only idempotent describes opt in, through `NewDescribeInvoker`; creates and deletes are never replayed
+
 IMPROVEMENTS:
 
 - `ensure-terminated` waits for instances to terminate, so the terraform destroy that follows no longer fails on a dependency and leaks a VPC
-- The integration suite uses `ecs.c6.large`, whose stock in the test region is reliable
+- The certification pipeline uses instance types the test zone has capacity for, rather than failing on `OperationDenied.NoStock` ([#227](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/227))
+- `terraform init` retries the Location service call it makes before the environment exists ([#226](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/226))
+
+TESTS:
+
+- Added an end-to-end NVMe customer upgrade journey ([#221](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/221))
+  - Upgrades a deployment from a legacy instance type to a 9th-generation NVMe type
+  - Asserts the device paths the CPI reported for the ephemeral and persistent disks, and that the reported link exists on the instance
+  - Asserts the NVMe capability of the image it boots, which `CopyImage` does not inherit and the CPI has to re-apply
+  - Distinguishes an in-place `update_disk` from the director's copy-and-migrate fallback by disk CID
+  - Checks both instance types against `DescribeInstanceTypes` with `NvmeSupport=required` first, so no path assertion can pass vacuously
+- The journey reads image encryption from the system disk mapping `DescribeImages` returns ([#222](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/222), [#223](https://github.com/cloudfoundry/bosh-alicloud-cpi-release/pull/223))
+  - The top-level `Encrypted` field it asserted before is never returned, so the check could not pass
+  - An unencrypted disk now reports `false` instead of being reported as a missing field
 
 ## 60.0.0 (July 29, 2026)
 
