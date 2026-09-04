@@ -215,6 +215,7 @@ func (a DiskManagerMock) DeleteSnapshot(snapshotCid string) error {
 }
 
 func (a DiskManagerMock) WaitForDiskStatus(diskCid string, toStatus alicloud.DiskStatus, opts ...time.Duration) (string, error) {
+	*a.mc.WaitForDiskStatusOpts = opts
 	disk, ok := a.mc.Disks[diskCid]
 	if !ok {
 		return "", fmt.Errorf("WaitForDiskStatus disk not exists id=%s", diskCid)
