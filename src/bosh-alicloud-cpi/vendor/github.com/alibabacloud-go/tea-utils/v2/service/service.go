@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
@@ -12,6 +13,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -48,6 +50,7 @@ func (s *ExtendsParameters) SetQueries(v map[string]*string) *ExtendsParameters 
 }
 
 type RuntimeOptions struct {
+	IdleTimeout       *int               `json:"idleTimeout" xml:"idleTimeout"`
 	Autoretry         *bool              `json:"autoretry" xml:"autoretry"`
 	IgnoreSSL         *bool              `json:"ignoreSSL" xml:"ignoreSSL"`
 	Key               *string            `json:"key,omitempty" xml:"key,omitempty"`
@@ -67,10 +70,54 @@ type RuntimeOptions struct {
 	Socks5NetWork     *string            `json:"socks5NetWork" xml:"socks5NetWork"`
 	KeepAlive         *bool              `json:"keepAlive" xml:"keepAlive"`
 	ExtendsParameters *ExtendsParameters `json:"extendsParameters,omitempty" xml:"extendsParameters,omitempty"`
+
+	// WebSocket Specific Configuration
+	WebSocketPingInterval      *int        `json:"webSocketPingInterval" xml:"webSocketPingInterval"`           // Ping 间隔（毫秒）
+	WebSocketPongTimeout       *int        `json:"webSocketPongTimeout" xml:"webSocketPongTimeout"`             // Pong 超时（毫秒）
+	WebSocketEnableReconnect   *bool       `json:"webSocketEnableReconnect" xml:"webSocketEnableReconnect"`     // 是否启用自动重连
+	WebSocketReconnectInterval *int        `json:"webSocketReconnectInterval" xml:"webSocketReconnectInterval"` // 重连间隔（毫秒）
+	WebSocketMaxReconnectTimes *int        `json:"webSocketMaxReconnectTimes" xml:"webSocketMaxReconnectTimes"` // 最大重连次数
+	WebSocketWriteTimeout      *int        `json:"webSocketWriteTimeout" xml:"webSocketWriteTimeout"`           // 写入超时（毫秒）
+	WebSocketHandshakeTimeout  *int        `json:"webSocketHandshakeTimeout" xml:"webSocketHandshakeTimeout"`   // 握手超时（毫秒）
+	WebSocketHandler           interface{} `json:"-" xml:"-"`                                                   // WebSocket 消息处理器（不序列化），应使用 dara.WebSocketHandler 类型
 }
 
 var processStartTime int64 = time.Now().UnixNano() / 1e6
 var seqId int64 = 0
+
+type SSEEvent struct {
+	ID    *string
+	Event *string
+	Data  *string
+	Retry *int
+}
+
+func parseEvent(eventLines []string) (SSEEvent, error) {
+	var event SSEEvent
+
+	for _, line := range eventLines {
+		if strings.HasPrefix(line, "data:") {
+			event.Data = tea.String(tea.StringValue(event.Data) + strings.TrimPrefix(line, "data:") + "\n")
+		} else if strings.HasPrefix(line, "id:") {
+			id := strings.TrimPrefix(line, "id:")
+			event.ID = tea.String(strings.Trim(id, " "))
+		} else if strings.HasPrefix(line, "event:") {
+			eventName := strings.TrimPrefix(line, "event:")
+			event.Event = tea.String(strings.Trim(eventName, " "))
+		} else if strings.HasPrefix(line, "retry:") {
+			trimmedLine := strings.TrimPrefix(line, "retry:")
+			trimmedLine = strings.Trim(trimmedLine, " ")
+			retryValue, _err := strconv.Atoi(trimmedLine)
+			if _err != nil {
+				return event, fmt.Errorf("retry %v is not a int", trimmedLine)
+			}
+			event.Retry = tea.Int(retryValue)
+		}
+	}
+	data := strings.TrimRight(tea.StringValue(event.Data), "\n")
+	event.Data = tea.String(strings.Trim(data, " "))
+	return event, nil
+}
 
 func getGID() uint64 {
 	// https://blog.sgmansfield.com/2015/12/goroutine-ids/
@@ -140,6 +187,10 @@ func (s *RuntimeOptions) SetConnectTimeout(v int) *RuntimeOptions {
 	return s
 }
 
+func (s *RuntimeOptions) SetIdleTimeout(v int) *RuntimeOptions {
+	s.IdleTimeout = &v
+	return s
+}
 func (s *RuntimeOptions) SetHttpProxy(v string) *RuntimeOptions {
 	s.HttpProxy = &v
 	return s
@@ -182,6 +233,46 @@ func (s *RuntimeOptions) SetKeepAlive(v bool) *RuntimeOptions {
 
 func (s *RuntimeOptions) SetExtendsParameters(v *ExtendsParameters) *RuntimeOptions {
 	s.ExtendsParameters = v
+	return s
+}
+
+func (s *RuntimeOptions) SetWebSocketPingInterval(v int) *RuntimeOptions {
+	s.WebSocketPingInterval = &v
+	return s
+}
+
+func (s *RuntimeOptions) SetWebSocketPongTimeout(v int) *RuntimeOptions {
+	s.WebSocketPongTimeout = &v
+	return s
+}
+
+func (s *RuntimeOptions) SetWebSocketEnableReconnect(v bool) *RuntimeOptions {
+	s.WebSocketEnableReconnect = &v
+	return s
+}
+
+func (s *RuntimeOptions) SetWebSocketReconnectInterval(v int) *RuntimeOptions {
+	s.WebSocketReconnectInterval = &v
+	return s
+}
+
+func (s *RuntimeOptions) SetWebSocketMaxReconnectTimes(v int) *RuntimeOptions {
+	s.WebSocketMaxReconnectTimes = &v
+	return s
+}
+
+func (s *RuntimeOptions) SetWebSocketWriteTimeout(v int) *RuntimeOptions {
+	s.WebSocketWriteTimeout = &v
+	return s
+}
+
+func (s *RuntimeOptions) SetWebSocketHandshakeTimeout(v int) *RuntimeOptions {
+	s.WebSocketHandshakeTimeout = &v
+	return s
+}
+
+func (s *RuntimeOptions) SetWebSocketHandler(v interface{}) *RuntimeOptions {
+	s.WebSocketHandler = v
 	return s
 }
 
@@ -554,4 +645,50 @@ func ToArray(in interface{}) []map[string]interface{} {
 		return nil
 	}
 	return tmp
+}
+
+func ReadAsSSE(body io.ReadCloser) (<-chan SSEEvent, <-chan error) {
+	eventChannel := make(chan SSEEvent)
+	errorChannel := make(chan error)
+
+	go func() {
+		defer body.Close()
+		defer close(eventChannel)
+
+		reader := bufio.NewReader(body)
+		var eventLines []string
+
+		for {
+			line, err := reader.ReadString('\n')
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				errorChannel <- err
+			}
+
+			line = strings.TrimRight(line, "\n")
+			if line == "" {
+				if len(eventLines) > 0 {
+					event, err := parseEvent(eventLines)
+					if err != nil {
+						errorChannel <- err
+					}
+					eventChannel <- event
+					eventLines = []string{}
+				}
+				continue
+			}
+			eventLines = append(eventLines, line)
+		}
+	}()
+	return eventChannel, errorChannel
+}
+
+func GetHostName() *string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return tea.String("")
+	}
+	return tea.String(hostname)
 }
