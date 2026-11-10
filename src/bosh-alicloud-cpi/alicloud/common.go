@@ -55,6 +55,7 @@ const (
 	DiskStatusAttaching = DiskStatus("Attaching")
 	DiskStatusDetaching = DiskStatus("Detaching")
 	DiskStatusCreating  = DiskStatus("Creating")
+	DiskStatusModifying = DiskStatus("Modifying")
 	DiskStatusReIniting = DiskStatus("ReIniting")
 	DiskStatusAll       = DiskStatus("All") //Default
 )

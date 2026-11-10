@@ -40,11 +40,16 @@ type TestContext struct {
 	// call, so tests can assert the query keys create_vm builds. Stored as a pointer
 	// so the mock's copy of TestContext writes through to the original.
 	CreateInstanceArgs *map[string]interface{}
+
+	// WaitForDiskStatusOpts records the opts passed to the most recent WaitForDiskStatus call.
+	WaitForDiskStatusOpts *[]time.Duration
 }
 
 func NewTestContext(config alicloud.Config) TestContext {
 	opts := make([]time.Duration, 0)
 	createArgs := make(map[string]interface{})
+	specOpts := make([]time.Duration, 0)
+	statusOpts := make([]time.Duration, 0)
 	return TestContext{
 		config:              config,
 		Disks:               make(map[string]*ecs.Disk),
@@ -56,6 +61,8 @@ func NewTestContext(config alicloud.Config) TestContext {
 		Flags:               make(map[string]bool),
 		WaitForDiskSpecOpts: &opts,
 		CreateInstanceArgs:  &createArgs,
+		WaitForDiskSpecOpts:   &specOpts,
+		WaitForDiskStatusOpts: &statusOpts,
 	}
 }
 

@@ -21,6 +21,19 @@ var _ = Describe("cpi:detach_disk", func() {
 		Expect(disk.InstanceId).Should(Equal(""))
 	})
 
+	It("fails immediately when disk is Modifying", func() {
+		// "Modifying" is undocumented in the AliCloud DescribeDisks enum but
+		// observed in production (Task 26321593). This test pins the string
+		// literal via DiskStatusModifying so a casing/spelling change is caught.
+		instCid, _ := mockContext.NewInstance()
+		diskCid, disk := mockContext.NewDisk(instCid)
+		disk.Status = string(alicloud.DiskStatusModifying)
+
+		_, err := caller.Call("detach_disk", instCid, diskCid)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("Modifying"))
+	})
+
 	//It("can attach disk with right registry", func() {
 	//	By("attach disk")
 	//	diskCid, _ := mockContext.NewDisk()
