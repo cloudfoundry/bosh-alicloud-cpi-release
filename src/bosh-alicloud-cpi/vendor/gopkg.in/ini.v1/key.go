@@ -15,12 +15,12 @@
 package ini
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // Key represents a key under a section.
@@ -54,8 +54,10 @@ func (k *Key) addShadow(val string) error {
 		return errors.New("cannot add shadow to auto-increment or boolean key")
 	}
 
-	if !k.s.f.options.AllowDuplicateShadowValues {
-		// Deduplicate shadows based on their values.
+	// Deduplicate shadows based on their values. A kept empty value is a
+	// reset, so each one counts.
+	keepEmpty := val == "" && k.s.f.options.PreserveEmptyShadowValues
+	if !k.s.f.options.AllowDuplicateShadowValues && !keepEmpty {
 		if k.value == val {
 			return nil
 		}
@@ -110,22 +112,23 @@ func (k *Key) Value() string {
 	return k.value
 }
 
-// ValueWithShadows returns raw values of key and its shadows if any. Shadow
-// keys with empty values are ignored from the returned list.
+// ValueWithShadows returns raw values of key and its shadows if any.
+// Empty values are omitted unless LoadOptions.PreserveEmptyShadowValues is set.
 func (k *Key) ValueWithShadows() []string {
+	keepEmpty := k.s.f.options.PreserveEmptyShadowValues
 	if len(k.shadows) == 0 {
-		if k.value == "" {
+		if k.value == "" && !keepEmpty {
 			return []string{}
 		}
 		return []string{k.value}
 	}
 
 	vals := make([]string, 0, len(k.shadows)+1)
-	if k.value != "" {
+	if k.value != "" || keepEmpty {
 		vals = append(vals, k.value)
 	}
 	for _, s := range k.shadows {
-		if s.value != "" {
+		if s.value != "" || keepEmpty {
 			vals = append(vals, s.value)
 		}
 	}
@@ -140,14 +143,26 @@ func (k *Key) NestedValues() []string {
 
 // transformValue takes a raw value and transforms to its final string.
 func (k *Key) transformValue(val string) string {
+	res, _ := k.transformValueWithVisited(val, nil)
+	return res
+}
+
+func (k *Key) transformValueWithVisited(val string, visited map[*Key]struct{}) (string, bool) {
 	if k.s.f.ValueMapper != nil {
 		val = k.s.f.ValueMapper(val)
 	}
 
 	// Fail-fast if no indicate char found for recursive value
 	if !strings.Contains(val, "%") {
-		return val
+		return val, false
 	}
+
+	if visited == nil {
+		visited = make(map[*Key]struct{})
+	}
+	visited[k] = struct{}{}
+	defer delete(visited, k)
+
 	for i := 0; i < depthValues; i++ {
 		vr := varPattern.FindString(val)
 		if len(vr) == 0 {
@@ -167,12 +182,25 @@ func (k *Key) transformValue(val string) string {
 				// and returns the value as-is.
 				break
 			}
+			if nk == k {
+				// Stop when key references itself to prevent cycle.
+				return val, true
+			}
+		}
+
+		if _, ok := visited[nk]; ok {
+			return val, true
+		}
+
+		newVal, hasCycle := nk.transformValueWithVisited(nk.value, visited)
+		if hasCycle {
+			return val, true
 		}
 
 		// Substitute by new value and take off leading '%(' and trailing ')s'.
-		val = strings.Replace(val, vr, nk.value, -1)
+		val = strings.ReplaceAll(val, vr, newVal)
 	}
-	return val
+	return val, false
 }
 
 // String returns string representation of value.
@@ -429,7 +457,7 @@ func (k *Key) InUint64(defaultVal uint64, candidates []uint64) uint64 {
 func (k *Key) InTimeFormat(format string, defaultVal time.Time, candidates []time.Time) time.Time {
 	val := k.MustTimeFormat(format)
 	for _, cand := range candidates {
-		if val == cand {
+		if val.Equal(cand) {
 			return val
 		}
 	}
@@ -488,6 +516,16 @@ func (k *Key) RangeTime(defaultVal, min, max time.Time) time.Time {
 	return k.RangeTimeFormat(time.RFC3339, defaultVal, min, max)
 }
 
+// escapeDelimited prepares a slice element for joining with delim.
+// Backslashes are escaped first, then occurrences of delim, matching Strings().
+func escapeDelimited(val, delim string) string {
+	if delim == "" {
+		return val
+	}
+	val = strings.ReplaceAll(val, `\`, `\\`)
+	return strings.ReplaceAll(val, delim, `\`+delim)
+}
+
 // Strings returns list of string divided by given delimiter.
 func (k *Key) Strings(delim string) []string {
 	str := k.String()
@@ -495,31 +533,38 @@ func (k *Key) Strings(delim string) []string {
 		return []string{}
 	}
 
-	runes := []rune(str)
-	vals := make([]string, 0, 2)
-	var buf bytes.Buffer
-	escape := false
-	idx := 0
+	maxParts := strings.Count(str, delim) + 1
+	vals := make([]string, 0, maxParts)
+
+	var buf strings.Builder
+	buf.Grow(len(str))
+
+	i := 0
 	for {
-		if escape {
-			escape = false
-			if runes[idx] != '\\' && !strings.HasPrefix(string(runes[idx:]), delim) {
+		if str[i] == '\\' {
+			i++
+			if i >= len(str) {
+				break
+			}
+
+			if str[i] != '\\' && !strings.HasPrefix(str[i:], delim) {
 				buf.WriteRune('\\')
 			}
-			buf.WriteRune(runes[idx])
+
+			r, size := utf8.DecodeRuneInString(str[i:])
+			i += size
+			buf.WriteRune(r)
+		} else if strings.HasPrefix(str[i:], delim) {
+			i += len(delim)
+			vals = append(vals, strings.TrimSpace(buf.String()))
+			buf.Reset()
 		} else {
-			if runes[idx] == '\\' {
-				escape = true
-			} else if strings.HasPrefix(string(runes[idx:]), delim) {
-				idx += len(delim) - 1
-				vals = append(vals, strings.TrimSpace(buf.String()))
-				buf.Reset()
-			} else {
-				buf.WriteRune(runes[idx])
-			}
+			r, size := utf8.DecodeRuneInString(str[i:])
+			i += size
+			buf.WriteRune(r)
 		}
-		idx++
-		if idx == len(runes) {
+
+		if i >= len(str) {
 			break
 		}
 	}
@@ -833,5 +878,8 @@ func (k *Key) SetValue(v string) {
 	}
 
 	k.value = v
-	k.s.keysHash[k.name] = v
+	// The Key Section.Key returns for an empty name isn't in the section.
+	if k.name != "" {
+		k.s.keysHash[k.name] = v
+	}
 }
